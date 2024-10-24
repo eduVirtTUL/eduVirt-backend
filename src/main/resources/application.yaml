@@ -11,3 +11,5 @@ spring:
   h2:
     console:
       enabled: true
+  config:
+    import: optional:classpath:ovirt.yaml
