@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.builders.NicBuilder;
 import org.ovirt.engine.sdk4.internal.containers.NicContainer;
+import org.ovirt.engine.sdk4.internal.containers.VnicProfileContainer;
 import org.ovirt.engine.sdk4.services.VmService;
 import org.ovirt.engine.sdk4.services.VmsService;
 import org.ovirt.engine.sdk4.types.Nic;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -154,50 +156,49 @@ public class oVirtApiStartupModuleT3st {
     }
 
     // Odpięcie Vnic profilu od maszyny wirtualnej
-    //TODO
-//    @Test
-//    void testDetachVMVnicProfile() {
-//        try (Connection connection = connectionFactory.getConnection()) {
-//            VmsService vmsService = connection.systemService().vmsService();
-//            VmService.GetRequest vmGetReq = vmsService
-//                    .vmService("4181e5f8-7cc6-4021-a653-b7c59f5ef16e")
-//                    .get()
-//                    .follow("nics");
-//
-//            // Print info before update
-//            {
-//                Vm vmBefore = vmGetReq
-//                        .send()
-//                        .vm();
-//                System.out.printf("VM: %36s - %20s ~ %s%n",
-//                        vmBefore.id(), vmBefore.name(),
-//                        String.join(", ", vmBefore.nics().stream().map(nic -> nic.id() + " " + nic.vnicProfile().id()).toList()));
-//
-//                Nic wantedNic = vmBefore.nics().stream().filter(nic -> nic.name().equals("nic3")).findFirst().get();
-//                ((NicContainer) wantedNic).vnicProfile(null);
-//
-//                var vmUpdateNicReq = vmsService
-//                        .vmService("4181e5f8-7cc6-4021-a653-b7c59f5ef16e")
-//                        .nicsService()
-//                        .nicService(wantedNic.id())
-//                        .update()
-//                        .nic(wantedNic)
-//                        .send();
-//            }
-//
-//            // Print info after update
-//            {
-//                Vm vmAfter = vmGetReq
-//                        .send()
-//                        .vm();
-//                System.out.printf("VM: %36s - %20s ~ %s%n",
-//                        vmAfter.id(), vmAfter.name(),
-//                        String.join(", ", vmAfter.nics().stream().map(nic -> nic.id() + " " + nic.vnicProfile().id()).toList()));
-//            }
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    @Test
+    void testDetachVMVnicProfile() {
+        try (Connection connection = connectionFactory.getConnection()) {
+            VmsService vmsService = connection.systemService().vmsService();
+            VmService.GetRequest vmGetReq = vmsService
+                    .vmService("4181e5f8-7cc6-4021-a653-b7c59f5ef16e")
+                    .get()
+                    .follow("nics");
+
+            // Print info before update
+            {
+                Vm vmBefore = vmGetReq
+                        .send()
+                        .vm();
+                System.out.printf("VM: %36s - %20s ~ %s%n",
+                        vmBefore.id(), vmBefore.name(),
+                        String.join(", ", vmBefore.nics().stream().map(nic -> nic.id() + " " + nic.vnicProfile().id()).toList()));
+
+                Nic wantedNic = vmBefore.nics().stream().filter(nic -> nic.name().equals("nic3")).findFirst().get();
+                ((NicContainer) wantedNic).vnicProfile(new VnicProfileContainer());
+
+                var vmUpdateNicReq = vmsService
+                        .vmService("4181e5f8-7cc6-4021-a653-b7c59f5ef16e")
+                        .nicsService()
+                        .nicService(wantedNic.id())
+                        .update()
+                        .nic(wantedNic)
+                        .send();
+            }
+
+            // Print info after update
+            {
+                Vm vmAfter = vmGetReq
+                        .send()
+                        .vm();
+                System.out.printf("VM: %36s - %20s ~ %s%n",
+                        vmAfter.id(), vmAfter.name(),
+                        String.join(", ", vmAfter.nics().stream().map(nic -> nic.id() + " " + Optional.ofNullable(nic.vnicProfile()).map(VnicProfile::id).orElse(null)).toList()));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     // Dodanie interfejsu sieciowego maszynie wirtualnej
     @Test
