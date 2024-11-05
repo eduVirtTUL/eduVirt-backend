@@ -1,9 +1,10 @@
 package pl.lodz.p.it.eduvirt.dto;
 
-public record NetworkDto(
+public record DataCenterDto(
         String id,
         String name,
         String description,
         String comment,
-        String status
+        String status,
+        String compatibilityVersion
 ) {}

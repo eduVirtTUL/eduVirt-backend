@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.VmDto;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
@@ -13,6 +14,7 @@ import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 import java.util.stream.Stream;
 
 @RestController
+@LoggerInterceptor
 @RequestMapping("/resources/vms")
 @RequiredArgsConstructor
 public class VmController {

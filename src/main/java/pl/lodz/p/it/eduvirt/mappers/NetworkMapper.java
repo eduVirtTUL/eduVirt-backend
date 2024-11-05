@@ -10,6 +10,8 @@ public interface NetworkMapper {
 
     @Mapping(target = "id", expression = "java(network.id())")
     @Mapping(target = "name", expression = "java(network.name())")
+    @Mapping(target = "description", expression = "java(network.description())")
+    @Mapping(target = "comment", expression = "java(network.comment())")
     @Mapping(target = "status", expression = "java(network.status().value())")
     NetworkDto ovirtNetworkToDto(Network network);
 }

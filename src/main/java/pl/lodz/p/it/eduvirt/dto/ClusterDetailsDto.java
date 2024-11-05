@@ -4,5 +4,9 @@ public record ClusterDetailsDto(
         String id,
         String name,
         String description,
-        String comment
+        String comment,
+        String clusterCpuType,
+        String compatibilityVersion,
+        Boolean useThreadsAsCpus,
+        String maxMemoryOverCommit
 ) {}
