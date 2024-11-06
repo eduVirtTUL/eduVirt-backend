@@ -1,4 +1,5 @@
 spring:
+  host: ${HOST}
   application:
     name: eduVirt
   datasource:
@@ -15,6 +16,18 @@ spring:
     import: optional:classpath:ovirt.yaml,optional:classpath:postgres-db.yaml
   profiles:
     active: @spring.profiles.active@
+
+
+auth:
+  secret-key: ${AUTH_SECRET_KEY}
+  expiration-hours: ${AUTH_EXPIRATION_HOURS}
+  keycloack:
+    tokenUri: ${KEYCLOAK_TOKEN_URI}
+    url: ${KEYCLOAK_URL}
+    clientId: ${KEYCLOAK_CLIENT_ID}
+    clientSecret: ${KEYCLOAK_CLIENT_SECRET}
+    redirectUri: ${KEYCLOAK_REDIRECT_URI}
+
 
 
 
