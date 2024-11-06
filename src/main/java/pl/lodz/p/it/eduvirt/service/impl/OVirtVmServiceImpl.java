@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-public class VmServiceImpl implements OVirtVmService {
+public class OVirtVmServiceImpl implements OVirtVmService {
 
     private final ConnectionFactory connectionFactory;
 

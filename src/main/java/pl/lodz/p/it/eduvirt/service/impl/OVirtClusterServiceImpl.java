@@ -17,7 +17,7 @@ import java.util.UUID;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-public class ClusterServiceImpl implements OVirtClusterService {
+public class OVirtClusterServiceImpl implements OVirtClusterService {
 
     private final ConnectionFactory connectionFactory;
 
