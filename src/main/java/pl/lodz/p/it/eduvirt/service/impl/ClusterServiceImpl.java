@@ -2,12 +2,12 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
-import org.ovirt.engine.sdk4.services.*;
 import org.ovirt.engine.sdk4.types.*;
+import org.ovirt.engine.sdk4.services.*;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
-import pl.lodz.p.it.eduvirt.service.IClusterService;
+import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 import pl.lodz.p.it.eduvirt.util.connection.PaginationUtil;
 
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-public class ClusterServiceImpl implements IClusterService {
+public class ClusterServiceImpl implements OVirtClusterService {
 
     private final ConnectionFactory connectionFactory;
 
@@ -27,7 +27,8 @@ public class ClusterServiceImpl implements IClusterService {
             Connection connection = connectionFactory.getConnection();
             SystemService systemService = connection.systemService();
 
-            ClusterService clusterService = systemService.clustersService().clusterService(clusterId.toString());
+            org.ovirt.engine.sdk4.services.ClusterService clusterService = systemService.clustersService().
+                    clusterService(clusterId.toString());
 
             return clusterService.get().send().cluster();
         } catch (org.ovirt.engine.sdk4.Error error) {
@@ -84,7 +85,7 @@ public class ClusterServiceImpl implements IClusterService {
     }
 
     @Override
-    public Integer findHostCountInCluster(Cluster cluster) {
+    public int findHostCountInCluster(Cluster cluster) {
         Connection connection = connectionFactory.getConnection();
         SystemService systemService = connection.systemService();
 
@@ -93,7 +94,7 @@ public class ClusterServiceImpl implements IClusterService {
     }
 
     @Override
-    public Integer findVmCountInCluster(Cluster cluster) {
+    public int findVmCountInCluster(Cluster cluster) {
         Connection connection = connectionFactory.getConnection();
         SystemService systemService = connection.systemService();
 

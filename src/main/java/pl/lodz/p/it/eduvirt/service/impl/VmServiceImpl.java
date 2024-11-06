@@ -6,7 +6,7 @@ import org.ovirt.engine.sdk4.types.Statistic;
 import org.ovirt.engine.sdk4.types.Vm;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.service.IVmService;
+import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-public class VmServiceImpl implements IVmService {
+public class VmServiceImpl implements OVirtVmService {
 
     private final ConnectionFactory connectionFactory;
 

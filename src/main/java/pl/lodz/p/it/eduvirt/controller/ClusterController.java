@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.*;
 import pl.lodz.p.it.eduvirt.mappers.*;
-import pl.lodz.p.it.eduvirt.service.IClusterService;
-import pl.lodz.p.it.eduvirt.service.IVmService;
+import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
+import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.util.connection.StatisticsUtil;
 
 import java.math.BigDecimal;
@@ -30,8 +30,8 @@ public class ClusterController {
     private final EventMapper eventMapper;
     private final VmMapper vmMapper;
 
-    private final IClusterService clusterService;
-    private final IVmService vmService;
+    private final OVirtClusterService clusterService;
+    private final OVirtVmService vmService;
 
     // Read methods
 

@@ -5,7 +5,7 @@ import org.ovirt.engine.sdk4.types.Vm;
 
 import java.util.List;
 
-public interface IVmService {
+public interface OVirtVmService {
 
     List<Statistic> findStatisticsByVm(Vm vm);
 }
