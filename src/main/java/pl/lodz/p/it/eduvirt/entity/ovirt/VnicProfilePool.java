@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.entity.network;
+package pl.lodz.p.it.eduvirt.entity.ovirt;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

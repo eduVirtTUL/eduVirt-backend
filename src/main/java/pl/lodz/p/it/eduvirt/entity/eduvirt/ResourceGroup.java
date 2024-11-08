@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.entity;
+package pl.lodz.p.it.eduvirt.entity.eduvirt;
 
 import jakarta.persistence.*;
 import lombok.*;

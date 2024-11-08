@@ -1,6 +1,6 @@
 package pl.lodz.p.it.eduvirt.dto;
 
-import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePool;
+import pl.lodz.p.it.eduvirt.entity.ovirt.VnicProfilePool;
 
 import java.util.Optional;
 

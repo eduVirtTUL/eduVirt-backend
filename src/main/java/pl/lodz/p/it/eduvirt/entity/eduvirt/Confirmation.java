@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.entity;
+package pl.lodz.p.it.eduvirt.entity.eduvirt;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,7 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.Reservation;
 
 import java.time.LocalDateTime;
 

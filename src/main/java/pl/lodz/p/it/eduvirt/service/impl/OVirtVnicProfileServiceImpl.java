@@ -2,20 +2,18 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
-import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.VnicProfileDto;
 import pl.lodz.p.it.eduvirt.dto.VnicProfilePoolDto;
-import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePool;
+import pl.lodz.p.it.eduvirt.entity.ovirt.VnicProfilePool;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
-import pl.lodz.p.it.eduvirt.repository.VnicProfileRepository;
+import pl.lodz.p.it.eduvirt.repository.ovirt.VnicProfileRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service

@@ -1,11 +1,11 @@
-package pl.lodz.p.it.eduvirt.entity.reservation;
+package pl.lodz.p.it.eduvirt.entity.eduvirt.reservation;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.lodz.p.it.eduvirt.entity.general.Metric;
-import pl.lodz.p.it.eduvirt.entity.reservation.keys.ClusterMetricKey;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.general.Metric;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.keys.ClusterMetricKey;
 
 import java.util.UUID;
 

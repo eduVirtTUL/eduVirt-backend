@@ -1,10 +1,9 @@
-package pl.lodz.p.it.eduvirt.entity.reservation.keys;
+package pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.keys;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import pl.lodz.p.it.eduvirt.entity.general.Metric;
 
 import java.util.UUID;
 
@@ -12,8 +11,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class ClusterMetricKey {
+public class ClusterNetworkKey {
 
     private UUID clusterId;
-    private Metric metric;
+    private UUID networkId;
 }

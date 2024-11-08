@@ -2,11 +2,6 @@ spring:
   host: ${HOST}
   application:
     name: eduVirt
-  datasource:
-    driver-class-name: ${DB_DRIVER_CLASS}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    url: ${DB_URL}
   jpa:
     open-in-view: false
   h2:
@@ -17,6 +12,14 @@ spring:
   profiles:
     active: @spring.profiles.active@
 
+jdbc:
+  eduvirt:
+    driver-class-name: ${DB_DRIVER_CLASS}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    jdbcUrl: ${DB_URL}
+#    maximum-pool-size: 5
+#    maxWaitMillis: 40000
 
 auth:
   secret-key: ${AUTH_SECRET_KEY}
@@ -27,7 +30,3 @@ auth:
     clientId: ${KEYCLOAK_CLIENT_ID}
     clientSecret: ${KEYCLOAK_CLIENT_SECRET}
     redirectUri: ${KEYCLOAK_REDIRECT_URI}
-
-
-
-

@@ -1,10 +1,10 @@
-package pl.lodz.p.it.eduvirt.entity.reservation;
+package pl.lodz.p.it.eduvirt.entity.eduvirt.reservation;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.lodz.p.it.eduvirt.entity.reservation.keys.ReservationLogKey;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.keys.ReservationLogKey;
 
 import java.util.UUID;
 

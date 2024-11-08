@@ -1,9 +1,9 @@
-package pl.lodz.p.it.eduvirt.entity.reservation;
+package pl.lodz.p.it.eduvirt.entity.eduvirt.reservation;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import pl.lodz.p.it.eduvirt.entity.reservation.keys.ClusterNetworkKey;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.keys.ClusterNetworkKey;
 
 import java.util.UUID;
 
