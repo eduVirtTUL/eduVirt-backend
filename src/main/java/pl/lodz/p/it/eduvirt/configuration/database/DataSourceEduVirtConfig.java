@@ -6,6 +6,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -14,33 +15,37 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 import java.util.Objects;
+import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        basePackages = {"pl.lodz.p.it.eduvirt.repository.eduvirt"},
+        basePackages = "pl.lodz.p.it.eduvirt.repository.eduvirt",
         entityManagerFactoryRef = "eduVirtEntityManagerFactory",
         transactionManagerRef = "eduVirtTransactionManager"
 )
 public class DataSourceEduVirtConfig {
 
+    @Primary
     @Bean(name = "eduVirtDataSource")
     @ConfigurationProperties(prefix = "jdbc.eduvirt")
     public DataSource eduVirtDataSource() {
         return DataSourceBuilder.create().build();
     }
 
+    @Primary //todo idk it is necessery here?
     @Bean(name = "eduVirtEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean eduVirtEntityManagerFactory(EntityManagerFactoryBuilder builder,
-                                                                              final @Qualifier("eduVirtDataSource") DataSource dataSource) {
+                                                                              final @Qualifier("eduVirtDataSource") DataSource dataSource,
+                                                                              HibernateProperties properties) {
         return builder
                 .dataSource(dataSource)
-                .packages(
-                        "pl.lodz.p.it.eduvirt.entity.eduvirt"
-                )
+                .packages("pl.lodz.p.it.eduvirt.entity.eduvirt")
+                .properties(properties.hibernateProperties())
                 .build();
     }
 
+    @Primary //todo idk it is necessery here?
     @Bean(name = "eduVirtTransactionManager")
     public PlatformTransactionManager eduVirtTransactionManager(
             final @Qualifier("eduVirtEntityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactory) {

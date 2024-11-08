@@ -37,4 +37,6 @@ build/
 
 ovirt.yaml
 postgres-db.yaml
+eduvirt-db.yaml
+ovirt-db.yaml
 h2-db.yaml

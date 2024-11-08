@@ -8,16 +8,23 @@ spring:
     console:
       enabled: true
   config:
-    import: optional:classpath:ovirt.yaml,optional:classpath:postgres-db.yaml
+    import: optional:classpath:ovirt.yaml,optional:classpath:eduvirt-db.yaml,optional:classpath:ovirt-db.yaml
   profiles:
     active: @spring.profiles.active@
 
 jdbc:
   eduvirt:
-    driver-class-name: ${DB_DRIVER_CLASS}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    jdbcUrl: ${DB_URL}
+    driver-class-name: ${EDUVIRT_DB_DRIVER_CLASS}
+    username: ${EDUVIRT_DB_USERNAME}
+    password: ${EDUVIRT_DB_PASSWORD}
+    jdbcUrl: ${EDUVIRT_DB_URL}
+#    maximum-pool-size: 5
+#    maxWaitMillis: 40000
+  ovirt:
+    driver-class-name: ${OVIRT_DB_DRIVER_CLASS}
+    username: ${OVIRT_DB_USERNAME}
+    password: ${OVIRT_DB_PASSWORD}
+    jdbcUrl: ${OVIRT_DB_URL}
 #    maximum-pool-size: 5
 #    maxWaitMillis: 40000
 
