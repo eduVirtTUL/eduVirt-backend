@@ -32,7 +32,7 @@ public class DataSourceEduVirtConfig {
         return DataSourceBuilder.create().build();
     }
 
-    @Primary //todo idk it is necessery here?
+    @Primary
     @Bean(name = "eduVirtEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean eduVirtEntityManagerFactory(EntityManagerFactoryBuilder builder,
                                                                               final @Qualifier("eduVirtDataSource") DataSource dataSource) {
@@ -42,7 +42,7 @@ public class DataSourceEduVirtConfig {
                 .build();
     }
 
-    @Primary //todo idk it is necessery here?
+    @Primary
     @Bean(name = "eduVirtTransactionManager")
     public PlatformTransactionManager eduVirtTransactionManager(
             final @Qualifier("eduVirtEntityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactory) {
