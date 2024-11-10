@@ -7,9 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.VnicProfileDto;
 import pl.lodz.p.it.eduvirt.dto.VnicProfilePoolDto;
-import pl.lodz.p.it.eduvirt.entity.ovirt.VnicProfilePool;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePool;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
-import pl.lodz.p.it.eduvirt.repository.ovirt.VnicProfileRepository;
+import pl.lodz.p.it.eduvirt.repository.eduvirt.VnicProfileRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
