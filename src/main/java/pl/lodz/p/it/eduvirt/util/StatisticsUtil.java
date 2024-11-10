@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.util.connection;
+package pl.lodz.p.it.eduvirt.util;
 
 import org.ovirt.engine.sdk4.types.Statistic;
 import org.ovirt.engine.sdk4.types.Value;

@@ -5,6 +5,7 @@ import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.ConnectionBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import pl.lodz.p.it.eduvirt.exceptions.OpeningConnectionException;
 
 @Slf4j
 @Component

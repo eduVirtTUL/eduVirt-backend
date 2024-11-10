@@ -12,7 +12,7 @@ import pl.lodz.p.it.eduvirt.dto.*;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
-import pl.lodz.p.it.eduvirt.util.connection.StatisticsUtil;
+import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 
 import java.math.BigDecimal;
 import java.util.*;

@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.util.connection;
+package pl.lodz.p.it.eduvirt.util;
 
 import lombok.NonNull;
 

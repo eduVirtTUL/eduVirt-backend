@@ -4,11 +4,6 @@ spring:
     name: eduVirt
   jpa:
     open-in-view: false
-  h2:
-    console:
-      enabled: true
-  config:
-    import: optional:classpath:ovirt.yaml,optional:classpath:eduvirt-db.yaml,optional:classpath:ovirt-db.yaml
   profiles:
     active: @spring.profiles.active@
 
@@ -18,16 +13,25 @@ jdbc:
     username: ${EDUVIRT_DB_USERNAME}
     password: ${EDUVIRT_DB_PASSWORD}
     jdbcUrl: ${EDUVIRT_DB_URL}
-#    maximum-pool-size: 5
-#    maxWaitMillis: 40000
+    maximum-pool-size: ${EDUVIRT_DB_MAX_POOL_SIZE}
+    maxWaitMillis: ${EDUVIRT_DB_MAX_LIFETIME}
   ovirt:
     driver-class-name: ${OVIRT_DB_DRIVER_CLASS}
     username: ${OVIRT_DB_USERNAME}
     password: ${OVIRT_DB_PASSWORD}
     jdbcUrl: ${OVIRT_DB_URL}
     readOnly: true
-#    maximum-pool-size: 5
-#    maxWaitMillis: 40000
+    maximum-pool-size: ${OVIRT_DB_MAX_POOL_SIZE}
+    maxWaitMillis: ${OVIRT_DB_MAX_LIFETIME}
+
+ovirt:
+  engine:
+    url: ${ENGINE_URL}
+    username: ${ENGINE_USERNAME}
+    password: ${ENGINE_PASSWORD}
+    jks:
+      file: ${JKS_FILE}
+      password: ${JKS_PASSWORD}
 
 auth:
   secret-key: ${AUTH_SECRET_KEY}

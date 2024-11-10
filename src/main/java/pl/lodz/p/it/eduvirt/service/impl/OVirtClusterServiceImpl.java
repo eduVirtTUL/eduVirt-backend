@@ -9,7 +9,7 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
-import pl.lodz.p.it.eduvirt.util.connection.PaginationUtil;
+import pl.lodz.p.it.eduvirt.util.PaginationUtil;
 
 import java.util.List;
 import java.util.UUID;
