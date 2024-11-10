@@ -25,6 +25,7 @@ jdbc:
     username: ${OVIRT_DB_USERNAME}
     password: ${OVIRT_DB_PASSWORD}
     jdbcUrl: ${OVIRT_DB_URL}
+    readOnly: true
 #    maximum-pool-size: 5
 #    maxWaitMillis: 40000
 
