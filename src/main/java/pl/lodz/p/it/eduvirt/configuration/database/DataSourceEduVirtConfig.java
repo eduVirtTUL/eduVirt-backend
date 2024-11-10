@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 import java.util.Objects;
-import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement
@@ -36,12 +35,10 @@ public class DataSourceEduVirtConfig {
     @Primary //todo idk it is necessery here?
     @Bean(name = "eduVirtEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean eduVirtEntityManagerFactory(EntityManagerFactoryBuilder builder,
-                                                                              final @Qualifier("eduVirtDataSource") DataSource dataSource,
-                                                                              HibernateProperties properties) {
+                                                                              final @Qualifier("eduVirtDataSource") DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
                 .packages("pl.lodz.p.it.eduvirt.entity.eduvirt")
-                .properties(properties.hibernateProperties())
                 .build();
     }
 

@@ -4,13 +4,14 @@ spring:
     init:
       mode: always
   jpa:
-    show-sql: true
     defer-datasource-initialization: true
-    hibernate:
-      ddl-auto: create-drop
     properties:
       hibernate:
+        hbm2ddl:
+          auto: create-drop
+        show_sql: true
         format_sql: true
+
 
 
 auth:

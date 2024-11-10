@@ -1,0 +1,22 @@
+services:
+  db-eduvirt:
+    image: postgres:16.4-alpine
+    container_name: postgres-eduvirt
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: sa
+      POSTGRES_PASSWORD: p@ssw0rd
+    ports:
+      - "5432:5432"
+  db-ovirt:
+    container_name: postgres-ovirt
+    image: postgres:16.3
+    restart: no
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_USER: engine
+      POSTGRES_DB: engine
+    volumes:
+      - ./sql_scripts:/docker-entrypoint-initdb.d/
+    ports:
+      - "5433:5432"

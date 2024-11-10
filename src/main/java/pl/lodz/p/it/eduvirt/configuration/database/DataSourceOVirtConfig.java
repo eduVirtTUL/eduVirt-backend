@@ -32,12 +32,10 @@ public class DataSourceOVirtConfig {
 
     @Bean(name = "oVirtEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean oVirtEntityManagerFactory(EntityManagerFactoryBuilder builder,
-                                                                            final @Qualifier("oVirtDataSource") DataSource dataSource,
-                                                                            HibernateProperties properties) {
+                                                                            final @Qualifier("oVirtDataSource") DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
                 .packages("pl.lodz.p.it.eduvirt.entity.ovirt")
-                .properties(properties.hibernateProperties())
                 .build();
     }
 
