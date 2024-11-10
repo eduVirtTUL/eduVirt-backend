@@ -1,12 +1,10 @@
 package pl.lodz.p.it.eduvirt.entity.eduvirt;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,6 +22,13 @@ public class Course extends AbstractEntity {
     private String description;
     @OneToMany
     private List<ResourceGroupPool> resourceGroupPools;
+    @ManyToMany
+    @JoinTable(
+            name = "i72_course_team_map",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns = @JoinColumn(name = "team_id")
+    )
+    private List<Team> teams = new ArrayList<>();
 
     @Override
     public final boolean equals(Object o) {
