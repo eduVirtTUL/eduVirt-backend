@@ -26,6 +26,9 @@ public class ResourceGroupPool extends HistoricalData {
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResourceGroup> resourceGroups = new ArrayList<>();
 
+    @ManyToOne
+    private Course course;
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;

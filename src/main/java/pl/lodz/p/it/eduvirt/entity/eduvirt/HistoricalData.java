@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @MappedSuperclass
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 public class HistoricalData extends Updatable {
 
@@ -39,7 +40,7 @@ public class HistoricalData extends Updatable {
     @PrePersist
     public void changeCreateData() {
         //TODO: Change it later, when authentication is implemented (to put user's id in the context as well)
-        this.createdBy = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        this.createdBy = UUID.fromString((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         this.createdAt = LocalDateTime.now();
     }
 
