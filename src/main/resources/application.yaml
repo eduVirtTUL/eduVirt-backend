@@ -11,10 +11,13 @@ spring:
     port: ${MAIL_PORT}
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
-    sender: ${MAIL_SENDER:${spring.mail.username}}
+    sender: ${MAIL_SENDER}
+    protocol: ${MAIL_PROTOCOL}
     properties:
       "mail.smtp.auth": ${MAIL_PROPERTIES_ENABLE_AUTH}
-      "mail.smtp.starttls.enable": ${MAIL_PROPERTIES_ENABLE_TLS}
+      "mail.smtp.starttls.enable": ${MAIL_PROPERTIES_STARTTLS}
+      "mail.smtp.ssl.enable": ${MAIL_PROPERTIES_SSL_ENABLE}
+      "mail.smtp.ssl.trust": ${MAIL_PROPERTIES_SSL_TRUST}
 
 jdbc:
   eduvirt:

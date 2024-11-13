@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
+import java.util.Objects;
 import java.util.Properties;
 
 @Configuration
@@ -58,7 +59,9 @@ public class MailConfig {
 
         // Normally only for port 465
         props.put("mail.smtp.ssl.enable", useSslEnable);
-        props.put("mail.smtp.ssl.trust", sslTrust);
+        if (Objects.nonNull(useSslEnable) && useSslEnable.equals("true")) {
+            props.put("mail.smtp.ssl.trust", sslTrust);
+        }
 
         return mailSender;
     }
