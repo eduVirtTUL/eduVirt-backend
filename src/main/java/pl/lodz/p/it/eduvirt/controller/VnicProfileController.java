@@ -40,7 +40,7 @@ public class VnicProfileController {
     }
 
     @PostMapping(path = "/eduvirt/add-to-pool/{vnicProfileId}")
-    public ResponseEntity<?> getVnicProfilesPool(@PathVariable("vnicProfileId") String vnicProfileId) {
+    public ResponseEntity<?> addVnicProfileToPool(@PathVariable("vnicProfileId") String vnicProfileId) {
         //todo: handle mapping exception
         boolean success = vnicProfileService.expandVnicProfilePool(UUID.fromString(vnicProfileId));
 

@@ -10,3 +10,6 @@ spring:
           auto: validate
         show-sql: false
         format_sql: false
+  mail:
+    properties:
+      "mail.debug": false

@@ -6,6 +6,15 @@ spring:
     open-in-view: false
   profiles:
     active: @spring.profiles.active@
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    sender: ${MAIL_SENDER:${spring.mail.username}}
+    properties:
+      "mail.smtp.auth": ${MAIL_PROPERTIES_ENABLE_AUTH}
+      "mail.smtp.starttls.enable": ${MAIL_PROPERTIES_ENABLE_TLS}
 
 jdbc:
   eduvirt:
