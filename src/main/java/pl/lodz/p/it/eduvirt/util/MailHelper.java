@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -27,15 +26,4 @@ public class MailHelper {
         mailSender.send(message);
     }
 
-    public void sendMimeMail(String to, String subject, String htmlMailContent) throws MessagingException {
-        MimeMessage mimeMessage = mailSender.createMimeMessage();
-//        mimeMessage.setHeader("Content-Type", "text/plain; charset=\"utf-8\"");
-        MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-
-        messageHelper.setFrom(fromAddress);
-        messageHelper.setTo(to);
-        messageHelper.setSubject(subject);
-        messageHelper.setText(htmlMailContent, true);
-        mailSender.send(mimeMessage);
-    }
 }
