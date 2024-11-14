@@ -14,7 +14,6 @@ import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.Course;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroupPool;
-import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
@@ -43,7 +42,7 @@ public class CourseController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = CourseDto.class))}),
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})})
-    public ResponseEntity<CourseDto> getCourse(@PathVariable UUID id) throws ClusterNotFoundException {
+    public ResponseEntity<CourseDto> getCourse(@PathVariable UUID id) {
         var course = courseService.getCourse(id);
 
         return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
@@ -51,7 +50,7 @@ public class CourseController {
 
     @PostMapping
     public ResponseEntity<CourseDto> addCourse(@RequestBody CreateCourseDto createCourseDto) {
-        Course course = courseService.addCourse(courseMapper.crouseCreateDtoToCourse(createCourseDto));
+        Course course = courseService.addCourse(courseMapper.courseCreateDtoToCourse(createCourseDto));
 
         return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
     }

@@ -13,6 +13,6 @@ public interface CourseMapper {
     CourseDto courseToCourseDto(Course course);
     List<CourseDto> toCourseDtoList(Stream<Course> courses);
 
-    Course crouseCreateDtoToCourse(CreateCourseDto createCourseDto);
+    Course courseCreateDtoToCourse(CreateCourseDto createCourseDto);
 
 }
