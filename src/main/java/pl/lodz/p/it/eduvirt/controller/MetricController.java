@@ -25,13 +25,13 @@ public class MetricController {
     private final MetricMapper metricMapper;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createNewMetric(@RequestBody CreateMetricDto createDto) {
+    public ResponseEntity<Void> createNewMetric(@RequestBody CreateMetricDto createDto) {
         metricService.createNewMetric(createDto.name());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getAllMetrics(@RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+    public ResponseEntity<PageDto<MetricDto>> getAllMetrics(@RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
                                     @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
         Page<Metric> metricPage = metricService.findAllMetrics(pageNumber, pageSize);
         PageDto<MetricDto> listOfDTOs = new PageDto<>(
@@ -45,7 +45,7 @@ public class MetricController {
     }
 
     @DeleteMapping(path = "/{metricId}")
-    public ResponseEntity<?> deleteMetric(@PathVariable UUID metricId) {
+    public ResponseEntity<Void> deleteMetric(@PathVariable UUID metricId) {
         metricService.deleteMetric(metricId);
         return ResponseEntity.noContent().build();
     }

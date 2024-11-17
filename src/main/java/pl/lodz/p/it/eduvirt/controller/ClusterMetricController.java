@@ -28,16 +28,16 @@ public class ClusterMetricController {
     private final ClusterMetricMapper clusterMetricMapper;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createMetricValue(@PathVariable("clusterId") UUID clusterId,
+    public ResponseEntity<Void> createMetricValue(@PathVariable("clusterId") UUID clusterId,
                                                @RequestBody CreateMetricValueDto createDto) {
         clusterMetricService.createNewValueForMetric(clusterId, createDto.metricId(), createDto.value());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getAllMetricValues(@RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-                                                @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
-                                                @PathVariable("clusterId") UUID clusterId) {
+    public ResponseEntity<PageDto<MetricValueDto>> getAllMetricValues(@RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+                                                                      @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
+                                                                      @PathVariable("clusterId") UUID clusterId) {
         try {
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
             Page<ClusterMetric> clusterMetricPage = clusterMetricService.findAllMetricValuesForCluster(clusterId, pageable);
@@ -56,7 +56,7 @@ public class ClusterMetricController {
     }
 
     @PatchMapping(path = "/{metricId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> updateMetricValue(@PathVariable("clusterId") UUID clusterId,
+    public ResponseEntity<MetricValueDto> updateMetricValue(@PathVariable("clusterId") UUID clusterId,
                                                @PathVariable("metricId") UUID metricId,
                                                @RequestBody ValueDto valueDto) {
         ClusterMetric updatedMetric = clusterMetricService.updateMetricValue(clusterId, metricId, valueDto.value());
@@ -65,7 +65,7 @@ public class ClusterMetricController {
     }
 
     @DeleteMapping(path = "/{metricId}")
-    public ResponseEntity<?> deleteMetric(@PathVariable("clusterId") UUID clusterId,
+    public ResponseEntity<Void> deleteMetric(@PathVariable("clusterId") UUID clusterId,
                                           @PathVariable("metricId") UUID metricId) {
         clusterMetricService.deleteMetricValue(clusterId, metricId);
         return ResponseEntity.noContent().build();
