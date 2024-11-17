@@ -1,5 +1,10 @@
 package pl.lodz.p.it.eduvirt.controller;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.OvirtVnicProfileDto;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfilePoolMemberDto;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
+import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 
@@ -27,6 +33,11 @@ public class VnicProfileController {
     private final VnicProfileMapper vnicProfileMapper;
 
     @GetMapping(path = "/ovirt", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = OvirtVnicProfileDto.class)))}),
+            @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
+            @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
+    )
     public ResponseEntity<List<OvirtVnicProfileDto>> showOvirtVnicProfiles() {
         List<OvirtVnicProfileDto> vnicProfileDtoList = vnicProfileService.fetchVnicProfiles();
 
@@ -35,6 +46,11 @@ public class VnicProfileController {
     }
 
     @GetMapping(path = "/eduvirt", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = VnicProfilePoolMemberDto.class)))}),
+            @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
+            @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
+    )
     public ResponseEntity<List<VnicProfilePoolMemberDto>> showVnicProfilesPool() {
         List<VnicProfilePoolMemberDto> vnicProfileDtoList = vnicProfileService.getVnicProfilesPool()
                 .stream()
@@ -46,6 +62,11 @@ public class VnicProfileController {
     }
 
     @PostMapping(path = "/eduvirt/add-to-pool/{vnicProfileId}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = VnicProfilePoolMemberDto.class))}),
+            @ApiResponse(responseCode = "409", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
+            @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
+    )
     public ResponseEntity<VnicProfilePoolMemberDto> extendVnicProfilesPool(@PathVariable("vnicProfileId") UUID vnicProfileId) {
         VnicProfilePoolMember vnicProfile = vnicProfileService.addVnicProfileToPool(vnicProfileId);
 
@@ -53,6 +74,11 @@ public class VnicProfileController {
     }
 
     @DeleteMapping(path = "/eduvirt/remove-from-pool/{vnicProfileId}")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
+            @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
+            @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
+    )
     public ResponseEntity<Void> reduceVnicProfilesPool(@PathVariable("vnicProfileId") UUID vnicProfileId) {
         vnicProfileService.removeVnicProfileFromPool(vnicProfileId);
 
