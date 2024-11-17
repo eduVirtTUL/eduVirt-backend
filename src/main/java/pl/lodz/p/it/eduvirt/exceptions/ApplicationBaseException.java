@@ -9,6 +9,10 @@ public class ApplicationBaseException extends RuntimeException {
         super(message);
     }
 
+    public ApplicationBaseException(Throwable cause) {
+        super(cause);
+    }
+
     public ApplicationBaseException(String message, Throwable cause) {
         super(message, cause);
     }

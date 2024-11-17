@@ -36,6 +36,7 @@ public class DataSourceOVirtConfig {
         return builder
                 .dataSource(dataSource)
                 .packages("pl.lodz.p.it.eduvirt.entity.ovirt")
+                .persistenceUnit("oVirtPU")
                 .build();
     }
 

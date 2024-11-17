@@ -26,7 +26,7 @@ public class ClusterMetric {
     private UUID clusterId;
 
     @Id
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(
             name = "metric_id",
             referencedColumnName = "id",
