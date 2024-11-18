@@ -15,13 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import pl.lodz.p.it.eduvirt.configuration.KeycloackConfig;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.User;
 import pl.lodz.p.it.eduvirt.model.OAuthResult;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.UserRepository;
-import pl.lodz.p.it.eduvirt.service.JwtService;
-import pl.lodz.p.it.eduvirt.util.JwtHelper;
-
-import java.util.UUID;
+import pl.lodz.p.it.eduvirt.service.AuthService;
 
 @Slf4j
 @Controller
@@ -30,8 +25,7 @@ import java.util.UUID;
 public class LoginController {
     private final RestClient restClient;
     private final KeycloackConfig keycloackConfig;
-    private final JwtService jwtService;
-    private final UserRepository userRepository;
+    private final AuthService authService;
 
     @GetMapping("/login")
     public void login(HttpServletResponse httpServletResponse) {
@@ -69,24 +63,7 @@ public class LoginController {
             return;
         }
 
-        String userId = JwtHelper.extractPayloadField(result.getBody().getAccessToken(), "sub");
-
-        if (userId == null) {
-            log.error("Error while logging in");
-            httpServletResponse.setStatus(500);
-            return;
-        }
-
-        UUID id = UUID.fromString(userId);
-
-
-        User user = userRepository.findById(id).orElseGet(() -> {
-            User newUser = new User(id);
-            return userRepository.save(newUser);
-        });
-
-        String token = jwtService.generateToken(user.getId());
-
+        String token = authService.loginWithExternalToken(result.getBody().getAccessToken());
 
         httpServletResponse.setHeader("Location", "http://localhost:5173/");
         Cookie cookie = new Cookie("access_token", token);

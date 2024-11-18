@@ -1,7 +1,9 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import java.util.UUID;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.User;
+
+import java.util.List;
 
 public interface JwtService {
-    String generateToken(UUID id);
+    String generateToken(User user, List<String> roles);
 }
