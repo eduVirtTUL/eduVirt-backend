@@ -14,13 +14,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pl.lodz.p.it.eduvirt.dto.vnic_profile.OvirtVnicProfileDto;
+import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfileDto;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfilePoolMemberDto;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,14 +33,34 @@ public class VnicProfileController {
     private final OVirtVnicProfileService vnicProfileService;
     private final VnicProfileMapper vnicProfileMapper;
 
-    @GetMapping(path = "/ovirt", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = OvirtVnicProfileDto.class)))}),
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = VnicProfileDto.class)))}),
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
-    public ResponseEntity<List<OvirtVnicProfileDto>> showOvirtVnicProfiles() {
-        List<OvirtVnicProfileDto> vnicProfileDtoList = vnicProfileService.fetchVnicProfiles();
+    public ResponseEntity<List<VnicProfileDto>> getSynchronizedVnicProfiles() {
+        List<VnicProfileDto> vnicProfileDtoList = new ArrayList<>();
+        vnicProfileService.getSynchronizedVnicProfiles()
+                .forEach((key, value) -> value.forEach(
+                        vnicProfile -> vnicProfileDtoList.add(vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, key))
+                ));
+
+
+        if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(vnicProfileDtoList);
+    }
+
+    @GetMapping(path = "/ovirt", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = VnicProfileDto.class)))}),
+            @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
+            @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
+    )
+    public ResponseEntity<List<VnicProfileDto>> getOvirtVnicProfiles() {
+        List<VnicProfileDto> vnicProfileDtoList = vnicProfileService.fetchOVirtVnicProfiles().stream()
+                .map(vnicProfile -> vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, null))
+                .toList();
 
         if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(vnicProfileDtoList);
@@ -51,7 +72,7 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
-    public ResponseEntity<List<VnicProfilePoolMemberDto>> showVnicProfilesPool() {
+    public ResponseEntity<List<VnicProfilePoolMemberDto>> getVnicProfilesPool() {
         List<VnicProfilePoolMemberDto> vnicProfileDtoList = vnicProfileService.getVnicProfilesPool()
                 .stream()
                 .map(vnicProfileMapper::vnicProfileToDto)

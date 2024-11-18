@@ -1,15 +1,18 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import pl.lodz.p.it.eduvirt.dto.vnic_profile.OvirtVnicProfileDto;
+import org.ovirt.engine.sdk4.types.VnicProfile;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /// todo think about splitting into OVirtVnicProfileService and EduVirtVnicProfileService
 public interface OVirtVnicProfileService {
 
-    List<OvirtVnicProfileDto> fetchVnicProfiles();
+    Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles();
+
+    List<VnicProfile> fetchOVirtVnicProfiles();
 
     List<VnicProfilePoolMember> getVnicProfilesPool();
 

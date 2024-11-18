@@ -1,9 +1,10 @@
 package pl.lodz.p.it.eduvirt.dto.vnic_profile;
 
-public record OvirtVnicProfileDto(
+public record VnicProfileDto(
         String id,
         String name,
         String networkId,
         String networkName,
-        String networkVlanId
+        String networkVlanId,
+        Boolean inPool
 ) {}

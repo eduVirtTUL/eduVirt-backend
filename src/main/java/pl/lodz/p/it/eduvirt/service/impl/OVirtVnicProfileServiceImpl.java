@@ -2,20 +2,21 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
+import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.dto.vnic_profile.OvirtVnicProfileDto;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.EntityAlreadyException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileEduvirtNotFoundException;
-import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
 import pl.lodz.p.it.eduvirt.repository.eduvirt.VnicProfileRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,22 +26,43 @@ import java.util.UUID;
 public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
 
     private final ConnectionFactory connectionFactory;
-    private final VnicProfileMapper vnicProfileMapper;
     private final VnicProfileRepository vnicProfileRepository;
 
     @Override
     @Transactional(propagation = Propagation.NEVER)
-    public List<OvirtVnicProfileDto> fetchVnicProfiles() {
+    public Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles() {
+        List<VnicProfile> vnicProfilesInPool = new ArrayList<>();
+        List<VnicProfile> vnicProfilesOutOfPool = new ArrayList<>();
+
+        List<VnicProfilePoolMember> vnicProfilePoolMembersInPool = getVnicProfilesPool();
+
+        fetchOVirtVnicProfiles().forEach(oVirtVnicProfile -> {
+                    boolean isInPool  = vnicProfilePoolMembersInPool.stream()
+                            .anyMatch(poolMember -> poolMember.getId().toString().equals(oVirtVnicProfile.id()));
+
+                    if (isInPool) vnicProfilesInPool.add(oVirtVnicProfile);
+                    else vnicProfilesOutOfPool.add(oVirtVnicProfile);
+                });
+
+        return Map.ofEntries(
+                Map.entry(true, vnicProfilesInPool),
+                Map.entry(false, vnicProfilesOutOfPool)
+        );
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NEVER)
+    public List<VnicProfile> fetchOVirtVnicProfiles() {
         try (Connection connection = connectionFactory.getConnection()) {
             return connection.systemService()
                     .vnicProfilesService()
                     .list()
                     .follow("network")
                     .send()
-                    .profiles()
-                    .stream()
-                    .map(vnicProfileMapper::ovirtVnicProfileToDto)
-                    .toList();
+                    .profiles();
+//                    .stream()
+//                    .map(vnicProfileMapper::ovirtVnicProfileToDto)
+//                    .toList();
         } catch (Exception e) {
             //todo: error handling
             throw new RuntimeException(e);
@@ -49,6 +71,8 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
 
     @Override
     public List<VnicProfilePoolMember> getVnicProfilesPool() {
+        //TODO to refactor to synchronizing with oVirt (and adding name do DTO, and maybe more props)
+
         return vnicProfileRepository.findAll();
     }
 
@@ -56,6 +80,8 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
     @Transactional
     public VnicProfilePoolMember addVnicProfileToPool(UUID vnicProfileId) {
         if (vnicProfileRepository.findById(vnicProfileId).isPresent()) throw new EntityAlreadyException(vnicProfileId.toString());
+
+        //TODO to refactor to synchronizing with oVirt
 
         return vnicProfileRepository.save(new VnicProfilePoolMember(vnicProfileId, false));
     }
