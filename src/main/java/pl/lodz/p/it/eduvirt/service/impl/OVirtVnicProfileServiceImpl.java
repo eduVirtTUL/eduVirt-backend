@@ -82,6 +82,7 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
         if (vnicProfileRepository.findById(vnicProfileId).isPresent()) throw new EntityAlreadyException(vnicProfileId.toString());
 
         //TODO to refactor to synchronizing with oVirt
+        //TODO add checking if network connected to vnic profile is unique in the pool
 
         return vnicProfileRepository.save(new VnicProfilePoolMember(vnicProfileId, false));
     }
