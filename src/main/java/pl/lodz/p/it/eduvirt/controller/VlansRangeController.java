@@ -12,12 +12,11 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.lodz.p.it.eduvirt.dto.vlans_range.CreateVlansRangeDto;
-import pl.lodz.p.it.eduvirt.dto.vlans_range.ResizeVlansRangeDto;
 import pl.lodz.p.it.eduvirt.dto.vlans_range.VlansRangeDto;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VlansRange;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
@@ -41,8 +40,8 @@ public class VlansRangeController {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
-    public ResponseEntity<List<VlansRangeDto>> getVlansRanges() {
-        List<VlansRangeDto> vlansRangeDtoList = vlansRangeService.getVlansRanges(true).stream()
+    public ResponseEntity<List<VlansRangeDto>> getVlansRanges(@RequestParam(name = "sorted", required = false, defaultValue = "true") boolean sorted) {
+        List<VlansRangeDto> vlansRangeDtoList = vlansRangeService.getVlansRanges(sorted).stream()
                 .map(vlansRangeMapper::vlansRangeToDto)
                 .toList();
 
