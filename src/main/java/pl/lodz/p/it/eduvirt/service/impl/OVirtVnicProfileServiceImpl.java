@@ -84,7 +84,7 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
         //TODO to refactor to synchronizing with oVirt
         //TODO add checking if network connected to vnic profile is unique in the pool
 
-        return vnicProfileRepository.save(new VnicProfilePoolMember(vnicProfileId, false));
+        return vnicProfileRepository.saveAndFlush(new VnicProfilePoolMember(vnicProfileId, false));
     }
 
     @Override
@@ -115,6 +115,6 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
 
         vnicProfile.setInUse(setInUser);
 
-        vnicProfileRepository.save(vnicProfile);
+        vnicProfileRepository.saveAndFlush(vnicProfile);
     }
 }

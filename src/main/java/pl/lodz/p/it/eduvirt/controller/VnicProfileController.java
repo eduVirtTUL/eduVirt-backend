@@ -82,7 +82,7 @@ public class VnicProfileController {
         return ResponseEntity.ok(vnicProfileDtoList);
     }
 
-    @PostMapping(path = "/eduvirt/add-to-pool/{vnicProfileId}")
+    @PostMapping(path = "/eduvirt/add-to-pool/{vnicProfileId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = VnicProfilePoolMemberDto.class))}),
             @ApiResponse(responseCode = "409", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),

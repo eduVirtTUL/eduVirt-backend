@@ -24,5 +24,4 @@ public interface OVirtVnicProfileService {
 
     void markVnicProfileAsFree(UUID vnicProfileId);
 
-    //todo add methods to handle CRUD for vlans range
 }
