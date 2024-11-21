@@ -10,6 +10,7 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.EntityAlreadyException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileEduvirtNotFoundException;
+import pl.lodz.p.it.eduvirt.repository.eduvirt.VlansRangeRepository;
 import pl.lodz.p.it.eduvirt.repository.eduvirt.VnicProfileRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
@@ -28,6 +29,8 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
     private final ConnectionFactory connectionFactory;
     private final VnicProfileRepository vnicProfileRepository;
 
+    private final VlansRangeRepository vlansRangeRepository;
+
     @Override
     @Transactional(propagation = Propagation.NEVER)
     public Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles() {
@@ -37,12 +40,22 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
         List<VnicProfilePoolMember> vnicProfilePoolMembersInPool = getVnicProfilesPool();
 
         fetchOVirtVnicProfiles().forEach(oVirtVnicProfile -> {
-                    boolean isInPool  = vnicProfilePoolMembersInPool.stream()
-                            .anyMatch(poolMember -> poolMember.getId().toString().equals(oVirtVnicProfile.id()));
+            int vlanId = Optional.ofNullable(oVirtVnicProfile.network().vlan())
+                    .map(v -> v.id().intValue())
+                    .orElse(-1);
 
-                    if (isInPool) vnicProfilesInPool.add(oVirtVnicProfile);
-                    else vnicProfilesOutOfPool.add(oVirtVnicProfile);
-                });
+            if (vlanId < 0 && vlansRangeRepository.findAll().stream().noneMatch(vlansRange ->
+                    vlansRange.getFrom() <= vlanId && vlansRange.getTo() >= vlanId)) {
+                return;
+            }
+
+            if (vnicProfilePoolMembersInPool.stream().anyMatch(poolMember ->
+                    poolMember.getId().toString().equals(oVirtVnicProfile.id()))) {
+                vnicProfilesInPool.add(oVirtVnicProfile);
+            } else {
+                vnicProfilesOutOfPool.add(oVirtVnicProfile);
+            }
+        });
 
         return Map.ofEntries(
                 Map.entry(true, vnicProfilesInPool),
@@ -53,6 +66,7 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
     @Override
     @Transactional(propagation = Propagation.NEVER)
     public List<VnicProfile> fetchOVirtVnicProfiles() {
+        // TODO maybe change it to fetching data from oVirt database rather then via API
         try (Connection connection = connectionFactory.getConnection()) {
             return connection.systemService()
                     .vnicProfilesService()
@@ -79,7 +93,8 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
     @Override
     @Transactional
     public VnicProfilePoolMember addVnicProfileToPool(UUID vnicProfileId) {
-        if (vnicProfileRepository.findById(vnicProfileId).isPresent()) throw new EntityAlreadyException(vnicProfileId.toString());
+        if (vnicProfileRepository.findById(vnicProfileId).isPresent())
+            throw new EntityAlreadyException(vnicProfileId.toString());
 
         //TODO to refactor to synchronizing with oVirt
         //TODO add checking if network connected to vnic profile is unique in the pool
@@ -90,7 +105,8 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
     @Override
     @Transactional
     public void removeVnicProfileFromPool(UUID vnicProfileId) {
-        if (vnicProfileRepository.findById(vnicProfileId).isEmpty()) throw new VnicProfileEduvirtNotFoundException(vnicProfileId.toString());
+        if (vnicProfileRepository.findById(vnicProfileId).isEmpty())
+            throw new VnicProfileEduvirtNotFoundException(vnicProfileId.toString());
 
         vnicProfileRepository.deleteById(vnicProfileId);
     }
