@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/courses")
+@RequestMapping("/course")
 @RequiredArgsConstructor
 public class CourseController {
     private final ResourceGroupPoolService resourceGroupPoolService;
