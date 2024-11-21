@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(path = "/api/v1/metrics")
+@RequestMapping(path = "/metrics")
 public class MetricController {
 
     private final MetricService metricService;

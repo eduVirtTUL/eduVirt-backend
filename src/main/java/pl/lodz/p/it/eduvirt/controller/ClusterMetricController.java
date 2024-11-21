@@ -20,7 +20,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(path = "/api/v1/clusters/{clusterId}/metrics")
+@RequestMapping(path = "/clusters/{clusterId}/metrics")
 public class ClusterMetricController {
 
     private final ClusterMetricService clusterMetricService;
