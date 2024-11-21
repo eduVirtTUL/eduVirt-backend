@@ -8,4 +8,6 @@ import java.util.List;
 public interface OVirtVmService {
 
     List<Statistic> findStatisticsByVm(Vm vm);
+
+    Vm findVmById(String id);
 }

@@ -23,4 +23,19 @@ public class OVirtVmServiceImpl implements OVirtVmService {
         Connection connection = connectionFactory.getConnection();
         return connection.followLink(vm.statistics());
     }
+
+    @Override
+    public Vm findVmById(String id) {
+        try(Connection connection = connectionFactory.getConnection()) {
+            return connection
+                    .systemService()
+                    .vmsService()
+                    .vmService(id)
+                    .get()
+                    .send()
+                    .vm();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
