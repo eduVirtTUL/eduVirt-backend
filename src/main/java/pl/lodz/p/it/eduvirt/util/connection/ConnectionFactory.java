@@ -29,13 +29,17 @@ public class ConnectionFactory {
     public Connection getConnection() {
         try {
             // Create a connection to the server:
-            return ConnectionBuilder.connection()
+            Connection connection = ConnectionBuilder.connection()
                     .url(url + "/api")
                     .user(username)
                     .password(password)
                     .trustStoreFile(jksFile)
                     .trustStorePassword(jksPassword)
                     .build();
+
+            if (!connection.validate()) throw new OpeningConnectionException("Not a valid connection!");
+
+            return connection;
         } catch (Throwable e) {
             log.error("Error opening connection!!!");
             log.debug(e.getMessage(), e);
