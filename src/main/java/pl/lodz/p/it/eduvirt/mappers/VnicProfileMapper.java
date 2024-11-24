@@ -15,7 +15,7 @@ public interface VnicProfileMapper {
     @Mapping(target = "networkId",      expression = "java(vnicProfile.network().id())")
     @Mapping(target = "networkName",    expression = "java(vnicProfile.network().name())")
     @Mapping(target = "networkVlanId",  expression = "java(vnicProfile.network().vlan() != null ? vnicProfile.network().vlan().id().toString() : null)")
-    @Mapping(target = "isInPool",       expression = "java(isInPool)")
+    @Mapping(target = "inPool",         expression = "java(isInPool)")
     VnicProfileDto ovirtVnicProfileToDto(VnicProfile vnicProfile, Boolean isInPool);
 
     VnicProfilePoolMemberDto vnicProfileToDto(VnicProfilePoolMember vnicProfile);
