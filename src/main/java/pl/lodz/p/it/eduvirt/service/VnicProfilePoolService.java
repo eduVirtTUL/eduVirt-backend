@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/// todo think about splitting into OVirtVnicProfileService and EduVirtVnicProfileService
-public interface OVirtVnicProfileService {
+public interface VnicProfilePoolService {
 
     Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles();
 

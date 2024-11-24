@@ -19873,7 +19873,7 @@ BEGIN
             FROM vm_static vms
             WHERE vms.cluster_id = groups.cluster_id
                 AND vms.entity_type::TEXT = 'VM'::TEXT
-            ) AS vm_count, -- TODO consider replacing with computed columns
+            ) AS vm_count,
         (
             SELECT COUNT(DISTINCT vds_dynamic.vds_id)
             FROM vds_dynamic JOIN vds_static ON vds_static.vds_id = vds_dynamic.vds_id

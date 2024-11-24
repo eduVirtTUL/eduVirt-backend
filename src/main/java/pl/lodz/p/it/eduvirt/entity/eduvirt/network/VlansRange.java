@@ -16,8 +16,6 @@ import pl.lodz.p.it.eduvirt.entity.eduvirt.AbstractEntity;
 @NoArgsConstructor
 public class VlansRange extends AbstractEntity {
 
-    //TODO: Consider if it is at all necessary
-
     @Column(name = "range_from", nullable = false, updatable = false)
     @Setter
     private Integer from;

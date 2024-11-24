@@ -21,7 +21,7 @@ import pl.lodz.p.it.eduvirt.exceptions.BadRequestEduVirtException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
-import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
+import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class VnicProfileController {
 
-    private final OVirtVnicProfileService vnicProfileService;
+    private final VnicProfilePoolService vnicProfileService;
     private final VnicProfileMapper vnicProfileMapper;
 
     @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)

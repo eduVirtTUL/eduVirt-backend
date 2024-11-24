@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface VlansRangeService {
-    //todo add methods to handle CRUD for vlans range
 
     List<VlansRange> getVlansRanges(boolean sorted);
 

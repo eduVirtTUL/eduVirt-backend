@@ -34,7 +34,6 @@ public class VlansRangeServiceImpl implements VlansRangeService {
 
     @Override
     public VlansRange addVlansRange(VlansRange vlansRange) {
-        //TODO implement restrictions
         validateVlansRange(vlansRange);
         compareVlansRangeToOthers(vlansRange);
         return vlansRangeRepository.saveAndFlush(vlansRange);
@@ -49,7 +48,6 @@ public class VlansRangeServiceImpl implements VlansRangeService {
 
 //    @Override
 //    public VlansRange resizeVlansRange(VlansRange vlansRange) {
-//        //TODO to implement
 //        vlansRangeRepository.findById(vlansRange.getId()).orElseThrow(VlansRangeNotFoundException::new);
 //
 //        validateVlansRange(vlansRange);

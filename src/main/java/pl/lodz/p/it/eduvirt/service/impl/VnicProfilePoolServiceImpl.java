@@ -13,19 +13,23 @@ import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileEduvirtNotFoundEx
 import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.eduvirt.VlansRangeRepository;
 import pl.lodz.p.it.eduvirt.repository.eduvirt.VnicProfileRepository;
-import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
+import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
+public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
+
+    //TODO consider managing transaction timeouts rather than excluding API operations from transactions
 
     private final ConnectionFactory connectionFactory;
     private final VnicProfileRepository vnicProfileRepository;
@@ -33,22 +37,26 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
     private final VlansRangeRepository vlansRangeRepository;
 
     @Override
-    @Transactional(propagation = Propagation.NEVER)
+    @Transactional
     public Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles() {
+        return getSynchronizedVnicProfiles(vnicProfileRepository.findAll());
+    }
+
+    //TODO test Transactional????
+    //TODO change map to class with lists /maps??
+    @Transactional
+    Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles(List<VnicProfilePoolMember> poolSource) {
         List<VnicProfile> vnicProfilesInPool = new ArrayList<>();
         List<VnicProfile> vnicProfilesOutOfPool = new ArrayList<>();
-
-        List<VnicProfilePoolMember> vnicProfilePoolMembersInPool = getVnicProfilesPool();
 
         fetchOVirtVnicProfiles().forEach(oVirtVnicProfile -> {
             int vlanId = Optional.ofNullable(oVirtVnicProfile.network().vlan())
                     .map(v -> v.id().intValue())
                     .orElse(-1);
 
-            if (vlanId > -1 && vlansRangeRepository.findAll().stream().anyMatch(vlansRange ->
-                    vlansRange.getFrom() <= vlanId && vlansRange.getTo() >= vlanId)) {
-                if (vnicProfilePoolMembersInPool.stream().anyMatch(poolMember ->
-                        poolMember.getId().toString().equals(oVirtVnicProfile.id()))) {
+            if (vlanId > -1 && isInRanges(vlanId)) {
+                if (poolSource.stream()
+                        .anyMatch(poolMember -> poolMember.getId().toString().equals(oVirtVnicProfile.id()))) {
                     vnicProfilesInPool.add(oVirtVnicProfile);
                 } else {
                     vnicProfilesOutOfPool.add(oVirtVnicProfile);
@@ -57,9 +65,14 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
         });
 
         return Map.ofEntries(
-                Map.entry(true, vnicProfilesInPool),
-                Map.entry(false, vnicProfilesOutOfPool)
+                Map.entry(Boolean.TRUE, vnicProfilesInPool),
+                Map.entry(Boolean.FALSE, vnicProfilesOutOfPool)
         );
+    }
+
+    private boolean isInRanges(int vlanId) {
+        return vlansRangeRepository.findAll().stream()
+                .anyMatch(vlansRange -> vlansRange.getFrom() <= vlanId && vlansRange.getTo() >= vlanId);
     }
 
     @Override
@@ -73,45 +86,57 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
                     .follow("network")
                     .send()
                     .profiles();
-//                    .stream()
-//                    .map(vnicProfileMapper::ovirtVnicProfileToDto)
-//                    .toList();
         } catch (Exception e) {
-            //todo: error handling
             throw new RuntimeException(e);
         }
     }
 
     @Override
+    @Transactional
     public List<VnicProfilePoolMember> getVnicProfilesPool() {
-        return vnicProfileRepository.findAll();
+        // TODO optimization
+        List<VnicProfilePoolMember> vnicProfilePoolMembers = vnicProfileRepository.findAll();
+        Set<String> vnicProfilesInPoolIds = getSynchronizedVnicProfiles(vnicProfilePoolMembers).get(Boolean.TRUE)
+                .stream()
+                .map(VnicProfile::id)
+                .collect(Collectors.toUnmodifiableSet());
+
+        return vnicProfilePoolMembers.stream()
+                .filter(vnicProfilePoolMember -> vnicProfilesInPoolIds.contains(vnicProfilePoolMember.getId().toString()))
+                .toList();
     }
 
     @Override
     @Transactional
     public VnicProfilePoolMember addVnicProfileToPool(UUID vnicProfileId) {
-        if (vnicProfileRepository.findById(vnicProfileId).isPresent())
+        if (vnicProfileRepository.findById(vnicProfileId).isPresent()) {
             throw new EntityAlreadyException(vnicProfileId.toString());
+        }
 
-        //TODO to refactor to synchronizing with oVirt
-        if (fetchOVirtVnicProfiles().stream().anyMatch(vnicProfile ->
-                vnicProfile.id().equals(vnicProfileId.toString()))) {
-            return vnicProfileRepository.saveAndFlush(new VnicProfilePoolMember(vnicProfileId, false));
+        List<VnicProfile> ovirtVnicProfiles = getSynchronizedVnicProfiles().get(Boolean.FALSE);
+
+        Optional<VnicProfile> relatedVnicProfile = ovirtVnicProfiles.stream()
+                .filter(vnicProfile -> vnicProfile.id().equals(vnicProfileId.toString()))
+                .findFirst();
+
+        if (relatedVnicProfile.isPresent()) {
+            return vnicProfileRepository.saveAndFlush(
+                    new VnicProfilePoolMember(vnicProfileId, relatedVnicProfile.get().network().vlan().idAsInteger())
+            );
+        } else if (false) {
+            // TODO implement handling vlan not in ranges
+            throw new RuntimeException("Vlan id not in range");
         } else {
             throw new VnicProfileOvirtNotFoundException(vnicProfileId.toString());
         }
-
-        //TODO add checking if network connected to vnic profile is unique in the pool
-
-
-        //TODO CHECK VLANS RANGES
     }
 
     @Override
     @Transactional
     public void removeVnicProfileFromPool(UUID vnicProfileId) {
-        if (vnicProfileRepository.findById(vnicProfileId).isEmpty())
+        if (vnicProfileRepository.findById(vnicProfileId).isEmpty()) {
             throw new VnicProfileEduvirtNotFoundException(vnicProfileId.toString());
+        }
 
         vnicProfileRepository.deleteById(vnicProfileId);
     }
