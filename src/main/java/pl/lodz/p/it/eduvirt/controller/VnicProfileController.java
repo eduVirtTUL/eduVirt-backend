@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfileDto;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfilePoolMemberDto;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
+import pl.lodz.p.it.eduvirt.exceptions.BadRequestEduVirtException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
+import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 
@@ -85,11 +87,17 @@ public class VnicProfileController {
     @PostMapping(path = "/eduvirt/add-to-pool/{vnicProfileId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = VnicProfilePoolMemberDto.class))}),
+            @ApiResponse(responseCode = "400", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
             @ApiResponse(responseCode = "409", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
     public ResponseEntity<VnicProfilePoolMemberDto> extendVnicProfilesPool(@PathVariable("vnicProfileId") UUID vnicProfileId) {
-        VnicProfilePoolMember vnicProfile = vnicProfileService.addVnicProfileToPool(vnicProfileId);
+        VnicProfilePoolMember vnicProfile;
+        try {
+            vnicProfile = vnicProfileService.addVnicProfileToPool(vnicProfileId);
+        } catch (VnicProfileOvirtNotFoundException e) {
+            throw new BadRequestEduVirtException(e.getMessage(), e);
+        }
 
         return ResponseEntity.ok(vnicProfileMapper.vnicProfileToDto(vnicProfile));
     }
