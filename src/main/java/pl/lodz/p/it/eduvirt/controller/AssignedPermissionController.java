@@ -23,7 +23,6 @@ public class AssignedPermissionController {
     private final OVirtAssignedPermissionService ovirtAssignedPermissionService;
     private final AssignedPermissionMapper permissionMapper;
 
-    // Read methods
     @GetMapping(path = "/vm/{vmId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> findPermissionByVmId(@PathVariable("vmId") UUID vmId) {
         List<Permission> foundPermissions = ovirtAssignedPermissionService.findPermissionsByVmId(vmId);
