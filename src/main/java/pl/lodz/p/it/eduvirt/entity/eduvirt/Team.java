@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.entity.eduvirt;
 
 import jakarta.persistence.*;
 import lombok.*;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.Reservation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +29,13 @@ public class Team extends AbstractEntity {
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "i72_user_team",
-            joinColumns = @JoinColumn(name = "team_id")
+            joinColumns = @JoinColumn(name = "team_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"team_id", "user_id"})
     )
     @Column(name = "user_id", nullable = false)
     private List<UUID> users = new ArrayList<>();
 
+    @OneToMany
+    @ToString.Exclude
+    private List<Reservation> reservations = new ArrayList<>();
 }

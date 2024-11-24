@@ -26,7 +26,8 @@ public class Course extends AbstractEntity {
     @JoinTable(
             name = "i72_course_team_map",
             joinColumns = @JoinColumn(name = "course_id"),
-            inverseJoinColumns = @JoinColumn(name = "team_id")
+            inverseJoinColumns = @JoinColumn(name = "team_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"course_id", "team_id"})
     )
     private List<Team> teams = new ArrayList<>();
 
