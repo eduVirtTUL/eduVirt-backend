@@ -7,7 +7,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.3.5</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
 
     <groupId>pl.lodz.p.it</groupId>
@@ -23,7 +23,26 @@
     </licenses>
 
     <developers>
-        <developer/>
+        <developer>
+            <id>242374</id>
+            <name>Adam Czerwonka</name>
+            <email>242374@edu.p.lodz.pl</email>
+        </developer>
+        <developer>
+            <id>242414</id>
+            <name>Bartłomiej Kałach</name>
+            <email>242414@edu.p.lodz.pl</email>
+        </developer>
+        <developer>
+            <id>242447</id>
+            <name>Piotr Kwiatkowski</name>
+            <email>242447@edu.p.lodz.pl</email>
+        </developer>
+        <developer>
+            <id>242493</id>
+            <name>Michał Piestrzeniewicz</name>
+            <email>242493@edu.p.lodz.pl</email>
+        </developer>
     </developers>
 
     <scm>
@@ -39,9 +58,17 @@
         <!--COMPILER-->
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <!--Encoding-->
+        <!--ENCODING-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- DB -->
+        <!--PLUGINS-->
+        <maven-site-plugin.version>4.0.0-M16</maven-site-plugin.version>
+        <maven-pmd-plugin.version>3.26.0</maven-pmd-plugin.version>
+        <maven-jxr-plugin.version>3.6.0</maven-jxr-plugin.version>
+        <maven-project-info-reports-plugin.version>3.7.0</maven-project-info-reports-plugin.version>
+        <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <!--DB-->
         <postgresql-version>42.7.4</postgresql-version>
         <!--VERSIONS-->
         <ovirt-api-sdk.version>4.5.1</ovirt-api-sdk.version>
@@ -73,7 +100,6 @@
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
         </dependency>
-
 
         <!--LOMBOK-->
         <dependency>
@@ -137,6 +163,7 @@
     </dependencies>
 
     <build>
+        <finalName>eduVirt</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -161,8 +188,83 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven-failsafe-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>${maven-site-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-report</id>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${maven-project-info-reports-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>${maven-pmd-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>${maven-jxr-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+
+        </plugins>
+    </reporting>
 
     <profiles>
         <profile>
