@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.dto;
+package pl.lodz.p.it.eduvirt.dto.vm;
 
 public record VmGeneralDto(
         String id,

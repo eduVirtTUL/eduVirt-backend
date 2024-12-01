@@ -3,8 +3,8 @@ package pl.lodz.p.it.eduvirt.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.ovirt.engine.sdk4.types.Vm;
-import pl.lodz.p.it.eduvirt.dto.VmDto;
-import pl.lodz.p.it.eduvirt.dto.VmGeneralDto;
+import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
+import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
 
 import java.util.List;
 import java.util.stream.Stream;

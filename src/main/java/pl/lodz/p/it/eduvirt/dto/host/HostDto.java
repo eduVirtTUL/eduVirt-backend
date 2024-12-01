@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.dto;
+package pl.lodz.p.it.eduvirt.dto.host;
 
 public record HostDto(
         String id,

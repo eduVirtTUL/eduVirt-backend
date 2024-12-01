@@ -9,9 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.*;
-import pl.lodz.p.it.eduvirt.dto.ClusterGeneralDto;
-import pl.lodz.p.it.eduvirt.dto.HostDto;
-import pl.lodz.p.it.eduvirt.dto.VmGeneralDto;
+import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
+import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
+import pl.lodz.p.it.eduvirt.dto.host.HostDto;
+import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -39,14 +40,15 @@ public class ClusterController {
     // Read methods
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> findClusterById(@PathVariable("id") UUID clusterId) {
+    public ResponseEntity<ClusterDetailsDto> findClusterById(@PathVariable("id") UUID clusterId) {
         Cluster foundCluster = clusterService.findClusterById(clusterId);
         return ResponseEntity.ok(clusterMapper.ovirtClusterToDetailsDto(foundCluster));
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> findAllClusters(@RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-                                             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
+    public ResponseEntity<List<ClusterGeneralDto>> findAllClusters(
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
         List<Cluster> clusters = clusterService.findClusters(pageNumber, pageSize);
         List<ClusterGeneralDto> listOfDTOs = clusters.stream().map(cluster -> {
             Long hostCount = (long) clusterService.findHostCountInCluster(cluster);
@@ -59,9 +61,10 @@ public class ClusterController {
     }
 
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> findCpuInfoByClusterId(@RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-                                                    @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-                                                    @PathVariable("id") UUID clusterId) {
+    public ResponseEntity<List<HostDto>> findCpuInfoByClusterId(
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @PathVariable("id") UUID clusterId) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<Host> hosts = clusterService.findHostsInCluster(cluster, pageNumber, pageSize);
 
@@ -72,9 +75,10 @@ public class ClusterController {
     }
 
     @GetMapping(path = "/{id}/vms", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> findVirtualMachinesByClusterId(@RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-                                                            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-                                                            @PathVariable("id") UUID clusterId) {
+    public ResponseEntity<List<VmGeneralDto>> findVirtualMachinesByClusterId(
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @PathVariable("id") UUID clusterId) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<Vm> vms = clusterService.findVmsInCluster(cluster, pageNumber, pageSize);
 
@@ -99,9 +103,10 @@ public class ClusterController {
     }
 
     @GetMapping(path = "/{id}/networks", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> findNetworksByClusterId(@RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-                                                     @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-                                                     @PathVariable("id") UUID clusterId) {
+    public ResponseEntity<List<NetworkDto>> findNetworksByClusterId(
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @PathVariable("id") UUID clusterId) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<Network> networks = clusterService.findNetworksInCluster(cluster, pageNumber, pageSize);
 
@@ -112,9 +117,10 @@ public class ClusterController {
     }
 
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> findEventsByClusterId(@RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-                                                   @RequestParam(value = "pageSize", defaultValue = "25", required = false) int pageSize,
-                                                   @PathVariable("id") UUID clusterId) {
+    public ResponseEntity<List<EventGeneralDTO>> findEventsByClusterId(
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "25", required = false) int pageSize,
+            @PathVariable("id") UUID clusterId) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<Event> events = clusterService.findEventsInCluster(cluster, pageNumber, pageSize);
 

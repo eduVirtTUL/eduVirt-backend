@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.ovirt.engine.sdk4.types.CpuTopology;
 import org.ovirt.engine.sdk4.types.Host;
-import pl.lodz.p.it.eduvirt.dto.HostDto;
+import pl.lodz.p.it.eduvirt.dto.host.HostDto;
 
 import java.math.BigInteger;
 

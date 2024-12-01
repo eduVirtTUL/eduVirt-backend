@@ -2,8 +2,8 @@ package pl.lodz.p.it.eduvirt.mappers;
 
 import org.mapstruct.Mapper;
 import org.ovirt.engine.sdk4.types.Cluster;
-import pl.lodz.p.it.eduvirt.dto.ClusterDetailsDto;
-import pl.lodz.p.it.eduvirt.dto.ClusterGeneralDto;
+import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
+import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 
 @Mapper(componentModel = "spring")
 public interface ClusterMapper {
