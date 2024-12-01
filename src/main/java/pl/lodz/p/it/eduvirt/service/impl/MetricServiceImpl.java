@@ -20,7 +20,8 @@ public class MetricServiceImpl implements MetricService {
 
     @Override
     public void createNewMetric(String metricName) {
-        Metric newMetric = new Metric(metricName.toUpperCase());
+        String actualMetricName = metricName.toLowerCase().replaceAll("\\s+", "_");
+        Metric newMetric = new Metric(actualMetricName);
         metricRepository.saveAndFlush(newMetric);
     }
 
