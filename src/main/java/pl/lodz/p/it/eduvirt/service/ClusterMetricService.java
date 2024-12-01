@@ -1,5 +1,6 @@
 package pl.lodz.p.it.eduvirt.service;
 
+import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.ClusterMetric;
@@ -8,11 +9,11 @@ import java.util.UUID;
 
 public interface ClusterMetricService {
 
-    void createNewValueForMetric(UUID clusterId, UUID metricId, double value);
+    void createNewValueForMetric(Cluster cluster, UUID metricId, double value);
 
-    Page<ClusterMetric> findAllMetricValuesForCluster(UUID clusterId, Pageable pageable);
+    Page<ClusterMetric> findAllMetricValuesForCluster(Cluster cluster, Pageable pageable);
 
-    ClusterMetric updateMetricValue(UUID clusterId, UUID metricId, double newValue);
+    ClusterMetric updateMetricValue(Cluster cluster, UUID metricId, double newValue);
 
-    void deleteMetricValue(UUID clusterId, UUID metricId);
+    void deleteMetricValue(Cluster cluster, UUID metricId);
 }
