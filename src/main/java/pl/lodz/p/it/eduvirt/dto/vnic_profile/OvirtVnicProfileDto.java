@@ -1,6 +1,6 @@
-package pl.lodz.p.it.eduvirt.dto;
+package pl.lodz.p.it.eduvirt.dto.vnic_profile;
 
-public record VnicProfileDto(
+public record OvirtVnicProfileDto(
         String id,
         String name,
         String networkId,

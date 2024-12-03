@@ -19,7 +19,7 @@ import java.util.UUID;
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
-public class VnicProfilePool {
+public class VnicProfilePoolMember {
 
     //TODO: Consider adding ONLY _created_at and _created_by
 
@@ -36,8 +36,8 @@ public class VnicProfilePool {
     @Column(name = "in_use", nullable = false)
     private Boolean inUse = false;
 
-    public VnicProfilePool(UUID id,
-                           Boolean inUse) {
+    public VnicProfilePoolMember(UUID id,
+                                 Boolean inUse) {
         this.id = id;
         this.inUse = inUse;
     }
