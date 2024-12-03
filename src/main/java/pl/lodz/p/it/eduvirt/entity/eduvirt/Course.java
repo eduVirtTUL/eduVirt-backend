@@ -13,7 +13,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @Setter
 @Getter
-@Table(name = "i72_course")
+@Table(name = "course")
 @Entity
 public class Course extends AbstractEntity {
     @Column(name = "name", nullable = false, length = 100)
@@ -24,7 +24,7 @@ public class Course extends AbstractEntity {
     private List<ResourceGroupPool> resourceGroupPools;
     @ManyToMany
     @JoinTable(
-            name = "i72_course_team_map",
+            name = "course_team_map",
             joinColumns = @JoinColumn(name = "course_id"),
             inverseJoinColumns = @JoinColumn(name = "team_id"),
             uniqueConstraints = @UniqueConstraint(columnNames = {"course_id", "team_id"})

@@ -10,6 +10,7 @@ import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroup;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
+import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +22,7 @@ public class ResourceGroupVmController {
     private final ResourceGroupService resourceGroupService;
     private final OVirtVmService oVirtVmService;
     private final VmMapper vmMapper;
+    private final VirtualMachineService virtualMachineService;
 
     @GetMapping
     @Transactional
@@ -29,7 +31,7 @@ public class ResourceGroupVmController {
         var vms = resourceGroup.getVms()
                 .stream()
                 .parallel()
-                .map(vm -> oVirtVmService.findVmById(vm.toString()));
+                .map(vm -> oVirtVmService.findVmById(vm.getId().toString()));
 
         return ResponseEntity.ok(vmMapper.ovirtVmsToDtos(vms));
     }
@@ -38,7 +40,8 @@ public class ResourceGroupVmController {
     @Transactional
     public ResponseEntity<Void> addVm(@PathVariable UUID rgId, @RequestBody AddVmDto addVmDto) {
         ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
-        resourceGroup.getVms().add(addVmDto.id());
+
+        virtualMachineService.createVirtualMachine(addVmDto.id(), resourceGroup);
         return ResponseEntity.ok().build();
     }
 }

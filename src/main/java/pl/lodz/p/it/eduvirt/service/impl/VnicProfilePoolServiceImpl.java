@@ -94,16 +94,24 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Override
     @Transactional
     public List<VnicProfilePoolMember> getVnicProfilesPool() {
-        // TODO optimization
+        //TODO optimize
         List<VnicProfilePoolMember> vnicProfilePoolMembers = vnicProfileRepository.findAll();
-        Set<String> vnicProfilesInPoolIds = getSynchronizedVnicProfiles(vnicProfilePoolMembers).get(Boolean.TRUE)
+        Map<String, VnicProfile> vnicProfilesInPool = getSynchronizedVnicProfiles(vnicProfilePoolMembers).get(Boolean.TRUE)
                 .stream()
-                .map(VnicProfile::id)
-                .collect(Collectors.toUnmodifiableSet());
+                .collect(Collectors.toUnmodifiableMap(
+                                VnicProfile::id,
+                                vnicProfile -> vnicProfile
+                        )
+                );
 
-        return vnicProfilePoolMembers.stream()
-                .filter(vnicProfilePoolMember -> vnicProfilesInPoolIds.contains(vnicProfilePoolMember.getId().toString()))
+        List<VnicProfilePoolMember> mappedVnicProfilePoolMembers = vnicProfilePoolMembers.stream()
+                .filter(vnicProfilePoolMember -> vnicProfilesInPool.containsKey(vnicProfilePoolMember.getId().toString()))
                 .toList();
+
+        mappedVnicProfilePoolMembers.forEach(vnicProfilePoolMember ->
+                vnicProfilePoolMember.setName(vnicProfilesInPool.get(vnicProfilePoolMember.getId().toString()).name())
+        );
+        return mappedVnicProfilePoolMembers;
     }
 
     @Override

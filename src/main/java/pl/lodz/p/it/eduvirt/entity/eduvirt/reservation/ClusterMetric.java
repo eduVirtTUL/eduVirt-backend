@@ -11,13 +11,14 @@ import java.util.UUID;
 
 @Entity
 @Table(
-        name = "i72_metric_cluster",
+        name = "metric_cluster",
         indexes = @Index(name = "cluster_metric_metric_id_idx", columnList = "metric_id"),
         uniqueConstraints = @UniqueConstraint(name = "cluster_metric_cluster_id_unique",
                 columnNames = {"cluster_id", "metric_id"})
 )
 @IdClass(ClusterMetricKey.class)
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 public class ClusterMetric {
 

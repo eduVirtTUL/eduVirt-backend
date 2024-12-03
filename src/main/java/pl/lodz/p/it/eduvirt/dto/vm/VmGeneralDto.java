@@ -8,4 +8,5 @@ public record VmGeneralDto(
         String cpuUsagePercentage,
         String memoryUsagePercentage,
         String networkUsagePercentage
-) {}
+) {
+}

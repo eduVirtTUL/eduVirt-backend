@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
+import org.ovirt.engine.sdk4.types.Nic;
 import org.ovirt.engine.sdk4.types.Statistic;
 import org.ovirt.engine.sdk4.types.Vm;
 import org.springframework.stereotype.Service;
@@ -26,14 +27,31 @@ public class OVirtVmServiceImpl implements OVirtVmService {
 
     @Override
     public Vm findVmById(String id) {
-        try(Connection connection = connectionFactory.getConnection()) {
+        try (Connection connection = connectionFactory.getConnection()) {
+            return connection
+                    .systemService()
+                    .vmsService()
+                    .vmService(id)
+                    .get()
+                    .follow("nics")
+                    .send()
+                    .vm();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<Nic> findNicsByVmId(String id) {
+        try (Connection connection = connectionFactory.getConnection()) {
             return connection
                     .systemService()
                     .vmsService()
                     .vmService(id)
                     .get()
                     .send()
-                    .vm();
+                    .vm()
+                    .nics();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

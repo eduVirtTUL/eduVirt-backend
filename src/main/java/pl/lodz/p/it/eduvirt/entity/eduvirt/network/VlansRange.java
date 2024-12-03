@@ -10,7 +10,7 @@ import lombok.ToString;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.AbstractEntity;
 
 @Entity
-@Table(name = "i72_private_vlans_range")
+@Table(name = "private_vlans_range")
 @Getter
 @ToString
 @NoArgsConstructor

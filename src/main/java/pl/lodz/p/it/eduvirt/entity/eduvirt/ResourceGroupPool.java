@@ -14,7 +14,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @Entity
-@Table(name = "i72_resource_group_pool")
+@Table(name = "resource_group_pool")
 public class ResourceGroupPool extends HistoricalData {
     @Column(name = "name", nullable = false, length = 100)
     private String name;

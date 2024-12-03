@@ -10,8 +10,9 @@ import lombok.Setter;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.AbstractEntity;
 
 @Entity
-@Table(name = "i72_metric")
-@Getter @Setter
+@Table(name = "metric")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Metric extends AbstractEntity {

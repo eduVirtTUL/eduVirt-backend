@@ -1,20 +1,22 @@
 package pl.lodz.p.it.eduvirt.entity.eduvirt;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "i72_resource_group")
+@Table(name = "resource_group")
 public class ResourceGroup extends HistoricalData {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -28,10 +30,13 @@ public class ResourceGroup extends HistoricalData {
     @Column(name = "max_rent_time", nullable = false)
     private int maxRentTime;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "i72_resource_group_vms", joinColumns = @JoinColumn(name = "resource_group_id"))
-    @Column(name = "vm_id")
-    private List<UUID> vms = new ArrayList<>();
+    @ToString.Exclude
+    @OneToMany(mappedBy = "resourceGroup", fetch = FetchType.LAZY)
+    private List<VirtualMachine> vms = new ArrayList<>();
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "resourceGroup", fetch = FetchType.LAZY)
+    private List<ResourceGroupNetwork> networks = new ArrayList<>();
 
     @Override
     public final boolean equals(Object o) {

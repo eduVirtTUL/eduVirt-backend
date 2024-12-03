@@ -8,8 +8,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "i72_administrative_break")
-@Getter @Setter
+@Table(name = "administrative_break")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class MaintenanceInterval extends Updatable {

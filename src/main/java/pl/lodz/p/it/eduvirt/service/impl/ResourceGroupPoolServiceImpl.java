@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.Course;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupPoolNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.eduvirt.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.eduvirt.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupPoolService;
@@ -36,5 +37,10 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
     @Override
     public List<ResourceGroupPool> getResourceGroupPoolsByCourse(UUID courseId) {
         return resourceGroupPoolRepository.getByCourseId(courseId);
+    }
+
+    @Override
+    public ResourceGroupPool getResourceGroupPool(UUID id) {
+        return resourceGroupPoolRepository.findById(id).orElseThrow(() -> new ResourceGroupPoolNotFoundException(id));
     }
 }

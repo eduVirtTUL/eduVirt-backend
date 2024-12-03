@@ -29,8 +29,8 @@ public class ResourceGroupPoolController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getResourceGroupPool(@PathVariable UUID id) {
-        return null;
+    public ResponseEntity<DetailedResourceGroupPoolDto> getResourceGroupPool(@PathVariable UUID id) {
+        return ResponseEntity.ok(rgPoolMapper.toDetailedRGPoolDto(resourceGroupPoolService.getResourceGroupPool(id)));
     }
 
     @GetMapping

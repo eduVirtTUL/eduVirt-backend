@@ -14,6 +14,8 @@ public interface RGPoolMapper {
     List<ResourceGroupPoolDto> toRGPoolDtoList(Stream<ResourceGroupPool> rgPools);
 
     List<DetailedResourceGroupPoolDto> toDetailedRGPoolDtoList(Stream<ResourceGroupPool> rgPools);
+    
+    DetailedResourceGroupPoolDto toDetailedRGPoolDto(ResourceGroupPool rgPool);
 
     ResourceGroupPoolDto toRGPoolDto(ResourceGroupPool rgPool);
 

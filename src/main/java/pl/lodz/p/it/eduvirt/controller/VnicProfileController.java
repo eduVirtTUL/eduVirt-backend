@@ -19,6 +19,7 @@ import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfilePoolMemberDto;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.BadRequestEduVirtException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
+import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileEduvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
@@ -74,7 +75,7 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
-    public ResponseEntity<List<VnicProfilePoolMemberDto>> getVnicProfilesPool() {
+    public ResponseEntity<List<VnicProfilePoolMemberDto>> getVnicProfilesFromPool() {
         List<VnicProfilePoolMemberDto> vnicProfileDtoList = vnicProfileService.getVnicProfilesPool()
                 .stream()
                 .map(vnicProfileMapper::vnicProfileToDto)
@@ -82,6 +83,24 @@ public class VnicProfileController {
 
         if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(vnicProfileDtoList);
+    }
+
+    @GetMapping(path = "/eduvirt/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = VnicProfilePoolMemberDto.class))}),
+            @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
+            @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
+    )
+    public ResponseEntity<VnicProfilePoolMemberDto> getVnicProfileFromPool(@PathVariable("id") UUID id) {
+        //TODO maybe optimize
+        VnicProfilePoolMemberDto vnicProfileDto = vnicProfileService.getVnicProfilesPool()
+                .stream()
+                .filter(vnicProfile -> vnicProfile.getId().equals(id))
+                .map(vnicProfileMapper::vnicProfileToDto)
+                .findFirst()
+                .orElseThrow(VnicProfileEduvirtNotFoundException::new);
+
+        return ResponseEntity.ok(vnicProfileDto);
     }
 
     @PostMapping(path = "/eduvirt/add-to-pool/{vnicProfileId}", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -11,4 +11,6 @@ public interface ResourceGroupPoolService {
     List<ResourceGroupPool> getResourceGroupPools();
 
     List<ResourceGroupPool> getResourceGroupPoolsByCourse(UUID courseId);
+
+    ResourceGroupPool getResourceGroupPool(UUID id);
 }

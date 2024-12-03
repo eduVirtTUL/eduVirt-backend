@@ -8,9 +8,10 @@ import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.keys.ClusterNetworkKey;
 import java.util.UUID;
 
 @Entity
-@Table(name = "i72_cluster_network")
+@Table(name = "cluster_network")
 @IdClass(ClusterNetworkKey.class)
-@Getter @Setter
+@Getter
+@Setter
 public class ClusterNetwork {
 
     @Id

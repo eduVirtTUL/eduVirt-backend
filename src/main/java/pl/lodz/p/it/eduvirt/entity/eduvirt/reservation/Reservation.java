@@ -11,8 +11,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "i72_reservation")
-@Getter @Setter
+@Table(name = "reservation")
+@Getter
+@Setter
 @NoArgsConstructor
 public class Reservation extends HistoricalData {
 
