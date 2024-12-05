@@ -1,6 +1,8 @@
 package pl.lodz.p.it.eduvirt.entity.eduvirt;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.Reservation;
 
@@ -12,6 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 @ToString
 @Table(name = "team")
 @Entity
@@ -20,11 +23,16 @@ public class Team extends AbstractEntity {
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @Column(name = "key", nullable = false, unique = true)
+    @Column(name = "key", nullable = false, unique = true, length = 16)
+    @Size(min = 4, max = 16)
+    @Pattern(regexp = "^[a-zA-Z0-9]*$")
     private String key;
 
     @Column(name = "active", nullable = false)
     private boolean active;
+
+    @Column(name = "max_size", nullable = false)
+    private int maxSize;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
@@ -38,4 +46,7 @@ public class Team extends AbstractEntity {
     @OneToMany
     @ToString.Exclude
     private List<Reservation> reservations = new ArrayList<>();
+
+    @ManyToOne
+    private Course course;
 }

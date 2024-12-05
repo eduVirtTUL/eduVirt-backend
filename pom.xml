@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version>
+        <version>3.4.0</version>
         <relativePath/>
     </parent>
 
@@ -64,7 +64,7 @@
         <maven-site-plugin.version>4.0.0-M16</maven-site-plugin.version>
         <maven-pmd-plugin.version>3.26.0</maven-pmd-plugin.version>
         <maven-jxr-plugin.version>3.6.0</maven-jxr-plugin.version>
-        <maven-project-info-reports-plugin.version>3.7.0</maven-project-info-reports-plugin.version>
+        <maven-project-info-reports-plugin.version>3.8.0</maven-project-info-reports-plugin.version>
         <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
@@ -72,9 +72,9 @@
         <postgresql-version>42.7.4</postgresql-version>
         <!--VERSIONS-->
         <ovirt-api-sdk.version>4.5.1</ovirt-api-sdk.version>
-        <lombok.version>1.18.34</lombok.version>
-        <mapstruct.version>1.6.2</mapstruct.version>
-        <openapi.version>2.4.0</openapi.version>
+        <lombok.version>1.18.36</lombok.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <openapi.version>2.7.0</openapi.version>
     </properties>
 
     <dependencies>

@@ -27,6 +27,7 @@ public class OVirtUserServiceImpl implements OVirtUserService {
             SystemService systemService = connection.systemService();
 
             return systemService.usersService().list().follow("permissions").send().users();
+
         } catch (org.ovirt.engine.sdk4.Error error) {
             throw new UserNotFoundException();
         }

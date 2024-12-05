@@ -26,6 +26,24 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public Course setCourseKey(UUID courseId, String key) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+                
+        if (key == null || key.length() < 4) {
+            throw new IllegalArgumentException("Course key must be at least 4 characters");
+        }
+    
+        if (!course.isTeamBased()) {
+            course.setCourseKey("s" + key);
+        } else {
+            throw new IllegalStateException("Cannot set key for team-based course");
+        }
+    
+        return courseRepository.save(course);
+    }
+
+    @Override
     public Course addCourse(Course course) {
         return courseRepository.save(course);
     }

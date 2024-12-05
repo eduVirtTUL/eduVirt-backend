@@ -1,6 +1,8 @@
 package pl.lodz.p.it.eduvirt.entity.eduvirt;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
@@ -22,15 +24,14 @@ public class Course extends AbstractEntity {
     private String description;
     @OneToMany(mappedBy = "course")
     private List<ResourceGroupPool> resourceGroupPools;
-    @ManyToMany
-    @JoinTable(
-            name = "course_team_map",
-            joinColumns = @JoinColumn(name = "course_id"),
-            inverseJoinColumns = @JoinColumn(name = "team_id"),
-            uniqueConstraints = @UniqueConstraint(columnNames = {"course_id", "team_id"})
-    )
+    @OneToMany(mappedBy = "course")
     private List<Team> teams = new ArrayList<>();
-
+    @Column(name = "team_based", nullable = false)
+    private boolean teamBased;
+    @Column(name = "course_key", unique = true, length = 17, nullable = true)
+    @Size(min = 5, max = 17)
+    @Pattern(regexp = "^s[a-zA-Z0-9]{4,16}$")
+    private String courseKey;
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;

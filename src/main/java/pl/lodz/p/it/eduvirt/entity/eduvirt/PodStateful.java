@@ -1,15 +1,13 @@
 package pl.lodz.p.it.eduvirt.entity.eduvirt;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 @ToString
 @Table(name = "pod_stateful")
 @Entity
