@@ -8,6 +8,7 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.general.Metric;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.ClusterMetric;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,5 +17,7 @@ import java.util.UUID;
 public interface ClusterMetricRepository extends JpaRepository<ClusterMetric, UUID> {
 
     Optional<ClusterMetric> findByClusterIdAndMetric(UUID clusterId, Metric metric);
+
     Page<ClusterMetric> findAllByClusterId(UUID clusterId, Pageable pageable);
+    List<ClusterMetric> findAllByClusterId(UUID clusterId);
 }

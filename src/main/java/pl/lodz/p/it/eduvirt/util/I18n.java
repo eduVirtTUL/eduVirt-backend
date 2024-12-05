@@ -18,6 +18,10 @@ public class I18n {
     public static final String MAINTENANCE_INTERVAL_INVALID_TIME_WINDOW = "maintenance.interval.invalid.time.window.exception";
     public static final String MAINTENANCE_INTERVAL_BEGIN_AT_PAST = "maintenance.interval.begin.at.past.exception";
 
+    // Reservation
+
+    public static final String RESERVATION_NOT_FOUND = "reservation.not.found.exception";
+
     // General
 
     public static final String OPERATION_NOT_IMPLEMENTED = "operation.not.implemented.exception";

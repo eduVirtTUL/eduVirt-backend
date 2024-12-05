@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.repository.eduvirt;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.Course;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.Team;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
             "AND t.course.id = :courseId")
     boolean existsByUserIdAndCourseId(@Param("userId") UUID userId, @Param("courseId") UUID courseId);
 
-    
+    @Query("SELECT t FROM Team t WHERE :user MEMBER OF t.users AND t.course = :course")
+    Optional<Team> findByUserIdAndCourse(@Param("user") UUID userId, @Param("course") Course course);
 }
 

@@ -14,9 +14,11 @@ import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
+import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedException;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 
 import java.math.BigDecimal;
@@ -39,6 +41,7 @@ public class ClusterController {
 
     private final OVirtClusterService clusterService;
     private final OVirtVmService vmService;
+    private final ReservationService reservationService;
 
     // Read methods
 
@@ -61,6 +64,11 @@ public class ClusterController {
 
         if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDTOs);
+    }
+
+    @GetMapping(path = "/{id}/availability")
+    public ResponseEntity<?> findClusterResourcesAvailability(@PathVariable("id") UUID clusterId) {
+        throw new ApplicationOperationNotImplementedException();
     }
 
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)

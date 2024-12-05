@@ -2,11 +2,9 @@ package pl.lodz.p.it.eduvirt.mappers;
 
 import org.mapstruct.Mapper;
 import org.ovirt.engine.sdk4.types.Cluster;
-import org.ovirt.engine.sdk4.types.CpuTopology;
 import org.ovirt.engine.sdk4.types.Host;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
-
-import java.math.BigInteger;
+import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 
 @Mapper(componentModel = "spring")
 public interface HostMapper {
@@ -17,14 +15,8 @@ public interface HostMapper {
             host.name(),
             host.address(),
             host.comment(),
-            getNumberOfCpus(host, cluster),
+            StatisticsUtil.getNumberOfCpus(host, cluster),
             host.maxSchedulingMemoryAsLong()
         );
-    }
-
-    static Long getNumberOfCpus(Host host, Cluster cluster) {
-        CpuTopology topology = host.cpu().topology();
-        BigInteger cpuCount = topology.sockets().multiply(topology.cores());
-        return cluster.threadsAsCores() ? cpuCount.multiply(topology.threads()).longValue() : cpuCount.longValue();
     }
 }

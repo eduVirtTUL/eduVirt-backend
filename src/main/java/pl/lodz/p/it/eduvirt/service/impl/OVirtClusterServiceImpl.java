@@ -57,6 +57,15 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
     }
 
     @Override
+    public List<Host> findAllHostsInCluster(Cluster cluster) {
+        Connection connection = connectionFactory.getConnection();
+        SystemService systemService = connection.systemService();
+
+        HostsService hostsService = systemService.hostsService();
+        return hostsService.list().search("cluster=%s".formatted(cluster.name())).send().hosts();
+    }
+
+    @Override
     public List<Vm> findVmsInCluster(Cluster cluster, int pageNumber, int pageSize) {
         Connection connection = connectionFactory.getConnection();
         SystemService systemService = connection.systemService();
