@@ -104,7 +104,7 @@ public class CourseController {
 
         // TODO: Require metric values for course in order to finish it
 
-//        List<CourseMetric> courseMetrics = courseMetricService.findAllMetricsValuesForCouse(foundCourse);
+//        List<CourseMetric> courseMetrics = courseMetricService.findAllMetricsValuesForCourse(foundCourse);
 //
 //        int cpuCount = courseMetrics.stream().filter(courseMetric ->
 //                courseMetric.getMetric().getName().equals("cpu_count")).getFirst().getValue();

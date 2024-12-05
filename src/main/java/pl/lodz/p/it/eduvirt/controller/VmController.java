@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
+import pl.lodz.p.it.eduvirt.dto.resources.ResourcesDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
-import pl.lodz.p.it.eduvirt.service.OVirtHostService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
@@ -38,7 +38,6 @@ public class VmController {
 
     private final OVirtVmService oVirtVmService;
     private final OVirtClusterService oVirtClusterService;
-    private final OVirtHostService oVirtHostService;
     private final OVirtVnicProfileService oVirtVnicProfileService;
 
     private final VmMapper vmMapper;
@@ -76,13 +75,19 @@ public class VmController {
         return ResponseEntity.ok(vmDto);
     }
 
-    @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> findVmRequiredResources(@PathVariable("id") UUID vmId) {
+    @GetMapping(path = "/{id}/required-resources", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResourcesDto> findVmRequiredResources(@PathVariable("id") UUID vmId) {
         Vm oVirtVM = oVirtVmService.findVmById(vmId.toString());
         Cluster foundCluster = oVirtClusterService.findClusterById(UUID.fromString(oVirtVM.cluster().id()));
         List<Host> clusterHosts = oVirtClusterService.findAllHostsInCluster(foundCluster);
 
         Map<String, Object> requiredResources = oVirtVmService.findVmResources(oVirtVM, clusterHosts.getFirst(), foundCluster);
-        return ResponseEntity.ok(requiredResources);
+
+        ResourcesDto resources = new ResourcesDto(
+                (int) requiredResources.get("cpu"),
+                (long) requiredResources.get("memory")
+        );
+
+        return ResponseEntity.ok(resources);
     }
 }
