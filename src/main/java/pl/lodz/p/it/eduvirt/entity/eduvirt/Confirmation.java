@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Confirmation extends Updatable {
 
-    //TODO: Consider the idea of replacing own id, with only reservation_id as the PK
+    //TODO michal: Consider the idea of replacing own id, with only reservation_id as the PK
 
     @OneToOne(optional = false)
     @JoinColumn(

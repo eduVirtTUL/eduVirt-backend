@@ -66,7 +66,7 @@ public class VlansRangeServiceImpl implements VlansRangeService {
     private void compareVlansRangeToOthers(final VlansRange vlansRange) {
         List<VlansRange> vlansRangeList = getVlansRanges(false);
 
-        //TODO CHECK IT - OPTIMIZE
+        //TODO michal CHECK IT - OPTIMIZE
         for (VlansRange vlansRangeFromList : vlansRangeList) {
             if (
                     (vlansRange.getFrom() >= vlansRangeFromList.getFrom() && vlansRange.getFrom() <= vlansRangeFromList.getTo())
