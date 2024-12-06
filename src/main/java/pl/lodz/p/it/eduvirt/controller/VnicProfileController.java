@@ -92,7 +92,7 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
     public ResponseEntity<VnicProfilePoolMemberDto> getVnicProfileFromPool(@PathVariable("id") UUID id) {
-        //TODO maybe optimize
+        //TODO michal maybe optimize
         VnicProfilePoolMemberDto vnicProfileDto = vnicProfileService.getVnicProfilesPool()
                 .stream()
                 .filter(vnicProfile -> vnicProfile.getId().equals(id))

@@ -61,7 +61,7 @@ public class VnicProfilePoolMember {
 
     @PrePersist
     public void changeCreateData() {
-        //TODO: Change it later, when authentication is implemented (to put user's id in the context as well)
+        //TODO michal: Change it later, when authentication is implemented (to put user's id in the context as well)
 //        this.createdBy = UUID.fromString((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         this.createdAt = LocalDateTime.now();
     }
