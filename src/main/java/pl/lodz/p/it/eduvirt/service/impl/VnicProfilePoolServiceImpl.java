@@ -118,7 +118,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
         if (vnicProfileRepository.findById(vnicProfileId).isPresent()) {
             throw new EntityAlreadyException(vnicProfileId.toString());
         }
-
+        //todo michal ref to fetching only one profile from ovirt, by id/ not whole list...
         List<VnicProfile> ovirtVnicProfiles = getSynchronizedVnicProfiles().get(Boolean.FALSE);
 
         Optional<VnicProfile> relatedVnicProfile = ovirtVnicProfiles.stream()
@@ -129,9 +129,6 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
             return vnicProfileRepository.saveAndFlush(
                     new VnicProfilePoolMember(vnicProfileId, relatedVnicProfile.get().network().vlan().idAsInteger())
             );
-        } else if (false) {
-            // TODO michal implement handling vlan not in ranges
-            throw new RuntimeException("Vlan id not in range");
         } else {
             throw new VnicProfileOvirtNotFoundException(vnicProfileId.toString());
         }
