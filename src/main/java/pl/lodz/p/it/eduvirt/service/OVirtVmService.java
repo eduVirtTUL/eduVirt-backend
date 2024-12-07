@@ -1,6 +1,8 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import org.ovirt.engine.sdk4.types.*;
+import org.ovirt.engine.sdk4.types.Nic;
+import org.ovirt.engine.sdk4.types.Statistic;
+import org.ovirt.engine.sdk4.types.Vm;
 
 import java.util.List;
 import java.util.Map;
@@ -16,4 +18,10 @@ public interface OVirtVmService {
     List<Nic> findNicsByVmId(String id);
 
     List<Vm> findVms();
+
+    boolean runVm(String id);
+
+    boolean shutdownVm(String id);
+
+    boolean powerOffVm(String id);
 }

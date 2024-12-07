@@ -19,7 +19,7 @@ import java.util.Objects;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        basePackages = "pl.lodz.p.it.eduvirt.repository",
+        basePackages = {"pl.lodz.p.it.eduvirt.repository", "pl.lodz.p.it.eduvirt.executor.repository"},
         entityManagerFactoryRef = "eduVirtEntityManagerFactory",
         transactionManagerRef = "eduVirtTransactionManager"
 )
@@ -38,7 +38,10 @@ public class DataSourceEduVirtConfig {
                                                                               final @Qualifier("eduVirtDataSource") DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
-                .packages("pl.lodz.p.it.eduvirt.entity")
+                .packages(
+                        "pl.lodz.p.it.eduvirt.entity",
+                        "pl.lodz.p.it.eduvirt.executor.entity"
+                )
                 .build();
     }
 
