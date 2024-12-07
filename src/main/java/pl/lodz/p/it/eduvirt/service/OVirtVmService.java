@@ -13,4 +13,10 @@ public interface OVirtVmService {
     Vm findVmById(String id);
 
     List<Nic> findNicsByVmId(String id);
+
+    boolean runVm(String id);
+
+    boolean shutdownVm(String id);
+
+    boolean powerOffVm(String id);
 }
