@@ -1,6 +1,8 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import org.ovirt.engine.sdk4.types.*;
+import org.ovirt.engine.sdk4.types.Nic;
+import org.ovirt.engine.sdk4.types.Statistic;
+import org.ovirt.engine.sdk4.types.Vm;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -20,4 +22,10 @@ public interface OVirtVmService {
     List<Event> findEventsByVmId(Vm vm, Pageable pageable);
 
     List<Vm> findVms();
+
+    boolean runVm(String id);
+
+    boolean shutdownVm(String id);
+
+    boolean powerOffVm(String id);
 }

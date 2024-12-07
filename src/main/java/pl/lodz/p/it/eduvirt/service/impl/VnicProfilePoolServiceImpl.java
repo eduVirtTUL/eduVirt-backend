@@ -77,6 +77,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Override
     @Transactional(propagation = Propagation.NEVER)
     public List<VnicProfile> fetchOVirtVnicProfiles() {
+        //todo michal move it to OVirtVnicProfileService
         try (Connection connection = connectionFactory.getConnection()) {
             return connection.systemService()
                     .vnicProfilesService()

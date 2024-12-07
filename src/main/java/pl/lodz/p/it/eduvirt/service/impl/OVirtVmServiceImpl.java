@@ -3,10 +3,12 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.Connection;
+import org.ovirt.engine.sdk4.types.Nic;
+import org.ovirt.engine.sdk4.types.Statistic;
+import org.ovirt.engine.sdk4.types.Vm;
 import org.ovirt.engine.sdk4.services.EventsService;
 import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.services.VmsService;
-import org.ovirt.engine.sdk4.types.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -150,6 +152,54 @@ public class OVirtVmServiceImpl implements OVirtVmService {
         } catch (Exception e) {
             log.error("Error while fetching VMs", e);
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean runVm(String id) {
+        try (Connection connection = connectionFactory.getConnection()) {
+            connection
+                    .systemService()
+                    .vmsService()
+                    .vmService(id)
+                    .start()
+                    .send();
+            return true;
+        } catch (Throwable e) {
+            log.error(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean shutdownVm(String id) {
+        try (Connection connection = connectionFactory.getConnection()) {
+            connection
+                    .systemService()
+                    .vmsService()
+                    .vmService(id)
+                    .shutdown()
+                    .send();
+            return true;
+        } catch (Throwable e) {
+            log.error(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean powerOffVm(String id) {
+        try (Connection connection = connectionFactory.getConnection()) {
+            connection
+                    .systemService()
+                    .vmsService()
+                    .vmService(id)
+                    .stop()
+                    .send();
+            return true;
+        } catch (Throwable e) {
+            log.error(e.getMessage());
+            return false;
         }
     }
 }
