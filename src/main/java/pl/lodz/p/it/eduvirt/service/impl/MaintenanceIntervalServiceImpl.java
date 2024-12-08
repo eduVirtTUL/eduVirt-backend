@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.MaintenanceInterval;
-import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalInvalidTimeWindowException;
 import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.repository.eduvirt.MaintenanceIntervalRepository;
@@ -15,6 +14,8 @@ import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
 import pl.lodz.p.it.eduvirt.util.I18n;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,7 +34,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         if (beginAt.isAfter(endAt))
             throw new MaintenanceIntervalInvalidTimeWindowException();
 
-        if (beginAt.isBefore(LocalDateTime.now()))
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        if (beginAt.isBefore(currentTime))
             throw new MaintenanceIntervalInvalidTimeWindowException(
                     I18n.MAINTENANCE_INTERVAL_BEGIN_AT_PAST);
 
@@ -51,7 +53,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         if (beginAt.isAfter(endAt))
             throw new MaintenanceIntervalInvalidTimeWindowException();
 
-        if (beginAt.isBefore(LocalDateTime.now()))
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        if (beginAt.isBefore(currentTime))
             throw new MaintenanceIntervalInvalidTimeWindowException(
                     I18n.MAINTENANCE_INTERVAL_BEGIN_AT_PAST);
 
