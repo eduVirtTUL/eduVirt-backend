@@ -79,12 +79,16 @@ public class ExecutorSubtask extends AbstractEntity {
     public void setDescription(String description) {
         if (Objects.isNull(this.description)) {
             this.description = description;
+        } else {
+            throw new IllegalStateException("Cannot override subtask description");
         }
     }
 
     public void setSuccessful(Boolean successful) {
         if (Objects.isNull(this.successful)) {
             this.successful = successful;
+        } else {
+            throw new IllegalStateException("Cannot override subtask status");
         }
     }
 }

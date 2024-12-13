@@ -1,13 +1,12 @@
 package pl.lodz.p.it.eduvirt.executor.entity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -26,7 +25,7 @@ import java.util.Objects;
 @NoArgsConstructor
 public class ExecutorTask extends AbstractEntity {
 
-    @OneToOne(optional = false, cascade = CascadeType.ALL)
+    @ManyToOne(optional = false)
     @JoinColumn(
             name = "reservation_id",
             referencedColumnName = "id",
@@ -73,18 +72,24 @@ public class ExecutorTask extends AbstractEntity {
     public void setSuccessful() {
         if (status.equals(TaskStatus.IN_PROGRESS)) {
             this.status = TaskStatus.SUCCESSFUL;
+        } else {
+            throw new IllegalStateException("Cannot set SUCCESSFUL status if the task does not have IN_PROGRESS status");
         }
     }
 
     public void setFailed() {
         if (status.equals(TaskStatus.IN_PROGRESS)) {
             this.status = TaskStatus.FAILED;
+        } else {
+            throw new IllegalStateException("Cannot set FAILED status if the task does not have IN_PROGRESS status");
         }
     }
 
     public void setDescription(String description) {
         if (Objects.isNull(this.description)) {
             this.description = description;
+        } else {
+            throw new IllegalStateException("Cannot override task description");
         }
     }
 }

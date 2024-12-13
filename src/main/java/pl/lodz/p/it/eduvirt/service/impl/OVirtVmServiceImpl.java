@@ -3,9 +3,14 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.Connection;
+import org.ovirt.engine.sdk4.internal.containers.NicContainer;
+import org.ovirt.engine.sdk4.services.SystemService;
+import org.ovirt.engine.sdk4.services.VmService;
+import org.ovirt.engine.sdk4.services.VmsService;
 import org.ovirt.engine.sdk4.types.Nic;
 import org.ovirt.engine.sdk4.types.Statistic;
 import org.ovirt.engine.sdk4.types.Vm;
+import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
@@ -122,6 +127,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
             return true;
         } catch (Throwable e) {
             log.error(e.getMessage());
+            //TODO michal: if VM is started lets restart it!
             return false;
         }
     }
@@ -151,6 +157,51 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .vmService(id)
                     .stop()
                     .send();
+            return true;
+        } catch (Throwable e) {
+            log.error(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean assignVnicProfileToVm(String vmId, String vmNicId, String vnicProfileId) {
+        try (Connection connection = connectionFactory.getConnection()) {
+            SystemService systemService = connection
+                    .systemService();
+
+            VmService vmService = systemService
+                    .vmsService()
+                    .vmService(vmId);
+
+            Vm fetchedVm = vmService
+                    .get()
+                    .follow("nics")
+                    .send()
+                    .vm();
+
+            Nic wantedNic = fetchedVm.nics()
+                    .stream()
+                    .filter(nic -> nic.id().equals(vmNicId))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("NIC not found in the VM fetched object"));
+
+            VnicProfile wantedVnicProfile = systemService
+                    .vnicProfilesService()
+                    .profileService(vnicProfileId)
+                    .get()
+                    .send()
+                    .profile();
+
+            ((NicContainer) wantedNic).vnicProfile(wantedVnicProfile);
+
+            vmService
+                    .nicsService()
+                    .nicService(wantedNic.id())
+                    .update()
+                    .nic(wantedNic)
+                    .send();
+
             return true;
         } catch (Throwable e) {
             log.error(e.getMessage());

@@ -8,22 +8,30 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.VirtualMachine;
+import pl.lodz.p.it.eduvirt.entity.eduvirt._FakeVmNicEntity;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.Reservation;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
+import pl.lodz.p.it.eduvirt.repository.eduvirt.ReservationRepository;
+import pl.lodz.p.it.eduvirt.repository.eduvirt.ResourceGroupNetworkRepository;
 import pl.lodz.p.it.eduvirt.repository.eduvirt.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.eduvirt.TeamRepository;
-import pl.lodz.p.it.eduvirt.repository.eduvirt._FakeReservation;
-import pl.lodz.p.it.eduvirt.repository.eduvirt._FakeReservationRepository;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation._FakeMockTeamAndRG;
 import pl.lodz.p.it.eduvirt.service.OVirtAssignedPermissionService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,25 +42,72 @@ public class ExecutorScheduler {
 
     private final OVirtVmService oVirtVmService;
     private final OVirtAssignedPermissionService ovirtAssignedPermissionService;
-    private final _FakeReservationRepository reservationRepository;
+    private final VnicProfilePoolService vnicProfilePoolService;
+
+    //TODO michal: service instead of repository
+    private final ReservationRepository reservationRepository;
+    private final ResourceGroupNetworkRepository resourceGroupNetworkRepository;
 
     private final ExecutorTaskService executorTaskService;
 
-    private void startUpPod(_FakeReservation reservation) {
+    //TODO michal: real pooling instead of invoking checking conditions in fixed time
+
+    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = -1L)
+    @Transactional
+    public void createPods() {
+        reservationRepository.findReservationsToBegin()
+                .forEach(reservation -> startUpPod(reservation, getMockTeamAndRG(reservation)));
+    }
+
+    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = -1L)
+    @Transactional
+    public void destroyPods() {
+        reservationRepository.findReservationsToFinish()
+                .forEach(reservation -> stopPod(reservation, getMockTeamAndRG(reservation)));
+    }
+
+    //--------------PRIVATE METHODS--------------
+
+    private void startUpPod(Reservation reservation, _FakeMockTeamAndRG mockTeamAndRG) {
         ExecutorTask executorTask = executorTaskService.registerPodInitTask(reservation);
         try {
 
-            List<VirtualMachine> virtualMachines = reservation.getResourceGroup().getVms();
+            List<VirtualMachine> virtualMachines = mockTeamAndRG.getResourceGroup().getVms();
 
             //TODO michal: verify resources or handle insufficient on VM startup command (probably the first one)
 
             //TODO michal: network mapping
+            List<ResourceGroupNetwork> networksToMap = resourceGroupNetworkRepository.getAllByResourceGroupId(mockTeamAndRG.getResourceGroup().getId());
+            networksToMap
+                    .stream()
+                    //.parallel()
+                    .forEach(
+                            network -> {
+                                // TODO michal: fetch vnic profile from pool, checking conditions (if in_use equals false)
+                                VnicProfilePoolMember chosenVnicProfile = vnicProfilePoolService.getVnicProfilesPool()
+                                        .stream()
+                                        .filter(vnicProfile -> !vnicProfile.getInUse())
+                                        .findFirst()
+                                        .orElseThrow(() -> new RuntimeException("No available vnic profile found in pool"));
+
+                                // TODO michal: set vnic profile"s property "inUse" to true
+                                vnicProfilePoolService.markVnicProfileAsOccupied(chosenVnicProfile.getId());
+
+                                // TODO michal: assign vnic profile to VMs NICs
+                                // TODO michal: CZY SEGMENTY SIECIOWE SĄ DEFINIOWANE PER CLUSTER? CZY DLA CAŁEGO DATA CENTER SĄ WSPÓLNE
+                                runAndRegister(() -> assignVnicProfilesToNICs(chosenVnicProfile.getId(), network.getVmNic()),
+                                        executorTask, null, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE);
+                            }
+                    );
+
+
+            //TODO michal: handle situation when some VMs are running
 
             //Start-up VMs
             if (reservation.getAutomaticStartup()) {
                 virtualMachines
                         .stream()
-                        .parallel()
+                        //.parallel()
                         .forEach(
                                 vm -> runAndRegister(() -> oVirtVmService.runVm(vm.getId().toString()),
                                         executorTask, vm, ExecutorSubtask.SubtaskType.START_VM
@@ -65,9 +120,9 @@ public class ExecutorScheduler {
             //Assign permissions
             virtualMachines
                     .stream()
-                    .parallel()
+                    //.parallel()
                     .forEach(
-                            vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), reservation.getTeam().getUsers()),
+                            vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), mockTeamAndRG.getTeam().getUsers()),
                                     executorTask, vm, ExecutorSubtask.SubtaskType.ASSIGN_PERMISSIONS
                             )
                     );
@@ -79,27 +134,39 @@ public class ExecutorScheduler {
         }
     }
 
+    private void assignVnicProfilesToNICs(UUID vnicProfileId, List<_FakeVmNicEntity> vmNicList) {
+        vmNicList.stream()
+//                .parallel()
+                .forEach(
+                        vmNic -> oVirtVmService.assignVnicProfileToVm(
+                                        vmNic.getVmId().toString(),
+                                        vmNic.getNicId().toString(),
+                                        vnicProfileId.toString())
+                );
+    }
+
     private void addTeamPermissionsToVm(UUID vmId, List<UUID> teamMembersIds) {
         teamMembersIds
                 .stream()
-                .parallel()
+                //.parallel()
                 .forEach(
                         userId -> ovirtAssignedPermissionService.assignPermissionToVmToUser(vmId, userId,
                                 "00000000-0000-0000-0001-000000000001")
                 );
     }
 
-    private void stopPod(_FakeReservation reservation) {
+    //TODO michal: if pod doesnt start should we invoke stopping it??? - now stopping is invoking in any cases
+    private void stopPod(Reservation reservation, _FakeMockTeamAndRG fakeReservation) {
         ExecutorTask executorTask = executorTaskService.registerPodDestroyTask(reservation);
         try {
-            List<VirtualMachine> virtualMachines = reservation.getResourceGroup().getVms();
+            List<VirtualMachine> virtualMachines = fakeReservation.getResourceGroup().getVms();
 
             //TODO michal: private network cleaning
 
             //Shutdown VMs
             virtualMachines
                     .stream()
-                    .parallel()
+                    //.parallel()
                     .forEach(
                             vm -> runAndRegister(() -> oVirtVmService.shutdownVm(vm.getId().toString()),
                                     executorTask, vm, ExecutorSubtask.SubtaskType.SHUTDOWN_VM
@@ -109,9 +176,9 @@ public class ExecutorScheduler {
             //Revoke permissions
             virtualMachines
                     .stream()
-                    .parallel()
+                    //.parallel()
                     .forEach(
-                            vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), reservation.getTeam().getUsers()),
+                            vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), fakeReservation.getTeam().getUsers()),
                                     executorTask, vm, ExecutorSubtask.SubtaskType.REVOKE_PERMISSIONS
                             )
                     );
@@ -126,7 +193,7 @@ public class ExecutorScheduler {
     private void revokeTeamPermissionsToVm(UUID vmId, List<UUID> teamMembersIds) {
         teamMembersIds
                 .stream()
-                .parallel()
+                //.parallel()
                 //TODO michal: consider caching permissionIds
                 .forEach(
                         userId ->
@@ -142,50 +209,36 @@ public class ExecutorScheduler {
                 );
     }
 
-    //---------TESTING--------------
+    private void runAndRegister(Runnable runnable,
+                                ExecutorTask task,
+                                VirtualMachine vm,
+                                ExecutorSubtask.SubtaskType type) {
+        UUID vmId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        try {
+            vmId = Optional.ofNullable(vm).map(VirtualMachine::getId)
+                    .orElse(UUID.fromString("00000000-0000-0000-0000-000000000000"));
+//            synchronized (this) {
+            runnable.run();
+//            }
+            executorTaskService.registerSubTask(task.getId(), vmId, type, true, null);
+        } catch (Throwable e) {
+            executorTaskService.registerSubTask(task.getId(), vmId, type, false, e.getMessage());
+            throw e;
+        }
+    }
+
+    //--------------TESTING--------------
 
     private final ResourceGroupRepository resourceGroupRepository;
     private final TeamRepository teamRepository;
 
-    //TODO michal, real pooling
-
-    @Scheduled(fixedRate = 5L, timeUnit = TimeUnit.MINUTES, initialDelay = -1L)
-    @Transactional
-    public void testExecuteBegin() {
-        startUpPod(getFakeReservation());
-    }
-
-    @Scheduled(fixedRate = 3L, timeUnit = TimeUnit.MINUTES, initialDelay = 3L)
-    @Transactional
-    public void testExecuteEnd() {
-        stopPod(getFakeReservation());
-    }
-
-    private _FakeReservation getFakeReservation() {
-        Reservation reservation = reservationRepository.findById(
-                UUID.fromString("52998fd2-30e2-4b04-9ba9-8113a5123f86")
-        ).orElseThrow(EntityNotFoundException::new);
-        return new _FakeReservation(
-                reservation.getStartTime(),
-                reservation.getEndTime(),
-                reservation.getAutomaticStartup(),
+    @Deprecated
+    private _FakeMockTeamAndRG getMockTeamAndRG(Reservation reservation) {
+        return new _FakeMockTeamAndRG(
                 resourceGroupRepository.findById(reservation.getResourceGroupId())
                         .orElseThrow(EntityNotFoundException::new),
                 teamRepository.findById(reservation.getTeamId())
                         .orElseThrow(EntityNotFoundException::new)
         );
-    }
-
-    private void runAndRegister(Runnable runnable,
-                                ExecutorTask task,
-                                VirtualMachine vm,
-                                ExecutorSubtask.SubtaskType type) {
-        try {
-            runnable.run();
-            executorTaskService.registerSubTask(task.getId(), vm.getId(), type, true, null);
-        } catch (Throwable e) {
-            executorTaskService.registerSubTask(task.getId(), vm.getId(), type, false, e.getMessage());
-            throw e;
-        }
     }
 }
