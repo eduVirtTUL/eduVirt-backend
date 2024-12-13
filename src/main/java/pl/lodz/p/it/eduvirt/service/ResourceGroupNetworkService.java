@@ -9,8 +9,8 @@ public interface ResourceGroupNetworkService {
     ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name);
 
     List<ResourceGroupNetwork> getResourceGroupNetworks(UUID rgId);
-
-    void attachVmToNetwork(UUID networkId, UUID vmId);
-
-    void detachVmFromNetwork(UUID networkId, UUID vmId);
+//
+//    void attachVmToNetwork(UUID networkId, UUID vmId);
+//
+//    void detachVmFromNetwork(UUID networkId, UUID vmId);
 }

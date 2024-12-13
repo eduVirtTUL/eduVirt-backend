@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.entity.eduvirt;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,8 +25,10 @@ public class ResourceGroupNetwork extends AbstractEntity {
 
     private String name;
 
-    @ManyToMany
-    private List<VirtualMachine> virtualMachines = new ArrayList<>();
+//    @ManyToMany
+//    private List<VirtualMachine> virtualMachines = new ArrayList<>();
+    @OneToMany
+    private List<_FakeVmNicEntity> vmNic = new ArrayList<>();
 
     @ManyToOne
     private ResourceGroup resourceGroup;

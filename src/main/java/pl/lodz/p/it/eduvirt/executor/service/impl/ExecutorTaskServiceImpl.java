@@ -51,7 +51,9 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
         } else {
             task.setFailed();
         }
-        task.setDescription(Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(200, comment.length())) : null);
+        task.setDescription(
+                Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(200, comment.length())) : null
+        );
 
         executorTaskRepository.saveAndFlush(task);
     }
@@ -63,7 +65,9 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
 
         ExecutorSubtask subtask = new ExecutorSubtask(task, vmId, type);
         subtask.setSuccessful(success);
-        subtask.setDescription(Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(200, comment.length())) : null);
+        subtask.setDescription(
+                Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(200, comment.length())) : null
+        );
 
         executorSubtaskRepository.saveAndFlush(subtask);
     }

@@ -33,23 +33,23 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
         return resourceGroupNetworkRepository.getAllByResourceGroupId(rgId);
     }
 
-    @Override
-    @Transactional
-    public void attachVmToNetwork(UUID networkId, UUID vmId) {
-        ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository.findById(networkId).orElseThrow();
-        VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
+//    @Override
+//    @Transactional
+//    public void attachVmToNetwork(UUID networkId, UUID vmId) {
+//        ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository.findById(networkId).orElseThrow();
+//        VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
+//
+//        resourceGroupNetwork.getVirtualMachines().add(virtualMachine);
+//        resourceGroupNetworkRepository.save(resourceGroupNetwork);
+//    }
 
-        resourceGroupNetwork.getVirtualMachines().add(virtualMachine);
-        resourceGroupNetworkRepository.save(resourceGroupNetwork);
-    }
-
-    @Override
-    @Transactional
-    public void detachVmFromNetwork(UUID networkId, UUID vmId) {
-        ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository.findById(networkId).orElseThrow();
-        VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
-
-        resourceGroupNetwork.getVirtualMachines().remove(virtualMachine);
-        resourceGroupNetworkRepository.save(resourceGroupNetwork);
-    }
+//    @Override
+//    @Transactional
+//    public void detachVmFromNetwork(UUID networkId, UUID vmId) {
+//        ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository.findById(networkId).orElseThrow();
+//        VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
+//
+//        resourceGroupNetwork.getVirtualMachines().remove(virtualMachine);
+//        resourceGroupNetworkRepository.save(resourceGroupNetwork);
+//    }
 }
