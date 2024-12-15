@@ -49,7 +49,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         /* TODO: Perform logic on reservation that exist in the specified window of time
                  that is cancel all of them and send e-mail notification */
 
-        maintenanceIntervalRepository.save(maintenanceInterval);
+        maintenanceIntervalRepository.saveAndFlush(maintenanceInterval);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         /* TODO: Perform logic on reservation that exist in the specified window of time
                  that is cancel all of them and send e-mail notification */
 
-        maintenanceIntervalRepository.save(maintenanceInterval);
+        maintenanceIntervalRepository.saveAndFlush(maintenanceInterval);
     }
 
     @Override

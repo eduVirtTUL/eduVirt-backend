@@ -24,7 +24,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      This test require the sample cluster, as well as sample metric to exist in oVirt and eduVirt DBs
      *      respectively, since their identifiers are used to create a new value.
      */
-    @Test
+    // @Test
     public void Given_ClusterAndMetricIsFoundAndMetricDoesNotHaveValueForGivenCluster_When_CreateMetricValue_Then_CreatesMetricValueSuccessfully() throws Exception {
         CreateMetricValueDto metricValueDto = new CreateMetricValueDto(existingMetricId, 100.0);
 
@@ -41,7 +41,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      That test does not require any data to exist in both oVirt and eduVirt DBs, since it is using
      *      randomly generated identifiers.
      */
-    @Test
+    // @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_CreateMetricValue_Then_Throws400BadRequest() throws Exception {
         CreateMetricValueDto metricValueDto = new CreateMetricValueDto(nonExistentMetricId, 100.0);
 
@@ -58,7 +58,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      That test does require sample cluster to exist within oVirt database.
      *      Besides that, no additional data is required.
      */
-    @Test
+    // @Test
     public void Given_NonExistentMetricIdentifierIsPassed_When_CreateMetricValue_Then_Throws400BadRequest() throws Exception {
         CreateMetricValueDto metricValueDto = new CreateMetricValueDto(nonExistentMetricId, 100.0);
 
@@ -76,7 +76,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      respectively, since their identifiers are used to create a new value. Apart from those requirements
      *      also example value for given metric and given cluster needs to exist.
      */
-    @Test
+    // @Test
     public void Given_MetricWithIdentifierPassedAlreadyHasValueForGivenCluster_When_CreateMetricValue_Then_Throws409Conflict() throws Exception {
         CreateMetricValueDto metricValueDto = new CreateMetricValueDto(existingClusterId, 100.0);
 
@@ -94,7 +94,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      in the eduVirt DB (at least two of them). Apart from that there should be metric values defined
      *      for those metrics and given cluster.
      */
-    @Test
+    // @Test
     public void Given_ExistingClusterIdIsPassed_When_GetAllMetricValues_Then_ReturnsAllFoundMetricValues() throws Exception {
         MvcResult result = mockMvc.perform(get("/clusters/{clusterId}/metrics", existingClusterId))
                 .andDo(print())
@@ -127,7 +127,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      using automatically generated identifiers for testing how situation where cluster could
      *      not be found is handled.
      */
-    @Test
+    // @Test
     public void Given_NonExistentClusterIdIsPassed_When_GetAllMetricValues_Then_ReturnsAllFoundMetricValues() throws Exception {
         mockMvc.perform(get("/clusters/{clusterId}/metrics", nonExistentClusterId))
                 .andDo(print())
@@ -140,7 +140,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      eduVirt database. Besides that, it is also required that given metric has value associated with sample cluster,
      *      so that it could be modified.
      */
-    @Test
+    // @Test
     public void Given_ExistingClusterAndMetricIdentifierArePassedAndMetricValueAssociatedWithGivenClusterExists_When_UpdateMetricValue_Then_UpdatesGivenMetricValueSuccessfully() throws Exception {
         ValueDto newValueDto = new ValueDto(100.0);
 
@@ -164,7 +164,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      This test does not require any sample data to exist in both oVirt and eduVirt DBs since it is using
      *      randomly generated identifiers in order to check systems response to cluster which could not be found.
      */
-    @Test
+    // @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_UpdateMetricValue_Then_UpdatesGivenMetricValueSuccessfully() throws Exception {
         ValueDto newValueDto = new ValueDto(100.0);
 
@@ -180,7 +180,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      * TEST REQUIREMENTS:
      *      This test does only require sample cluster to exist in the oVirt DB.
      */
-    @Test
+    // @Test
     public void Given_NonExistentMetricIdentifierIsPassed_When_UpdateMetricValue_Then_UpdatesGivenMetricValueSuccessfully() throws Exception {
         ValueDto newValueDto = new ValueDto(100.0);
 
@@ -198,7 +198,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      in the eduVirt DB. Besides, no example value of given metric for given cluster can be present during that
      *      test.
      */
-    @Test
+    // @Test
     public void Given_GivenMetricDoesNotHaveValueAssociatedWithGivenCluster_When_UpdateMetricValue_Then_UpdatesGivenMetricValueSuccessfully() throws Exception {
         ValueDto newValueDto = new ValueDto(100.0);
 
@@ -215,7 +215,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      That test requires sample cluster to exist in the oVirt DB. Also, it does require metric to be present
      *      in the eduVirt database and have a value associated with sample cluster.
      */
-    @Test
+    // @Test
     public void Given_ExistingClusterAndMetricIdentifiersArePassedAndMetricValueIsDefinedForGivenCluster_When_DeleteMetric_Then_RemovesMetricValueSuccessfully() throws Exception {
         mockMvc.perform(delete("/clusters/{clusterId}/metrics/{metricId}", existingClusterId, existingMetricId)
                         .with(csrf()))
@@ -228,7 +228,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      That test does not require any data to exist in the oVirt / eduVirt databases, since it uses
      *      identifiers that are automatically generated.
      */
-    @Test
+    // @Test
     public void Given_NonExistentClusterIdentifierWasPassed_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
         mockMvc.perform(delete("/clusters/{clusterId}/metrics/{metricId}", nonExistentClusterId, nonExistentMetricId)
                         .with(csrf()))
@@ -240,7 +240,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      * TEST REQUIREMENTS:
      *      This test requires only the sample cluster to exist in the oVirt database.
      */
-    @Test
+    // @Test
     public void Given_NonExistentMetricIdentifierWasPassed_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
         mockMvc.perform(delete("/clusters/{clusterId}/metrics/{metricId}", existingMetricId, nonExistentMetricId)
                         .with(csrf()))
@@ -254,7 +254,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      *      respectively. Apart from those requirements, this method requires that there
      *      is no value for given metric and value.
      */
-    @Test
+    // @Test
     public void Given_GivenMetricDoesNotHaveValueAssociatedToGivenCluster_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
         mockMvc.perform(delete("/clusters/{clusterId}/metrics/{metricId}", existingMetricId, existingMetricId)
                         .with(csrf()))

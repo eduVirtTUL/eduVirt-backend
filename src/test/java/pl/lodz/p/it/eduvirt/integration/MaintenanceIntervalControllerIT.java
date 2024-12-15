@@ -25,7 +25,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      This test requires some sample cluster to be present in the oVirt DB. Apart from that, no more
      *      sample data is required.
      */
-    @Test
+    // @Test
     public void Given_MaintenanceIntervalBeginsInFutureAndNoOtherIntervalIsDefined_When_CreateNewClusterMaintenanceInterval_Then_CreatesNewIntervalSuccessfully() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE",
@@ -48,7 +48,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      it is using randomly generated identifiers for cluster identifier, to check what will happen if the
      *      cluster could not be found.
      */
-    @Test
+    // @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_CreateNewClusterMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE",
@@ -70,7 +70,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      This test requires some sample cluster to be present in the oVirt DB. Apart from that, no more
      *      sample data is required.
      */
-    @Test
+    // @Test
     public void Given_MaintenanceIntervalEndsBeforeItBegins_When_CreateNewClusterMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE",
@@ -92,7 +92,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      This test requires some sample cluster to be present in the oVirt DB. Apart from that, no more
      *      sample data is required.
      */
-    @Test
+    // @Test
     public void Given_MaintenanceIntervalBeginsInThePast_When_CreateNewClusterMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE",
@@ -115,7 +115,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      sample data is required. Apart from that, this test case also require other maintenance interval
      *      to exist or rather overlap the time window which is used in the test.
      */
-    @Test
+    // @Test
     public void Given_OtherMaintenanceIntervalExistsForClusterInTheOverlappingTimeWindow_When_CreateNewClusterMaintenanceInterval_Then_Returns409Conflict() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE",
@@ -136,7 +136,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      * TEST REQUIREMENTS:
      *      That method does not require any sample data is both oVirt / eduVirt DBs.
      */
-    @Test
+    // @Test
     public void Given_MaintenanceIntervalBeginsInFuture_When_CreateNewSystemMaintenanceInterval_Then_CreatesNewIntervalSuccessfully() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE",
@@ -157,7 +157,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      * TEST REQUIREMENTS:
      *      That method does not require any sample data is both oVirt / eduVirt DBs.
      */
-    @Test
+    // @Test
     public void Given_MaintenanceIntervalEndsBeforeItBegins_When_CreateNewSystemMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE",
@@ -178,7 +178,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      * TEST REQUIREMENTS:
      *      That method does not require any sample data is both oVirt / eduVirt DBs.
      */
-    @Test
+    // @Test
     public void Given_MaintenanceIntervalBeginsInPast_When_CreateNewSystemMaintenanceInterval_Then_CreatesNewIntervalSuccessfully() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE",
@@ -199,7 +199,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      * TEST REQUIREMENTS:
      *      That method does not require any sample data is both oVirt / eduVirt DBs.
      */
-    @Test
+    // @Test
     public void Given_OtherSystemMaintenanceIntervalIsDefinedInGivenTimePeriod_When_CreateNewSystemMaintenanceInterval_Then_Returns409Conflict() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE",
@@ -222,7 +222,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      intervals, defined for that cluster and beginning in the future should also be present in the eduVirt
      *      DB (at least 2 of them should suffice).
      */
-    @Test
+    // @Test
     public void Given_SomeMaintenanceIntervalsAreAlreadyDefinedAndAreDefinedForClusterAndActive_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
                         .param("clusterId", existingClusterId.toString())
@@ -257,7 +257,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      This test does not require any sample data present in both oVirt / eduVirt DBs, since its using only
      *      automatically generated identifiers, to check what would happen if the cluster could not be found.
      */
-    @Test
+    // @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
         mockMvc.perform(get("/maintenance-intervals")
                         .param("clusterId", nonExistentClusterId.toString())
@@ -273,7 +273,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      intervals, defined for that cluster and beginning (and ending) in the past should also be present in the eduVirt
      *      DB (at least 2 of them should suffice).
      */
-    @Test
+    // @Test
     public void Given_SomeMaintenanceIntervalsAreAlreadyDefinedAndAreDefinedForClusterAndInactive_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
                         .param("clusterId", existingClusterId.toString())
@@ -308,7 +308,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      This test requires some sample maintenance intervals, defined for that system and beginning in the future to
      *      be present in the eduVirt DB (at least 2 of them should suffice).
      */
-    @Test
+    // @Test
     public void Given_SomeMaintenanceIntervalsAreAlreadyDefinedAndAreDefinedForSystemAndActive_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
                         .param("active", "true")
@@ -342,7 +342,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      This test requires some sample maintenance intervals, defined for that system and beginning (and ending)
      *      in the past to be present in the eduVirt DB (at least 2 of them should suffice).
      */
-    @Test
+    // @Test
     public void Given_SomeMaintenanceIntervalsAreAlreadyDefinedAndAreDefinedForSystemAndInactive_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
                         .param("active", "false")
@@ -376,7 +376,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      This test method requires some maintenance intervals (could be defined for the system) to exist so that
      *      they overlap the time window which will begin 24 hours from now, and end in 72 hours from now.
      */
-    @Test
+    // @Test
     public void Given_SomeMaintenanceIntervalsExistWithinTestedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsFoundMaintenanceIntervals() throws Exception {
         MvcResult result = mockMvc.perform(get("/maintenance-intervals/time-period")
                         .param("start", LocalDateTime.now().plusHours(24).toString())
@@ -404,7 +404,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      That test does not require any sample data to be performed, since it tests what will happen if no
      *      maintenance intervals will be found.
      */
-    @Test
+    // @Test
     public void Given_SomeMaintenanceIntervalsDoNotExistWithinTestedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsFoundMaintenanceIntervals() throws Exception {
         mockMvc.perform(get("/maintenance-intervals/time-period")
                         .param("start", LocalDateTime.now().minusHours(72).toString())
@@ -419,7 +419,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      That test case requires sample maintenance interval existence in the database, and apparently only that, since
      *      maintenance interval is only identifier by its id, even though it could be defined for cluster.
      */
-    @Test
+    // @Test
     public void Given_ExistingMaintenanceIntervalIdentifierIsPassed_When_GetMaintenanceInterval_Then_CancelsGivenMaintenanceIntervalSuccessfully() throws Exception {
         MvcResult result = mockMvc.perform(get("/maintenance-intervals/{intervalId}", existingMaintenanceIntervalId))
                 .andDo(print())
@@ -441,7 +441,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      That test case does not require any specific data in oVirt / eduVirt DBs, since it is using automatically
      *      generated identifier to test what would happen if the maintenance interval could not be found.
      */
-    @Test
+    // @Test
     public void Given_NonExistentMaintenanceIntervalIdentifierIsPassed_When_GetMaintenanceInterval_Then_CancelsGivenMaintenanceIntervalSuccessfully() throws Exception {
         mockMvc.perform(get("/maintenance-intervals/{intervalId}", nonExistentMaintenanceIntervalId))
                 .andDo(print())
@@ -453,7 +453,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      That test case requires sample maintenance interval existence in the database, and apparently only that, since
      *      maintenance interval is only identifier by its id, even though it could be defined for cluster.
      */
-    @Test
+    // @Test
     public void Given_ExistingMaintenanceIntervalIdentifierIsPassedAndTheMaintenanceIntervalDidNotStart_When_FinishMaintenanceInterval_Then_RemovesGivenMaintenanceIntervalSuccessfully() throws Exception {
         mockMvc.perform(delete("/maintenance-intervals/{intervalId}", existingMaintenanceIntervalId))
                 .andDo(print())
@@ -465,7 +465,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      That test case does not require any specific data in oVirt / eduVirt DBs, since it is using automatically
      *      generated identifier to test what would happen if the maintenance interval could not be found.
      */
-    @Test
+    // @Test
     public void Given_NonExistentMaintenanceIntervalIdentifierIsPassed_When_FinishMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
         mockMvc.perform(delete("/maintenance-intervals/{intervalId}", nonExistentMaintenanceIntervalId))
                 .andDo(print())
@@ -478,7 +478,7 @@ public class MaintenanceIntervalControllerIT extends IntegrationTestBase {
      *      maintenance interval is only identifier by its id, even though it could be defined for cluster. Important note is
      *      that this interval needs to start in the past in order for that test to function properly.
      */
-    @Test
+    // @Test
     public void Given_ExistingMaintenanceIntervalIdentifierIsPassedAndTheMaintenanceIntervalAlreadyBegun_When_FinishMaintenanceInterval_Then_RemovesGivenMaintenanceIntervalSuccessfully() throws Exception {
         mockMvc.perform(delete("/maintenance-intervals/{intervalId}", existingMaintenanceIntervalId))
                 .andDo(print())

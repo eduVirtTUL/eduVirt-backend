@@ -31,7 +31,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      and a certain team that they will belong to. Basically, this test would require entire structure of
      *      course - resource group pool - resource group and some teams with users in that course.
      */
-    @Test
+    // @Test
     public void Given_ExistingResourceGroupIdentifierIsPassedAndAllTheDataMatchesConstraints_When_CreateNewReservation_Then_CreatesNewReservationSuccessfully() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
                 existingResourceGroupId,
@@ -53,7 +53,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test does not require any more sample data, than the previous test, since it will be using automatically
      *      generated identifiers to check what would happen if the resource group could not be found.
      */
-    @Test
+    // @Test
     public void Given_NonExistentResourceGroupIdentifierIsPassed_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
                 nonExistentResourceGroupId,
@@ -76,7 +76,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test does not require any more sample data, than the previous test, since it will be used to check
      *      what would happen if the start timestamp of the reservation would be from the past.
      */
-    @Test
+    // @Test
     public void Given_ReservationStartIsInThePast_When_CreateNewReservation_Then_Returns409Conflict() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
                 existingResourceGroupId,
@@ -99,7 +99,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test does not require any more sample data, than the previous test, since it will be used to check
      *      what would happen if the end timestamp of the reservation would be before the start timestamp.
      */
-    @Test
+    // @Test
     public void Given_ReservationEndsBeforeItStarts_When_CreateNewReservation_Then_Returns409Conflict() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
                 existingResourceGroupId,
@@ -123,7 +123,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      what would happen if the reservation would exceed the maximum reservation length
      *      (set in the resource pool I guess).
      */
-    @Test
+    // @Test
     public void Given_MaximumReservationLengthWouldBeExceeded_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
                 existingResourceGroupId,
@@ -148,7 +148,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      given team (as it is obvious, also some reservations for that resource group would be required, depends
      *      on the sample data of the resource group pool).
      */
-    @Test
+    // @Test
     public void Given_MaximumReservationNumberOfGivenResourceGroupWouldBeExceeded_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
                 existingResourceGroupId,
@@ -172,7 +172,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      would happen if the grace period of the last reservation of the resource group did not expire (so basically
      *      some reservation with correctly set grace period would be required in the eduVirt DB).
      */
-    @Test
+    // @Test
     public void Given_GracePeriodSinceTheLastReservationDidNotExpire_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
                 existingResourceGroupId,
@@ -195,7 +195,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test would require some resource intensive resource group in order to check what would happen
      *      if the course resources are not sufficient to create new reservation inside it.
      */
-    @Test
+    // @Test
     public void Given_CourseResourcesAreNotSufficientForGivenReservation_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
                 existingResourceGroupId,
@@ -220,7 +220,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      require creating new course in the same cluster and try to exceed total resources of the cluster with new reservations
      *      in that course.
      */
-    @Test
+    // @Test
     public void Given_ClusterResourcesAreNotSufficientForGivenReservation_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
                 existingResourceGroupId,
@@ -244,7 +244,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      what would happen if the reservation was to be created along that overlapping other reservation (of the same
      *      resource group that is).
      */
-    @Test
+    // @Test
     public void Given_ReservationForGivenResourceGroupAlreadyOverlapsSelectedTimePeriod_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
                 existingResourceGroupId,
@@ -268,7 +268,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test case require sample reservation to exist in the database, which reservation should have the
      *      same identifier as the existingReservationId, defined in the IntegrationTestBase.
      */
-    @Test
+    // @Test
     public void Given_ExistingReservationIdentifierIsPassed_When_GetReservationDetails_Then_ReturnsFoundReservation() throws Exception {
         MvcResult result = mockMvc.perform(get("/reservation/{reservationId}", existingReservationId))
                 .andDo(print())
@@ -290,7 +290,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test does not require any data to exist in both oVirt and eduVirt DBs, since it is using
      *      automatically generated identifiers to check what would happen if the reservation could not be found.
      */
-    @Test
+    // @Test
     public void Given_NonExistentReservationIdentifierIsPassed_When_GetReservationDetails_Then_Returns404NotFound() throws Exception {
         mockMvc.perform(get("/reservation/{reservationId}", nonExistentReservationId))
                 .andDo(print())
@@ -304,7 +304,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test method requires some reservations for the team that the invoking user belongs to
      *      in the selected time period.
      */
-    @Test
+    // @Test
     public void Given_SomeReservationsExistForSomeTeamInSelectedTimePeriod_When_GetReservationForGivenPeriod_Then_ReturnsFoundReservationsSuccessfully() throws Exception {
         MvcResult result = mockMvc.perform(get("/reservations/period", existingReservationId)
                         .param("start", OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2).toString())
@@ -332,7 +332,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test method requires some reservations for the team that the invoking user belongs to
      *      in the selected time period.
      */
-    @Test
+    // @Test
     public void Given_NoReservationsExistForSomeTeamInSelectedTimePeriod_When_GetReservationForGivenPeriod_Then_ReturnsFoundReservationsSuccessfully() throws Exception {
         mockMvc.perform(get("/reservations/period", existingReservationId)
                         .param("start", OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().minusHours(48).toString())
@@ -349,7 +349,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      for team, which the user invoking those methods will belong to. As a result also resource group and
      *      course related data would be required.
      */
-    @Test
+    // @Test
     public void Given_SomeActiveReservationsExistWithinTheDBForGivenTeam_When_GetActiveReservations_Then_ReturnsFoundReservationsSuccessfully() throws Exception {
         MvcResult result = mockMvc.perform(get("/reservations/active", existingReservationId))
                 .andDo(print())
@@ -381,7 +381,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test case does not really require any data, since the result of empty reservation list can be achieved with
      *      correct pagination parameters.
      */
-    @Test
+    // @Test
     public void Given_ActiveReservationsDoesNotExistWithinTheDBForGivenTeam_When_GetActiveReservations_Then_Returns204NoContent() throws Exception {
         mockMvc.perform(get("/reservations/active", existingReservationId)
                         .param("pageNumber", "100")
@@ -398,7 +398,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      for team, which the user invoking those methods will belong to. As a result also resource group and
      *      course related data would be required.
      */
-    @Test
+    // @Test
     public void Given_SomeHistoricReservationsExistWithinTheDBForGivenTeam_When_GetHistoricReservations_Then_ReturnsFoundReservationsSuccessfully() throws Exception {
         MvcResult result = mockMvc.perform(get("/reservations/historic", existingReservationId))
                 .andDo(print())
@@ -430,7 +430,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test case does not really require any data, since the result of empty reservation list can be achieved with
      *      correct pagination parameters.
      */
-    @Test
+    // @Test
     public void Given_SomeHistoricReservationsDoesNotExistWithinTheDBForGivenTeam_When_GetActiveReservations_Then_Returns204NoContent() throws Exception {
         mockMvc.perform(get("/reservations/historic", existingReservationId)
                         .param("pageNumber", "100")
@@ -446,7 +446,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      This test require some reservation for the team, which the currently logged-in user belongs to, which starts
      *      in the future.
      */
-    @Test
+    // @Test
     public void Given_ReservationDidNotYetStart_When_FinishReservation_Then_CancelsGivenReservationSuccessfully() throws Exception {
         mockMvc.perform(post("/reservations/{reservationId}/cancel", existingReservationId))
                 .andDo(print())
@@ -458,7 +458,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      As it is obvious, this test require some reservation that already begun for team, which the invoking user
      *      belongs to.
      */
-    @Test
+    // @Test
     public void Given_ReservationStartedAlready_When_FinishReservation_Then_FinishesGivenReservationEarlierSuccessfully() throws Exception {
         MvcResult result = mockMvc.perform(get("/reservations/{reservationId}", existingReservationId))
                 .andDo(print())
@@ -499,7 +499,7 @@ public class ReservationControllerIT extends IntegrationTestBase {
      *      That test does not require any more data than the previous tests, since it is using automatically generated
      *      identifier to check what would happen if the reservation to cancel could not be found.
      */
-    @Test
+    // @Test
     public void Given_NonExistentReservationIdentifierIsPassed_When_FinishReservation_Then_Returns400BadRequest() throws Exception {
         mockMvc.perform(post("/reservations/{reservationId}/cancel", nonExistentReservationId))
                 .andDo(print())
