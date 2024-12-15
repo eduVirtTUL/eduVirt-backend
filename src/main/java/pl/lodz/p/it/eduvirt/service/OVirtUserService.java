@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public interface OVirtUserService {
 
+    List<User> getAllUsersWithPermissions();
+
     List<User> getAllUsers();
 
     User getUserById(UUID userId);

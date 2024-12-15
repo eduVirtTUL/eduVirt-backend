@@ -1,4 +1,6 @@
-package pl.lodz.p.it.eduvirt.exceptions;
+package pl.lodz.p.it.eduvirt.exceptions.user;
+
+import pl.lodz.p.it.eduvirt.exceptions.ApplicationBaseException;
 
 public class UserNotFoundException extends ApplicationBaseException {
 

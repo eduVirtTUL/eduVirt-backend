@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.dto.OVirtUserDto;
+import pl.lodz.p.it.eduvirt.dto.user.OVirtUserWithPermissionsDto;
 
 
+import pl.lodz.p.it.eduvirt.dto.user.OvirtUserDto;
 import pl.lodz.p.it.eduvirt.mappers.UserMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtUserService;
 
@@ -22,15 +23,26 @@ import java.util.UUID;
 @LoggerInterceptor
 @RequestMapping("/resources/users")
 @RequiredArgsConstructor
-public class OVirtUserController {
+public class UserController {
 
     private final OVirtUserService ovirtUserService;
     private final UserMapper userMapper;
 
+    @GetMapping(path="/permissions",  produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getAllUsersWithPermissions() {
+        List<User> foundUsers = ovirtUserService.getAllUsersWithPermissions();
+        List<OVirtUserWithPermissionsDto> userDtos = foundUsers.stream()
+                .map(userMapper::ovirtUserWithPermissionsToUserDto)
+                .toList();
+
+        if (userDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(userDtos);
+    }
+
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAllUsers() {
         List<User> foundUsers = ovirtUserService.getAllUsers();
-        List<OVirtUserDto> userDtos = foundUsers.stream()
+        List<OvirtUserDto> userDtos = foundUsers.stream()
                 .map(userMapper::ovirtUserToUserDto)
                 .toList();
 
@@ -41,7 +53,7 @@ public class OVirtUserController {
     @GetMapping(path = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getUserById(@PathVariable("userId") UUID userId) {
         User foundUser = ovirtUserService.getUserById(userId);
-        OVirtUserDto userDto = userMapper.ovirtUserToUserDto(foundUser);
+        OVirtUserWithPermissionsDto userDto = userMapper.ovirtUserWithPermissionsToUserDto(foundUser);
 
         return ResponseEntity.ok(userDto);
     }

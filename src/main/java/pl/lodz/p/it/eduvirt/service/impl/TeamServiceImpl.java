@@ -103,11 +103,11 @@ public class TeamServiceImpl implements TeamService {
             validateUserNotInCourse(userId, team.getCourse().getId());
 
             if (team.getUsers().size() >= team.getMaxSize()) {
-                throw new IllegalStateException("Team is full"); // change to custom exception
+                throw new IllegalStateException("Team is full");
             }
 
             if (team.getUsers().contains(userId)) {
-                throw new IllegalStateException("User already in team"); // change to custom exception
+                throw new IllegalStateException("User already in team");
             }
 
             team.getUsers().add(userId);
