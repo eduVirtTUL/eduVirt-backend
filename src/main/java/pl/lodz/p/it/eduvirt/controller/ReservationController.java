@@ -16,10 +16,7 @@ import pl.lodz.p.it.eduvirt.exceptions.reservation.ReservationNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.ReservationMapper;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,14 +32,9 @@ public class ReservationController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Void> createNewReservation(@RequestBody CreateReservationDto createDto) {
-        ZoneId clientTimeZone = ZoneId.of(createDto.timeZone());
-        ZonedDateTime clientStartTime = createDto.start().atZone(clientTimeZone);
-        LocalDateTime utcStart = clientStartTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
+        reservationService.createReservation(createDto.resourceGroupId(), createDto.start(),
+                createDto.end(), createDto.automaticStartup());
 
-        ZonedDateTime clientEndTime = createDto.end().atZone(clientTimeZone);
-        LocalDateTime utcEnd = clientEndTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
-
-        reservationService.createReservation(createDto.resourceGroupId(), utcStart, utcEnd, createDto.automaticStartup());
         return ResponseEntity.noContent().build();
     }
 
@@ -60,32 +52,18 @@ public class ReservationController {
 
     @GetMapping(path = "/period")
     ResponseEntity<List<ReservationDto>> getReservationsForGivenPeriod(
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
-            @RequestParam("timezone") String timeZone) {
-        ZoneId clientTimeZone = ZoneId.of(timeZone);
-        ZonedDateTime clientStartTime = start.atStartOfDay().atZone(clientTimeZone);
-        LocalDateTime utcStart = clientStartTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
-
-        ZonedDateTime clientEndTime = end.atStartOfDay().atZone(clientTimeZone);
-        LocalDateTime utcEnd = clientEndTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
-
-        List<Reservation> foundReservations = reservationService.findReservationsForGivenPeriod(utcStart, utcEnd);
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<Reservation> foundReservations = reservationService.findReservationsForGivenPeriod(start, end);
 
         List<ReservationDto> listOfDtos = foundReservations.stream().map(reservation -> {
             LocalDateTime currentStartTime = reservation.getStartTime();
             LocalDateTime currentEndTime = reservation.getEndTime();
 
-            LocalDateTime startTime = currentStartTime.atZone(ZoneId.of("UTC"))
-                    .withZoneSameInstant(clientTimeZone).toLocalDateTime();
-
-            LocalDateTime endTime = currentEndTime.atZone(ZoneId.of("UTC"))
-                    .withZoneSameInstant(clientTimeZone).toLocalDateTime();
-
             return new ReservationDto(
                     reservation.getTeam().getId(),
-                    startTime,
-                    endTime
+                    currentStartTime,
+                    currentEndTime
             );
         }).toList();
 
@@ -106,10 +84,11 @@ public class ReservationController {
     }
 
     @PostMapping(path = "/{reservationId}/cancel")
-    ResponseEntity<Void> cancelReservation(@PathVariable("reservationId") UUID reservationId) {
+    ResponseEntity<Void> finishReservation(@PathVariable("reservationId") UUID reservationId) {
         Reservation foundReservation = reservationService.findReservationById(reservationId)
                 .orElseThrow(ReservationNotFoundException::new);
-        reservationService.cancelReservation(foundReservation);
+
+        reservationService.finishReservation(foundReservation);
 
         return ResponseEntity.noContent().build();
     }

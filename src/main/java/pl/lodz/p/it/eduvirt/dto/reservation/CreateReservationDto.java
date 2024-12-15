@@ -7,6 +7,5 @@ public record CreateReservationDto(
         UUID resourceGroupId,
         LocalDateTime start,
         LocalDateTime end,
-        String timeZone,
         boolean automaticStartup
 ) {}

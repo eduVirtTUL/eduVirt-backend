@@ -18,7 +18,6 @@ import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedExcepti
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
-import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 
 import java.math.BigDecimal;
@@ -41,7 +40,6 @@ public class ClusterController {
 
     private final OVirtClusterService clusterService;
     private final OVirtVmService vmService;
-    private final ReservationService reservationService;
 
     // Read methods
 
@@ -72,7 +70,7 @@ public class ClusterController {
     }
 
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<HostDto>> findCpuInfoByClusterId(
+    public ResponseEntity<List<HostDto>> findHostInfoByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
             @PathVariable("id") UUID clusterId) {

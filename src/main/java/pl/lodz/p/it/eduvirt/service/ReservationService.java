@@ -17,5 +17,5 @@ public interface ReservationService {
     List<Reservation> findCurrentReservationsForCourse(Course course, LocalDateTime currentTime);
     List<Reservation> findReservationsForGivenPeriod(LocalDateTime start, LocalDateTime end);
 
-    void cancelReservation(Reservation reservation);
+    void finishReservation(Reservation reservation);
 }

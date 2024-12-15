@@ -1,8 +1,10 @@
 package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +18,10 @@ import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.MaintenanceInterval;
 import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.mappers.MaintenanceIntervalMapper;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
+import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,6 +30,7 @@ import java.util.UUID;
 @RequestMapping(path = "/maintenance-intervals")
 public class MaintenanceIntervalController {
 
+    private final OVirtClusterService clusterService;
     private final MaintenanceIntervalService maintenanceIntervalService;
 
     private final MaintenanceIntervalMapper maintenanceIntervalMapper;
@@ -32,8 +38,10 @@ public class MaintenanceIntervalController {
     @PostMapping(path = "/cluster/{clusterId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createNewClusterMaintenanceInterval(@PathVariable("clusterId") UUID clusterId,
                                                                     @RequestBody CreateMaintenanceIntervalDto createDto) {
+        Cluster foundCluster = clusterService.findClusterById(clusterId);
+
         maintenanceIntervalService.createClusterMaintenanceInterval(
-                clusterId,
+                foundCluster,
                 createDto.cause(),
                 createDto.description(),
                 createDto.beginAt(),
@@ -78,6 +86,20 @@ public class MaintenanceIntervalController {
         }
     }
 
+    @GetMapping(path = "/time-period")
+    public ResponseEntity<List<MaintenanceIntervalDto>> getMaintenanceIntervalsWithinTimePeriod(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<MaintenanceInterval> foundIntervals = maintenanceIntervalService
+                .findAllMaintenanceIntervalsInTimePeriod(start, end);
+
+        List<MaintenanceIntervalDto> listOfDtos = foundIntervals.stream()
+                .map(maintenanceIntervalMapper::maintenanceIntervalToDto).toList();
+
+        if (foundIntervals.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDtos);
+    }
+
     @GetMapping(path = "/{intervalId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MaintenanceIntervalDetailsDto> getMaintenanceInterval(@PathVariable("intervalId") UUID intervalId) {
         MaintenanceInterval foundInterval = maintenanceIntervalService.findMaintenanceInterval(intervalId)
@@ -89,8 +111,8 @@ public class MaintenanceIntervalController {
     }
 
     @DeleteMapping(path = "/{intervalId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> cancelMaintenanceInterval(@PathVariable("intervalId") UUID intervalId) {
-        maintenanceIntervalService.cancelMaintenanceInterval(intervalId);
+    public ResponseEntity<Void> finishMaintenanceInterval(@PathVariable("intervalId") UUID intervalId) {
+        maintenanceIntervalService.finishMaintenanceInterval(intervalId);
         return ResponseEntity.noContent().build();
     }
 }

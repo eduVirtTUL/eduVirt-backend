@@ -9,11 +9,12 @@ import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.Team;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.exceptions.reservation.ReservationEndBeforeStartException;
+import pl.lodz.p.it.eduvirt.exceptions.reservation.ReservationStartInPastException;
 import pl.lodz.p.it.eduvirt.repository.eduvirt.*;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
@@ -62,6 +63,12 @@ public class ReservationServiceImpl implements ReservationService {
         *        1. Resource group could be missing max. reservation count
         *        2. 4th and 5th check cannot be done without metrics for course (and connecting metrics to resources)
         * */
+
+        // General data validation
+
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        if (start.isBefore(currentTime)) throw new ReservationStartInPastException();
+        if (end.isBefore(start)) throw new ReservationEndBeforeStartException();
 
         // Condition no. 1: Maximum reservation length
 
@@ -125,7 +132,13 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public void cancelReservation(Reservation reservation) {
-        reservationRepository.delete(reservation);
+    public void finishReservation(Reservation reservation) {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        if (reservation.getStartTime().isBefore(currentTime)) {
+            reservation.setEndTime(currentTime);
+            reservationRepository.saveAndFlush(reservation);
+        } else {
+            reservationRepository.delete(reservation);
+        }
     }
 }
