@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.internal.containers.NicContainer;
+import org.ovirt.engine.sdk4.internal.containers.VnicProfileContainer;
 import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.services.VmService;
 import org.ovirt.engine.sdk4.services.VmsService;
@@ -20,6 +21,7 @@ import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -206,6 +208,46 @@ public class OVirtVmServiceImpl implements OVirtVmService {
         } catch (Throwable e) {
             log.error(e.getMessage());
             return false;
+        }
+    }
+
+    @Override
+    public String removeVnicProfileFromVm(String vmId, String vmNicId) {
+        try (Connection connection = connectionFactory.getConnection()) {
+            SystemService systemService = connection
+                    .systemService();
+
+            VmService vmService = systemService
+                    .vmsService()
+                    .vmService(vmId);
+
+            Vm fetchedVm = vmService
+                    .get()
+                    .follow("nics")
+                    .send()
+                    .vm();
+
+            Nic wantedNic = fetchedVm.nics()
+                    .stream()
+                    .filter(nic -> nic.id().equals(vmNicId))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("NIC not found in the VM fetched object"));
+
+            String vnicProfileToRemoveId = wantedNic.vnicProfile().id();
+
+            ((NicContainer) wantedNic).vnicProfile(new VnicProfileContainer());
+
+            vmService
+                    .nicsService()
+                    .nicService(wantedNic.id())
+                    .update()
+                    .nic(wantedNic)
+                    .send();
+
+            return vnicProfileToRemoveId;
+        } catch (Throwable e) {
+            log.error(e.getMessage());
+            return null;
         }
     }
 }
