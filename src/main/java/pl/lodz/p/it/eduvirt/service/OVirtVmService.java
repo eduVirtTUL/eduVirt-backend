@@ -21,4 +21,6 @@ public interface OVirtVmService {
     boolean powerOffVm(String id);
 
     boolean assignVnicProfileToVm(String vmId, String vmNicId, String vnicProfileId);
+
+    String removeVnicProfileFromVm(String vmId, String vmNicId);
 }

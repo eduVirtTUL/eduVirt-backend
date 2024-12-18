@@ -34,7 +34,6 @@ build/
 .vscode/
 
 # Other excludes
-
 # Properties
 ovirt.yaml
 postgres-db.yaml
@@ -43,4 +42,4 @@ ovirt-db.yaml
 h2-db.yaml
 application-dev.yaml
 
-#*_Fake*
+*_Fake*

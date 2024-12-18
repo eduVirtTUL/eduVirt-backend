@@ -26,12 +26,10 @@ import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -74,34 +72,37 @@ public class ExecutorScheduler {
 
             List<VirtualMachine> virtualMachines = mockTeamAndRG.getResourceGroup().getVms();
 
-            //TODO michal: verify resources or handle insufficient on VM startup command (probably the first one)
+            //TODO michal: Verify resources or handle insufficient on VM startup command (probably the first one)
 
-            //TODO michal: network mapping
+            //Network mapping
             List<ResourceGroupNetwork> networksToMap = resourceGroupNetworkRepository.getAllByResourceGroupId(mockTeamAndRG.getResourceGroup().getId());
             networksToMap
                     .stream()
                     //.parallel()
                     .forEach(
                             network -> {
-                                // TODO michal: fetch vnic profile from pool, checking conditions (if in_use equals false)
-                                VnicProfilePoolMember chosenVnicProfile = vnicProfilePoolService.getVnicProfilesPool()
-                                        .stream()
-                                        .filter(vnicProfile -> !vnicProfile.getInUse())
-                                        .findFirst()
-                                        .orElseThrow(() -> new RuntimeException("No available vnic profile found in pool"));
-
-                                // TODO michal: set vnic profile"s property "inUse" to true
-                                vnicProfilePoolService.markVnicProfileAsOccupied(chosenVnicProfile.getId());
-
-                                // TODO michal: assign vnic profile to VMs NICs
                                 // TODO michal: CZY SEGMENTY SIECIOWE SĄ DEFINIOWANE PER CLUSTER? CZY DLA CAŁEGO DATA CENTER SĄ WSPÓLNE
-                                runAndRegister(() -> assignVnicProfilesToNICs(chosenVnicProfile.getId(), network.getVmNic()),
-                                        executorTask, null, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE);
+                                runAndRegister(() -> {
+                                            // Fetch vnic profile from pool, checking conditions (if inUse equals false)
+                                            VnicProfilePoolMember chosenVnicProfile = vnicProfilePoolService.getVnicProfilesPool()
+                                                    .stream()
+                                                    .filter(vnicProfile -> !vnicProfile.getInUse())
+                                                    .findFirst()
+                                                    .orElseThrow(() -> new RuntimeException("No available vnic profile found in pool"));
+
+                                            // Set vnic profile's property "inUse" to true
+                                            vnicProfilePoolService.markVnicProfileAsOccupied(chosenVnicProfile.getId());
+
+                                            // Assign vnic profile to VMs NICs
+                                            assignVnicProfilesToNICs(chosenVnicProfile.getId(), network.getVmNic());
+                                        },
+                                        executorTask, null, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE
+                                );
                             }
                     );
 
 
-            //TODO michal: handle situation when some VMs are running
+            //TODO michal: Handle situation when some VMs are running
 
             //Start-up VMs
             if (reservation.getAutomaticStartup()) {
@@ -115,7 +116,7 @@ public class ExecutorScheduler {
                         );
             }
 
-            //TODO michal: active waiting for all VMs are running
+            //TODO michal: Active waiting for all VMs are running
 
             //Assign permissions
             virtualMachines
@@ -156,12 +157,42 @@ public class ExecutorScheduler {
     }
 
     //TODO michal: if pod doesnt start should we invoke stopping it??? - now stopping is invoking in any cases
-    private void stopPod(Reservation reservation, _FakeMockTeamAndRG fakeReservation) {
+    private void stopPod(Reservation reservation, _FakeMockTeamAndRG mockTeamAndRG) {
         ExecutorTask executorTask = executorTaskService.registerPodDestroyTask(reservation);
         try {
-            List<VirtualMachine> virtualMachines = fakeReservation.getResourceGroup().getVms();
+            List<VirtualMachine> virtualMachines = mockTeamAndRG.getResourceGroup().getVms();
 
-            //TODO michal: private network cleaning
+            //Revoke permissions
+            virtualMachines
+                    .stream()
+                    //.parallel()
+                    .forEach(
+                            vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), mockTeamAndRG.getTeam().getUsers()),
+                                    executorTask, vm, ExecutorSubtask.SubtaskType.REVOKE_PERMISSIONS
+                            )
+                    );
+
+            //TODO michal: Private networks cleaning
+            //TODO michal: decide to do it before or after VMs shutdown
+            List<ResourceGroupNetwork> networksToRemove = resourceGroupNetworkRepository.getAllByResourceGroupId(mockTeamAndRG.getResourceGroup().getId());
+            networksToRemove
+                    .stream()
+                    //.parallel()
+                    .forEach(
+                            network -> {
+                                runAndRegister(() -> {
+                                            // Remove vnic profile from VMs NICs
+                                            List<UUID> removedVnicProfileIdList = removeVnicProfilesFromNICs(network.getVmNic());
+                                            System.out.println("kanapkaVNIC PROFILE REMOVED: " + removedVnicProfileIdList);
+                                            // Set vnic profile's property "inUse" to false
+                                            removedVnicProfileIdList.forEach(
+                                                    vnicProfilePoolService::markVnicProfileAsFree
+                                            );
+                                        },
+                                        executorTask, null, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE
+                                );
+                            }
+                    );
 
             //Shutdown VMs
             virtualMachines
@@ -173,15 +204,7 @@ public class ExecutorScheduler {
                             )
                     );
 
-            //Revoke permissions
-            virtualMachines
-                    .stream()
-                    //.parallel()
-                    .forEach(
-                            vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), fakeReservation.getTeam().getUsers()),
-                                    executorTask, vm, ExecutorSubtask.SubtaskType.REVOKE_PERMISSIONS
-                            )
-                    );
+            //TODO michal: when waiting to vm shutdown for a long time, use power off
 
             executorTaskService.finalizeTask(executorTask.getId(), true, null);
         } catch (Throwable e) {
@@ -207,6 +230,18 @@ public class ExecutorScheduler {
                                             }
                                         })
                 );
+    }
+
+    private List<UUID> removeVnicProfilesFromNICs(List<_FakeVmNicEntity> vmNicList) {
+        return vmNicList.stream()
+//                .parallel()
+                .map(
+                        //TODO michal: do null-safe mapping
+                        vmNic -> UUID.fromString(
+                                oVirtVmService.removeVnicProfileFromVm(vmNic.getVmId().toString(), vmNic.getNicId().toString())
+                        )
+                )
+                .toList();
     }
 
     private void runAndRegister(Runnable runnable,
