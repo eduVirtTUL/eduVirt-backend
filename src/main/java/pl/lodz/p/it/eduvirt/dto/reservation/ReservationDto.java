@@ -1,5 +1,10 @@
 package pl.lodz.p.it.eduvirt.dto.reservation;
 
-public record ReservationDto(
+import java.time.LocalDateTime;
+import java.util.UUID;
 
+public record ReservationDto(
+    UUID teamId,
+    LocalDateTime start,
+    LocalDateTime end
 ) {}
