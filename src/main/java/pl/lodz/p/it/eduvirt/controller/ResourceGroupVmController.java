@@ -2,38 +2,40 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.AddVmDto;
+import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroup;
-import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
 
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/resource-group/{rgId}/vm")
 @RequiredArgsConstructor
 public class ResourceGroupVmController {
     private final ResourceGroupService resourceGroupService;
     private final OVirtVmService oVirtVmService;
-    private final VmMapper vmMapper;
     private final VirtualMachineService virtualMachineService;
+    private final OVirtVnicProfileService oVirtVnicProfileService;
 
     @GetMapping
     @Transactional
     public ResponseEntity<List<VmDto>> getVms(@PathVariable UUID rgId) {
-        ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
-        var vms = resourceGroup.getVms()
-                .stream()
-                .parallel()
-                .map(vm -> oVirtVmService.findVmById(vm.getId().toString()));
+        return ResponseEntity.ok(resourceGroupService.getVms(rgId));
+    }
 
-        return ResponseEntity.ok(vmMapper.ovirtVmsToDtos(vms));
+    @GetMapping("{id}")
+    @Transactional
+    public ResponseEntity<VmDto> getVm(@PathVariable UUID rgId, @PathVariable UUID id) {
+        return ResponseEntity.ok(resourceGroupService.getVm(id));
     }
 
     @PostMapping

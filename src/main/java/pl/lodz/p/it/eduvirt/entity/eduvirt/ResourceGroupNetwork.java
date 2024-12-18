@@ -1,9 +1,6 @@
 package pl.lodz.p.it.eduvirt.entity.eduvirt;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +10,7 @@ import org.hibernate.proxy.HibernateProxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -24,8 +22,9 @@ public class ResourceGroupNetwork extends AbstractEntity {
 
     private String name;
 
-    @ManyToMany
-    private List<VirtualMachine> virtualMachines = new ArrayList<>();
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "resource_group_network_interface", joinColumns = @JoinColumn(name = "resource_group_network_id"))
+    private List<UUID> interfaces = new ArrayList<>();
 
     @ManyToOne
     private ResourceGroup resourceGroup;
@@ -33,7 +32,7 @@ public class ResourceGroupNetwork extends AbstractEntity {
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null) return false;
+        if (o == null || this.getClass() != o.getClass()) return false;
         Class<?> oEffectiveClass = o instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;

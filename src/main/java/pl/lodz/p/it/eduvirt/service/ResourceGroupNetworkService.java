@@ -10,7 +10,9 @@ public interface ResourceGroupNetworkService {
 
     List<ResourceGroupNetwork> getResourceGroupNetworks(UUID rgId);
 
-    void attachVmToNetwork(UUID networkId, UUID vmId);
+    void attachNicToNetwork(UUID networkId, UUID vmId, UUID nicId);
 
-    void detachVmFromNetwork(UUID networkId, UUID vmId);
+    void detachNicFromNetwork(UUID vmId, UUID nicId);
+
+    void deleteNetwork(UUID networkId);
 }

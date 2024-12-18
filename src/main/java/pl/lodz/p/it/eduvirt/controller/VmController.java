@@ -14,7 +14,6 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.mappers.NicMapper;
-import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
@@ -57,12 +56,19 @@ public class VmController {
         VmDto vmDto = vmMapper.ovirtVmToDto(vm);
         vmDto.setNics(
                 vm.nics().parallelStream().map(nic -> {
+                    NicDto.NicDtoBuilder nicDtoBuilder = NicDto.builder()
+                            .id(nic.id())
+                            .name(nic.name())
+                            .macAddress(nic.mac().address());
                     if (nic.vnicProfilePresent()) {
                         VnicProfile profile = oVirtVnicProfileService.getVnicProfileById(nic.vnicProfile().id());
-                        return new NicDto(nic.id(), nic.name(), profile.name());
+                        return nicDtoBuilder
+                                .profileName(profile.name())
+                                .build();
                     }
 
-                    return new NicDto(nic.id(), nic.name(), null);
+                    return nicDtoBuilder
+                            .build();
 
                 }).toList());
         return ResponseEntity.ok(vmDto);
