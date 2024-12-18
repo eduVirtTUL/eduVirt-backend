@@ -79,7 +79,7 @@ public class MaintenanceIntervalController {
                             maintenanceIntervalPage.getTotalPages(), maintenanceIntervalPage.getTotalElements())
             );
 
-            if (listOfDtos.items().isEmpty()) return ResponseEntity.noContent().build();
+            if (maintenanceIntervalPage.getContent().isEmpty()) return ResponseEntity.noContent().build();
             return ResponseEntity.ok(listOfDtos);
         } catch (IllegalArgumentException exception) {
             return ResponseEntity.noContent().build();
@@ -88,7 +88,7 @@ public class MaintenanceIntervalController {
 
     @GetMapping(path = "/time-period")
     public ResponseEntity<List<MaintenanceIntervalDto>> getMaintenanceIntervalsWithinTimePeriod(
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)LocalDateTime start,
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalService
                 .findAllMaintenanceIntervalsInTimePeriod(start, end);
@@ -102,12 +102,17 @@ public class MaintenanceIntervalController {
 
     @GetMapping(path = "/{intervalId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MaintenanceIntervalDetailsDto> getMaintenanceInterval(@PathVariable("intervalId") UUID intervalId) {
-        MaintenanceInterval foundInterval = maintenanceIntervalService.findMaintenanceInterval(intervalId)
-                .orElseThrow(MaintenanceIntervalNotFound::new);
+        try {
+            MaintenanceInterval foundInterval = maintenanceIntervalService.findMaintenanceInterval(intervalId)
+                    .orElseThrow(MaintenanceIntervalNotFound::new);
 
-        MaintenanceIntervalDetailsDto outputDto = maintenanceIntervalMapper
-                .maintenanceIntervalToDetailsDto(foundInterval);
-        return ResponseEntity.ok(outputDto);
+            MaintenanceIntervalDetailsDto outputDto = maintenanceIntervalMapper
+                    .maintenanceIntervalToDetailsDto(foundInterval);
+
+            return ResponseEntity.ok(outputDto);
+        } catch (MaintenanceIntervalNotFound exception) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping(path = "/{intervalId}", produces = MediaType.APPLICATION_JSON_VALUE)

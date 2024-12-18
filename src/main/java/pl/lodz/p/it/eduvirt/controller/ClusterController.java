@@ -15,6 +15,7 @@ import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
 import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedException;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -45,8 +46,12 @@ public class ClusterController {
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ClusterDetailsDto> findClusterById(@PathVariable("id") UUID clusterId) {
-        Cluster foundCluster = clusterService.findClusterById(clusterId);
-        return ResponseEntity.ok(clusterMapper.ovirtClusterToDetailsDto(foundCluster));
+        try {
+            Cluster foundCluster = clusterService.findClusterById(clusterId);
+            return ResponseEntity.ok(clusterMapper.ovirtClusterToDetailsDto(foundCluster));
+        } catch (ClusterNotFoundException exception) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
