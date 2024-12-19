@@ -70,6 +70,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .vmsService()
                     .vmService(id)
                     .get()
+                    .follow("nics")
                     .send()
                     .vm()
                     .nics();
