@@ -31,8 +31,9 @@ public class MetricController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PageDto<MetricDto>> getAllMetrics(@RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-                                    @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+    public ResponseEntity<PageDto<MetricDto>> getAllMetrics(
+            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
         Page<Metric> metricPage = metricService.findAllMetrics(pageNumber, pageSize);
         PageDto<MetricDto> listOfDTOs = new PageDto<>(
                 metricPage.getContent().stream().map(metricMapper::metricToDto).toList(),
@@ -40,7 +41,7 @@ public class MetricController {
                         metricPage.getTotalPages(), metricPage.getTotalElements())
         );
 
-        if (listOfDTOs.items().isEmpty()) return ResponseEntity.noContent().build();
+        if (metricPage.getContent().isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDTOs);
     }
 
