@@ -9,20 +9,26 @@ import pl.lodz.p.it.eduvirt.service.ResourceGroupNetworkService;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/network/{id}")
+@RequestMapping("/network")
 @RequiredArgsConstructor
 public class PrivateNetworkController {
     private final ResourceGroupNetworkService resourceGroupNetworkService;
 
-    @PostMapping("/attach")
-    public ResponseEntity<Void> attachVmToNetwork(@PathVariable UUID id, @RequestBody NetworkVmConnectionDto dto) {
-        resourceGroupNetworkService.attachVmToNetwork(id, dto.vmId());
+    @PostMapping("/{id}/attach")
+    public ResponseEntity<Void> attachNicToNetwork(@PathVariable UUID id, @RequestBody NetworkVmConnectionDto dto) {
+        resourceGroupNetworkService.attachNicToNetwork(id, dto.vmId(), dto.nicId());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/detach")
-    public ResponseEntity<Void> detachVmFromNetwork(@PathVariable UUID id, @RequestBody NetworkVmConnectionDto dto) {
-        resourceGroupNetworkService.detachVmFromNetwork(id, dto.vmId());
+    public ResponseEntity<Void> detachNicFromNetwork(@RequestBody NetworkVmConnectionDto dto) {
+        resourceGroupNetworkService.detachNicFromNetwork(dto.vmId(), dto.nicId());
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteNetwork(@PathVariable UUID id) {
+        resourceGroupNetworkService.deleteNetwork(id);
         return ResponseEntity.ok().build();
     }
 }
