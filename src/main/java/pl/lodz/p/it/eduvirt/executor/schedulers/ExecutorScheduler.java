@@ -181,6 +181,7 @@ public class ExecutorScheduler {
                     .forEach(
                             network -> {
                                 runAndRegister(() -> {
+                                    //TODO michal: change LIST to SET or single value
                                             // Remove vnic profile from VMs NICs
                                             List<UUID> removedVnicProfileIdList = removeVnicProfilesFromNICs(network.getVmNic());
                                             System.out.println("kanapkaVNIC PROFILE REMOVED: " + removedVnicProfileIdList);
