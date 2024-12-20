@@ -6,22 +6,40 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import pl.lodz.p.it.eduvirt.entity.eduvirt.HistoricalData;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.eduvirt.Team;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
-@Table(name = "reservation")
-@Getter
-@Setter
+@Table(
+        name = "reservation",
+        indexes = {
+                @Index(name = "reservation_rg_id_idx", columnList = "rg_id"),
+                @Index(name = "reservation_team_id_idx", columnList = "team_id")
+        }
+)
+@Getter @Setter
 @NoArgsConstructor
 public class Reservation extends HistoricalData {
 
-    @Column(name = "rg_id", nullable = false, updatable = false)
-    private UUID resourceGroupId;
+    @ManyToOne
+    @JoinColumn(
+            name = "rg_id",
+            referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "reservation_rg_id_fk"),
+            nullable = false, updatable = false
+    )
+    private ResourceGroup resourceGroup;
 
-    @Column(name = "team_id", nullable = false, updatable = false)
-    private UUID teamId;
+    @ManyToOne
+    @JoinColumn(
+            name = "team_id",
+            referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "reservation_team_id_fk"),
+            nullable = false, updatable = false
+    )
+    private Team team;
 
     @Column(name = "reservation_start", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -36,13 +54,13 @@ public class Reservation extends HistoricalData {
 
     // Constructors
 
-    public Reservation(UUID resourceGroupId,
-                       UUID teamId,
+    public Reservation(ResourceGroup resourceGroup,
+                       Team team,
                        LocalDateTime startTime,
                        LocalDateTime endTime,
                        Boolean automaticStartup) {
-        this.resourceGroupId = resourceGroupId;
-        this.teamId = teamId;
+        this.resourceGroup = resourceGroup;
+        this.team = team;
         this.startTime = startTime;
         this.endTime = endTime;
         this.automaticStartup = automaticStartup;
@@ -53,7 +71,7 @@ public class Reservation extends HistoricalData {
                        LocalDateTime startTime,
                        LocalDateTime endTime,
                        Boolean automaticStartup) {
-        //super(version);
+        super(version);
         this.startTime = startTime;
         this.endTime = endTime;
         this.automaticStartup = automaticStartup;

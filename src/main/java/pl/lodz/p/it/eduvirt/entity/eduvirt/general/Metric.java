@@ -11,8 +11,7 @@ import pl.lodz.p.it.eduvirt.entity.eduvirt.AbstractEntity;
 
 @Entity
 @Table(name = "metric")
-@Getter
-@Setter
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Metric extends AbstractEntity {

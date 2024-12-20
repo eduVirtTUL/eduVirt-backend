@@ -11,6 +11,7 @@ public interface OVirtClusterService {
     List<Cluster> findClusters(int pageNumber, int pageSize);
 
     List<Host> findHostsInCluster(Cluster cluster, int pageNumber, int pageSize);
+    List<Host> findAllHostsInCluster(Cluster cluster);
     List<Vm> findVmsInCluster(Cluster cluster, int pageNumber, int pageSize);
     List<Network> findNetworksInCluster(Cluster cluster, int pageNumber, int pageSize);
     List<Event> findEventsInCluster(Cluster cluster, int pageNumber, int pageSize);
