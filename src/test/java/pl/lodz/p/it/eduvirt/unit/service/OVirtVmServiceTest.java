@@ -339,6 +339,7 @@ public class OVirtVmServiceTest {
         when(systemService.vmsService()).thenReturn(vmsService);
         when(vmsService.vmService(Mockito.eq(vmId.toString()))).thenReturn(vmService);
         when(vmService.get()).thenReturn(getRequest);
+        when(getRequest.follow(Mockito.eq("nics"))).thenReturn(getRequest);
         when(getRequest.send()).thenReturn(getResponse);
         when(getResponse.vm()).thenReturn(vm);
         when(vm.nics()).thenReturn(nicList);
@@ -367,6 +368,7 @@ public class OVirtVmServiceTest {
         verify(vmsService, times(1)).vmService(Mockito.eq(vmId.toString()));
         verify(vmService, times(1)).get();
         verify(getRequest, times(1)).send();
+        verify(getRequest, times(1)).follow(Mockito.eq("nics"));
         verify(getResponse, times(1)).vm();
         verify(vm, times(1)).nics();
     }
@@ -381,6 +383,7 @@ public class OVirtVmServiceTest {
         when(systemService.vmsService()).thenReturn(vmsService);
         when(vmsService.vmService(Mockito.eq(vmId.toString()))).thenReturn(vmService);
         when(vmService.get()).thenReturn(getRequest);
+        when(getRequest.follow(Mockito.eq("nics"))).thenReturn(getRequest);
         when(getRequest.send()).thenThrow(new org.ovirt.engine.sdk4.Error("Vm not found"));
 
         assertThrows(RuntimeException.class, () -> oVirtVmService.findNicsByVmId(vmId.toString()));
@@ -390,6 +393,7 @@ public class OVirtVmServiceTest {
         verify(systemService, times(1)).vmsService();
         verify(vmsService, times(1)).vmService(Mockito.eq(vmId.toString()));
         verify(vmService, times(1)).get();
+        verify(getRequest, times(1)).follow(Mockito.eq("nics"));
         verify(getRequest, times(1)).send();
     }
 }
