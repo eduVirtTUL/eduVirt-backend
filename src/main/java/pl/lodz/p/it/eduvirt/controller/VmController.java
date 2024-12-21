@@ -17,12 +17,10 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
-import pl.lodz.p.it.eduvirt.mappers.NicMapper;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
-import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -34,6 +32,7 @@ import java.util.UUID;
 @RequestMapping("/resource/vm")
 @RequiredArgsConstructor
 public class VmController {
+    private final VmMapper vmMapper;
 
     private final ConnectionFactory connectionFactory;
 
@@ -45,18 +44,7 @@ public class VmController {
 
     @GetMapping
     public ResponseEntity<List<VmDto>> getVms() {
-        try (Connection connection = connectionFactory.getConnection()) {
-            List<Vm> vms = connection
-                    .systemService()
-                    .vmsService()
-                    .list()
-                    .send()
-                    .vms();
-            return ResponseEntity.ok(vmMapper.ovirtVmsToDtos(vms.stream()));
-        } catch (Exception e) {
-            log.error("Error while fetching VMs", e);
-            throw new RuntimeException(e);
-        }
+        return ResponseEntity.ok(vmMapper.ovirtVmsToDtos(oVirtVmService.findVms().stream()));
     }
 
     @GetMapping("/{id}")

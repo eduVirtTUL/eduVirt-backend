@@ -15,8 +15,8 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
     private final VirtualMachineRepository virtualMachineRepository;
 
     @Override
-    public void createVirtualMachine(UUID id, ResourceGroup resourceGroup) {
-        VirtualMachine vm = new VirtualMachine(id, resourceGroup);
+    public void createVirtualMachine(UUID id, boolean hidden, ResourceGroup resourceGroup) {
+        VirtualMachine vm = new VirtualMachine(id, hidden, resourceGroup);
         virtualMachineRepository.save(vm);
     }
 }
