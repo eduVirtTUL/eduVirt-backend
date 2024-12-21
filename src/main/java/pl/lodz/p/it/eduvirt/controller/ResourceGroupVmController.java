@@ -43,7 +43,7 @@ public class ResourceGroupVmController {
     public ResponseEntity<Void> addVm(@PathVariable UUID rgId, @RequestBody AddVmDto addVmDto) {
         ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
 
-        virtualMachineService.createVirtualMachine(addVmDto.id(), resourceGroup);
+        virtualMachineService.createVirtualMachine(addVmDto.id(), addVmDto.hidden(), resourceGroup);
         return ResponseEntity.ok().build();
     }
 }
