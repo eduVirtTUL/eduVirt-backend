@@ -2,7 +2,6 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.ovirt.engine.sdk4.types.Host;
 import org.ovirt.engine.sdk4.types.Vm;
@@ -33,14 +32,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class VmController {
     private final VmMapper vmMapper;
-
-    private final ConnectionFactory connectionFactory;
-
     private final OVirtVmService oVirtVmService;
     private final OVirtClusterService oVirtClusterService;
     private final OVirtVnicProfileService oVirtVnicProfileService;
-
-    private final VmMapper vmMapper;
 
     @GetMapping
     public ResponseEntity<List<VmDto>> getVms() {
