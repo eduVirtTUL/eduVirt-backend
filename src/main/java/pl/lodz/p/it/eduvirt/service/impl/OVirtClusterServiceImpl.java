@@ -27,7 +27,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
             Connection connection = connectionFactory.getConnection();
             SystemService systemService = connection.systemService();
 
-            org.ovirt.engine.sdk4.services.ClusterService clusterService = systemService.clustersService().
+            ClusterService clusterService = systemService.clustersService().
                     clusterService(clusterId.toString());
 
             return clusterService.get().send().cluster();
@@ -54,6 +54,15 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
 
         String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
         return hostsService.list().search(searchQuery).max(pageSize).send().hosts();
+    }
+
+    @Override
+    public List<Host> findAllHostsInCluster(Cluster cluster) {
+        Connection connection = connectionFactory.getConnection();
+        SystemService systemService = connection.systemService();
+
+        HostsService hostsService = systemService.hostsService();
+        return hostsService.list().search("cluster=%s".formatted(cluster.name())).send().hosts();
     }
 
     @Override
@@ -89,8 +98,9 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         Connection connection = connectionFactory.getConnection();
         SystemService systemService = connection.systemService();
 
+        String searchQuery = "cluster=%s".formatted(cluster.name());
         HostsService hostsService = systemService.hostsService();
-        return hostsService.list().send().hosts().size();
+        return hostsService.list().search(searchQuery).send().hosts().size();
     }
 
     @Override
@@ -98,7 +108,8 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         Connection connection = connectionFactory.getConnection();
         SystemService systemService = connection.systemService();
 
+        String searchQuery = "cluster=%s".formatted(cluster.name());
         VmsService vmsService = systemService.vmsService();
-        return vmsService.list().send().vms().size();
+        return vmsService.list().search(searchQuery).send().vms().size();
     }
 }

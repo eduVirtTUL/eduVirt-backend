@@ -11,9 +11,13 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "reservation_audit_log",
-        indexes = @Index(name = "reservation_audit_log_reservation_id_idx", columnList = "reservation_id"),
-        uniqueConstraints = @UniqueConstraint(name = "reservation_id_event_id_unique",
-                columnNames = {"reservation_id", "event_id"})
+        indexes = {
+                @Index(name = "reservation_audit_log_reservation_id_idx", columnList = "reservation_id")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "reservation_id_event_id_unique",
+                        columnNames = {"reservation_id", "event_id"})
+        }
 )
 @IdClass(ReservationLogKey.class)
 @Getter
