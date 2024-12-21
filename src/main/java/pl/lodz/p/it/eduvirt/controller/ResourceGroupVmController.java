@@ -46,4 +46,10 @@ public class ResourceGroupVmController {
         virtualMachineService.createVirtualMachine(addVmDto.id(), addVmDto.hidden(), resourceGroup);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteVm(@PathVariable UUID rgId, @PathVariable UUID id) {
+        virtualMachineService.deleteVirtualMachine(id, rgId);
+        return ResponseEntity.ok().build();
+    }
 }
