@@ -19,6 +19,8 @@ public class VirtualMachine {
     @Id
     private UUID id;
 
+    private boolean hidden;
+
     @ManyToOne()
     private ResourceGroup resourceGroup;
 }

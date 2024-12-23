@@ -14,4 +14,6 @@ public interface OVirtVmService {
     Vm findVmById(String id);
 
     List<Nic> findNicsByVmId(String id);
+
+    List<Vm> findVms();
 }
