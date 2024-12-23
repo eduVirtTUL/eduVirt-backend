@@ -1,6 +1,6 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 
 import java.util.UUID;
 

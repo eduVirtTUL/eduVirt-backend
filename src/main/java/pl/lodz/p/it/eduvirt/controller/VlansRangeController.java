@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.lodz.p.it.eduvirt.dto.vlans_range.CreateVlansRangeDto;
 import pl.lodz.p.it.eduvirt.dto.vlans_range.VlansRangeDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VlansRange;
+import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.VlansRangeMapper;
 import pl.lodz.p.it.eduvirt.service.VlansRangeService;

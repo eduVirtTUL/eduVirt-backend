@@ -12,13 +12,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.AbstractEntity;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.Updatable;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.MaintenanceInterval;
+import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
+import pl.lodz.p.it.eduvirt.entity.Updatable;
+import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
 import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalInvalidTimeWindowException;
 import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalNotFound;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.MaintenanceIntervalRepository;
+import pl.lodz.p.it.eduvirt.repository.MaintenanceIntervalRepository;
 import pl.lodz.p.it.eduvirt.service.impl.MaintenanceIntervalServiceImpl;
 
 import java.lang.reflect.Field;

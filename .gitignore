@@ -43,3 +43,4 @@ eduvirt-db.yaml
 ovirt-db.yaml
 h2-db.yaml
 application-dev.yaml
+_Fake*

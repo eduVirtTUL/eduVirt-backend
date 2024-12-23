@@ -1,7 +1,7 @@
 package pl.lodz.p.it.eduvirt.service;
 
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 
 import java.util.List;
 import java.util.UUID;

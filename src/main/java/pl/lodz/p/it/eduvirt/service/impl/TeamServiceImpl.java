@@ -3,11 +3,11 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.Course;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.Team;
+import pl.lodz.p.it.eduvirt.entity.Course;
+import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.CourseRepository;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.TeamRepository;
+import pl.lodz.p.it.eduvirt.repository.CourseRepository;
+import pl.lodz.p.it.eduvirt.repository.TeamRepository;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 
 import java.util.List;

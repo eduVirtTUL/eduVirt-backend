@@ -1,6 +1,6 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VlansRange;
+import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
 
 import java.util.List;
 import java.util.UUID;

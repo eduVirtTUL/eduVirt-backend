@@ -6,13 +6,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.general.Metric;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.general.Metric;
+import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
 import pl.lodz.p.it.eduvirt.exceptions.metric.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.metric.MetricValueAlreadyDefined;
 import pl.lodz.p.it.eduvirt.exceptions.metric.MetricValueNotDefinedException;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.ClusterMetricRepository;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.MetricRepository;
+import pl.lodz.p.it.eduvirt.repository.ClusterMetricRepository;
+import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 
 import java.util.UUID;
