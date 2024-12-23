@@ -15,7 +15,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>eduVirt</name>
     <description>eduVirt</description>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <url/>
 
