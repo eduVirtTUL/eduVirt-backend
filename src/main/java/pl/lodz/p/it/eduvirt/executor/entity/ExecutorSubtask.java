@@ -13,7 +13,7 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.AbstractEntity;
+import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
