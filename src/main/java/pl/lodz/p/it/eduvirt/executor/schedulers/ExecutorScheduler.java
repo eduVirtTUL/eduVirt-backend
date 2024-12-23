@@ -29,6 +29,8 @@
 //import java.util.UUID;
 //import java.util.concurrent.TimeUnit;
 //
+////write a-head log -> 49:00 minuta
+//
 //@Slf4j
 //@Service
 //@LoggerInterceptor
@@ -117,6 +119,7 @@
 //            //TODO michal: Active waiting for all VMs are running
 //
 //            //Assign permissions
+//            //TODO michal: handle HIDDEN flag
 //            virtualMachines
 //                    .stream()
 //                    //.parallel()
