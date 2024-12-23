@@ -13,8 +13,8 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.AbstractEntity;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
+import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
