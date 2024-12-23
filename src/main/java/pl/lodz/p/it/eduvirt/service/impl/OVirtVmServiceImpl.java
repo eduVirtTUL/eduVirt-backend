@@ -7,11 +7,15 @@ import org.ovirt.engine.sdk4.internal.containers.NicContainer;
 import org.ovirt.engine.sdk4.internal.containers.VnicProfileContainer;
 import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.services.VmService;
-import org.ovirt.engine.sdk4.services.VmsService;
+import org.ovirt.engine.sdk4.types.CpuProfile;
+import org.ovirt.engine.sdk4.types.CpuTopology;
 import org.ovirt.engine.sdk4.types.Nic;
+import org.ovirt.engine.sdk4.types.Qos;
 import org.ovirt.engine.sdk4.types.Statistic;
 import org.ovirt.engine.sdk4.types.Vm;
 import org.ovirt.engine.sdk4.types.VnicProfile;
+import org.ovirt.engine.sdk4.types.Host;
+import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
@@ -24,7 +28,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 
 @Slf4j
 @Service
