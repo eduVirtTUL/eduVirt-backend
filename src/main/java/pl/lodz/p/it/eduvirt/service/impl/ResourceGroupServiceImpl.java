@@ -6,11 +6,13 @@ import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.NicMapper;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.ResourceGroupNetworkRepository;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.ResourceGroupRepository;
+import pl.lodz.p.it.eduvirt.repository.ResourceGroupNetworkRepository;
+import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
+import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
@@ -27,6 +29,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     private final NicMapper nicMapper;
     private final OVirtVnicProfileService oVirtVnicProfileService;
     private final ResourceGroupNetworkRepository resourceGroupNetworkRepository;
+    private final VirtualMachineRepository virtualMachineRepository;
 
 
     @Override
@@ -45,6 +48,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
                     return VmDto.builder()
                             .id(vm.id())
                             .name(vm.name())
+                            .hidden(machine.isHidden())
                             .cpuCount(vm.cpu().topology().socketsAsInteger())
                             .memory(vm.memory().divide(BigInteger.valueOf(1024L * 1024L)).longValue())
                             .nics(nicMapper.nicsToDtos(vm.nics().stream()))
@@ -56,12 +60,14 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     @Override
     public VmDto getVm(UUID id) {
         Vm vm = oVirtVmService.findVmById(id.toString());
+        VirtualMachine vmEntity = virtualMachineRepository.findById(id).orElseThrow();
         return
                 VmDto.builder()
                         .id(vm.id())
                         .name(vm.name())
                         .cpuCount(vm.cpu().topology().socketsAsInteger())
                         .memory(vm.memory().divide(BigInteger.valueOf(1024L * 1024L)).longValue())
+                        .hidden(vmEntity.isHidden())
                         .nics(
                                 vm.nics().parallelStream().map(nic -> {
                                     NicDto.NicDtoBuilder nicDtoBuilder = NicDto.builder()

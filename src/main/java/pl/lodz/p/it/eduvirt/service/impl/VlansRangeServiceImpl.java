@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VlansRange;
+import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
 import pl.lodz.p.it.eduvirt.exceptions.range.InvalidVlansRangeDefinitionException;
 import pl.lodz.p.it.eduvirt.exceptions.range.VlansRangeConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.range.VlansRangeNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.VlansRangeRepository;
+import pl.lodz.p.it.eduvirt.repository.VlansRangeRepository;
 import pl.lodz.p.it.eduvirt.service.VlansRangeService;
 
 import java.util.List;
@@ -66,7 +66,7 @@ public class VlansRangeServiceImpl implements VlansRangeService {
     private void compareVlansRangeToOthers(final VlansRange vlansRange) {
         List<VlansRange> vlansRangeList = getVlansRanges(false);
 
-        //TODO CHECK IT - OPTIMIZE
+        //TODO michal CHECK IT - OPTIMIZE
         for (VlansRange vlansRangeFromList : vlansRangeList) {
             if (
                     (vlansRange.getFrom() >= vlansRangeFromList.getFrom() && vlansRange.getFrom() <= vlansRangeFromList.getTo())

@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatefulDto;
 import pl.lodz.p.it.eduvirt.dto.pod.PodStatefulDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.PodStateful;
+import pl.lodz.p.it.eduvirt.entity.PodStateful;
 import pl.lodz.p.it.eduvirt.mappers.PodStatefulMapper;
 import pl.lodz.p.it.eduvirt.service.PodStatefulService;
 

@@ -2,8 +2,8 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.User;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.UserRepository;
+import pl.lodz.p.it.eduvirt.entity.User;
+import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.AuthService;
 import pl.lodz.p.it.eduvirt.service.JwtService;
 import pl.lodz.p.it.eduvirt.util.jwt.AccessToken;

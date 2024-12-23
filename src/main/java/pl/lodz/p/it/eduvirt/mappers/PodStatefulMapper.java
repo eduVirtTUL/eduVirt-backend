@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatefulDto;
 import pl.lodz.p.it.eduvirt.dto.pod.PodStatefulDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.PodStateful;
+import pl.lodz.p.it.eduvirt.entity.PodStateful;
 
 @Mapper(componentModel = "spring")
 public interface PodStatefulMapper {

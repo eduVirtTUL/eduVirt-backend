@@ -4,8 +4,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.Course;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.Team;
+import pl.lodz.p.it.eduvirt.entity.Course;
+import pl.lodz.p.it.eduvirt.entity.Team;
 
 import java.util.UUID;
 

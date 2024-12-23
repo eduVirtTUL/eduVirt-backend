@@ -5,7 +5,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.*;
+import pl.lodz.p.it.eduvirt.repository.CourseRepository;
+import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
+import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
+import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
+import pl.lodz.p.it.eduvirt.repository.TeamRepository;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 
 @ExtendWith(MockitoExtension.class)

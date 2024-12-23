@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.ovirt.engine.sdk4.types.VnicProfile;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfileDto;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfilePoolMemberDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
+import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 
 @Mapper(componentModel = "spring")
 public interface VnicProfileMapper {

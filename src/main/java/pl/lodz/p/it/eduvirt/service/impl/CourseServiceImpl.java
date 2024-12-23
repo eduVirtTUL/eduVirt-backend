@@ -2,9 +2,9 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.Course;
+import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.CourseRepository;
+import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
 
 import java.util.List;

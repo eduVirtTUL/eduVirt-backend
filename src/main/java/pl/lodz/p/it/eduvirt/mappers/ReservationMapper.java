@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 
 @Mapper(componentModel = "spring")
 public interface ReservationMapper {

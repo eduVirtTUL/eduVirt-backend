@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group.AddVmDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
@@ -43,7 +43,13 @@ public class ResourceGroupVmController {
     public ResponseEntity<Void> addVm(@PathVariable UUID rgId, @RequestBody AddVmDto addVmDto) {
         ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
 
-        virtualMachineService.createVirtualMachine(addVmDto.id(), resourceGroup);
+        virtualMachineService.createVirtualMachine(addVmDto.id(), addVmDto.hidden(), resourceGroup);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deleteVm(@PathVariable UUID rgId, @PathVariable UUID id) {
+        virtualMachineService.deleteVirtualMachine(id, rgId);
         return ResponseEntity.ok().build();
     }
 }

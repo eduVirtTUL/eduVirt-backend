@@ -1,13 +1,9 @@
 package pl.lodz.p.it.eduvirt.mappers;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import pl.lodz.p.it.eduvirt.dto.vlans_range.CreateVlansRangeDto;
-import pl.lodz.p.it.eduvirt.dto.vlans_range.ResizeVlansRangeDto;
 import pl.lodz.p.it.eduvirt.dto.vlans_range.VlansRangeDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VlansRange;
-
-import java.util.UUID;
+import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
 
 @Mapper(componentModel = "spring")
 public interface VlansRangeMapper {

@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 

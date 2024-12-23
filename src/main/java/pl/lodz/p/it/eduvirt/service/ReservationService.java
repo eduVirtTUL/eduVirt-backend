@@ -1,7 +1,7 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import pl.lodz.p.it.eduvirt.entity.eduvirt.Course;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.Course;
+import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 
 import java.time.LocalDateTime;
 import java.util.List;

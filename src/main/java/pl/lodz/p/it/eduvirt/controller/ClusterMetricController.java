@@ -13,7 +13,7 @@ import pl.lodz.p.it.eduvirt.dto.metric.MetricValueDto;
 import pl.lodz.p.it.eduvirt.dto.metric.ValueDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
 import pl.lodz.p.it.eduvirt.mappers.ClusterMetricMapper;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 import pl.lodz.p.it.eduvirt.service.impl.OVirtClusterServiceImpl;
