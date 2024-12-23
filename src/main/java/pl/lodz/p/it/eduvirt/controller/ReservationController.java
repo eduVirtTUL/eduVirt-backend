@@ -10,7 +10,7 @@ import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedException;
 import pl.lodz.p.it.eduvirt.exceptions.reservation.ReservationNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.ReservationMapper;

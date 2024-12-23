@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfileDto;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfilePoolMemberDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
+import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.BadRequestEduVirtException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileEduvirtNotFoundException;

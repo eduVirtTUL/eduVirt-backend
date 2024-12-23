@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.Team;
+import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.mappers.TeamMapper;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 

@@ -1,6 +1,6 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import pl.lodz.p.it.eduvirt.entity.eduvirt.User;
+import pl.lodz.p.it.eduvirt.entity.User;
 
 import java.util.List;
 

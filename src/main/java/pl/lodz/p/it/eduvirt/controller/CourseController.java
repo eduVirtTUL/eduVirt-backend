@@ -5,11 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.ovirt.engine.sdk4.services.VnicProfileService;
-import org.ovirt.engine.sdk4.types.Cluster;
-import org.ovirt.engine.sdk4.types.CpuTopology;
-import org.ovirt.engine.sdk4.types.Host;
-import org.ovirt.engine.sdk4.types.Vm;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,8 +15,8 @@ import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.SetCourseKeyDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.*;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.Course;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
@@ -29,10 +24,7 @@ import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.service.*;
 
 import java.time.*;
-import java.time.temporal.ChronoUnit;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController

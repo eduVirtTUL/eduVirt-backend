@@ -1,7 +1,7 @@
 package pl.lodz.p.it.eduvirt.service;
 
 import jakarta.transaction.Transactional;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.Team;
+import pl.lodz.p.it.eduvirt.entity.Team;
 
 import java.util.List;
 import java.util.UUID;

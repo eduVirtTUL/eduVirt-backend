@@ -7,12 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
+import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.EntityAlreadyException;
 import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileEduvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileOvirtNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.VlansRangeRepository;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.VnicProfileRepository;
+import pl.lodz.p.it.eduvirt.repository.VlansRangeRepository;
+import pl.lodz.p.it.eduvirt.repository.VnicProfileRepository;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 

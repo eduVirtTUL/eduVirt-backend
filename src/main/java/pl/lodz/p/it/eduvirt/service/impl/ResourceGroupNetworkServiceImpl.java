@@ -3,11 +3,11 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroupNetwork;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.VirtualMachine;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.ResourceGroupNetworkRepository;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.ResourceGroupRepository;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.VirtualMachineRepository;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
+import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
+import pl.lodz.p.it.eduvirt.repository.ResourceGroupNetworkRepository;
+import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
+import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupNetworkService;
 

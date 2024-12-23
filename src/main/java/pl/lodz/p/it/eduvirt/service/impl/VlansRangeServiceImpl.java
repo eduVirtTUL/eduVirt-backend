@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VlansRange;
+import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
 import pl.lodz.p.it.eduvirt.exceptions.range.InvalidVlansRangeDefinitionException;
 import pl.lodz.p.it.eduvirt.exceptions.range.VlansRangeConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.range.VlansRangeNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.VlansRangeRepository;
+import pl.lodz.p.it.eduvirt.repository.VlansRangeRepository;
 import pl.lodz.p.it.eduvirt.service.VlansRangeService;
 
 import java.util.List;

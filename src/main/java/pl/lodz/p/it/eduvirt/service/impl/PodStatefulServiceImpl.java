@@ -2,11 +2,11 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.PodStateful;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.PodStateful;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.PodStatefulRepository;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.ResourceGroupRepository;
+import pl.lodz.p.it.eduvirt.repository.PodStatefulRepository;
+import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.service.PodStatefulService;
 
 import java.util.List;

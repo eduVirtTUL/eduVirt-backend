@@ -14,7 +14,7 @@ import pl.lodz.p.it.eduvirt.dto.maintenance_interval.MaintenanceIntervalDetailsD
 import pl.lodz.p.it.eduvirt.dto.maintenance_interval.MaintenanceIntervalDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.MaintenanceInterval;
+import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
 import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.mappers.MaintenanceIntervalMapper;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
