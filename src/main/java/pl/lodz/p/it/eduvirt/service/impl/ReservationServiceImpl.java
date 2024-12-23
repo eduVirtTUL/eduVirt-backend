@@ -58,9 +58,10 @@ public class ReservationServiceImpl implements ReservationService {
         *        [ ] Required resource availability for course
         *        [ ] Required resource availability for cluster
         *        [V] Resource group availability
+        *        [ ] Maintenance interval exists during selected time period
         *
         *        NOTES:
-        *        1. Resource group could be missing max. reservation count
+        *        1. Cond. 2: Resource group could be missing max. reservation count
         *        2. 4th and 5th check cannot be done without metrics for course (and connecting metrics to resources)
         * */
 

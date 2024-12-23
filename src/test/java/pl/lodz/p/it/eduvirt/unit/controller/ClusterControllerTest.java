@@ -154,7 +154,7 @@ public class ClusterControllerTest {
         assertNotNull(foundCluster.description());
         assertNotNull(foundCluster.clusterCpuType());
         assertNotNull(foundCluster.compatibilityVersion());
-        assertNotNull(foundCluster.useThreadsAsCpus());
+        assertNotNull(foundCluster.threadsAsCores());
         assertNotNull(foundCluster.maxMemoryOverCommit());
 
         assertEquals(clusterDetailsDto.id(), foundCluster.id());
@@ -163,7 +163,7 @@ public class ClusterControllerTest {
         assertEquals(clusterDetailsDto.description(), foundCluster.description());
         assertEquals(clusterDetailsDto.clusterCpuType(), foundCluster.clusterCpuType());
         assertEquals(clusterDetailsDto.compatibilityVersion(), foundCluster.compatibilityVersion());
-        assertEquals(clusterDetailsDto.useThreadsAsCpus(), foundCluster.useThreadsAsCpus());
+        assertEquals(clusterDetailsDto.threadsAsCores(), foundCluster.threadsAsCores());
         assertEquals(clusterDetailsDto.maxMemoryOverCommit(), foundCluster.maxMemoryOverCommit());
 
         verify(clusterService, times(1))
