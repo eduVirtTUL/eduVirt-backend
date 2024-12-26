@@ -7,12 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.network.VnicProfilePoolMember;
+import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.EntityAlreadyException;
 import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileEduvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileOvirtNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.VlansRangeRepository;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.VnicProfileRepository;
+import pl.lodz.p.it.eduvirt.repository.VlansRangeRepository;
+import pl.lodz.p.it.eduvirt.repository.VnicProfileRepository;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
 
-    //TODO consider managing transaction timeouts rather than excluding API operations from transactions
+    //TODO michal consider managing transaction timeouts rather than excluding API operations from transactions
 
     private final ConnectionFactory connectionFactory;
     private final VnicProfileRepository vnicProfileRepository;
@@ -42,8 +41,8 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
         return getSynchronizedVnicProfiles(vnicProfileRepository.findAll());
     }
 
-    //TODO test Transactional????
-    //TODO change map to class with lists /maps??
+    //TODO michal test Transactional????
+    //TODO michal change map to class with lists /maps??
     @Transactional
     Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles(List<VnicProfilePoolMember> poolSource) {
         List<VnicProfile> vnicProfilesInPool = new ArrayList<>();
@@ -78,7 +77,6 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Override
     @Transactional(propagation = Propagation.NEVER)
     public List<VnicProfile> fetchOVirtVnicProfiles() {
-        // TODO maybe change it to fetching data from oVirt database rather then via API
         try (Connection connection = connectionFactory.getConnection()) {
             return connection.systemService()
                     .vnicProfilesService()
@@ -94,7 +92,6 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Override
     @Transactional
     public List<VnicProfilePoolMember> getVnicProfilesPool() {
-        //TODO optimize
         List<VnicProfilePoolMember> vnicProfilePoolMembers = vnicProfileRepository.findAll();
         Map<String, VnicProfile> vnicProfilesInPool = getSynchronizedVnicProfiles(vnicProfilePoolMembers).get(Boolean.TRUE)
                 .stream()
@@ -120,7 +117,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
         if (vnicProfileRepository.findById(vnicProfileId).isPresent()) {
             throw new EntityAlreadyException(vnicProfileId.toString());
         }
-
+        //todo michal ref to fetching only one profile from ovirt, by id/ not whole list...
         List<VnicProfile> ovirtVnicProfiles = getSynchronizedVnicProfiles().get(Boolean.FALSE);
 
         Optional<VnicProfile> relatedVnicProfile = ovirtVnicProfiles.stream()
@@ -131,9 +128,6 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
             return vnicProfileRepository.saveAndFlush(
                     new VnicProfilePoolMember(vnicProfileId, relatedVnicProfile.get().network().vlan().idAsInteger())
             );
-        } else if (false) {
-            // TODO implement handling vlan not in ranges
-            throw new RuntimeException("Vlan id not in range");
         } else {
             throw new VnicProfileOvirtNotFoundException(vnicProfileId.toString());
         }

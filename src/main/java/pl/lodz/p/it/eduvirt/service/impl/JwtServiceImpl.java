@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.User;
+import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.service.JwtService;
 
 import java.time.Instant;

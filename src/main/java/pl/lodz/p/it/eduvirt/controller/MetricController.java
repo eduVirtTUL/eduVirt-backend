@@ -9,7 +9,7 @@ import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricDto;
 import pl.lodz.p.it.eduvirt.dto.metric.MetricDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.general.Metric;
+import pl.lodz.p.it.eduvirt.entity.general.Metric;
 import pl.lodz.p.it.eduvirt.mappers.MetricMapper;
 import pl.lodz.p.it.eduvirt.service.MetricService;
 
@@ -31,8 +31,9 @@ public class MetricController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PageDto<MetricDto>> getAllMetrics(@RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-                                    @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+    public ResponseEntity<PageDto<MetricDto>> getAllMetrics(
+            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
         Page<Metric> metricPage = metricService.findAllMetrics(pageNumber, pageSize);
         PageDto<MetricDto> listOfDTOs = new PageDto<>(
                 metricPage.getContent().stream().map(metricMapper::metricToDto).toList(),
@@ -40,7 +41,7 @@ public class MetricController {
                         metricPage.getTotalPages(), metricPage.getTotalElements())
         );
 
-        if (listOfDTOs.items().isEmpty()) return ResponseEntity.noContent().build();
+        if (metricPage.getContent().isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDTOs);
     }
 

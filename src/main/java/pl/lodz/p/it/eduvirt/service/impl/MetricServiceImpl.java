@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.general.Metric;
+import pl.lodz.p.it.eduvirt.entity.general.Metric;
 import pl.lodz.p.it.eduvirt.exceptions.metric.MetricNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.MetricRepository;
+import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.MetricService;
 
 import java.util.UUID;

@@ -17,6 +17,14 @@ public class I18n {
     public static final String MAINTENANCE_INTERVAL_NOT_FOUND = "maintenance.interval.not.found.exception";
     public static final String MAINTENANCE_INTERVAL_INVALID_TIME_WINDOW = "maintenance.interval.invalid.time.window.exception";
     public static final String MAINTENANCE_INTERVAL_BEGIN_AT_PAST = "maintenance.interval.begin.at.past.exception";
+    public static final String MAINTENANCE_INTERVAL_CONFLICT = "maintenance.interval.conflict.exception";
+
+    // Reservation
+
+    public static final String RESERVATION_NOT_FOUND = "reservation.not.found.exception";
+    public static final String RESERVATION_CONFLICT = "reservation.conflict.exception";
+    public static final String RESERVATION_END_BEFORE_START = "reservation.end.before.start.exception";
+    public static final String RESERVATION_START_IN_PAST = "reservation.start.in.past.exception";
 
     // General
 

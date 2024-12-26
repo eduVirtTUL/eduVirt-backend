@@ -13,7 +13,7 @@ import pl.lodz.p.it.eduvirt.dto.metric.MetricValueDto;
 import pl.lodz.p.it.eduvirt.dto.metric.ValueDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
 import pl.lodz.p.it.eduvirt.mappers.ClusterMetricMapper;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 import pl.lodz.p.it.eduvirt.service.impl.OVirtClusterServiceImpl;
@@ -32,7 +32,7 @@ public class ClusterMetricController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createMetricValue(@PathVariable("clusterId") UUID clusterId,
-                                               @RequestBody CreateMetricValueDto createDto) {
+                                                  @RequestBody CreateMetricValueDto createDto) {
         Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
         clusterMetricService.createNewValueForMetric(cluster, createDto.metricId(), createDto.value());
         return ResponseEntity.noContent().build();
@@ -62,8 +62,8 @@ public class ClusterMetricController {
 
     @PatchMapping(path = "/{metricId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MetricValueDto> updateMetricValue(@PathVariable("clusterId") UUID clusterId,
-                                               @PathVariable("metricId") UUID metricId,
-                                               @RequestBody ValueDto valueDto) {
+                                                            @PathVariable("metricId") UUID metricId,
+                                                            @RequestBody ValueDto valueDto) {
         Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
         ClusterMetric updatedMetric = clusterMetricService.updateMetricValue(cluster, metricId, valueDto.value());
         MetricValueDto dto = clusterMetricMapper.clusterMetricToDto(updatedMetric);
@@ -72,7 +72,7 @@ public class ClusterMetricController {
 
     @DeleteMapping(path = "/{metricId}")
     public ResponseEntity<Void> deleteMetric(@PathVariable("clusterId") UUID clusterId,
-                                          @PathVariable("metricId") UUID metricId) {
+                                             @PathVariable("metricId") UUID metricId) {
         Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
         clusterMetricService.deleteMetricValue(cluster, metricId);
         return ResponseEntity.noContent().build();

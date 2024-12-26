@@ -1,9 +1,9 @@
 package pl.lodz.p.it.eduvirt.util;
 
-import org.ovirt.engine.sdk4.types.Statistic;
-import org.ovirt.engine.sdk4.types.Value;
+import org.ovirt.engine.sdk4.types.*;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -34,5 +34,11 @@ public class StatisticsUtil {
     public static Optional<BigDecimal> getStatisticSingleValue(String statisticName, List<Statistic> statisticList) {
         List<BigDecimal> values = getStatisticValues(statisticName, statisticList);
         return values.isEmpty() ? Optional.empty() : Optional.of(values.getFirst());
+    }
+
+    public static Long getNumberOfCpus(Host host, Cluster cluster) {
+        CpuTopology topology = host.cpu().topology();
+        BigInteger cpuCount = topology.sockets().multiply(topology.cores());
+        return cluster.threadsAsCores() ? cpuCount.multiply(topology.threads()).longValue() : cpuCount.longValue();
     }
 }

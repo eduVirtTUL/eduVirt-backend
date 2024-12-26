@@ -1,5 +1,6 @@
 HELP.md
 *.jks
+*.env
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -42,3 +43,4 @@ eduvirt-db.yaml
 ovirt-db.yaml
 h2-db.yaml
 application-dev.yaml
+_Fake*

@@ -2,12 +2,12 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.Course;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroupPool;
+import pl.lodz.p.it.eduvirt.entity.Course;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupPoolNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.CourseRepository;
-import pl.lodz.p.it.eduvirt.repository.eduvirt.ResourceGroupPoolRepository;
+import pl.lodz.p.it.eduvirt.repository.CourseRepository;
+import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupPoolService;
 
 import java.util.List;

@@ -14,6 +14,8 @@ import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
+import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedException;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -44,8 +46,12 @@ public class ClusterController {
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ClusterDetailsDto> findClusterById(@PathVariable("id") UUID clusterId) {
-        Cluster foundCluster = clusterService.findClusterById(clusterId);
-        return ResponseEntity.ok(clusterMapper.ovirtClusterToDetailsDto(foundCluster));
+        try {
+            Cluster foundCluster = clusterService.findClusterById(clusterId);
+            return ResponseEntity.ok(clusterMapper.ovirtClusterToDetailsDto(foundCluster));
+        } catch (ClusterNotFoundException exception) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -63,8 +69,13 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @GetMapping(path = "/{id}/availability")
+    public ResponseEntity<?> findClusterResourcesAvailability(@PathVariable("id") UUID clusterId) {
+        throw new ApplicationOperationNotImplementedException();
+    }
+
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<HostDto>> findCpuInfoByClusterId(
+    public ResponseEntity<List<HostDto>> findHostInfoByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
             @PathVariable("id") UUID clusterId) {

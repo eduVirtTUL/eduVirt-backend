@@ -3,7 +3,7 @@ package pl.lodz.p.it.eduvirt.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import pl.lodz.p.it.eduvirt.dto.metric.MetricValueDto;
-import pl.lodz.p.it.eduvirt.entity.eduvirt.reservation.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
 
 @Mapper(componentModel = "spring")
 public interface ClusterMetricMapper {

@@ -1,6 +1,6 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import pl.lodz.p.it.eduvirt.entity.eduvirt.ResourceGroupNetwork;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 
 import java.util.List;
 import java.util.UUID;
@@ -10,7 +10,9 @@ public interface ResourceGroupNetworkService {
 
     List<ResourceGroupNetwork> getResourceGroupNetworks(UUID rgId);
 
-    void attachVmToNetwork(UUID networkId, UUID vmId);
+    void attachNicToNetwork(UUID networkId, UUID vmId, UUID nicId);
 
-    void detachVmFromNetwork(UUID networkId, UUID vmId);
+    void detachNicFromNetwork(UUID vmId, UUID nicId);
+
+    void deleteNetwork(UUID networkId);
 }

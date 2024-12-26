@@ -1,5 +1,7 @@
 package pl.lodz.p.it.eduvirt.dto.vm;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
@@ -7,18 +9,17 @@ import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import java.util.List;
 import java.util.Objects;
 
+@AllArgsConstructor
+@Builder
 @Getter
 public final class VmDto {
     private final String id;
     private final String name;
+    private final int cpuCount;
+    private final long memory;
+    private final boolean hidden;
     @Setter
     private List<NicDto> nics;
-
-    public VmDto(String id, String name, List<NicDto> nics) {
-        this.id = id;
-        this.name = name;
-        this.nics = nics;
-    }
 
     public String id() {
         return id;
