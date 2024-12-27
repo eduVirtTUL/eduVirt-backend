@@ -4,15 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
-import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
-import pl.lodz.p.it.eduvirt.repository.ResourceGroupNetworkRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,12 +16,15 @@ import java.util.UUID;
 public class VirtualMachineServiceImpl implements VirtualMachineService {
     private final VirtualMachineRepository virtualMachineRepository;
     private final ResourceGroupRepository resourceGroupRepository;
-    private final OVirtVmService oVirtVmService;
-    private final ResourceGroupNetworkRepository resourceGroupNetworkRepository;
 
     @Override
     public void createVirtualMachine(UUID id, boolean hidden, ResourceGroup resourceGroup) {
-        VirtualMachine vm = new VirtualMachine(id, hidden, resourceGroup);
+        VirtualMachine vm = VirtualMachine.builder()
+                .id(id)
+                .hidden(hidden)
+                .resourceGroup(resourceGroup)
+                .build();
+
         virtualMachineRepository.save(vm);
     }
 
@@ -38,18 +37,6 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
             throw new IllegalArgumentException("Virtual machine does not belong to the resource group");
         }
 
-        List<UUID> nics = oVirtVmService.findVmById(id.toString())
-                .nics()
-                .stream()
-                .map(nic -> UUID.fromString(nic.id()))
-                .toList();
-
-        List<ResourceGroupNetwork> networks = resourceGroup.getNetworks();
-        for (UUID nic : nics) {
-            networks
-                    .forEach(net -> net.getInterfaces().remove(nic));
-        }
-        resourceGroupNetworkRepository.saveAll(networks);
         virtualMachineRepository.delete(vm);
     }
 }
