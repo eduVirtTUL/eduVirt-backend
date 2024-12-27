@@ -18,7 +18,7 @@ import java.util.UUID;
 @Entity
 public class Team extends Updatable {
 
-    @Column(name = "name", nullable = false, unique = true)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "active", nullable = false)

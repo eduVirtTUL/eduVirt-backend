@@ -27,5 +27,8 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
 
     @Query("SELECT t FROM Team t WHERE :user MEMBER OF t.users AND t.course = :course")
     Optional<Team> findByUserIdAndCourse(@Param("user") UUID userId, @Param("course") Course course);
+
+    boolean existsByNameAndCourseId(String name, UUID courseId);
+    Long countByCourseId(UUID courseId);
 }
 

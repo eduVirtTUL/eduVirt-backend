@@ -30,6 +30,13 @@ public class TeamServiceImpl implements TeamService {
             throw new IllegalStateException("User already has a team in this course");
         }
     }
+    
+    private void validateTeamNameUnique(String name, UUID courseId) {
+        boolean exists = teamRepository.existsByNameAndCourseId(name, courseId);
+        if (exists) {
+            throw new IllegalStateException("Team name already exists in this course");
+        }
+    }
 
     @Override
     public List<Team> getTeams() {
@@ -81,6 +88,8 @@ public class TeamServiceImpl implements TeamService {
         if (team.getMaxSize() < 1 || team.getMaxSize() > 8) {
             throw new IllegalArgumentException("Team size must be between 1 and 8");
         }
+
+        validateTeamNameUnique(team.getName(), courseId);
 
         team.setCourse(course);
         team.setActive(true);
@@ -139,8 +148,12 @@ public class TeamServiceImpl implements TeamService {
     private Team handleCourseJoin(AccessKey key, UUID userId) {
         Course course = key.getCourse();
         validateUserNotInCourse(userId, course.getId());
+        
+        Long soloTeamCount = teamRepository.countByCourseId(course.getId());
+        String teamName = course.getName() + " - Solo Team " + (soloTeamCount + 1);
+
         Team newTeam = Team.builder()
-                .name(course.getName() + " - Solo Team")
+                .name(teamName)
                 .course(course)
                 .users(List.of(userId))
                 .maxSize(1)
