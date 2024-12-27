@@ -10,7 +10,7 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.NicMapper;
-import pl.lodz.p.it.eduvirt.repository.ResourceGroupNetworkRepository;
+import pl.lodz.p.it.eduvirt.repository.NetworkInterfaceRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -28,8 +28,8 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     private final OVirtVmService oVirtVmService;
     private final NicMapper nicMapper;
     private final OVirtVnicProfileService oVirtVnicProfileService;
-    private final ResourceGroupNetworkRepository resourceGroupNetworkRepository;
     private final VirtualMachineRepository virtualMachineRepository;
+    private final NetworkInterfaceRepository networkInterfaceRepository;
 
 
     @Override
@@ -81,9 +81,9 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
                                                 .profileName(profile.name());
                                     }
 
-                                    resourceGroupNetworkRepository
-                                            .getNetworkByInterface(UUID.fromString(nic.id()))
-                                            .ifPresent(resourceGroupNetwork -> nicDtoBuilder.segmentName(resourceGroupNetwork.getName()));
+                                    networkInterfaceRepository.findById(UUID.fromString(nic.id()))
+                                            .ifPresent(networkInterface
+                                                    -> nicDtoBuilder.segmentName(networkInterface.getResourceGroupNetwork().getName()));
 
                                     return nicDtoBuilder
                                             .build();

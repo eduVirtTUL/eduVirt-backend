@@ -39,8 +39,7 @@ ovirt:
       password: ${JKS_PASSWORD}
 
 auth:
-  secret-key: ${AUTH_SECRET_KEY}
-  expiration-hours: ${AUTH_EXPIRATION_HOURS}
+
   keycloack:
     tokenUri: ${KEYCLOAK_TOKEN_URI}
     url: ${KEYCLOAK_URL}

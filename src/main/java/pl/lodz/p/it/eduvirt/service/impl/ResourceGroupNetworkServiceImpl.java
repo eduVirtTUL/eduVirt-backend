@@ -3,8 +3,10 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.lodz.p.it.eduvirt.entity.NetworkInterface;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
+import pl.lodz.p.it.eduvirt.repository.NetworkInterfaceRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupNetworkRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
@@ -22,6 +24,7 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     private final ResourceGroupRepository resourceGroupRepository;
     private final VirtualMachineRepository virtualMachineRepository;
     private final OVirtVmService oVirtVmService;
+    private final NetworkInterfaceRepository networkInterfaceRepository;
 
     @Override
     public ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name) {
@@ -51,7 +54,12 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
                 .anyMatch(nic -> Objects.equals(nic.id(), nicId.toString()));
 
         if (isNicFromVm) {
-            resourceGroupNetwork.getInterfaces().add(nicId);
+            NetworkInterface networkInterface = NetworkInterface.builder()
+                    .id(nicId)
+                    .virtualMachine(virtualMachine)
+                    .resourceGroupNetwork(resourceGroupNetwork)
+                    .build();
+            resourceGroupNetwork.getInterfaces().add(networkInterface);
             resourceGroupNetworkRepository.save(resourceGroupNetwork);
         }
     }
@@ -59,13 +67,14 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     @Override
     @Transactional
     public void detachNicFromNetwork(UUID vmId, UUID nicId) {
-        VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
-        ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository.findByResourceGroupIdAndInterfacesContains(
-                virtualMachine.getResourceGroup().getId(), nicId
-        ).orElseThrow();
 
-        resourceGroupNetwork.getInterfaces().remove(nicId);
-        resourceGroupNetworkRepository.save(resourceGroupNetwork);
+        NetworkInterface networkInterface = networkInterfaceRepository.findById(nicId).orElseThrow();
+
+        if (!networkInterface.getVirtualMachine().getId().equals(vmId)) {
+            throw new IllegalArgumentException("Nic does not belong to the VM");
+        }
+
+        networkInterfaceRepository.deleteByIdAndVirtualMachine_Id(nicId, vmId);
     }
 
     @Override
