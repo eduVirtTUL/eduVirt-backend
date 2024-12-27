@@ -35,13 +35,16 @@ public class Course extends AbstractEntity {
     @Column(name = "team_based", nullable = false)
     private boolean teamBased;
 
-    @Column(name = "course_key", unique = true, length = 17, nullable = true)
+    @Column(name = "course_key", unique = true, length = 17)
     @Size(min = 5, max = 17)
     @Pattern(regexp = "^s[a-zA-Z0-9]{4,16}$")
     private String courseKey;
 
     @Column(name = "cluster_id", nullable = false)
     private UUID clusterId;
+
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<CourseMetric> metrics = new ArrayList<>();
 
     @Override
     public final boolean equals(Object o) {
