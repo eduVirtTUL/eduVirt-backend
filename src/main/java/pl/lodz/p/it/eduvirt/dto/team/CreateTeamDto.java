@@ -8,7 +8,7 @@ import java.util.UUID;
 @Builder
 public class CreateTeamDto {
     String name;
-    String key;
+    String keyValue;
     UUID courseId;
     int maxSize;
 }

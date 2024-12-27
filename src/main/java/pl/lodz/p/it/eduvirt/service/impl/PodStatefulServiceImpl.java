@@ -49,7 +49,7 @@ public class PodStatefulServiceImpl implements PodStatefulService {
     @Override
     public PodStateful getPod(UUID podId) {
         return podStatefulRepository.findById(podId)
-                .orElseThrow(() -> new RuntimeException("Pod not found")); // add custom exception later
+                .orElseThrow(() -> new RuntimeException("Pod not found"));
     }
 
     @Override

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TeamService {
-    Team createTeam(Team team, UUID courseId);
+    Team createTeam(Team team, UUID courseId, String userKeyValue);
 
     List<Team> getTeams();
 

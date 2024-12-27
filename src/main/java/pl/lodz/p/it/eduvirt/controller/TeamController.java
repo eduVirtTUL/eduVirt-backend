@@ -1,7 +1,6 @@
 package pl.lodz.p.it.eduvirt.controller;
 
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,9 +25,9 @@ public class TeamController {
     private final TeamMapper teamMapper;
 
     @PostMapping
-    public ResponseEntity<TeamDto> createTeam(@Valid @RequestBody CreateTeamDto createTeamDto) {
+    public ResponseEntity<TeamDto> createTeam(@RequestBody CreateTeamDto createTeamDto) {
         Team team = teamMapper.toEntity(createTeamDto);
-        Team createdTeam = teamService.createTeam(team, createTeamDto.getCourseId());
+        Team createdTeam = teamService.createTeam(team, createTeamDto.getCourseId(), createTeamDto.getKeyValue());
         return ResponseEntity.ok(teamMapper.toDto(createdTeam));
     }
 
@@ -68,9 +67,9 @@ public class TeamController {
         return ResponseEntity.ok(teamDtos);
     }
 
-    @PostMapping("/join/{key}")
-    public ResponseEntity<TeamDto> joinTeam(@PathVariable String key, @RequestParam UUID userId) {
-        Team team = teamService.joinTeamOrCreate(key, userId);
+    @PostMapping("/join")
+    public ResponseEntity<TeamDto> joinTeam(@RequestParam String keyValue, @RequestParam UUID userId) {
+        Team team = teamService.joinTeamOrCreate(keyValue, userId);
         return ResponseEntity.ok(teamMapper.toDto(team));
     }
 }

@@ -11,7 +11,7 @@ import lombok.*;
 @ToString
 @Table(name = "pod_stateful")
 @Entity
-public class PodStateful extends AbstractEntity {
+public class PodStateful extends HistoricalData {
 
     @ManyToOne(optional = false)
     @JoinColumn(

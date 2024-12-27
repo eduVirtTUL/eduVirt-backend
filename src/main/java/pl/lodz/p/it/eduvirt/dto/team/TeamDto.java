@@ -10,8 +10,9 @@ import java.util.UUID;
 public class TeamDto {
     UUID id;
     String name;
-    String key;
     boolean active;
+    int maxSize;
     List<UUID> users;
-    UUID course;
+    UUID courseId;
+    String keyValue;
 }
