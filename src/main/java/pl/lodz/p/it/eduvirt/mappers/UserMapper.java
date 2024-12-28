@@ -11,7 +11,7 @@ public interface UserMapper {
     default OVirtUserDto ovirtUserToUserDto(User user) {
         return new OVirtUserDto(
                 user.id(),
-                user.name(),
+                user.principal(),
                 user.email(),
                 user.permissions().stream().map(permission ->
                         new UserPermissionDto(
