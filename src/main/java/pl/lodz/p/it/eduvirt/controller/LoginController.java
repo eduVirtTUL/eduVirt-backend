@@ -63,10 +63,10 @@ public class LoginController {
             return;
         }
 
-        String token = authService.loginWithExternalToken(result.getBody().getAccessToken());
+        authService.loginWithExternalToken(result.getBody().getAccessToken());
 
         httpServletResponse.setHeader("Location", "http://localhost:5173/");
-        Cookie cookie = new Cookie("access_token", token);
+        Cookie cookie = new Cookie("access_token", result.getBody().getAccessToken());
         cookie.setPath("/");
         httpServletResponse.addCookie(cookie);
         httpServletResponse.setStatus(302);

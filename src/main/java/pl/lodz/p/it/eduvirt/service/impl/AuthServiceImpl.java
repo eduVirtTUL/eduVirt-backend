@@ -5,12 +5,9 @@ import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.AuthService;
-import pl.lodz.p.it.eduvirt.service.JwtService;
 import pl.lodz.p.it.eduvirt.util.jwt.AccessToken;
 import pl.lodz.p.it.eduvirt.util.jwt.JwtHelper;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,36 +16,19 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
-    private final JwtService jwtService;
 
     @Override
-    public String loginWithExternalToken(String externalToken) {
+    public void loginWithExternalToken(String externalToken) {
         Optional<AccessToken> accessToken = JwtHelper.parseToken(externalToken);
         if (accessToken.isEmpty()) {
-            return null;
+            throw new IllegalArgumentException("Invalid token");
         }
 
         UUID userId = UUID.fromString(accessToken.get().getSub());
-        User user = userRepository.findById(userId).orElseGet(() -> {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
             User newUser = new User(userId);
-            return userRepository.save(newUser);
-        });
-
-        List<String> roles = getUserRoles(accessToken.get());
-
-        return jwtService.generateToken(user, roles);
-    }
-
-    private List<String> getUserRoles(AccessToken token) {
-        List<String> roles = new ArrayList<>();
-        if (token.getGroups().contains("/ovirt-administrator")) {
-            roles.add("administrator");
+            userRepository.save(newUser);
         }
-
-        if (token.getGroups().contains("/teachers")) {
-            roles.add("teacher");
-        }
-
-        return roles;
     }
 }

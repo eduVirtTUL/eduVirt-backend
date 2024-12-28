@@ -1,34 +1,79 @@
 package pl.lodz.p.it.eduvirt.configuration;
 
-import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.crypto.spec.SecretKeySpec;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
-@EnableWebSecurity
+@EnableWebSecurity()
 @Configuration
 public class SecurityConfig {
-    @Value("${auth.secret-key}")
-    private String secretKey;
+
+    interface AuthoritiesConverter extends Converter<Map<String, Object>, Collection<GrantedAuthority>> {
+    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
+    AuthoritiesConverter realmRolesAuthoritiesConverter() {
+        return claims -> {
+            final List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+            final List<String> groups = (List<String>) claims.get("groups");
+            if (groups.contains("/ovirt-administrator")) {
+                authorities.add(new SimpleGrantedAuthority("administrator"));
+            }
+
+            if (groups.contains("/teachers")) {
+                authorities.add(new SimpleGrantedAuthority("teacher"));
+            }
+
+            if (groups.contains("/students")) {
+                authorities.add(new SimpleGrantedAuthority("student"));
+            }
+
+            return authorities.stream().map(GrantedAuthority.class::cast).toList();
+        };
+    }
+
+    @Bean
+    JwtAuthenticationConverter authenticationConverter(
+            Converter<Map<String, Object>, Collection<GrantedAuthority>> authoritiesConverter) {
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter
+                .setJwtGrantedAuthoritiesConverter(jwt -> authoritiesConverter.convert(jwt.getClaims()));
+        return jwtAuthenticationConverter;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CorsConfigurationSource corsConfigurationSource,
+            Converter<Jwt, AbstractAuthenticationToken> authenticationConverter) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(request -> request.requestMatchers("/**").permitAll())
+                .authorizeHttpRequests(request -> {
+                            request.requestMatchers("/test").hasAuthority("student");
+                            request.requestMatchers("/**").permitAll();
+                        }
+                )
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .oauth2ResourceServer(server
+                        -> server.jwt(decoder
+                        -> decoder.jwtAuthenticationConverter(authenticationConverter)))
                 .build();
     }
 
@@ -42,17 +87,5 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    JwtDecoder jwtDecoder() {
-        byte[] bytes = secretKey.getBytes();
-        SecretKeySpec secretKeySpec = new SecretKeySpec(bytes, 0, bytes.length, "RSA");
-        return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();
-    }
-
-    @Bean
-    public JwtEncoder jwtEncoder() {
-        return new NimbusJwtEncoder(new ImmutableSecret<>(secretKey.getBytes()));
     }
 }
