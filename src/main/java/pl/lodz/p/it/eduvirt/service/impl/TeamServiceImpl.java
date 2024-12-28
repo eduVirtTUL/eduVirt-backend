@@ -7,6 +7,8 @@ import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.entity.key.AccessKey;
 import pl.lodz.p.it.eduvirt.entity.key.CourseType;
 import pl.lodz.p.it.eduvirt.exceptions.*;
+import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.team.TeamValidationException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 
@@ -45,7 +47,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public Team getTeam(UUID teamId) {
         return teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException(teamId));
+                .orElseThrow(TeamNotFoundException::new);
     }
 
     @Override
@@ -62,7 +64,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public Team addUserToTeam(UUID teamId, UUID userId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException(teamId));
+                .orElseThrow(TeamNotFoundException::new);
 
         validateUserNotInCourse(userId, team.getCourse().getId());
 
@@ -164,7 +166,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public Team removeUserFromTeam(UUID teamId, UUID userId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException(teamId));
+                .orElseThrow(TeamNotFoundException::new);
 
         team.getUsers().remove(userId);
         return teamRepository.save(team);

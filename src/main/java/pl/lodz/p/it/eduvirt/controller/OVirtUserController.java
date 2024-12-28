@@ -23,7 +23,7 @@ import java.util.UUID;
 @LoggerInterceptor
 @RequestMapping("/resources/users")
 @RequiredArgsConstructor
-public class UserController {
+public class OVirtUserController {
 
     private final OVirtUserService ovirtUserService;
     private final UserMapper userMapper;

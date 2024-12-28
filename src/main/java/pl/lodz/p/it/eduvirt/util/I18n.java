@@ -26,6 +26,16 @@ public class I18n {
     public static final String RESERVATION_END_BEFORE_START = "reservation.end.before.start.exception";
     public static final String RESERVATION_START_IN_PAST = "reservation.start.in.past.exception";
 
+    // Pod
+
+    public static final String POD_NOT_FOUND = "pod.not.found.exception";
+    public static final String POD_STATELESS_CONFLICT = "pod.conflict.exception";
+    public static final String POD_ALREADY_EXISTS = "pod.already.exists.exception";
+
+    // Team
+
+    public static final String TEAM_NOT_FOUND = "team.not.found.exception";
+
     // General
 
     public static final String OPERATION_NOT_IMPLEMENTED = "operation.not.implemented.exception";
