@@ -12,15 +12,18 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Getter @Setter
 @Builder
 @ToString
-@Table(name = "team")
+@Table(
+        name = "team",
+        indexes = @Index(name = "team_course_id_idx", columnList = "course_id"),
+        uniqueConstraints = @UniqueConstraint(name = "team_name_course_id_unique", columnNames = {"name", "course_id"})
+)
 @Entity
 public class Team extends AbstractEntity {
 
-    @Column(name = "name", nullable = false, unique = true)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "key", nullable = false, unique = true, length = 16)
@@ -48,5 +51,9 @@ public class Team extends AbstractEntity {
     private List<Reservation> reservations = new ArrayList<>();
 
     @ManyToOne
+    @JoinColumn(
+            name = "course_id", referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "team_course_id_fk")
+    )
     private Course course;
 }
