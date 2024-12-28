@@ -6,7 +6,6 @@ public record PodStatefulDto(
         UUID id,
         UUID resourceGroupId,
         UUID teamId,
-        UUID courseId,
-        String clusterId
+        UUID courseId
 ) {
 }

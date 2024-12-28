@@ -14,11 +14,12 @@ VALUES (0, 4096, '0978f66d-050c-4c28-a376-9b8934d6167a');
 INSERT INTO public.resource_group(id, name, description, stateless, version, max_rent_time)
 VALUES (gen_random_uuid(), 'test', '', false, 0, 0);
 
--- INSERT INTO public.course(id, name, description, team_based)
--- VALUES (gen_random_uuid(), 'testTeamBasedCourse', 'testDescription', TEAM_BASED);
+INSERT INTO public.course(id, name, description, course_type)
+VALUES (gen_random_uuid(), 'testTeamBasedCourse', 'testTeamBasedDescription', 'TEAM_BASED');
 
--- INSERT INTO public.course(id, name, description, team_based)
--- VALUES (gen_random_uuid(), 'testSoloCourse', 'testDescription', SOLO);
+INSERT INTO public.course(id, name, description, course_type)
+VALUES (gen_random_uuid(), 'testSoloCourse', 'testSoloDescription', 'SOLO');
 
--- INSERT INTO public.team(id, name, course_id, key, max_size, active)
--- VALUES (gen_random_uuid(), 'testTeam', (SELECT id FROM public.course WHERE name = 'testTeamBasedCourse'), 'testKey', 5, true);
+INSERT INTO public.team(id, name, course_id, max_size, active, version)
+VALUES (gen_random_uuid(), 'testTeam', (SELECT id FROM public.course WHERE name = 'testTeamBasedCourse'), '3', true, '1');
+

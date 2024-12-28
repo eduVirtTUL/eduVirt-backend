@@ -6,8 +6,7 @@ import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.entity.key.AccessKey;
 import pl.lodz.p.it.eduvirt.entity.key.CourseType;
-import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.DuplicateKeyValueException;
+import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 
@@ -27,14 +26,14 @@ public class TeamServiceImpl implements TeamService {
 
     private void validateUserNotInCourse(UUID userId, UUID courseId) {
         if (teamRepository.existsByUserIdAndCourseId(userId, courseId)) {
-            throw new IllegalStateException("User already has a team in this course");
+            throw new TeamValidationException("User already has a team in this course");
         }
     }
     
     private void validateTeamNameUnique(String name, UUID courseId) {
         boolean exists = teamRepository.existsByNameAndCourseId(name, courseId);
         if (exists) {
-            throw new IllegalStateException("Team name already exists in this course");
+            throw new TeamValidationException("Team name already exists in this course");
         }
     }
 
@@ -46,7 +45,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public Team getTeam(UUID teamId) {
         return teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
     }
 
     @Override
@@ -63,12 +62,12 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public Team addUserToTeam(UUID teamId, UUID userId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
 
         validateUserNotInCourse(userId, team.getCourse().getId());
 
         if (team.getUsers().size() >= team.getMaxSize()) {
-            throw new IllegalStateException("Team is full");
+            throw new TeamValidationException("Team is full");
         }
 
         team.getUsers().add(userId);
@@ -82,11 +81,11 @@ public class TeamServiceImpl implements TeamService {
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
         if (course.getCourseType() == CourseType.SOLO) {
-            throw new IllegalStateException("Cannot manually create teams in non-team based courses");
+            throw new TeamValidationException("Cannot manually create teams in non-team based courses");
         }
 
         if (team.getMaxSize() < 1 || team.getMaxSize() > 8) {
-            throw new IllegalArgumentException("Team size must be between 1 and 8");
+            throw new TeamValidationException("Team size must be between 1 and 8");
         }
 
         validateTeamNameUnique(team.getName(), courseId);
@@ -122,7 +121,7 @@ public class TeamServiceImpl implements TeamService {
     @Transactional
     public Team joinTeamOrCreate(String keyValue, UUID userId) {
         AccessKey key = accessKeyRepository.findByKeyValue(keyValue)
-                .orElseThrow(() -> new RuntimeException("Key not found"));
+                .orElseThrow(() -> new AccessKeyNotFoundException(keyValue));
 
         switch (key.getAccessKeyType()) {
             case TEAM -> {
@@ -139,7 +138,7 @@ public class TeamServiceImpl implements TeamService {
         Team team = key.getTeam();
         validateUserNotInCourse(userId, team.getCourse().getId());
         if (team.getUsers().size() >= team.getMaxSize()) {
-            throw new IllegalStateException("Team is full");
+            throw new TeamValidationException("Team is full");
         }
         team.getUsers().add(userId);
         return teamRepository.save(team);
@@ -165,7 +164,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public Team removeUserFromTeam(UUID teamId, UUID userId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
 
         team.getUsers().remove(userId);
         return teamRepository.save(team);

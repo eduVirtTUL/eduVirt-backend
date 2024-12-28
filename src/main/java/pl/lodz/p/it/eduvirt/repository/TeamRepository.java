@@ -30,5 +30,7 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
 
     boolean existsByNameAndCourseId(String name, UUID courseId);
     Long countByCourseId(UUID courseId);
-}
 
+    @Query("SELECT t.statelessPods FROM Team t WHERE t.id = :teamId")
+    List<UUID> findStatelessPodsByTeamId(UUID teamId);
+}

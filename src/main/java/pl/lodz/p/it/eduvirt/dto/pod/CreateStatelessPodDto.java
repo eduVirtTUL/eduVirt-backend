@@ -2,7 +2,8 @@ package pl.lodz.p.it.eduvirt.dto.pod;
 
 import java.util.UUID;
 
-public record CreatePodStatefulDto(
+public record CreateStatelessPodDto(
         UUID teamId,
-        UUID resourceGroupId
-) {}
+        UUID resourceGroupPoolId
+) {
+}

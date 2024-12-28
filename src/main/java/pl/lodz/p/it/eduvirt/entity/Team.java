@@ -46,4 +46,17 @@ public class Team extends Updatable {
 
     @OneToMany(mappedBy = "team", fetch = FetchType.EAGER)
     private List<AccessKey> keys = new ArrayList<>();
+
+    @OneToMany
+    private List<PodStateful> statefulPods = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "pod_stateless",
+            joinColumns = @JoinColumn(name = "team_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"team_id", "rgp_id"})
+    )
+    @Column(name = "rgp_id", nullable = false)
+    private List<UUID> statelessPods = new ArrayList<>();
+
 }

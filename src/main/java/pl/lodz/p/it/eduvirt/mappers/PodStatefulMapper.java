@@ -7,13 +7,16 @@ import pl.lodz.p.it.eduvirt.dto.pod.PodStatefulDto;
 import pl.lodz.p.it.eduvirt.entity.PodStateful;
 
 @Mapper(componentModel = "spring")
-public interface PodStatefulMapper {
+public abstract class PodStatefulMapper {
 
     @Mapping(target = "id", ignore = true)
-    PodStateful toEntity(CreatePodStatefulDto dto);
+    @Mapping(target = "resourceGroup", ignore = true)
+    @Mapping(target = "team", ignore = true)
+    @Mapping(target = "course", ignore = true)
+    public abstract PodStateful toEntity(CreatePodStatefulDto dto);
 
     @Mapping(target = "resourceGroupId", source = "resourceGroup.id")
     @Mapping(target = "teamId", source = "team.id")
     @Mapping(target = "courseId", source = "course.id")
-    PodStatefulDto toDto(PodStateful pod);
+    public abstract PodStatefulDto toDto(PodStateful pod);
 }

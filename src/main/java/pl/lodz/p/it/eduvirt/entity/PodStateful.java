@@ -3,7 +3,6 @@ package pl.lodz.p.it.eduvirt.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -39,8 +38,5 @@ public class PodStateful extends HistoricalData {
             nullable = false
     )
     private Course course;
-
-    @Column(name = "cluster_id", nullable = false)
-    private String clusterId;
 
 }
