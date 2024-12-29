@@ -29,7 +29,7 @@ public class OVirtUserServiceImpl implements OVirtUserService {
             return systemService.usersService().list().follow("permissions").send().users();
 
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new UserNotFoundException();
+            throw new UserNotFoundException("No users could be found");
         }
     }
 
@@ -41,7 +41,7 @@ public class OVirtUserServiceImpl implements OVirtUserService {
 
             return systemService.usersService().userService(userId.toString()).get().send().user();
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new UserNotFoundException();
+            throw new UserNotFoundException("User with id %s could not be found".formatted(userId));
         }
     }
 }

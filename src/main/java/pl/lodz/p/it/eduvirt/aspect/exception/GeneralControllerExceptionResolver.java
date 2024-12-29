@@ -6,21 +6,35 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import pl.lodz.p.it.eduvirt.exceptions.AlreadyExistsException;
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedException;
-import pl.lodz.p.it.eduvirt.exceptions.NotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.general.*;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 
 @ControllerAdvice
 @Order(50)
 public class GeneralControllerExceptionResolver {
 
-    @ExceptionHandler({ApplicationOperationNotImplementedException.class})
-    ResponseEntity<ExceptionResponse> handleOperationNotImplementedException(
-            ApplicationOperationNotImplementedException exception) {
-        return ResponseEntity.internalServerError()
+    @ExceptionHandler({AlreadyExistsException.class})
+    ResponseEntity<ExceptionResponse> handleAlreadyExistsException(
+            AlreadyExistsException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ExceptionResponse(exception.getMessage()));
+                .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
+    }
+
+    @ExceptionHandler({BadRequestException.class})
+    ResponseEntity<ExceptionResponse> handleBadRequestException(
+            BadRequestException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
+    }
+
+    @ExceptionHandler({ConflictException.class})
+    ResponseEntity<ExceptionResponse> handleConflictException(
+            ConflictException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
     }
 
     @ExceptionHandler({NotFoundException.class})
@@ -28,14 +42,14 @@ public class GeneralControllerExceptionResolver {
             NotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ExceptionResponse(exception.getMessage()));
+                .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
     }
 
-    @ExceptionHandler({AlreadyExistsException.class})
-    ResponseEntity<ExceptionResponse> handleAlreadyExistsException(
-            AlreadyExistsException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({OperationNotImplementedException.class, OpeningConnectionException.class})
+    ResponseEntity<ExceptionResponse> handleServerErrors(ApplicationBaseException exception) {
+        return ResponseEntity.internalServerError()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ExceptionResponse(exception.getMessage()));
+                .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
     }
+
 }

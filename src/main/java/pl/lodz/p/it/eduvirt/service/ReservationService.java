@@ -15,7 +15,8 @@ public interface ReservationService {
     Optional<Reservation> findReservationById(UUID reservationId);
 
     List<Reservation> findCurrentReservationsForCourse(Course course, LocalDateTime currentTime);
-    List<Reservation> findReservationsForGivenPeriod(LocalDateTime start, LocalDateTime end);
+    List<Reservation> findCurrentReservationsForCluster(UUID clusterId, LocalDateTime currentTime);
+    List<Reservation> findReservationsForGivenPeriod(UUID resourceGroupId, LocalDateTime start, LocalDateTime end);
 
     void finishReservation(Reservation reservation);
 }

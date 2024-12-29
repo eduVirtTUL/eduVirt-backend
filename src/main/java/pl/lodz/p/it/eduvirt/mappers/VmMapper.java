@@ -18,16 +18,13 @@ public interface VmMapper {
 
     List<VmDto> ovirtVmsToDtos(Stream<Vm> vms);
 
-    default VmGeneralDto ovirtVmToGeneralDto(Vm vm, String uptime, String cpuUsage,
-                                             String memoryUsage, String networkUsage) {
-        return new VmGeneralDto(
-                vm.id(),
-                vm.name(),
-                vm.status().value(),
-                uptime,
-                cpuUsage,
-                memoryUsage,
-                networkUsage
-        );
-    }
+    @Mapping(target = "id", expression = "java(vm.id())")
+    @Mapping(target = "name", expression = "java(vm.name())")
+    @Mapping(target = "status", expression = "java(vm.status().value())")
+    @Mapping(target = "uptimeSeconds", source = "uptime")
+    @Mapping(target = "cpuUsagePercentage", source = "cpuUsage")
+    @Mapping(target = "memoryUsagePercentage", source = "memoryUsage")
+    @Mapping(target = "networkUsagePercentage", source = "networkUsage")
+    VmGeneralDto ovirtVmToGeneralDto(Vm vm, String uptime, String cpuUsage,
+                                     String memoryUsage, String networkUsage);
 }

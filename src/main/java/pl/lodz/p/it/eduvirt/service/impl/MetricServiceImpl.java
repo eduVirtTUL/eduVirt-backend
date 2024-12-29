@@ -5,7 +5,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.general.Metric;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.MetricService;
 
@@ -38,7 +38,7 @@ public class MetricServiceImpl implements MetricService {
     @Override
     public void deleteMetric(UUID metricId) {
         Metric metric = metricRepository.findById(metricId)
-                .orElseThrow(MetricNotFoundException::new);
+                .orElseThrow(() -> new MetricNotFoundException(metricId));
         metricRepository.delete(metric);
     }
 }

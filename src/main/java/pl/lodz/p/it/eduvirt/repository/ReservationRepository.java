@@ -19,9 +19,10 @@ import java.util.UUID;
 @LoggerInterceptor
 public interface ReservationRepository extends JpaRepository<Reservation, UUID> {
 
-    @Query("SELECT r FROM Reservation r WHERE r.endTime > :start AND r.startTime < :end")
-    List<Reservation> findReservationForGivenPeriod(@Param("start") LocalDateTime start,
-                                                    @Param("end") LocalDateTime end);
+    @Query("SELECT r FROM Reservation r WHERE r.endTime > :start AND r.startTime < :end AND r.resourceGroup = :rg")
+    List<Reservation> findReservationForGivenPeriodForResourceGroup(
+            @Param("rg") ResourceGroup resourceGroup, @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 
     List<Reservation> findReservationsByResourceGroupAndTeam(
             ResourceGroup resourceGroup, Team team);
@@ -30,23 +31,21 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
     Optional<Reservation> findLastReservation(@Param("resourceGroup") ResourceGroup resourceGroup,
                                               @Param("team") Team team);
 
-    @Query("SELECT r FROM Reservation r WHERE r.startTime <= :probeTime AND r.endTime > :probeTime " +
+    @Query("SELECT r FROM Reservation r WHERE r.endTime > :probeTime " +
             "AND r.team IN (SELECT t FROM Team t WHERE t.course = :course)")
     List<Reservation> findCurrentReservationsForCourse(
             @Param("course") Course course, @Param("probeTime") LocalDateTime probeTime);
 
-//    // TODO: Uncomment when clusterId becomes a part of Course
-//    @Query("SELECT r FROM Reservation r WHERE r.startTime <= :probeTime AND r.endTime > :probeTime " +
-//            "AND r.team IN (SELECT t FROM Team t WHERE t.course.clusterId = :cluster)")
-//    List<Reservation> findCurrentReservationsForCluster(
-//            @Param("cluster") UUID clusterId, @Param("probeTime") LocalDateTime probeTime);
+    @Query("SELECT r FROM Reservation r WHERE r.endTime > :probeTime " +
+            "AND r.team IN (SELECT t FROM Team t WHERE t.course.clusterId = :cluster)")
+    List<Reservation> findCurrentReservationsForCluster(
+            @Param("cluster") UUID clusterId, @Param("probeTime") LocalDateTime probeTime);
 
     @Query("SELECT r FROM Reservation r WHERE r.endTime > current_timestamp() " +
             "AND r.team IN (SELECT t FROM Team t WHERE t.course = :course)")
     List<Reservation> findAllActiveReservationsForCourse(@Param("course") Course course);
 
-//    // TODO: Uncomment when clusterId becomes a part of Course
-//    @Query("SELECT r FROM Reservation r WHERE r.endTime > current_timestamp() " +
-//            "AND r.team IN (SELECT t FROM Team t WHERE t.course.clusterId = :cluster)")
-//    List<Reservation> findAllActiveReservationsForCluster(@Param("cluster") UUID clusterId);
+    @Query("SELECT r FROM Reservation r WHERE r.endTime > current_timestamp() " +
+            "AND r.team IN (SELECT t FROM Team t WHERE t.course.clusterId = :cluster)")
+    List<Reservation> findAllActiveReservationsForCluster(@Param("cluster") UUID clusterId);
 }

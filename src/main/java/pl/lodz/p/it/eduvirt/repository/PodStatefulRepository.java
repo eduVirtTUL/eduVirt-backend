@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface PodStatefulRepository extends JpaRepository<PodStateful, UUID> {
+
     List<PodStateful> findByTeamId(UUID teamId);
     List<PodStateful> findByCourseId(UUID courseId);
     List<PodStateful> findByResourceGroupId(UUID resourceGroupId);

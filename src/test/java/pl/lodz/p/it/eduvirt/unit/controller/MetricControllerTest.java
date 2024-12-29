@@ -17,8 +17,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.aspect.exception.GeneralControllerExceptionResolver;
-import pl.lodz.p.it.eduvirt.aspect.exception.MetricControllerExceptionResolver;
-import pl.lodz.p.it.eduvirt.aspect.exception.OVirtAPIExceptionResolver;
 import pl.lodz.p.it.eduvirt.controller.MetricController;
 import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricDto;
 import pl.lodz.p.it.eduvirt.dto.metric.MetricDto;
@@ -26,7 +24,7 @@ import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 import pl.lodz.p.it.eduvirt.entity.general.Metric;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.MetricMapper;
 import pl.lodz.p.it.eduvirt.service.MetricService;
 
@@ -43,9 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Import({
         MetricController.class,
-        MetricControllerExceptionResolver.class,
         GeneralControllerExceptionResolver.class,
-        OVirtAPIExceptionResolver.class
 })
 @WebMvcTest(controllers = {MetricController.class}, useDefaultFilters = false)
 public class MetricControllerTest {
@@ -236,7 +232,7 @@ public class MetricControllerTest {
         mockMvc.perform(delete("/metrics/{metricId}", randomUUID)
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(metricService, times(1)).deleteMetric(Mockito.eq(randomUUID));
     }

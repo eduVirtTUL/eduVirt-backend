@@ -1,19 +1,13 @@
 package pl.lodz.p.it.eduvirt.exceptions;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import pl.lodz.p.it.eduvirt.exceptions.general.NotFoundException;
+import pl.lodz.p.it.eduvirt.util.I18n;
 
-@ResponseStatus(code = HttpStatus.NOT_FOUND)
-public class ClusterNotFoundException extends ApplicationBaseException {
+import java.util.UUID;
 
-    public ClusterNotFoundException() {
-    }
+public class ClusterNotFoundException extends NotFoundException {
 
-    public ClusterNotFoundException(String message) {
-        super(message);
-    }
-
-    public ClusterNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+    public ClusterNotFoundException(UUID clusterId) {
+        super("Cluster with id %s could not be found".formatted(clusterId), I18n.CLUSTER_NOT_FOUND);
     }
 }
