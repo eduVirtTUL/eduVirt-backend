@@ -88,10 +88,11 @@ public class MaintenanceIntervalController {
 
     @GetMapping(path = "/time-period")
     public ResponseEntity<List<MaintenanceIntervalDto>> getMaintenanceIntervalsWithinTimePeriod(
+            @RequestParam(value = "clusterId", required = false) UUID clusterId,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalService
-                .findAllMaintenanceIntervalsInTimePeriod(start, end);
+                .findAllMaintenanceIntervalsInTimePeriod(clusterId, start, end);
 
         List<MaintenanceIntervalDto> listOfDtos = foundIntervals.stream()
                 .map(maintenanceIntervalMapper::maintenanceIntervalToDto).toList();

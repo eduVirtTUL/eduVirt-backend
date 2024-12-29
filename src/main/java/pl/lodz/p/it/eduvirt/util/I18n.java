@@ -26,6 +26,10 @@ public class I18n {
     public static final String RESERVATION_END_BEFORE_START = "reservation.end.before.start.exception";
     public static final String RESERVATION_START_IN_PAST = "reservation.start.in.past.exception";
 
+    public static final String RESERVATION_MAINTENANCE_INTERVAL_CONFLICT = "reservation.period.maintenance.interval.conflict.exception";
+    public static final String COURSE_RESOURCES_INSUFFICIENT = "reservation.course.resources.insufficient.exception";
+    public static final String CLUSTER_RESOURCES_INSUFFICIENT = "reservation.cluster.resources.insufficient.exception";
+
     // General
 
     public static final String OPERATION_NOT_IMPLEMENTED = "operation.not.implemented.exception";

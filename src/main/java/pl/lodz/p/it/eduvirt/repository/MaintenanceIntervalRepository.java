@@ -31,9 +31,10 @@ public interface MaintenanceIntervalRepository extends JpaRepository<Maintenance
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt < current_timestamp ORDER BY mi.endAt DESC")
     Page<MaintenanceInterval> findAllHistoricalIntervals(Pageable pageable);
 
-    @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt > :start AND mi.beginAt < :end")
-    List<MaintenanceInterval> findAllIntervalsInGivenTimePeriod(@Param("start") LocalDateTime start,
-                                                                @Param("end") LocalDateTime end);
+    @Query("SELECT mi FROM MaintenanceInterval mi WHERE (mi.endAt > :start AND mi.beginAt < :end) " +
+            "AND (mi.clusterId IS NULL OR mi.clusterId = :cluster)")
+    List<MaintenanceInterval> findAllIntervalsInGivenTimePeriod(
+            @Param("cluster") UUID clusterId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.type = :type AND mi.clusterId = :clusterId AND " +
             "mi.endAt > :start AND mi.beginAt < :end")

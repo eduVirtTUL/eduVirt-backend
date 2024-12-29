@@ -17,7 +17,7 @@ public interface MaintenanceIntervalService {
 
     Optional<MaintenanceInterval> findMaintenanceInterval(UUID intervalId);
     Page<MaintenanceInterval> findAllMaintenanceIntervals(UUID clusterId, boolean active, Pageable pageable);
-    List<MaintenanceInterval> findAllMaintenanceIntervalsInTimePeriod(LocalDateTime start, LocalDateTime end);
+    List<MaintenanceInterval> findAllMaintenanceIntervalsInTimePeriod(UUID clusterId, LocalDateTime start, LocalDateTime end);
 
     void finishMaintenanceInterval(UUID intervalId);
 }

@@ -93,8 +93,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
     }
 
     @Override
-    public List<MaintenanceInterval> findAllMaintenanceIntervalsInTimePeriod(LocalDateTime start, LocalDateTime end) {
-        return maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(start, end);
+    public List<MaintenanceInterval> findAllMaintenanceIntervalsInTimePeriod(UUID clusterId, LocalDateTime start, LocalDateTime end) {
+        return maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(clusterId, start, end);
     }
 
     @Override

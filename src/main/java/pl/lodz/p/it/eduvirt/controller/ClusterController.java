@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.*;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Propagation;
@@ -13,15 +14,24 @@ import pl.lodz.p.it.eduvirt.dto.NetworkDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
+import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedException;
+import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.*;
+import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.ReservationService;
+import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
+import pl.lodz.p.it.eduvirt.util.MetricUtil;
 import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,14 +43,26 @@ import java.util.UUID;
 @Transactional(propagation = Propagation.NEVER)
 public class ClusterController {
 
+    /* Services*/
+
+    private final ClusterMetricService clusterMetricService;
+    private final ReservationService reservationService;
+
+    private final OVirtClusterService clusterService;
+    private final OVirtVmService vmService;
+
+    /* Mappers */
+
     private final ClusterMapper clusterMapper;
     private final HostMapper hostMapper;
     private final NetworkMapper networkMapper;
     private final EventMapper eventMapper;
     private final VmMapper vmMapper;
 
-    private final OVirtClusterService clusterService;
-    private final OVirtVmService vmService;
+    /* Util */
+
+    private final MetricUtil metricUtil;
+    private final BankerAlgorithm bankerAlgorithm;
 
     // Read methods
 
@@ -70,8 +92,32 @@ public class ClusterController {
     }
 
     @GetMapping(path = "/{id}/availability")
-    public ResponseEntity<?> findClusterResourcesAvailability(@PathVariable("id") UUID clusterId) {
-        throw new ApplicationOperationNotImplementedException();
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ResponseEntity<?> findClusterResourcesAvailability(
+            @PathVariable("id") UUID clusterId,
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+        LocalDateTime startTime = start.atStartOfDay();
+        LocalDateTime endTime = end.atStartOfDay();
+
+        Cluster cluster = clusterService.findClusterById(clusterId);
+        List<ClusterMetric> clusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
+        List<ResourcesAvailabilityDto> resourcesAvailabilityDtos = new LinkedList<>();
+
+        LocalDateTime currentTime = startTime;
+        while (currentTime.isBefore(endTime)) {
+            List<Reservation> currentReservations = reservationService
+                    .findCurrentReservationsForCluster(UUID.fromString(cluster.id()), currentTime);
+
+            if (bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(clusterMetrics), currentReservations, cluster))
+                resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, true));
+            else resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, false));
+
+            currentTime = currentTime.plusMinutes(30);
+        }
+
+        if (resourcesAvailabilityDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(resourcesAvailabilityDtos);
     }
 
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)

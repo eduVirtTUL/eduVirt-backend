@@ -50,17 +50,20 @@ public class ReservationController {
         }
     }
 
-    @GetMapping(path = "/period")
-    ResponseEntity<List<ReservationDto>> getReservationsForGivenPeriod(
+    @GetMapping(path = "/period/{rgId}")
+    ResponseEntity<List<ReservationDto>> getReservationsForGivenPeriodForResourceGroup(
+            @PathVariable("rgId") UUID resourceGroupId,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
-        List<Reservation> foundReservations = reservationService.findReservationsForGivenPeriod(start, end);
+        List<Reservation> foundReservations = reservationService
+                .findReservationsForGivenPeriod(resourceGroupId, start, end);
 
         List<ReservationDto> listOfDtos = foundReservations.stream().map(reservation -> {
             LocalDateTime currentStartTime = reservation.getStartTime();
             LocalDateTime currentEndTime = reservation.getEndTime();
 
             return new ReservationDto(
+                    reservation.getId(),
                     reservation.getTeam().getId(),
                     currentStartTime,
                     currentEndTime

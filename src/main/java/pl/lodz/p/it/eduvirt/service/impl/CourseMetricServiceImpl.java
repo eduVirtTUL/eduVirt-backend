@@ -62,6 +62,15 @@ public class CourseMetricServiceImpl implements CourseMetricService {
 
     @Override
     @Transactional
+    public List<CourseMetric> getAllCourseMetricsForCourse(UUID courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        return courseMetricRepository.findAllByCourse(course);
+    }
+
+    @Override
+    @Transactional
     public List<CourseMetric> getCourseMetrics(UUID courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
