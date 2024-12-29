@@ -7,6 +7,8 @@ import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.CourseMetric;
 import pl.lodz.p.it.eduvirt.entity.CourseMetricKey;
 import pl.lodz.p.it.eduvirt.entity.general.Metric;
+import pl.lodz.p.it.eduvirt.exceptions.CourseMetricExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.CourseMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.CourseMetricRepository;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
@@ -30,6 +32,10 @@ public class CourseMetricServiceImpl implements CourseMetricService {
                 .orElseThrow(() -> new IllegalArgumentException("Metric not found"));
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        if (courseMetricRepository.existsById(new CourseMetricKey(course, metric))) {
+            throw new CourseMetricExistsException(courseId, metricId);
+        }
 
         CourseMetric courseMetric = CourseMetric.builder()
                 .course(course)
