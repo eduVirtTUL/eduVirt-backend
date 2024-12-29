@@ -127,22 +127,18 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
-    public Team joinTeamOrCourse(String keyValue, UUID userId) {
+    public void joinTeamOrCourse(String keyValue, UUID userId) {
         AccessKey key = accessKeyRepository.findByKeyValue(keyValue)
                 .orElseThrow(AccessKeyNotFoundException::new);
 
         switch (key.getAccessKeyType()) {
-            case TEAM -> {
-                return handleTeamJoin(key, userId);
-            }
-            case COURSE -> {
-                return handleCourseJoin(key, userId);
-            }
+            case TEAM -> handleTeamJoin(key, userId);
+            case COURSE -> handleCourseJoin(key, userId);
             default -> throw new InvalidKeyTypeException();
         }
     }
 
-    private Team handleTeamJoin(AccessKey key, UUID userId) {
+    private void handleTeamJoin(AccessKey key, UUID userId) {
         Team team = key.getTeam();
 
         validateUserNotInCourse(userId, team.getCourse().getId());
@@ -151,10 +147,10 @@ public class TeamServiceImpl implements TeamService {
         }
 
         team.getUsers().add(userId);
-        return teamRepository.save(team);
+        teamRepository.save(team);
     }
 
-    private Team handleCourseJoin(AccessKey key, UUID userId) {
+    private void handleCourseJoin(AccessKey key, UUID userId) {
         Course course = key.getCourse();
         validateUserNotInCourse(userId, course.getId());
 
@@ -168,17 +164,17 @@ public class TeamServiceImpl implements TeamService {
                 .maxSize(1)
                 .active(true)
                 .build();
-        return teamRepository.save(newTeam);
+        teamRepository.save(newTeam);
     }
 
     @Override
-    public Team removeUserFromTeam(UUID teamId, UUID userId) {
+    public void removeUserFromTeam(UUID teamId, UUID userId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
         if (team.getUsers().contains(userId)) {
             team.getUsers().remove(userId);
-            return teamRepository.save(team);
+            teamRepository.save(team);
 
         } else {
             throw new UserNotFoundException();

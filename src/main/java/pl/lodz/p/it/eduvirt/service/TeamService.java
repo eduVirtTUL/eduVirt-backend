@@ -12,6 +12,6 @@ public interface TeamService {
     List<Team> getTeamsByUser(UUID userId);
     List<Team> getTeamsByCourse(UUID courseId);
     Team addUserToTeam(UUID teamId, UUID userId);
-    Team joinTeamOrCourse(String key, UUID userId);
-    Team removeUserFromTeam(UUID teamId, UUID userId);
+    void joinTeamOrCourse(String key, UUID userId);
+    void removeUserFromTeam(UUID teamId, UUID userId);
 }
