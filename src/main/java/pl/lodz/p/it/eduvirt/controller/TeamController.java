@@ -1,14 +1,12 @@
 package pl.lodz.p.it.eduvirt.controller;
 
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
+import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.mappers.TeamMapper;
 import pl.lodz.p.it.eduvirt.service.TeamService;
@@ -19,59 +17,65 @@ import java.util.stream.Collectors;
 
 @RestController
 @LoggerInterceptor
-@RequestMapping("/api/v1/teams")
+@RequestMapping("/teams")
 @RequiredArgsConstructor
 public class TeamController {
 
     private final TeamService teamService;
     private final TeamMapper teamMapper;
 
-    @PostMapping
-    public ResponseEntity<TeamDto> createTeam(@RequestBody CreateTeamDto createTeamDto) {
-        Team team = teamMapper.toEntity(createTeamDto);
-        Team createdTeam = teamService.createTeam(team, createTeamDto.getCourseId(), createTeamDto.getKeyValue());
-        return ResponseEntity.ok(teamMapper.toDto(createdTeam));
-    }
+   @PostMapping
+   public ResponseEntity<TeamWithCourseDto> createTeam(@RequestBody CreateTeamDto createTeamDto) {
+       Team team = teamMapper.toEntity(createTeamDto);
+       Team createdTeam = teamService.createTeam(team, createTeamDto.getCourseId(), createTeamDto.getKeyValue());
+       return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(createdTeam));
+   }
 
     @GetMapping
-    @Transactional
-    public ResponseEntity<List<TeamDto>> getTeams() {
-        List<Team> teams = teamService.getTeams();
-        List<TeamDto> teamDtos = teams.stream()
-                .map(teamMapper::toDto)
+    public ResponseEntity<List<TeamWithCourseDto>> getTeams() {
+        List<Team> teams = teamService.getAllTeams();
+        List<TeamWithCourseDto> teamWithCourseDtos = teams.stream()
+                .map(teamMapper::teamToTeamWithCourseDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(teamDtos);
+        return ResponseEntity.ok(teamWithCourseDtos);
     }
 
     @GetMapping("/{teamId}")
-    @Transactional
-    public ResponseEntity<TeamDto> getTeam(@PathVariable UUID teamId) {
-        Team team = teamService.getTeam(teamId);
-        return ResponseEntity.ok(teamMapper.toDto(team));
+    public ResponseEntity<TeamWithCourseDto> getTeamDetails(@PathVariable UUID teamId) {
+        Team team = teamService.getTeamById(teamId);
+        return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(team));
     }
 
     @GetMapping("/user/{userId}")
-    @Transactional
-    public ResponseEntity<List<TeamDto>> getTeamsByUser(@PathVariable UUID userId) {
+    public ResponseEntity<List<TeamWithCourseDto>> getTeamsByUser(@PathVariable UUID userId) {
         List<Team> teams = teamService.getTeamsByUser(userId);
-        List<TeamDto> teamDtos = teams.stream()
-                .map(teamMapper::toDto)
+        List<TeamWithCourseDto> teamWithCourseDtos = teams.stream()
+                .map(teamMapper::teamToTeamWithCourseDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(teamDtos);
+        return ResponseEntity.ok(teamWithCourseDtos);
     }
 
     @GetMapping("/course/{courseId}")
     public ResponseEntity<List<TeamDto>> getTeamsByCourse(@PathVariable UUID courseId) {
         List<Team> teams = teamService.getTeamsByCourse(courseId);
         List<TeamDto> teamDtos = teams.stream()
-                .map(teamMapper::toDto)
-                .collect(Collectors.toList());
+                .map(teamMapper::teamToTeamDto)
+                .toList();
         return ResponseEntity.ok(teamDtos);
     }
 
+    //TODO: make it so it takes the user from the context
     @PostMapping("/join")
-    public ResponseEntity<TeamDto> joinTeam(@RequestParam String keyValue, @RequestParam UUID userId) {
-        Team team = teamService.joinTeamOrCreate(keyValue, userId);
-        return ResponseEntity.ok(teamMapper.toDto(team));
+    public ResponseEntity<Void> joinTeam(@RequestParam String keyValue, @RequestParam UUID userId) {
+        teamService.joinTeamOrCourse(keyValue, userId);
+        return ResponseEntity.noContent().build();
     }
+
+    //TODO: make it so it takes the user from the context
+    @PostMapping("/leave")
+    public ResponseEntity<Void> leaveTeam(@RequestParam UUID teamId, @RequestParam UUID userId) {
+        teamService.removeUserFromTeam(teamId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

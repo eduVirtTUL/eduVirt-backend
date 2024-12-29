@@ -17,4 +17,7 @@ import java.util.UUID;
 public class User {
     @Id
     private UUID id;
+
+//    @ManyToMany
+//    private List<Team> teams = new ArrayList<>();
 }

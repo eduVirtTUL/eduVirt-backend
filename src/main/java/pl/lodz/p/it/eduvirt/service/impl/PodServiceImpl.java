@@ -8,6 +8,9 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.exceptions.*;
+import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.team.TeamValidationException;
 import pl.lodz.p.it.eduvirt.repository.PodRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
@@ -38,7 +41,7 @@ public class PodServiceImpl implements PodService {
         PodStateful pod = podStatefulMapper.toEntity(dto);
 
         Team team = teamRepository.findById(dto.teamId())
-                .orElseThrow(() -> new TeamNotFoundException(dto.teamId()));
+                .orElseThrow(TeamNotFoundException::new);
 
         Course course = courseRepository.findById(team.getCourse().getId())
                 .orElseThrow(() -> new CourseNotFoundException(team.getCourse().getId()));
@@ -79,7 +82,7 @@ public class PodServiceImpl implements PodService {
     @Override
     public PodStateful getPod(UUID podId) {
         return podStatefulRepository.findById(podId)
-                .orElseThrow(() -> new PodNotFoundException(podId));
+                .orElseThrow(PodNotFoundException::new);
     }
 
     // add logic if in use later
@@ -92,7 +95,7 @@ public class PodServiceImpl implements PodService {
     @Transactional
     public void createStatelessPod(UUID teamId, UUID resourceGroupPoolId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException(teamId));
+                .orElseThrow(TeamNotFoundException::new);
 
         resourceGroupPoolRepository.findById(resourceGroupPoolId)
                 .orElseThrow(() -> new ResourceGroupPoolNotFoundException(resourceGroupPoolId));
@@ -109,7 +112,7 @@ public class PodServiceImpl implements PodService {
     @Transactional
     public void deleteStatelessPod(UUID teamId, UUID resourceGroupPoolId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException(teamId));
+                .orElseThrow(TeamNotFoundException::new);
 
         team.getStatelessPods().remove(resourceGroupPoolId);
         teamRepository.save(team);
@@ -117,6 +120,9 @@ public class PodServiceImpl implements PodService {
 
     @Override
     public List<UUID> getStatelessPodsByTeam(UUID teamId) {
-        return teamRepository.findStatelessPodsByTeamId(teamId);
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(TeamNotFoundException::new);
+
+        return team.getStatelessPods();
     }
 }

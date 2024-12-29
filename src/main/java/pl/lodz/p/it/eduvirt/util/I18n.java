@@ -35,6 +35,23 @@ public class I18n {
     // Team
 
     public static final String TEAM_NOT_FOUND = "team.not.found.exception";
+    public static final String USER_ALREADY_IN_TEAM = "user.already.in.team.exception";
+    public static final String USER_ALREADY_IN_COURSE = "user.already.in.course.exception";
+    public static final String TEAM_ALREADY_EXISTS = "team.already.exists.exception";
+    public static final String INCORRECT_TEAM_SIZE = "incorrect.team.size.exception";
+    public static final String TEAM_VALIDATION = "team.validation.exception";
+    public static final String INCORRECT_TEAM_TYPE = "incorrect.team.type.exception";
+
+    // AccessKey
+
+    public static final String DUPLICATE_KEY_VALUE = "duplicate.key.value.exception";
+    public static final String ACCESS_KEY_NOT_FOUND = "access.key.not.found.exception";
+    public static final String INCORRECT_KEY_TYPE = "incorrect.key.type.exception";
+
+    // User
+
+    public static final String USER_NOT_FOUND = "user.not.found.exception";
+    public static final String USERS_NOT_FOUND = "users.not.found.exception";
 
     // General
 

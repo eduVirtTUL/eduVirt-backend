@@ -23,3 +23,21 @@ VALUES (gen_random_uuid(), 'testSoloCourse', 'testSoloDescription', 'SOLO');
 INSERT INTO public.team(id, name, course_id, max_size, active, version)
 VALUES (gen_random_uuid(), 'testTeam', (SELECT id FROM public.course WHERE name = 'testTeamBasedCourse'), '3', true, '1');
 
+INSERT INTO public.team(id, name, course_id, max_size, active, version)
+VALUES (
+    '550e8400-e29b-41d4-a716-446655440000',
+    'Sample Team A',
+    (SELECT id FROM public.course WHERE name = 'testTeamBasedCourse'),
+    4,
+    true,
+    0
+);
+
+INSERT INTO public.access_key(id, key_value, key_type, course_id, team_id)
+VALUES (
+    gen_random_uuid(),
+    'TEAM1234',
+    'TEAM',
+    (SELECT id FROM public.course WHERE name = 'testTeamBasedCourse'),
+    '550e8400-e29b-41d4-a716-446655440000'
+);

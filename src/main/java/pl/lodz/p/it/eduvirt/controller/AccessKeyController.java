@@ -12,7 +12,7 @@ import pl.lodz.p.it.eduvirt.service.AccessKeyService;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/keys")
+@RequestMapping("/access-keys")
 @RequiredArgsConstructor
 public class AccessKeyController {
 
@@ -25,11 +25,6 @@ public class AccessKeyController {
         return ResponseEntity.ok(accessKeyMapper.toDto(key));
     }
 
-//    @PostMapping("/team")
-//    public ResponseEntity<AccessKeyDto> createTeamKey(@RequestParam UUID teamId, @RequestParam String teamKey) {
-//        AccessKey key = accessKeyService.createTeamKey(teamId, teamKey);
-//        return ResponseEntity.ok(accessKeyMapper.toDto(key));
-//    }
 
     @GetMapping("/{keyValue}")
     public ResponseEntity<AccessKeyDto> getKey(@PathVariable String keyValue) {

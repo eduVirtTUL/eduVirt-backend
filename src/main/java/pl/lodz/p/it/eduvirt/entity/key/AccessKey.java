@@ -26,7 +26,7 @@ public class AccessKey extends AbstractEntity {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @ManyToOne
+    @OneToOne(optional = false)
     @JoinColumn(name = "team_id")
     private Team team;
 

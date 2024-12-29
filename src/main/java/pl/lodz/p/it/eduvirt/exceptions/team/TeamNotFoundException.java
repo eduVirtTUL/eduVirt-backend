@@ -1,7 +1,9 @@
 package pl.lodz.p.it.eduvirt.exceptions.team;
 
+import org.springframework.web.bind.annotation.ResponseStatus;
 import pl.lodz.p.it.eduvirt.util.I18n;
 
+@ResponseStatus()
 public class TeamNotFoundException extends TeamBaseException {
 
     public TeamNotFoundException() {

@@ -27,7 +27,7 @@ public class Team extends Updatable {
     @Column(name = "max_size", nullable = false)
     private int maxSize;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "user_team",
             joinColumns = @JoinColumn(name = "team_id"),
@@ -36,18 +36,21 @@ public class Team extends Updatable {
     @Column(name = "user_id", nullable = false)
     private List<UUID> users = new ArrayList<>();
 
+//    @ManyToMany(fetch = FetchType.LAZY)
+//    private List<User> users = new ArrayList<>();
+
     @OneToMany(mappedBy = "team")
     @ToString.Exclude
     private List<Reservation> reservations = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @OneToMany(mappedBy = "team", fetch = FetchType.EAGER)
-    private List<AccessKey> keys = new ArrayList<>();
+    @OneToOne(mappedBy = "team")
+    private AccessKey accessKey;
 
-    @OneToMany
+    @OneToMany(mappedBy = "team")
     private List<PodStateful> statefulPods = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
