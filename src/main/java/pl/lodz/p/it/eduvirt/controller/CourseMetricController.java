@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricValueDto;
 import pl.lodz.p.it.eduvirt.dto.metric.MetricValueDto;
+import pl.lodz.p.it.eduvirt.dto.metric.UpdateMetricValueDto;
 import pl.lodz.p.it.eduvirt.entity.CourseMetric;
 import pl.lodz.p.it.eduvirt.service.CourseMetricService;
 
@@ -43,6 +44,12 @@ public class CourseMetricController {
     @DeleteMapping("/{metricId}")
     public ResponseEntity<Void> deleteMetric(@PathVariable UUID courseId, @PathVariable UUID metricId) {
         courseMetricService.removeMetricFromCourse(courseId, metricId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{metricId}")
+    public ResponseEntity<Void> updateMetric(@PathVariable UUID courseId, @PathVariable UUID metricId, @RequestBody UpdateMetricValueDto updateMetricValueDto) {
+        courseMetricService.updateCourseMetric(courseId, metricId, updateMetricValueDto.value());
         return ResponseEntity.ok().build();
     }
 }
