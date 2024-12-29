@@ -15,9 +15,9 @@ import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 import pl.lodz.p.it.eduvirt.entity.Updatable;
 import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalConflictException;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalInvalidTimeWindowException;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalNotFound;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalInvalidTimeWindowException;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.repository.MaintenanceIntervalRepository;
 import pl.lodz.p.it.eduvirt.service.impl.MaintenanceIntervalServiceImpl;
 
@@ -382,10 +382,11 @@ public class MaintenanceIntervalServiceTest {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2);
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(4);
 
-        when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end)))
+        when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(maintenanceInterval1, maintenanceInterval2));
 
-        List<MaintenanceInterval> foundMaintenanceInterval = maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(start, end);
+        List<MaintenanceInterval> foundMaintenanceInterval = maintenanceIntervalService
+                .findAllMaintenanceIntervalsInTimePeriod(existingClusterId, start, end);
 
         assertNotNull(foundMaintenanceInterval);
         assertFalse(foundMaintenanceInterval.isEmpty());
@@ -394,7 +395,8 @@ public class MaintenanceIntervalServiceTest {
         assertEquals(maintenanceInterval1, foundMaintenanceInterval.getFirst());
         assertEquals(maintenanceInterval2, foundMaintenanceInterval.getLast());
 
-        verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end));
+        verify(maintenanceIntervalRepository, times(1))
+                .findAllIntervalsInGivenTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end));
     }
 
     @Test
@@ -402,14 +404,16 @@ public class MaintenanceIntervalServiceTest {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().minusHours(48);
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().minusHours(36);
 
-        when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
+        when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
 
-        List<MaintenanceInterval> foundMaintenanceInterval = maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(start, end);
+        List<MaintenanceInterval> foundMaintenanceInterval = maintenanceIntervalService
+                .findAllMaintenanceIntervalsInTimePeriod(existingClusterId, start, end);
 
         assertNotNull(foundMaintenanceInterval);
         assertTrue(foundMaintenanceInterval.isEmpty());
 
-        verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end));
+        verify(maintenanceIntervalRepository, times(1))
+                .findAllIntervalsInGivenTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end));
     }
 
     /* FinishMaintenanceInterval method tests */

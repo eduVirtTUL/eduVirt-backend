@@ -11,8 +11,8 @@ import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
 import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedException;
-import pl.lodz.p.it.eduvirt.exceptions.reservation.ReservationNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.general.OperationNotImplementedException;
+import pl.lodz.p.it.eduvirt.exceptions.ReservationNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.ReservationMapper;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 
@@ -42,7 +42,7 @@ public class ReservationController {
     ResponseEntity<ReservationDetailsDto> getReservationDetails(@PathVariable("reservationId") UUID reservationId) {
         try {
             Reservation foundReservation = reservationService.findReservationById(reservationId)
-                    .orElseThrow(ReservationNotFoundException::new);
+                    .orElseThrow(() -> new ReservationNotFoundException(reservationId));
 
             return ResponseEntity.ok(reservationMapper.reservationToDetailsDto(foundReservation));
         } catch (ReservationNotFoundException exception) {
@@ -77,19 +77,19 @@ public class ReservationController {
     @GetMapping(path = "/active", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PageDto<ReservationDto>> getActiveReservations(@RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
                                                                   @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        throw new ApplicationOperationNotImplementedException();
+        throw new OperationNotImplementedException();
     }
 
     @GetMapping(path = "/historic", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PageDto<ReservationDto>> getHistoricReservations(@RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
                                                                     @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        throw new ApplicationOperationNotImplementedException();
+        throw new OperationNotImplementedException();
     }
 
     @PostMapping(path = "/{reservationId}/cancel")
     ResponseEntity<Void> finishReservation(@PathVariable("reservationId") UUID reservationId) {
         Reservation foundReservation = reservationService.findReservationById(reservationId)
-                .orElseThrow(ReservationNotFoundException::new);
+                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
 
         reservationService.finishReservation(foundReservation);
 

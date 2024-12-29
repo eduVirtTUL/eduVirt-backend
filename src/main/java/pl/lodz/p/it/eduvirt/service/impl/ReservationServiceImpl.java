@@ -2,15 +2,15 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
 import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
 import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
-import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.reservation.*;
+import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
@@ -25,6 +25,7 @@ import java.util.*;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.REQUIRED)
 public class ReservationServiceImpl implements ReservationService {
 
     /* Services */
@@ -36,8 +37,6 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
     private final ResourceGroupRepository resourceGroupRepository;
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
-
-    private final PodStatefulRepository podStatefulRepository;
 
     private final TeamRepository teamRepository;
     private final CourseRepository courseRepository;
@@ -68,8 +67,9 @@ public class ReservationServiceImpl implements ReservationService {
         Cluster foundCluster = clusterService.findClusterById(foundCourse.getClusterId());
 
         // TODO: Replace it with actual id extraction
-        String userStringId = SecurityContextHolder.getContext().getAuthentication().getName();
-        UUID userId = UUID.fromString(userStringId);
+        // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // UUID userId = UUID.fromString(authentication.getName());
+        UUID userId = UUID.fromString("abfc5d9b-1350-444d-9d9a-1bfde79667ad");
         Team foundTeam = teamRepository.findByUserIdAndCourse(userId, foundCourse)
                 .orElseThrow(() -> new RuntimeException("Team containing user: %s not found".formatted(userId)));
 
@@ -97,8 +97,7 @@ public class ReservationServiceImpl implements ReservationService {
         // Condition no. 1: Maximum reservation length
 
         int maxRentHours = foundResourceGroup.getMaxRentTime();
-        int reservationLengthHours = (int) Duration.between(start, end).get(ChronoUnit.HOURS);
-        ChronoUnit.HOURS.between(start, end);
+        int reservationLengthHours = (int) ChronoUnit.HOURS.between(start, end);
 
         if (reservationLengthHours > maxRentHours)
             throw new RuntimeException("Reservation for resource group: %s could not be longer than: %d"
@@ -115,7 +114,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         if (lastReservation.isPresent()) {
             LocalDateTime lastReservationEnd = lastReservation.get().getEndTime();
-            int hoursBetweenReservations = (int) Duration.between(lastReservationEnd, start).get(ChronoUnit.HOURS);
+            int hoursBetweenReservations = (int) ChronoUnit.HOURS.between(lastReservationEnd, start);
             if (hoursBetweenReservations < gracePeriodInHours)
                 throw new RuntimeException("Reservation grace period ends at: %s"
                         .formatted(lastReservationEnd.plusHours(gracePeriodInHours)));
@@ -129,7 +128,7 @@ public class ReservationServiceImpl implements ReservationService {
                 foundCourse, OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime());
 
         if (!bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(foundCourseMetrics), foundCourseReservations, foundCluster))
-            throw new CourseInsufficientResourcesException();
+            throw new CourseInsufficientResourcesException(foundCourse.getId());
 
         // Condition no. 5: Resources availability for given cluster
 
@@ -140,7 +139,7 @@ public class ReservationServiceImpl implements ReservationService {
                 foundCourse.getClusterId(), OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime());
 
         if (!bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(foundClusterMetrics), foundClusterReservations, foundCluster))
-            throw new ClusterInsufficientResourcesException();
+            throw new ClusterInsufficientResourcesException(UUID.fromString(foundCluster.id()));
 
         // Condition no. 6: Resource group availability
 

@@ -7,9 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalConflictException;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalInvalidTimeWindowException;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalNotFound;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalInvalidTimeWindowException;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.repository.MaintenanceIntervalRepository;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
 import pl.lodz.p.it.eduvirt.util.I18n;
@@ -31,7 +31,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
     @Override
     public void createClusterMaintenanceInterval(Cluster cluster, String cause, String description, LocalDateTime beginAt, LocalDateTime endAt) {
         if (beginAt.isAfter(endAt))
-            throw new MaintenanceIntervalInvalidTimeWindowException();
+            throw new MaintenanceIntervalInvalidTimeWindowException("Maintenance interval end must happen after its start");
 
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         if (beginAt.isBefore(currentTime))
@@ -41,7 +41,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         UUID clusterId = UUID.fromString(cluster.id());
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
                 .findAllIntervalsInGivenTimePeriod(beginAt, endAt, MaintenanceInterval.IntervalType.CLUSTER, clusterId);
-        if (!foundIntervals.isEmpty()) throw new MaintenanceIntervalConflictException();
+        if (!foundIntervals.isEmpty()) throw new MaintenanceIntervalConflictException(
+                "Other cluster maintenance intervals exists for cluster %s in the specified time window".formatted(clusterId));
 
         MaintenanceInterval maintenanceInterval = new MaintenanceInterval(
                 cause, description, MaintenanceInterval.IntervalType.CLUSTER, clusterId, beginAt, endAt);
@@ -55,7 +56,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
     @Override
     public void createSystemMaintenanceInterval(String cause, String description, LocalDateTime beginAt, LocalDateTime endAt) {
         if (beginAt.isAfter(endAt))
-            throw new MaintenanceIntervalInvalidTimeWindowException();
+            throw new MaintenanceIntervalInvalidTimeWindowException("Maintenance interval end must happen after its start");
 
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         if (beginAt.isBefore(currentTime))
@@ -64,7 +65,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
 
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
                 .findAllIntervalsInGivenTimePeriod(beginAt, endAt, MaintenanceInterval.IntervalType.SYSTEM, null);
-        if (!foundIntervals.isEmpty()) throw new MaintenanceIntervalConflictException();
+        if (!foundIntervals.isEmpty()) throw new MaintenanceIntervalConflictException(
+                "Other system maintenance intervals exists for system %s in the specified time window");
 
         MaintenanceInterval maintenanceInterval = new MaintenanceInterval(
                 cause, description, MaintenanceInterval.IntervalType.SYSTEM, null, beginAt, endAt);
@@ -100,7 +102,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
     @Override
     public void finishMaintenanceInterval(UUID intervalId) {
         MaintenanceInterval foundInterval = maintenanceIntervalRepository.findById(intervalId)
-                .orElseThrow(MaintenanceIntervalNotFound::new);
+                .orElseThrow(() -> new MaintenanceIntervalNotFound(intervalId));
 
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         if (foundInterval.getBeginAt().isBefore(currentTime)) {

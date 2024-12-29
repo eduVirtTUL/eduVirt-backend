@@ -15,7 +15,7 @@ import pl.lodz.p.it.eduvirt.dto.maintenance_interval.MaintenanceIntervalDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalNotFound;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.mappers.MaintenanceIntervalMapper;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
@@ -105,7 +105,7 @@ public class MaintenanceIntervalController {
     public ResponseEntity<MaintenanceIntervalDetailsDto> getMaintenanceInterval(@PathVariable("intervalId") UUID intervalId) {
         try {
             MaintenanceInterval foundInterval = maintenanceIntervalService.findMaintenanceInterval(intervalId)
-                    .orElseThrow(MaintenanceIntervalNotFound::new);
+                    .orElseThrow(() -> new MaintenanceIntervalNotFound(intervalId));
 
             MaintenanceIntervalDetailsDto outputDto = maintenanceIntervalMapper
                     .maintenanceIntervalToDetailsDto(foundInterval);

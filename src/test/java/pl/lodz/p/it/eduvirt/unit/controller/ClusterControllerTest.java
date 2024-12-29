@@ -14,7 +14,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.aspect.exception.GeneralControllerExceptionResolver;
-import pl.lodz.p.it.eduvirt.aspect.exception.OVirtAPIExceptionResolver;
 import pl.lodz.p.it.eduvirt.controller.ClusterController;
 import pl.lodz.p.it.eduvirt.dto.EventGeneralDTO;
 import pl.lodz.p.it.eduvirt.dto.NetworkDto;
@@ -24,8 +23,12 @@ import pl.lodz.p.it.eduvirt.dto.host.HostDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.*;
+import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.ReservationService;
+import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
+import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -41,16 +44,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({
         ClusterController.class,
         GeneralControllerExceptionResolver.class,
-        OVirtAPIExceptionResolver.class
 })
 @WebMvcTest(controllers = {ClusterController.class}, useDefaultFilters = false)
 public class ClusterControllerTest {
+
+    /* Services */
 
     @MockitoBean
     private OVirtClusterService clusterService;
 
     @MockitoBean
     private OVirtVmService vmService;
+
+    @MockitoBean
+    private ClusterMetricService clusterMetricService;
+
+    @MockitoBean
+    private ReservationService reservationService;
 
     /* Mappers */
 
@@ -68,6 +78,14 @@ public class ClusterControllerTest {
 
     @MockitoBean
     private VmMapper vmMapper;
+
+    /* Util */
+
+    @MockitoBean
+    private MetricUtil metricUtil;
+
+    @MockitoBean
+    private BankerAlgorithm bankerAlgorithm;
 
     /* Other */
 
@@ -489,7 +507,7 @@ public class ClusterControllerTest {
                         .param("pageNumber", String.valueOf(pageNumber))
                         .param("pageSize", String.valueOf(pageSize)))
                 .andDo(print())
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andReturn();
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
@@ -716,7 +734,7 @@ public class ClusterControllerTest {
                         .param("pageNumber", String.valueOf(pageNumber))
                         .param("pageSize", String.valueOf(pageSize)))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
     }
@@ -862,7 +880,7 @@ public class ClusterControllerTest {
                         .param("pageNumber", String.valueOf(pageNumber))
                         .param("pageSize", String.valueOf(pageSize)))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
     }
@@ -999,7 +1017,7 @@ public class ClusterControllerTest {
                         .param("pageNumber", String.valueOf(pageNumber))
                         .param("pageSize", String.valueOf(pageSize)))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
     }

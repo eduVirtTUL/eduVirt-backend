@@ -32,7 +32,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
 
             return clusterService.get().send().cluster();
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new ClusterNotFoundException();
+            throw new ClusterNotFoundException(clusterId);
         }
     }
 

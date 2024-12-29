@@ -15,9 +15,9 @@ import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 import pl.lodz.p.it.eduvirt.entity.general.Metric;
 import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricValueAlreadyDefined;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricValueNotDefinedException;
+import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.ClusterMetricRepository;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.impl.ClusterMetricServiceImpl;
@@ -125,7 +125,7 @@ public class ClusterMetricServiceTest {
         when(metricRepository.findById(Mockito.eq(metric1.getId()))).thenReturn(Optional.of(metric1));
         when(clusterMetricRepository.findByClusterIdAndMetric(Mockito.eq(existingClusterId), Mockito.eq(metric1))).thenReturn(Optional.of(clusterMetric1));
 
-        assertThrows(MetricValueAlreadyDefined.class,
+        assertThrows(ClusterMetricExistsException.class,
                 () -> clusterMetricService.createNewValueForMetric(cluster, metric1.getId(), metricValue));
 
         verify(cluster, times(1)).id();
@@ -275,7 +275,7 @@ public class ClusterMetricServiceTest {
         when(metricRepository.findById(Mockito.eq(metric1.getId()))).thenReturn(Optional.of(metric1));
         when(clusterMetricRepository.findByClusterIdAndMetric(Mockito.eq(existingClusterId), Mockito.eq(metric1))).thenReturn(Optional.empty());
 
-        assertThrows(MetricValueNotDefinedException.class,
+        assertThrows(ClusterMetricNotFoundException.class,
                 () -> clusterMetricService.updateMetricValue(cluster, metric1.getId(), newMetricValue));
 
         verify(cluster, times(1)).id();
@@ -324,7 +324,7 @@ public class ClusterMetricServiceTest {
         when(clusterMetricRepository.findByClusterIdAndMetric(
                 Mockito.eq(existingClusterId), Mockito.eq(metric1))).thenReturn(Optional.empty());
 
-        assertThrows(MetricValueNotDefinedException.class,
+        assertThrows(ClusterMetricNotFoundException.class,
                 () -> clusterMetricService.deleteMetricValue(cluster, metric1.getId()));
 
         verify(cluster, times(1)).id();

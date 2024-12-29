@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
+import org.ovirt.engine.sdk4.builders.PermissionBuilder;
 import org.ovirt.engine.sdk4.services.AssignedPermissionsService;
 import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.types.Permission;
@@ -35,7 +36,7 @@ public class OvirtAssignedPermissionServiceImpl implements OVirtAssignedPermissi
             return permissionsService.list().send().permissions();
 
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new PermissionNotFoundException();
+            throw new PermissionNotFoundException("Permission for vm %s could not be found".formatted(vmId));
         }
     }
 
@@ -53,7 +54,7 @@ public class OvirtAssignedPermissionServiceImpl implements OVirtAssignedPermissi
             return permissionsService.list().send().permissions();
 
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new PermissionNotFoundException();
+            throw new PermissionNotFoundException("Permission for user %s could not be found".formatted(userId));
         }
     }
 
@@ -70,7 +71,7 @@ public class OvirtAssignedPermissionServiceImpl implements OVirtAssignedPermissi
 
             permissionsService.add()
                     .permission(
-                            new org.ovirt.engine.sdk4.builders.PermissionBuilder()
+                            new PermissionBuilder()
                                     .user(systemService.usersService().userService(userId.toString()).get().send().user())
                                     .role(
                                             new org.ovirt.engine.sdk4.builders.RoleBuilder()
@@ -82,7 +83,7 @@ public class OvirtAssignedPermissionServiceImpl implements OVirtAssignedPermissi
                     .send();
 
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new PermissionNotFoundException();
+            throw new PermissionNotFoundException("Permission for user %s on vm %s could not be found".formatted(userId, vmId));
         }
     }
 
@@ -96,7 +97,7 @@ public class OvirtAssignedPermissionServiceImpl implements OVirtAssignedPermissi
                     .permissionsService().permissionService(permissionId.toString()).remove().send();
 
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new PermissionNotFoundException();
+            throw new PermissionNotFoundException("Permission with id %s could not be found".formatted(permissionId));
         }
     }
 }
