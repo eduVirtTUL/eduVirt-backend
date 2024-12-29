@@ -67,25 +67,6 @@ public class ExecutorScheduler {
     }
 
     //--------------PRIVATE METHODS--------------
-    //TO_DELETE
-    private final static Map<UUID, UUID> vmNicMapping = Map.ofEntries(
-            //rg_0_vm_0
-            Map.entry(UUID.fromString("a2fa2b9e-3410-4351-93c7-d9e1f026cd90"), UUID.fromString("87ea228d-5af2-4ae8-a2da-159c8478297a")),
-            //rg_0_vm_1
-            Map.entry(UUID.fromString("0305470b-72f9-4faa-a61d-08fa82e4a573"), UUID.fromString("2be6db5b-a9a7-4b81-aece-24fab96a9b3c")),
-            Map.entry(UUID.fromString("f6206c56-eaaa-4176-a7c9-a332f0ef9a4a"), UUID.fromString("2be6db5b-a9a7-4b81-aece-24fab96a9b3c")),
-            //rg_0_vm_2
-            Map.entry(UUID.fromString("59579576-795d-4fe4-b53c-50304935eb9c"), UUID.fromString("1eb0433f-51a1-4d26-83ba-c7024a64794f")),
-            //rg_1_vm_0
-            Map.entry(UUID.fromString("86e03a46-4584-4fdb-a4a8-34d2de3eba55"), UUID.fromString("2960c0a1-3a40-463d-bf21-a9c544aafa01")),
-            //rg_1_vm_1
-            Map.entry(UUID.fromString("34a65828-e077-4119-85ac-e2f9c7a2bf7a"), UUID.fromString("172f902e-309d-4b13-a890-f9602653cc94")),
-            Map.entry(UUID.fromString("76a1886f-1771-42db-a837-665283b29c28"), UUID.fromString("172f902e-309d-4b13-a890-f9602653cc94")),
-            //rg_1_vm_2
-            Map.entry(UUID.fromString("e042f660-4c90-4135-9adc-01f3b9798eae"), UUID.fromString("e630b785-04bb-477c-90d7-5cfb3808fd36"))
-    );
-    //TO_DELETE
-
 
     private void startUpPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodInitTask(reservation);
@@ -99,8 +80,7 @@ public class ExecutorScheduler {
             //Network mapping
             List<ResourceGroupNetwork> networksToMap = resourceGroupNetworkRepository.getAllByResourceGroupId(resourceGroup.getId());
             networksToMap
-                    .stream()
-                    //.parallel()
+                    //.stream().parallel()
                     .forEach(
                             network -> {
                                 // TODO michal: CZY SEGMENTY SIECIOWE SĄ DEFINIOWANE PER CLUSTER? CZY DLA CAŁEGO DATA CENTER SĄ WSPÓLNE
@@ -117,14 +97,13 @@ public class ExecutorScheduler {
 
                                 // Assign vnic profile to VMs NICs
                                 network.getInterfaces()
-                                        .stream()
-//                                        .parallel()
+                                        //.stream().parallel()
                                         .forEach(
                                                 nic -> {
-                                                    UUID vm = vmNicMapping.get(nic);
+                                                    UUID vmId = nic.getVirtualMachine().getId();
                                                     runAndRegister(
-                                                            () -> assignVnicProfileToNIC(chosenVnicProfile.getId(), vm, nic),
-                                                            executorTask, vm, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE
+                                                            () -> assignVnicProfileToNIC(chosenVnicProfile.getId(), vmId, nic.getId()),
+                                                            executorTask, vmId, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE
                                                     );
                                                 }
                                         );
@@ -137,8 +116,7 @@ public class ExecutorScheduler {
             //Start-up VMs
             if (reservation.getAutomaticStartup()) {
                 virtualMachines
-                        .stream()
-                        //.parallel()
+                        //.stream().parallel()
                         .forEach(
                                 vm -> runAndRegister(() -> oVirtVmService.runVm(vm.getId().toString()),
                                         executorTask, vm.getId(), ExecutorSubtask.SubtaskType.START_VM
@@ -189,8 +167,7 @@ public class ExecutorScheduler {
 
     private void addTeamPermissionsToVm(UUID vmId, List<UUID> teamMembersIds) {
         teamMembersIds
-                .stream()
-                //.parallel()
+                //.stream().parallel()
                 .forEach(
                         userId -> ovirtAssignedPermissionService.assignPermissionToVmToUser(vmId, userId,
                                 "00000000-0000-0000-0001-000000000001")
@@ -208,8 +185,7 @@ public class ExecutorScheduler {
 
             //Revoke permissions
             virtualMachines
-                    .stream()
-                    //.parallel()
+                    //.stream().parallel()
                     .forEach(
                             vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), team.getUsers()),
                                     executorTask, vm.getId(), ExecutorSubtask.SubtaskType.REVOKE_PERMISSIONS
@@ -220,8 +196,7 @@ public class ExecutorScheduler {
             //TODO michal: decide to do it before or after VMs shutdown
             List<ResourceGroupNetwork> networksToRemove = resourceGroupNetworkRepository.getAllByResourceGroupId(resourceGroup.getId());
             networksToRemove
-                    .stream()
-                    //.parallel()
+                    //.stream().parallel()
                     .forEach(
                             network -> {
                                 // Remove vnic profile from VMs NICs
@@ -230,10 +205,10 @@ public class ExecutorScheduler {
 //                                        .parallel()
                                         .map(
                                                 nic -> {
-                                                    UUID vm = vmNicMapping.get(nic);
+                                                    UUID vmId = nic.getVirtualMachine().getId();
                                                     return runAndRegister(
-                                                            () -> removeVnicProfileFromNIC(vm, nic),
-                                                            executorTask, vm, ExecutorSubtask.SubtaskType.REMOVE_VNIC_PROFILE
+                                                            () -> removeVnicProfileFromNIC(vmId, nic.getId()),
+                                                            executorTask, vmId, ExecutorSubtask.SubtaskType.REMOVE_VNIC_PROFILE
                                                     );
                                                 }
                                         )
@@ -246,8 +221,7 @@ public class ExecutorScheduler {
 
             //Shutdown VMs
             virtualMachines
-                    .stream()
-                    //.parallel()
+                    //.stream().parallel()
                     .forEach(
                             vm -> runAndRegister(() -> oVirtVmService.shutdownVm(vm.getId().toString()),
                                     executorTask, vm.getId(), ExecutorSubtask.SubtaskType.SHUTDOWN_VM
@@ -265,8 +239,7 @@ public class ExecutorScheduler {
 
     private void revokeTeamPermissionsToVm(UUID vmId, List<UUID> teamMembersIds) {
         teamMembersIds
-                .stream()
-                //.parallel()
+                //.stream().parallel()
                 //TODO michal: consider caching permissionIds
                 .forEach(
                         userId ->
