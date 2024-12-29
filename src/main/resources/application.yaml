@@ -18,16 +18,23 @@ spring:
       "mail.smtp.starttls.enable": ${MAIL_PROPERTIES_STARTTLS}
       "mail.smtp.ssl.enable": ${MAIL_PROPERTIES_SSL_ENABLE}
       "mail.smtp.ssl.trust": ${MAIL_PROPERTIES_SSL_TRUST}
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${ISSUER_URI}
-  datasource:
-    url: ${EDUVIRT_DB_URL}
+
+jdbc:
+  eduvirt:
+    driver-class-name: ${EDUVIRT_DB_DRIVER_CLASS}
     username: ${EDUVIRT_DB_USERNAME}
     password: ${EDUVIRT_DB_PASSWORD}
-    driver-class-name: ${EDUVIRT_DB_DRIVER_CLASS}
+    jdbcUrl: ${EDUVIRT_DB_URL}
+    maximum-pool-size: ${EDUVIRT_DB_MAX_POOL_SIZE}
+    maxWaitMillis: ${EDUVIRT_DB_MAX_LIFETIME}
+  ovirt:
+    driver-class-name: ${OVIRT_DB_DRIVER_CLASS}
+    username: ${OVIRT_DB_USERNAME}
+    password: ${OVIRT_DB_PASSWORD}
+    jdbcUrl: ${OVIRT_DB_URL}
+    readOnly: true
+    maximum-pool-size: ${OVIRT_DB_MAX_POOL_SIZE}
+    maxWaitMillis: ${OVIRT_DB_MAX_LIFETIME}
 
 ovirt:
   engine:
@@ -39,7 +46,8 @@ ovirt:
       password: ${JKS_PASSWORD}
 
 auth:
-
+  secret-key: ${AUTH_SECRET_KEY}
+  expiration-hours: ${AUTH_EXPIRATION_HOURS}
   keycloack:
     tokenUri: ${KEYCLOAK_TOKEN_URI}
     url: ${KEYCLOAK_URL}
