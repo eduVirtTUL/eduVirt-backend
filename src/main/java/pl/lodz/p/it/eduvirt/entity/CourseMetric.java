@@ -17,7 +17,7 @@ public class CourseMetric {
     @ManyToOne
     private Course course;
     @Id
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Metric metric;
 
     private double value;

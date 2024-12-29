@@ -13,4 +13,6 @@ public interface CourseMetricService {
     CourseMetric getCourseMetric(UUID courseId, UUID metricId);
 
     List<CourseMetric> getCourseMetrics(UUID courseId);
+
+    void updateCourseMetric(UUID courseId, UUID metricId, double value);
 }
