@@ -18,7 +18,7 @@ import pl.lodz.p.it.eduvirt.repository.TeamRepository;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.service.PodService;
 import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatefulDto;
-import pl.lodz.p.it.eduvirt.mappers.PodStatefulMapper;
+import pl.lodz.p.it.eduvirt.mappers.PodMapper;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,13 +32,13 @@ public class PodServiceImpl implements PodService {
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
     private final TeamRepository teamRepository;
     private final CourseRepository courseRepository;
-    private final PodStatefulMapper podStatefulMapper;
+    private final PodMapper podMapper;
 
     @Override
     @Transactional
-    public PodStateful createPod(CreatePodStatefulDto dto) {
+    public PodStateful createStatefulPod(CreatePodStatefulDto dto) {
 
-        PodStateful pod = podStatefulMapper.toEntity(dto);
+        PodStateful pod = podMapper.toPodStatefulEntity(dto);
 
         Team team = teamRepository.findById(dto.teamId())
                 .orElseThrow(TeamNotFoundException::new);
@@ -50,11 +50,11 @@ public class PodServiceImpl implements PodService {
                 .orElseThrow(() -> new ResourceGroupNotFoundException(dto.resourceGroupId()));
 
         if (resourceGroup.isStateless()) {
-            throw new RuntimeException("Cannot create stateful pod for stateless resource group"); //TODO
+            throw new RuntimeException("Cannot create stateful pod for stateless resource group"); //TODO: custom exception
         }
 
         if (podStatefulRepository.existsByResourceGroupId(resourceGroup.getId())) {
-            throw new RuntimeException("Resource group already has a pod assigned to it"); //TODO
+            throw new RuntimeException("Resource group already has a pod assigned to it"); //TODO: custom exception
         }
 
         pod.setResourceGroup(resourceGroup);
@@ -65,29 +65,29 @@ public class PodServiceImpl implements PodService {
     }
 
     @Override
-    public List<PodStateful> getPodsByTeam(UUID teamId) {
+    public List<PodStateful> getStatefulPodsByTeam(UUID teamId) {
         return podStatefulRepository.findByTeamId(teamId);
     }
 
     @Override
-    public List<PodStateful> getPodsByCourse(UUID courseId) {
+    public List<PodStateful> getStatefulPodsByCourse(UUID courseId) {
         return podStatefulRepository.findByCourseId(courseId);
     }
 
     @Override
-    public List<PodStateful> getPodsByResourceGroup(UUID resourceGroupId) {
+    public List<PodStateful> getStatefulPodsByResourceGroup(UUID resourceGroupId) {
         return podStatefulRepository.findByResourceGroupId(resourceGroupId);
     }
 
     @Override
-    public PodStateful getPod(UUID podId) {
+    public PodStateful getStatefulPod(UUID podId) {
         return podStatefulRepository.findById(podId)
                 .orElseThrow(PodNotFoundException::new);
     }
 
-    // add logic if in use later
+    //TODO: add logic if in use later
     @Override
-    public void deletePod(UUID podId) {
+    public void deleteStatefulPod(UUID podId) {
         podStatefulRepository.deleteById(podId);
     }
 

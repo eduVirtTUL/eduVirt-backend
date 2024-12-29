@@ -15,12 +15,4 @@ public interface AccessKeyMapper {
     CourseAccessKeyDto toCourseKeyDto(CourseAccessKey key);
     
     TeamAccessKeyDto toTeamKeyDto(TeamAccessKey key);
-
-//    default AccessKeyDto toDto(AccessKey key) {
-//        if (key instanceof CourseAccessKey) {
-//            return toCourseKeyDto((CourseAccessKey) key);
-//        } else {
-//            return toTeamKeyDto((TeamAccessKey) key);
-//        }
-//    }
 }

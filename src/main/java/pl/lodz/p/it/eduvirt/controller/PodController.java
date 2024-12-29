@@ -7,7 +7,7 @@ import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatefulDto;
 import pl.lodz.p.it.eduvirt.dto.pod.CreateStatelessPodDto;
 import pl.lodz.p.it.eduvirt.dto.pod.PodStatefulDto;
 import pl.lodz.p.it.eduvirt.entity.PodStateful;
-import pl.lodz.p.it.eduvirt.mappers.PodStatefulMapper;
+import pl.lodz.p.it.eduvirt.mappers.PodMapper;
 import pl.lodz.p.it.eduvirt.service.PodService;
 
 import java.util.List;
@@ -19,46 +19,45 @@ import java.util.UUID;
 public class PodController {
 
     private final PodService podService;
-    private final PodStatefulMapper podStatefulMapper;
+    private final PodMapper podMapper;
 
     //Stateful
     @PostMapping("/stateful")
-    public ResponseEntity<PodStatefulDto> createPod(@RequestBody CreatePodStatefulDto createDto) {
-//        PodStateful pod = podStatefulMapper.toEntity(createDto);
-        PodStateful createdPod = podService.createPod(createDto);
-        return ResponseEntity.ok(podStatefulMapper.toDto(createdPod));
+    public ResponseEntity<PodStatefulDto> createStatefulPod(@RequestBody CreatePodStatefulDto createDto) {
+        PodStateful createdPod = podService.createStatefulPod(createDto);
+        return ResponseEntity.ok(podMapper.podStatefulToDto(createdPod));
     }
 
     @GetMapping("/stateful/team/{teamId}")
-    public ResponseEntity<List<PodStatefulDto>> getPodsByTeam(@PathVariable UUID teamId) {
+    public ResponseEntity<List<PodStatefulDto>> getStatefulPodsByTeam(@PathVariable UUID teamId) {
         return ResponseEntity.ok(
-                podService.getPodsByTeam(teamId).stream()
-                        .map(podStatefulMapper::toDto)
+                podService.getStatefulPodsByTeam(teamId).stream()
+                        .map(podMapper::podStatefulToDto)
                         .toList()
         );
     }
 
     @GetMapping("/stateful/course/{courseId}")
-    public ResponseEntity<List<PodStatefulDto>> getPodsByCourse(@PathVariable UUID courseId) {
+    public ResponseEntity<List<PodStatefulDto>> getStatefulPodsByCourse(@PathVariable UUID courseId) {
         return ResponseEntity.ok(
-                podService.getPodsByCourse(courseId).stream()
-                        .map(podStatefulMapper::toDto)
+                podService.getStatefulPodsByCourse(courseId).stream()
+                        .map(podMapper::podStatefulToDto)
                         .toList()
         );
     }
 
     @GetMapping("/stateful/resource-group/{resourceGroupId}")
-    public ResponseEntity<List<PodStatefulDto>> getPodsByResourceGroup(@PathVariable UUID resourceGroupId) {
+    public ResponseEntity<List<PodStatefulDto>> getStatefulPodsByResourceGroup(@PathVariable UUID resourceGroupId) {
         return ResponseEntity.ok(
-                podService.getPodsByResourceGroup(resourceGroupId).stream()
-                        .map(podStatefulMapper::toDto)
+                podService.getStatefulPodsByResourceGroup(resourceGroupId).stream()
+                        .map(podMapper::podStatefulToDto)
                         .toList()
         );
     }
 
     @DeleteMapping("/stateful/{podId}")
-    public ResponseEntity<Void> deletePod(@PathVariable UUID podId) {
-        podService.deletePod(podId);
+    public ResponseEntity<Void> deleteStatefulPod(@PathVariable UUID podId) {
+        podService.deleteStatefulPod(podId);
         return ResponseEntity.noContent().build();
     }
 
@@ -82,4 +81,5 @@ public class PodController {
     public ResponseEntity<List<UUID>> getStatelessPodsByTeam(@PathVariable UUID teamId) {
         return ResponseEntity.ok(podService.getStatelessPodsByTeam(teamId));
     }
+
 }

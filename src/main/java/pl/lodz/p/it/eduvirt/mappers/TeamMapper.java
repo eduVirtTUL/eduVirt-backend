@@ -8,7 +8,7 @@ import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
 import pl.lodz.p.it.eduvirt.entity.Team;
 
-@Mapper(componentModel = "spring", uses = {AccessKeyMapper.class})
+@Mapper(componentModel = "spring")
 public interface TeamMapper {
 
     default TeamWithCourseDto teamToTeamWithCourseDto(Team team) {

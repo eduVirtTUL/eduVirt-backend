@@ -1,7 +1,12 @@
 package pl.lodz.p.it.eduvirt.entity.key;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import pl.lodz.p.it.eduvirt.entity.Course;
 
 @Entity
@@ -9,10 +14,8 @@ import pl.lodz.p.it.eduvirt.entity.Course;
 @Getter
 @Setter
 @NoArgsConstructor
-@Builder
-@AllArgsConstructor
 public class CourseAccessKey extends AccessKey {
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 }

@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.UUID;
 
 public interface PodService {
-    PodStateful createPod(CreatePodStatefulDto dto);
-    List<PodStateful> getPodsByTeam(UUID teamId);
-    List<PodStateful> getPodsByCourse(UUID courseId);
-    List<PodStateful> getPodsByResourceGroup(UUID resourceGroupId);
-    PodStateful getPod(UUID podId);
-    void deletePod(UUID podId);
+    PodStateful createStatefulPod(CreatePodStatefulDto dto);
+    List<PodStateful> getStatefulPodsByTeam(UUID teamId);
+    List<PodStateful> getStatefulPodsByCourse(UUID courseId);
+    List<PodStateful> getStatefulPodsByResourceGroup(UUID resourceGroupId);
+    PodStateful getStatefulPod(UUID podId);
+    void deleteStatefulPod(UUID podId);
     void createStatelessPod(UUID teamId, UUID resourceGroupId);
     void deleteStatelessPod(UUID teamId, UUID resourceGroupId);
     List<UUID> getStatelessPodsByTeam(UUID teamId);

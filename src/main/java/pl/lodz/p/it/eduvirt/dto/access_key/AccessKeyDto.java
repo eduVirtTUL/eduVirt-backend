@@ -1,7 +1,6 @@
 package pl.lodz.p.it.eduvirt.dto.access_key;
 
 import lombok.Data;
-
 import java.util.UUID;
 
 @Data

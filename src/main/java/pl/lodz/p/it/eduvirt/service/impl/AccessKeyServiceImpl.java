@@ -42,7 +42,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     private String validateAndGetKeyValue(String providedKey, String name,
                                           Predicate<String> existsCheck) {
         if (providedKey != null && !providedKey.isEmpty()) {
-            if (providedKey.length() < 5 || providedKey.length() > 15) {
+            if (providedKey.length() < 5 || providedKey.length() > 50) {
                 throw new AccessKeyLengthException();
             }
             return providedKey;
