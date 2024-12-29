@@ -2,7 +2,6 @@ package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import pl.lodz.p.it.eduvirt.entity.key.AccessKey;
 import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 
 import java.util.ArrayList;
@@ -47,8 +46,8 @@ public class Team extends Updatable {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @OneToOne(mappedBy = "team")
-    private AccessKey accessKey;
+    // @ManyToOne
+    // private AccessKey accessKey;
 
     @OneToMany(mappedBy = "team")
     private List<PodStateful> statefulPods = new ArrayList<>();

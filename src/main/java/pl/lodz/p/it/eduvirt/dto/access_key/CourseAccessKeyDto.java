@@ -5,7 +5,8 @@ import lombok.Data;
 import java.util.UUID;
 
 @Data
-public abstract class AccessKeyDto {
+public class CourseAccessKeyDto {
     private UUID id;
     private String keyValue;
+    private UUID courseId;
 }

@@ -24,12 +24,12 @@ public class TeamController {
     private final TeamService teamService;
     private final TeamMapper teamMapper;
 
-   @PostMapping
-   public ResponseEntity<TeamWithCourseDto> createTeam(@RequestBody CreateTeamDto createTeamDto) {
-       Team team = teamMapper.toEntity(createTeamDto);
-       Team createdTeam = teamService.createTeam(team, createTeamDto.getCourseId(), createTeamDto.getKeyValue());
-       return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(createdTeam));
-   }
+    @PostMapping
+    public ResponseEntity<TeamWithCourseDto> createTeam(@RequestBody CreateTeamDto createTeamDto) {
+        Team team = teamMapper.toEntity(createTeamDto);
+        Team createdTeam = teamService.createTeam(team, createTeamDto.getCourseId(), createTeamDto.getKeyValue());
+        return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(createdTeam));
+    }
 
     @GetMapping
     public ResponseEntity<List<TeamWithCourseDto>> getTeams() {
@@ -66,8 +66,11 @@ public class TeamController {
 
     //TODO: make it so it takes the user from the context
     @PostMapping("/join")
-    public ResponseEntity<Void> joinTeam(@RequestParam String keyValue, @RequestParam UUID userId) {
-        teamService.joinTeamOrCourse(keyValue, userId);
+    public ResponseEntity<Void> joinUsingKey(@RequestParam String keyValue, @RequestParam UUID userId) {
+        if (keyValue == null || keyValue.isEmpty()) {
+            throw new IllegalArgumentException("Key value cannot be empty");
+        }
+        teamService.joinUsingKey(keyValue, userId);
         return ResponseEntity.noContent().build();
     }
 
