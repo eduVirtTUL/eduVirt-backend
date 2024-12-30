@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.types.User;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
@@ -17,14 +18,13 @@ import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
-import pl.lodz.p.it.eduvirt.repository.ResourceGroupNetworkRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtAssignedPermissionService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -37,36 +37,40 @@ import java.util.stream.Collectors;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-//@Transactional
 public class ExecutorScheduler {
 
+    // Model
     private final OVirtVmService oVirtVmService;
     private final OVirtAssignedPermissionService ovirtAssignedPermissionService;
     private final VnicProfilePoolService vnicProfilePoolService;
 
     //TODO michal: service instead of repository
     private final ReservationRepository reservationRepository;
-    private final ResourceGroupNetworkRepository resourceGroupNetworkRepository;
 
+    // Handling logging
     private final ExecutorTaskService executorTaskService;
 
     //TODO michal: real pooling instead of invoking checking conditions in fixed time
-
+    //TODO michal: rethink transactions
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0)
-    @Transactional
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void createPods() {
         reservationRepository.findReservationsToBegin()
+                //.stream().parallel()
                 .forEach(this::startUpPod);
     }
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0)
-    @Transactional
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void destroyPods() {
         reservationRepository.findReservationsToFinish()
+                //.stream().parallel()
                 .forEach(this::stopPod);
     }
 
     //--------------PRIVATE METHODS--------------
+
+    //TODO michal: Start new attempt to start up POD from the last successful subtask
 
     private void startUpPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodInitTask(reservation);
@@ -75,16 +79,18 @@ public class ExecutorScheduler {
             Team team = reservation.getTeam();
             List<VirtualMachine> virtualMachines = resourceGroup.getVms();
 
+            //TODO michal: Check if all VMs are down
+
             //TODO michal: Verify resources or handle insufficient on VM startup command (probably the first one)
 
             //Network mapping
-            List<ResourceGroupNetwork> networksToMap = resourceGroupNetworkRepository.getAllByResourceGroupId(resourceGroup.getId());
+            List<ResourceGroupNetwork> networksToMap = resourceGroup.getNetworks();
             networksToMap
                     //.stream().parallel()
                     .forEach(
                             network -> {
-                                // TODO michal: CZY SEGMENTY SIECIOWE SĄ DEFINIOWANE PER CLUSTER? CZY DLA CAŁEGO DATA CENTER SĄ WSPÓLNE
-                                // TODO michal: rejestrowanie wybierania vnic profilu z puli?
+                                // TODO michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
+                                // TODO michal: should we register chosen vnic profile from pool?
                                 // Fetch vnic profile from pool, checking conditions (if inUse equals false)
                                 VnicProfilePoolMember chosenVnicProfile = vnicProfilePoolService.getVnicProfilesPool()
                                         .stream()
@@ -124,7 +130,8 @@ public class ExecutorScheduler {
                         );
             }
 
-            //TODO michal: Active waiting for all VMs are running
+            //TODO michal: Active waiting for all VMs are running ???
+
             //Assign permissions
             virtualMachines
                     .stream()
@@ -139,7 +146,7 @@ public class ExecutorScheduler {
             executorTaskService.finalizeTask(executorTask.getId(), true, null);
         } catch (Throwable e) {
             executorTaskService.finalizeTask(executorTask.getId(), false, e.getMessage());
-            throw e;
+            e.printStackTrace(System.err);
         }
     }
 
@@ -151,20 +158,6 @@ public class ExecutorScheduler {
         );
     }
 
-    //OLD_IMPL
-//    private void assignVnicProfilesToNICs(UUID vnicProfileId, List<UUID> vmNicIdsList) {
-//        vmNicIdsList.stream()
-////                .parallel()
-//                .forEach(
-//                        vmNicId ->
-//                                oVirtVmService.assignVnicProfileToVm(
-//                                        vmNicMapping.get(vmNicId).toString(),
-//                                        vmNicId.toString(),
-//                                        vnicProfileId.toString()
-//                                )
-//                );
-//    }
-
     private void addTeamPermissionsToVm(UUID vmId, List<UUID> teamMembersIds) {
         teamMembersIds
                 //.stream().parallel()
@@ -174,6 +167,8 @@ public class ExecutorScheduler {
                 );
     }
 
+
+    //TODO michal: Start new attempt to stop POD from the last successful subtask
 
     //TODO michal: if pod doesnt start should we invoke stopping it??? - now stopping is invoking in any cases
     private void stopPod(Reservation reservation) {
@@ -194,7 +189,7 @@ public class ExecutorScheduler {
 
             //Private networks cleaning
             //TODO michal: decide to do it before or after VMs shutdown
-            List<ResourceGroupNetwork> networksToRemove = resourceGroupNetworkRepository.getAllByResourceGroupId(resourceGroup.getId());
+            List<ResourceGroupNetwork> networksToRemove = resourceGroup.getNetworks();
             networksToRemove
                     //.stream().parallel()
                     .forEach(
@@ -256,30 +251,10 @@ public class ExecutorScheduler {
     }
 
     private UUID removeVnicProfileFromNIC(UUID vmId, UUID vmNicId) {
-        return UUID.fromString(
-                oVirtVmService.removeVnicProfileFromVm(
-                        vmId.toString(),
-                        vmNicId.toString()
-                )
-        );
+        return Optional.ofNullable(
+                oVirtVmService.removeVnicProfileFromVm(vmId.toString(), vmNicId.toString())
+        ).map(UUID::fromString).orElse(null);
     }
-
-    //OLD_IMPL
-//    private List<UUID> removeVnicProfilesFromNICs(List<UUID> vmNicIdsList) {
-//        return vmNicIdsList.stream()
-////                .parallel()
-//                .map(
-//                        //TODO michal: do null-safe mapping
-//                        vmNicId ->
-//                                UUID.fromString(
-//                                        oVirtVmService.removeVnicProfileFromVm(
-//                                                vmNicMapping.get(vmNicId),
-//                                                vmNicId.toString()
-//                                        )
-//                                )
-//                )
-//                .toList();
-//    }
 
     private <T> T runAndRegister(Supplier<T> runnable,
                                  ExecutorTask task,
@@ -288,7 +263,7 @@ public class ExecutorScheduler {
         UUID sanitizedVmId = Objects.requireNonNullElse(vmId, UUID.fromString("00000000-0000-0000-0000-000000000000"));
         try {
 //            synchronized (this) {
-             T tmpVal = runnable.get();
+            T tmpVal = runnable.get();
 //            }
             executorTaskService.registerSubTask(task.getId(), sanitizedVmId, type, true, null);
             return tmpVal;

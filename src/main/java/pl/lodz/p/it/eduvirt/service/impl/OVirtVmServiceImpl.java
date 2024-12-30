@@ -32,6 +32,7 @@ import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.Map;
 import java.util.TreeMap;
@@ -166,7 +167,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
     }
 
     @Override
-    public boolean runVm(String id) {
+    public void runVm(String id) {
         try (Connection connection = connectionFactory.getConnection()) {
             connection
                     .systemService()
@@ -174,16 +175,15 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .vmService(id)
                     .start()
                     .send();
-            return true;
         } catch (Throwable e) {
             log.error(e.getMessage());
             //TODO michal: if VM is started lets restart it!
-            return false;
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean shutdownVm(String id) {
+    public void shutdownVm(String id) {
         try (Connection connection = connectionFactory.getConnection()) {
             connection
                     .systemService()
@@ -191,15 +191,14 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .vmService(id)
                     .shutdown()
                     .send();
-            return true;
         } catch (Throwable e) {
             log.error(e.getMessage());
-            return false;
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean powerOffVm(String id) {
+    public void powerOffVm(String id) {
         try (Connection connection = connectionFactory.getConnection()) {
             connection
                     .systemService()
@@ -207,15 +206,14 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .vmService(id)
                     .stop()
                     .send();
-            return true;
         } catch (Throwable e) {
             log.error(e.getMessage());
-            return false;
+            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public boolean assignVnicProfileToVm(String vmId, String vmNicId, String vnicProfileId) {
+    public void assignVnicProfileToVm(String vmId, String vmNicId, String vnicProfileId) {
         try (Connection connection = connectionFactory.getConnection()) {
             SystemService systemService = connection
                     .systemService();
@@ -236,6 +234,11 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("NIC not found in the VM fetched object"));
 
+            // Verify that the NIC has <EMPTY> status before setting the selected vnic profile
+            Optional.ofNullable(wantedNic.vnicProfile()).ifPresent(profile -> {
+                throw new RuntimeException("VNIC PROFILE already assigned");
+            });
+
             VnicProfile wantedVnicProfile = systemService
                     .vnicProfilesService()
                     .profileService(vnicProfileId)
@@ -252,10 +255,9 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .nic(wantedNic)
                     .send();
 
-            return true;
         } catch (Throwable e) {
             log.error(e.getMessage());
-            return false;
+            throw new RuntimeException(e);
         }
     }
 
@@ -295,7 +297,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
             return vnicProfileToRemoveId;
         } catch (Throwable e) {
             log.error(e.getMessage());
-            return null;
+            throw new RuntimeException(e);
         }
     }
 }

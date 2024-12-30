@@ -130,7 +130,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
                     new VnicProfilePoolMember(vnicProfileId, relatedVnicProfile.get().network().vlan().idAsInteger())
             );
         } else {
-            throw new VnicProfileOvirtNotFoundException(vnicProfileId.toString());
+            throw new VnicProfileOvirtNotFoundException(vnicProfileId);
         }
     }
 
