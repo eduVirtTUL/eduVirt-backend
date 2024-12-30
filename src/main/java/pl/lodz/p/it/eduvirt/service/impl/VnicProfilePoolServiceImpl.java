@@ -130,7 +130,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
                     new VnicProfilePoolMember(vnicProfileId, relatedVnicProfile.get().network().vlan().idAsInteger())
             );
         } else {
-            throw new VnicProfileOvirtNotFoundException(vnicProfileId.toString());
+            throw new VnicProfileOvirtNotFoundException(vnicProfileId);
         }
     }
 
@@ -138,7 +138,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Transactional
     public void removeVnicProfileFromPool(UUID vnicProfileId) {
         if (vnicProfileRepository.findById(vnicProfileId).isEmpty()) {
-            throw new VnicProfileEduvirtNotFoundException(vnicProfileId.toString());
+            throw new VnicProfileEduvirtNotFoundException(vnicProfileId);
         }
 
         vnicProfileRepository.deleteById(vnicProfileId);
@@ -158,8 +158,8 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
 
     private void changeVnicProfilePoolMemberStatus(UUID vnicProfileId, boolean setInUser) {
         Optional<VnicProfilePoolMember> vnicProfileOpt = vnicProfileRepository.findById(vnicProfileId);
-        if (vnicProfileOpt.isEmpty()) throw new VnicProfileEduvirtNotFoundException(vnicProfileId.toString());
 
+        if (vnicProfileOpt.isEmpty()) throw new VnicProfileEduvirtNotFoundException(vnicProfileId);
         VnicProfilePoolMember vnicProfile = vnicProfileOpt.get();
 
         vnicProfile.setInUse(setInUser);

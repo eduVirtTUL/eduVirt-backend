@@ -98,7 +98,7 @@ public class VnicProfileController {
                 .filter(vnicProfile -> vnicProfile.getId().equals(id))
                 .map(vnicProfileMapper::vnicProfileToDto)
                 .findFirst()
-                .orElseThrow(VnicProfileEduvirtNotFoundException::new);
+                .orElseThrow(() -> new VnicProfileEduvirtNotFoundException(id));
 
         return ResponseEntity.ok(vnicProfileDto);
     }

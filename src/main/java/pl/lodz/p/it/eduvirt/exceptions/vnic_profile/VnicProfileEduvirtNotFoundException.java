@@ -1,21 +1,15 @@
 package pl.lodz.p.it.eduvirt.exceptions.vnic_profile;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationBaseException;
+import pl.lodz.p.it.eduvirt.exceptions.NotFoundException;
 
-@ResponseStatus(code = HttpStatus.NOT_FOUND)
-public class VnicProfileEduvirtNotFoundException extends ApplicationBaseException {
+import java.util.UUID;
 
-    public VnicProfileEduvirtNotFoundException() {
-        super();
-    }
-
+public class VnicProfileEduvirtNotFoundException extends NotFoundException {
     public VnicProfileEduvirtNotFoundException(String message) {
         super(message);
     }
 
-    public VnicProfileEduvirtNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+    public VnicProfileEduvirtNotFoundException(UUID vnicProfileId) {
+        super("Not found in EduVirt the vnic profile with id:" + vnicProfileId);
     }
 }

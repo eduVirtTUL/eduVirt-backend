@@ -21,13 +21,13 @@ public interface OVirtVmService {
 
     List<Vm> findVms();
 
-    boolean runVm(String id);
+    void runVm(String id);
 
-    boolean shutdownVm(String id);
+    void shutdownVm(String id);
 
-    boolean powerOffVm(String id);
+    void powerOffVm(String id);
 
-    boolean assignVnicProfileToVm(String vmId, String vmNicId, String vnicProfileId);
+    void assignVnicProfileToVm(String vmId, String vmNicId, String vnicProfileId);
 
     String removeVnicProfileFromVm(String vmId, String vmNicId);
 }
