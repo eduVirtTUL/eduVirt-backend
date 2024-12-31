@@ -10,6 +10,9 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.subtasks.PermissionTask;
+import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VmTask;
+import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.repository.ExecutorSubtaskRepository;
 import pl.lodz.p.it.eduvirt.executor.repository.ExecutorTaskRepository;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
@@ -59,11 +62,17 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
     }
 
     @Override
-    public void registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type, boolean success, String comment) {
+    public void registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type,
+                                boolean success, String comment, UUID additionalId) {
         ExecutorTask task = executorTaskRepository.findById(taskId)
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(RuntimeException::new);
 
-        ExecutorSubtask subtask = new ExecutorSubtask(task, vmId, type);
+//        ExecutorSubtask subtask = new ExecutorSubtask(task, vmId, type);
+        ExecutorSubtask subtask = switch (type) {
+            case START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM -> new VmTask(task, vmId, type);
+            case ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE -> new VnicProfileTask(task, vmId, type, additionalId);
+            case ASSIGN_PERMISSION, REVOKE_PERMISSION -> new PermissionTask(task, vmId, type);
+        };
         subtask.setSuccessful(success);
         subtask.setDescription(
                 Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(200, comment.length())) : null

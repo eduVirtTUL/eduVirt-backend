@@ -14,5 +14,6 @@ public interface ExecutorTaskService {
 
     void finalizeTask(UUID taskId, boolean success, String comment);
 
-    void registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type, boolean success, String comment);
+    void registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type,
+                         boolean success, String comment, UUID additionalId);
 }

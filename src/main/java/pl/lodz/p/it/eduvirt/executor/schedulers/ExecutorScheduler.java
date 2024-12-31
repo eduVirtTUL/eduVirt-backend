@@ -32,6 +32,9 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 //TODO michal: handling stateful pods
+//TODO michal: perhaps improvement -> .stream().parallel() when calling oVirt Api (d871bd94490e9d4f0e7f72e7c4da6b2ac48e5df7 -> last revision with comments where it could be used)
+//TODO michal: verifications count/type of registered subtasks
+//TODO michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
 
 @Slf4j
 @Service
@@ -86,7 +89,6 @@ public class ExecutorScheduler {
             //Network mapping
             List<ResourceGroupNetwork> networksToMap = resourceGroup.getNetworks();
             networksToMap
-                    //.stream().parallel()
                     .forEach(
                             network -> {
                                 // TODO michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
@@ -103,26 +105,21 @@ public class ExecutorScheduler {
 
                                 // Assign vnic profile to VMs NICs
                                 network.getInterfaces()
-                                        //.stream().parallel()
                                         .forEach(
                                                 nic -> {
                                                     UUID vmId = nic.getVirtualMachine().getId();
                                                     runAndRegister(
                                                             () -> assignVnicProfileToNIC(chosenVnicProfile.getId(), vmId, nic.getId()),
-                                                            executorTask, vmId, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE
+                                                            executorTask, vmId, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE, chosenVnicProfile.getId()
                                                     );
                                                 }
                                         );
                             }
                     );
 
-
-            //TODO michal: Handle situation when some VMs are running
-
             //Start-up VMs
             if (reservation.getAutomaticStartup()) {
                 virtualMachines
-                        //.stream().parallel()
                         .forEach(
                                 vm -> runAndRegister(() -> oVirtVmService.runVm(vm.getId().toString()),
                                         executorTask, vm.getId(), ExecutorSubtask.SubtaskType.START_VM
@@ -136,10 +133,9 @@ public class ExecutorScheduler {
             virtualMachines
                     .stream()
                     .filter(vm -> !vm.isHidden())
-                    //.parallel()
                     .forEach(
                             vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), team.getUsers()),
-                                    executorTask, vm.getId(), ExecutorSubtask.SubtaskType.ASSIGN_PERMISSIONS
+                                    executorTask, vm.getId(), ExecutorSubtask.SubtaskType.ASSIGN_PERMISSION
                             )
                     );
 
@@ -160,7 +156,6 @@ public class ExecutorScheduler {
 
     private void addTeamPermissionsToVm(UUID vmId, List<UUID> teamMembersIds) {
         teamMembersIds
-                //.stream().parallel()
                 .forEach(
                         userId -> ovirtAssignedPermissionService.assignPermissionToVmToUser(vmId, userId,
                                 "00000000-0000-0000-0001-000000000001")
@@ -180,10 +175,9 @@ public class ExecutorScheduler {
 
             //Revoke permissions
             virtualMachines
-                    //.stream().parallel()
                     .forEach(
                             vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), team.getUsers()),
-                                    executorTask, vm.getId(), ExecutorSubtask.SubtaskType.REVOKE_PERMISSIONS
+                                    executorTask, vm.getId(), ExecutorSubtask.SubtaskType.REVOKE_PERMISSION
                             )
                     );
 
@@ -191,7 +185,6 @@ public class ExecutorScheduler {
             //TODO michal: decide to do it before or after VMs shutdown
             List<ResourceGroupNetwork> networksToRemove = resourceGroup.getNetworks();
             networksToRemove
-                    //.stream().parallel()
                     .forEach(
                             network -> {
                                 // Remove vnic profile from VMs NICs
@@ -216,7 +209,6 @@ public class ExecutorScheduler {
 
             //Shutdown VMs
             virtualMachines
-                    //.stream().parallel()
                     .forEach(
                             vm -> runAndRegister(() -> oVirtVmService.shutdownVm(vm.getId().toString()),
                                     executorTask, vm.getId(), ExecutorSubtask.SubtaskType.SHUTDOWN_VM
@@ -234,8 +226,6 @@ public class ExecutorScheduler {
 
     private void revokeTeamPermissionsToVm(UUID vmId, List<UUID> teamMembersIds) {
         teamMembersIds
-                //.stream().parallel()
-                //TODO michal: consider caching permissionIds
                 .forEach(
                         userId ->
                                 ovirtAssignedPermissionService.findPermissionsByVmId(vmId)
@@ -256,35 +246,38 @@ public class ExecutorScheduler {
         ).map(UUID::fromString).orElse(null);
     }
 
-    private <T> T runAndRegister(Supplier<T> runnable,
-                                 ExecutorTask task,
-                                 UUID vmId,
-                                 ExecutorSubtask.SubtaskType type) {
+    /* Registering subtasks methods */
+
+    private <T> T runAndRegister(Supplier<T> supplier, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type,
+                                 UUID additionalId) {
         UUID sanitizedVmId = Objects.requireNonNullElse(vmId, UUID.fromString("00000000-0000-0000-0000-000000000000"));
         try {
-//            synchronized (this) {
-            T tmpVal = runnable.get();
-//            }
-            executorTaskService.registerSubTask(task.getId(), sanitizedVmId, type, true, null);
+            T tmpVal = supplier.get();
+            if (Objects.isNull(additionalId) && tmpVal instanceof UUID) {
+                additionalId = (UUID) tmpVal;
+            }
+            executorTaskService.registerSubTask(task.getId(), sanitizedVmId, type, true, null, additionalId);
             return tmpVal;
         } catch (Throwable e) {
-            executorTaskService.registerSubTask(task.getId(), sanitizedVmId, type, false, e.getMessage());
+            executorTaskService.registerSubTask(task.getId(), sanitizedVmId, type, false, e.getMessage(), additionalId);
             throw e;
         }
     }
 
-    private void runAndRegister(Runnable runnable,
-                                ExecutorTask task,
-                                UUID vmId,
-                                ExecutorSubtask.SubtaskType type) {
-        runAndRegister(
-                () -> {
-                    runnable.run();
-                    return null;
-                },
-                task,
-                vmId,
-                type
-        );
+    private <T> T runAndRegister(Supplier<T> supplier, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type) {
+        return runAndRegister(supplier, task, vmId, type, null);
+    }
+
+    private void runAndRegister(Runnable runnable, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type,
+                                UUID additionalId) {
+        Supplier<?> castedSupplier = () -> {
+            runnable.run();
+            return null;
+        };
+        runAndRegister(castedSupplier, task, vmId, type, additionalId);
+    }
+
+    private void runAndRegister(Runnable runnable, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type) {
+        runAndRegister(runnable, task, vmId, type, null);
     }
 }
