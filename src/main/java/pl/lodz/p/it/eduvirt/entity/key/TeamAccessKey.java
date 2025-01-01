@@ -16,8 +16,4 @@ public class TeamAccessKey extends AccessKey {
     @OneToOne(optional = false)
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
-    
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
 }

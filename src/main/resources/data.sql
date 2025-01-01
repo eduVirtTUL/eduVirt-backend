@@ -55,10 +55,10 @@ VALUES
     ('bb22cc33-dd44-ee55-ff66-778899001122', 'TEAM-BETA-KEY-2024'),
     ('cc33dd44-ee55-ff66-7788-990011223344', 'TEAM-GAMMA-KEY-2024');
 
-INSERT INTO public.team_access_key(id, team_id, course_id)
+INSERT INTO public.team_access_key(id, team_id)
 VALUES
-    ('aa11bb22-cc33-dd44-ee55-ff6677889900', 'eedf635f-f2c4-4f62-9401-8cbbd00632f5', '784cca54-f15d-43e7-b76c-f95a342fdf69'),
-    ('bb22cc33-dd44-ee55-ff66-778899001122', 'ff127467-a3d5-4f73-8512-9dcc11743f66', '784cca54-f15d-43e7-b76c-f95a342fdf69');
+    ('aa11bb22-cc33-dd44-ee55-ff6677889900', 'eedf635f-f2c4-4f62-9401-8cbbd00632f5'),
+    ('bb22cc33-dd44-ee55-ff66-778899001122', 'ff127467-a3d5-4f73-8512-9dcc11743f66');
 
 INSERT INTO public.course_access_key(id, course_id)
 VALUES

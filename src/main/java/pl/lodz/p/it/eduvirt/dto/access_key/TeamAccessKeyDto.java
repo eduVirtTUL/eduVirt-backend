@@ -9,5 +9,4 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 public class TeamAccessKeyDto extends AccessKeyDto {
     private UUID teamId;
-    private UUID courseId;
 }

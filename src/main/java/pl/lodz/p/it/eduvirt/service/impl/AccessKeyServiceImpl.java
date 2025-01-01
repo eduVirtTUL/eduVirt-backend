@@ -94,7 +94,6 @@ public class AccessKeyServiceImpl implements AccessKeyService {
         TeamAccessKey newTeamAccessKey = new TeamAccessKey();
         newTeamAccessKey.setKeyValue(keyValue);
         newTeamAccessKey.setTeam(team);
-        newTeamAccessKey.setCourse(team.getCourse());
 
         teamAccessKeyRepository.save(newTeamAccessKey);
     }
