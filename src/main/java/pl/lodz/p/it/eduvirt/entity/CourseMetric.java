@@ -2,7 +2,6 @@ package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import pl.lodz.p.it.eduvirt.entity.general.Metric;
 
 @Builder
 @Entity

@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.aspect.exception.GeneralControllerExceptionResolver;
 import pl.lodz.p.it.eduvirt.controller.ClusterController;
-import pl.lodz.p.it.eduvirt.dto.EventGeneralDTO;
+import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.NetworkDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
@@ -922,21 +922,21 @@ public class ClusterControllerTest {
         Event event3 = mock(Event.class);
         List<Event> eventList = List.of(event1, event2, event3);
 
-        EventGeneralDTO eventDto1 = new EventGeneralDTO(
+        EventGeneralDto eventDto1 = new EventGeneralDto(
                 UUID.randomUUID().toString(),
                 "EVENT_MESSAGE_1",
                 "EVENT_SEVERITY_1",
                 "EVENT_REGISTERED_AT_1"
         );
 
-        EventGeneralDTO eventDto2 = new EventGeneralDTO(
+        EventGeneralDto eventDto2 = new EventGeneralDto(
                 UUID.randomUUID().toString(),
                 "EVENT_MESSAGE_2",
                 "EVENT_SEVERITY_2",
                 "EVENT_REGISTERED_AT_2"
         );
 
-        EventGeneralDTO eventDto3 = new EventGeneralDTO(
+        EventGeneralDto eventDto3 = new EventGeneralDto(
                 UUID.randomUUID().toString(),
                 "EVENT_MESSAGE_3",
                 "EVENT_SEVERITY_3",
@@ -955,13 +955,13 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<EventGeneralDTO> foundEvents = mapper.readValue(json, new TypeReference<>() {});
+        List<EventGeneralDto> foundEvents = mapper.readValue(json, new TypeReference<>() {});
 
         assertNotNull(foundEvents);
         assertFalse(foundEvents.isEmpty());
         assertEquals(3, foundEvents.size());
 
-        EventGeneralDTO firstEvent = foundEvents.getFirst();
+        EventGeneralDto firstEvent = foundEvents.getFirst();
         assertNotNull(firstEvent);
 
         assertNotNull(firstEvent.id());
@@ -974,7 +974,7 @@ public class ClusterControllerTest {
         assertEquals(eventDto1.severity(), firstEvent.severity());
         assertEquals(eventDto1.registeredAt(), firstEvent.registeredAt());
 
-        EventGeneralDTO secondEvent = foundEvents.get(1);
+        EventGeneralDto secondEvent = foundEvents.get(1);
         assertNotNull(secondEvent);
 
         assertNotNull(secondEvent.id());
@@ -987,7 +987,7 @@ public class ClusterControllerTest {
         assertEquals(eventDto2.severity(), secondEvent.severity());
         assertEquals(eventDto2.registeredAt(), secondEvent.registeredAt());
 
-        EventGeneralDTO thirdEvent = foundEvents.getLast();
+        EventGeneralDto thirdEvent = foundEvents.getLast();
         assertNotNull(thirdEvent);
 
         assertNotNull(thirdEvent.id());

@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.entity.general;
+package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 
 @Entity
 @Table(name = "metric")

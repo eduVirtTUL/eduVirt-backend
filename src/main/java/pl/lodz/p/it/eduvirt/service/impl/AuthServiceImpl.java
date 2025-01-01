@@ -24,11 +24,18 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Invalid token");
         }
 
+        AccessToken actualToken = accessToken.get();
         UUID userId = UUID.fromString(accessToken.get().getSub());
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
-            User newUser = new User(userId);
+            User newUser = new User(userId, actualToken.getEmail());
             userRepository.save(newUser);
+        } else {
+            User actualUser = user.get();
+            if (!actualUser.getEmail().equals(actualToken.getEmail())) {
+                actualUser.setEmail(actualToken.getEmail());
+                userRepository.save(actualUser);
+            }
         }
     }
 }

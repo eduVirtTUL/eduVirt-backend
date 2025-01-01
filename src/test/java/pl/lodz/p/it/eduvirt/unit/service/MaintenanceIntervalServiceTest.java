@@ -14,7 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 import pl.lodz.p.it.eduvirt.entity.Updatable;
-import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
+import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalInvalidTimeWindowException;
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.CourseMetric;
-import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
 
 import java.util.*;
 import java.util.function.Function;

@@ -2,14 +2,16 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
-import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
@@ -54,15 +56,17 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public void createReservation(UUID resourceGroupId, LocalDateTime start, LocalDateTime end, boolean automaticStartup) {
         ResourceGroup foundResourceGroup = resourceGroupRepository.findById(resourceGroupId)
-                .orElseThrow(() -> new RuntimeException("Resource group with id: %s not found".formatted(resourceGroupId)));
+                .orElseThrow(() -> new ResourceGroupNotFoundException(resourceGroupId));
 
         ResourceGroupPool foundPool = resourceGroupPoolRepository
                 .getResourceGroupPoolByResourceGroupsContaining(foundResourceGroup)
-                .orElseThrow(() -> new RuntimeException("Resource group pool containing resource group: %s not found".formatted(resourceGroupId)));
+                .orElseThrow(() -> new ResourceGroupPoolNotFoundException(
+                        "Resource group pool containing resource group: %s not found".formatted(resourceGroupId)));
 
         Course foundCourse = courseRepository
                 .findByResourceGroupPoolsContaining(foundPool)
-                .orElseThrow(() -> new RuntimeException("Course containing resource group pool: %s not found".formatted(foundResourceGroup.getId())));
+                .orElseThrow(() -> new CourseNotFoundException(
+                        "Course containing resource group pool: %s not found".formatted(foundResourceGroup.getId())));
 
         Cluster foundCluster = clusterService.findClusterById(foundCourse.getClusterId());
 
@@ -71,9 +75,9 @@ public class ReservationServiceImpl implements ReservationService {
         // UUID userId = UUID.fromString(authentication.getName());
         UUID userId = UUID.fromString("abfc5d9b-1350-444d-9d9a-1bfde79667ad");
         Team foundTeam = teamRepository.findByUserIdAndCourse(userId, foundCourse)
-                .orElseThrow(() -> new RuntimeException("Team containing user: %s not found".formatted(userId)));
+                .orElseThrow(() -> new TeamNotFoundException("Team containing user: %s not found".formatted(userId)));
 
-        /* TODO: It would be very nice to simply it (as much as possible) */
+        /* TODO: It would be very nice to simplify it (as much as possible) */
 
         /* TODO: Check all the required conditions
          *        [V] Maximum reservation length
@@ -100,7 +104,7 @@ public class ReservationServiceImpl implements ReservationService {
         int reservationLengthHours = (int) ChronoUnit.HOURS.between(start, end);
 
         if (reservationLengthHours > maxRentHours)
-            throw new RuntimeException("Reservation for resource group: %s could not be longer than: %d"
+            throw new ReservationMaxLengthExceededException("Reservation for resource group: %s could not be longer than: %d"
                     .formatted(foundResourceGroup.getId(), maxRentHours));
 
         // Condition no. 2: Maximum number of reservations for given resource group
@@ -110,15 +114,21 @@ public class ReservationServiceImpl implements ReservationService {
         // Condition no. 3: Grace period for previous reservation
 
         int gracePeriodInHours = foundPool.getGracePeriod();
-        Optional<Reservation> lastReservation = reservationRepository.findLastReservation(foundResourceGroup, foundTeam);
+        List<Reservation> reservationsBefore = reservationRepository.findResourceGroupReservationForGivenTeamInTimePeriod(
+                foundResourceGroup, foundTeam, start.minusHours(gracePeriodInHours), start);
 
-        if (lastReservation.isPresent()) {
-            LocalDateTime lastReservationEnd = lastReservation.get().getEndTime();
-            int hoursBetweenReservations = (int) ChronoUnit.HOURS.between(lastReservationEnd, start);
-            if (hoursBetweenReservations < gracePeriodInHours)
-                throw new RuntimeException("Reservation grace period ends at: %s"
-                        .formatted(lastReservationEnd.plusHours(gracePeriodInHours)));
-        }
+        List<Reservation> reservationsAfter = reservationRepository.findResourceGroupReservationForGivenTeamInTimePeriod(
+                foundResourceGroup, foundTeam, end, end.plusHours(gracePeriodInHours));
+
+        if (!reservationsBefore.isEmpty())
+            throw new ReservationGracePeriodNotFinishedException(
+                    "Reservation grace period, which is %d hours, will not be finished before scheduled reservation."
+                    .formatted(gracePeriodInHours));
+
+        if (!reservationsAfter.isEmpty())
+            throw new ReservationGracePeriodCouldNotFinishException(
+                    "Reservation grace period, which is %d hours, will not be finished before next reservation."
+                            .formatted(gracePeriodInHours));
 
         // Condition no. 4: Resources availability for given course
 
@@ -146,7 +156,7 @@ public class ReservationServiceImpl implements ReservationService {
         List<Reservation> foundReservations = reservationRepository
                 .findReservationForGivenPeriodForResourceGroup(foundResourceGroup, start, end);
         if (!foundReservations.isEmpty())
-            throw new RuntimeException("Reservation for resource group: %s is already made"
+            throw new ResourceGroupAlreadyReservedException("Reservation for resource group: %s is already made"
                     .formatted(foundResourceGroup.getId()));
 
         // Condition no. 7: Maintenance intervals
@@ -190,6 +200,46 @@ public class ReservationServiceImpl implements ReservationService {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(resourceGroupId)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(resourceGroupId));
         return reservationRepository.findReservationForGivenPeriodForResourceGroup(resourceGroup, start, end);
+    }
+
+    @Override
+    public Page<Reservation> findActiveReservations(UUID userId, UUID courseId, Pageable pageable) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        Team foundTeam = teamRepository.findByUserIdAndCourse(userId, course)
+                .orElseThrow(() -> new TeamNotFoundException(
+                        "Team containing user %s in course %s could not be found".formatted(userId, courseId)));
+
+        return reservationRepository.findAllActiveReservations(foundTeam, pageable);
+    }
+
+    @Override
+    public Page<Reservation> findHistoricalReservations(UUID userId, UUID courseId, Pageable pageable) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        Team foundTeam = teamRepository.findByUserIdAndCourse(userId, course)
+                .orElseThrow(() -> new TeamNotFoundException(
+                        "Team containing user %s in course %s could not be found".formatted(userId, courseId)));
+
+        return reservationRepository.findAllHistoricalReservations(foundTeam, pageable);
+    }
+
+    @Override
+    public Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable) {
+        Team foundTeam = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
+
+        return reservationRepository.findAllHistoricalReservations(foundTeam, pageable);
+    }
+
+    @Override
+    public Page<Reservation> findHistoricalReservations(UUID teamId, Pageable pageable) {
+        Team foundTeam = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
+
+        return reservationRepository.findAllHistoricalReservations(foundTeam, pageable);
     }
 
     @Override

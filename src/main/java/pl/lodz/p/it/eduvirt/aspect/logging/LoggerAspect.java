@@ -24,7 +24,17 @@ public class LoggerAspect {
             "@within(pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor)")
     private void loggingInterceptorPointcut() {}
 
-    @Around(value = "loggingInterceptorPointcut()")
+    @Pointcut(value = "@within(org.springframework.web.bind.annotation.RestController) || " +
+            "@within(org.springframework.stereotype.Controller)")
+    private void controllerMethodPointcut() {}
+
+    @Pointcut(value = "@within(org.springframework.stereotype.Service)")
+    private void serviceMethodPointcut() {}
+
+    @Pointcut(value = "execution(* org.springframework.data.repository.Repository+.*(..))))")
+    private void repositoryMethodPointcut() {}
+
+    @Around(value = "loggingInterceptorPointcut() || controllerMethodPointcut() || serviceMethodPointcut() || repositoryMethodPointcut()")
     private Object methodLoggerAdvice(ProceedingJoinPoint point) throws Throwable {
         StringBuilder stringBuilder = new StringBuilder("\n").append("Method: ");
         Object result;

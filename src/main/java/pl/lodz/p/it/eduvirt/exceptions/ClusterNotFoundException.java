@@ -7,7 +7,11 @@ import java.util.UUID;
 
 public class ClusterNotFoundException extends NotFoundException {
 
+    public ClusterNotFoundException(String message) {
+        super(message, I18n.CLUSTER_NOT_FOUND);
+    }
+
     public ClusterNotFoundException(UUID clusterId) {
-        super("Cluster with id %s could not be found".formatted(clusterId), I18n.CLUSTER_NOT_FOUND);
+        super("Cluster with id %s could not be found.".formatted(clusterId), I18n.CLUSTER_NOT_FOUND);
     }
 }

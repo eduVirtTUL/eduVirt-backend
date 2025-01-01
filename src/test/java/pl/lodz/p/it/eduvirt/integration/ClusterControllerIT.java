@@ -1,9 +1,8 @@
 package pl.lodz.p.it.eduvirt.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
-import pl.lodz.p.it.eduvirt.dto.EventGeneralDTO;
+import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.NetworkDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
@@ -205,16 +204,16 @@ public class ClusterControllerIT extends IntegrationTestBase {
                 .andReturn();
         
         String json = result.getResponse().getContentAsString();
-        List<EventGeneralDTO> foundEvents = mapper.readValue(json, new TypeReference<>() {});
+        List<EventGeneralDto> foundEvents = mapper.readValue(json, new TypeReference<>() {});
         
         assertNotNull(foundEvents);
         assertFalse(foundEvents.isEmpty());
         assertEquals(foundEvents.size(), 2);
 
-        EventGeneralDTO firstEvent = foundEvents.getFirst();
+        EventGeneralDto firstEvent = foundEvents.getFirst();
         assertNotNull(firstEvent);
 
-        EventGeneralDTO secondEvent = foundEvents.getLast();
+        EventGeneralDto secondEvent = foundEvents.getLast();
         assertNotNull(secondEvent);
     }
 

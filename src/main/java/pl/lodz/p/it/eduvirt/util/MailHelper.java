@@ -23,5 +23,4 @@ public class MailHelper {
         message.setText(text);
         mailSender.send(message);
     }
-
 }

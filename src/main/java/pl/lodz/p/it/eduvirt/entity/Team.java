@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 
 import java.util.ArrayList;
 import java.util.List;

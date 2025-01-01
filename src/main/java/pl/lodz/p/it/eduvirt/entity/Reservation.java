@@ -1,13 +1,11 @@
-package pl.lodz.p.it.eduvirt.entity.reservation;
+package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.lodz.p.it.eduvirt.entity.HistoricalData;
-import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
-import pl.lodz.p.it.eduvirt.entity.Team;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +21,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Reservation extends HistoricalData {
 
+    @NotNull(message = "reservations.validation.null.resource.group.id")
     @ManyToOne
     @JoinColumn(
             name = "rg_id",
@@ -32,6 +31,7 @@ public class Reservation extends HistoricalData {
     )
     private ResourceGroup resourceGroup;
 
+    @NotNull(message = "reservations.validation.null.team.id")
     @ManyToOne
     @JoinColumn(
             name = "team_id",
@@ -41,18 +41,21 @@ public class Reservation extends HistoricalData {
     )
     private Team team;
 
+    @NotNull(message = "reservations.validation.null.start.time")
     @Column(name = "reservation_start", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime startTime;
 
+    @NotNull(message = "reservations.validation.null.end.time")
     @Column(name = "reservation_end", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime endTime;
 
+    @NotNull(message = "reservations.validation.null.automatic.startup")
     @Column(name = "automatic_startup", nullable = false)
     private Boolean automaticStartup = true;
 
-    // Constructors
+    /* Constructors */
 
     public Reservation(ResourceGroup resourceGroup,
                        Team team,

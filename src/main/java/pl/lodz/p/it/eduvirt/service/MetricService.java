@@ -1,7 +1,7 @@
 package pl.lodz.p.it.eduvirt.service;
 
 import org.springframework.data.domain.Page;
-import pl.lodz.p.it.eduvirt.entity.general.Metric;
+import pl.lodz.p.it.eduvirt.entity.Metric;
 
 import java.util.UUID;
 

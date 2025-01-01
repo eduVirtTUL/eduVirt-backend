@@ -3,10 +3,13 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.Connection;
+import org.ovirt.engine.sdk4.services.EventsService;
+import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.types.*;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
+import pl.lodz.p.it.eduvirt.exceptions.EventNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
@@ -84,6 +87,18 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .nics();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<Event> findEventsByVmId(Vm vm, int pageNumber, int pageSize) {
+        try (Connection connection = connectionFactory.getConnection()) {
+            SystemService systemService = connection.systemService();
+            EventsService eventsService = systemService.eventsService();
+            String searchQuery = "vm=%s page %s".formatted(vm.name(), pageNumber + 1);
+            return eventsService.list().search(searchQuery).max(pageSize).send().events();
+        } catch (Exception exception) {
+            throw new EventNotFoundException("No event could be found for vm %s".formatted(vm.id()));
         }
     }
 

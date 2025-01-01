@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
+import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.UUID;
 
 @Repository
 @LoggerInterceptor
+@Transactional(propagation = Propagation.MANDATORY)
 public interface MaintenanceIntervalRepository extends JpaRepository<MaintenanceInterval, UUID> {
 
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt > current_timestamp " +
