@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface OVirtVmService {
 
@@ -25,13 +26,15 @@ public interface OVirtVmService {
 
     List<Vm> findVms();
 
+    List<Vm> findVmsWithNicsByVmIds(Set<String> vmIds);
+
     void runVm(String id);
 
     void shutdownVm(String id);
 
     void powerOffVm(String id);
 
-    void assignVnicProfileToVm(String vmId, String vmNicId, String vnicProfileId);
+    void assignVnicProfileToVm(Vm vm, String vmNicId, String vnicProfileId);
 
     String removeVnicProfileFromVm(String vmId, String vmNicId);
 }
