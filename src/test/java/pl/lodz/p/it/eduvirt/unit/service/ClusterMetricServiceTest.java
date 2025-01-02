@@ -214,6 +214,68 @@ public class ClusterMetricServiceTest {
         verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(existingClusterId), Mockito.eq(pageable));
     }
 
+    /* FindAllMetricValuesForCluster method test */
+
+    @Test
+    public void Given_SomeClusterMetricValuesAreDefinedForGivenCluster_When_FindAllMetricValuesForCluster_WithoutPagination_Then_ReturnsAllFoundMetricsValuesSuccessfully() {
+        when(cluster.id()).thenReturn(existingClusterId.toString());
+        when(clusterMetricRepository.findAllByClusterId(Mockito.eq(existingClusterId)))
+                .thenReturn(List.of(clusterMetric1, clusterMetric2, clusterMetric3));
+
+        List<ClusterMetric> foundClusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
+
+        assertNotNull(foundClusterMetrics);
+        assertFalse(foundClusterMetrics.isEmpty());
+        assertEquals(3, foundClusterMetrics.size());
+
+        ClusterMetric firstClusterMetric = foundClusterMetrics.getFirst();
+        assertNotNull(firstClusterMetric);
+        assertNotNull(firstClusterMetric.getClusterId());
+        assertNotNull(firstClusterMetric.getMetric());
+        assertNotNull(firstClusterMetric.getValue());
+
+        assertEquals(existingClusterId, firstClusterMetric.getClusterId());
+        assertEquals(metric1, firstClusterMetric.getMetric());
+        assertEquals(clusterMetric1.getValue(), firstClusterMetric.getValue());
+
+        ClusterMetric secondClusterMetric = foundClusterMetrics.get(1);
+        assertNotNull(secondClusterMetric);
+        assertNotNull(secondClusterMetric.getClusterId());
+        assertNotNull(secondClusterMetric.getMetric());
+        assertNotNull(secondClusterMetric.getValue());
+
+        assertEquals(existingClusterId, secondClusterMetric.getClusterId());
+        assertEquals(metric2, secondClusterMetric.getMetric());
+        assertEquals(clusterMetric2.getValue(), secondClusterMetric.getValue());
+
+        ClusterMetric thirdClusterMetric = foundClusterMetrics.getLast();
+        assertNotNull(thirdClusterMetric);
+        assertNotNull(thirdClusterMetric.getClusterId());
+        assertNotNull(thirdClusterMetric.getMetric());
+        assertNotNull(thirdClusterMetric.getValue());
+
+        assertEquals(existingClusterId, thirdClusterMetric.getClusterId());
+        assertEquals(metric3, thirdClusterMetric.getMetric());
+        assertEquals(clusterMetric3.getValue(), thirdClusterMetric.getValue());
+
+        verify(cluster, times(1)).id();
+        verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(existingClusterId));
+    }
+
+    @Test
+    public void Given_NoClusterMetricValuesAreDefinedForGivenCluster_When_FindAllMetricValuesForCluster_WithoutPagination_Then_ReturnsEmptyPage() {
+        when(cluster.id()).thenReturn(existingClusterId.toString());
+        when(clusterMetricRepository.findAllByClusterId(Mockito.eq(existingClusterId))).thenReturn(List.of());
+
+        List<ClusterMetric> foundClusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
+
+        assertNotNull(foundClusterMetrics);
+        assertTrue(foundClusterMetrics.isEmpty());
+
+        verify(cluster, times(1)).id();
+        verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(existingClusterId));
+    }
+
     /* UpdateMetricValue method test */
 
     @Test

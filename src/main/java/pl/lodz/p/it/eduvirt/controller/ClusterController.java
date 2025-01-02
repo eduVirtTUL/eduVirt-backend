@@ -28,7 +28,6 @@ import pl.lodz.p.it.eduvirt.util.MetricUtil;
 import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
@@ -90,11 +89,8 @@ public class ClusterController {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findClusterResourcesAvailability(
             @PathVariable("id") UUID clusterId,
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
-        LocalDateTime startTime = start.atStartOfDay();
-        LocalDateTime endTime = end.atStartOfDay();
-
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<ClusterMetric> clusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
         List<ResourcesAvailabilityDto> resourcesAvailabilityDtos = new LinkedList<>();

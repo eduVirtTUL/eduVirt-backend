@@ -9,6 +9,7 @@ import org.ovirt.engine.sdk4.types.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,7 +21,10 @@ import pl.lodz.p.it.eduvirt.dto.NetworkDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
+import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
+import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
@@ -30,10 +34,12 @@ import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -99,8 +105,155 @@ public class ClusterControllerTest {
     private final UUID existingClusterId = UUID.randomUUID();
     private final UUID nonExistentClusterId = UUID.randomUUID();
 
+    private Course course;
+
+    private Team team;
+
+    private User userNo1;
+    private User userNo2;
+    private User userNo3;
+
+    private ResourceGroupPool rgPoolNo1;
+    private ResourceGroupPool rgPoolNo2;
+    private ResourceGroupPool rgPoolNo3;
+
+    private ResourceGroup resourceGroupNo1;
+    private ResourceGroup resourceGroupNo2;
+    private ResourceGroup resourceGroupNo3;
+
+    private Reservation reservationNo1;
+    private Reservation reservationNo2;
+    private Reservation reservationNo3;
+
+    private Metric metricNo1;
+    private ClusterMetric clusterMetricNo1;
+
+    private Metric metricNo2;
+    private ClusterMetric clusterMetricNo2;
+
+    private Metric metricNo3;
+    private ClusterMetric clusterMetricNo3;
+
     @BeforeEach
-    public void prepareTestData() {
+    public void prepareTestData() throws Exception {
+        mapper.findAndRegisterModules();
+
+        Field id = AbstractEntity.class.getDeclaredField("id");
+        Field version = Updatable.class.getDeclaredField("version");
+
+        course = new Course();
+        course.setName("Sieciowe System Baz Danych");
+        course.setDescription("Network Database Systems");
+        course.setClusterId(existingClusterId);
+        course.setCourseKey("SukceS");
+
+        userNo1 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email1@gmail.com");
+        userNo2 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email2@gmail.com");
+        userNo3 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email3@gmail.com");
+
+        List<pl.lodz.p.it.eduvirt.entity.User> listOfUsers = List.of(userNo1, userNo2, userNo3);
+        team = new Team("Eldorado", "SSBD-GroupKey003", true, 7, course);
+        team.getUsers().addAll(listOfUsers.stream().map(User::getId).toList());
+
+        rgPoolNo1 = new ResourceGroupPool();
+        rgPoolNo1.setName("SSBD-RGPoolNo1");
+        rgPoolNo1.setMaxRent(12);
+        rgPoolNo1.setGracePeriod(12);
+
+        rgPoolNo2 = new ResourceGroupPool();
+        rgPoolNo2.setName("SSBD-RGPoolNo2");
+        rgPoolNo2.setMaxRent(12);
+        rgPoolNo2.setGracePeriod(12);
+
+        rgPoolNo3 = new ResourceGroupPool();
+        rgPoolNo3.setName("SSBD-RGPoolNo3");
+        rgPoolNo3.setMaxRent(12);
+        rgPoolNo3.setGracePeriod(12);
+
+        resourceGroupNo1 = new ResourceGroup();
+        resourceGroupNo1.setName("SSBD-RGNo1");
+        resourceGroupNo1.setDescription("First resource group for SSBD course.");
+        resourceGroupNo1.setMaxRentTime(12);
+        resourceGroupNo1.setStateless(false);
+
+        resourceGroupNo1.getVms().addAll(List.of(
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build()
+        ));
+
+        resourceGroupNo2 = new ResourceGroup();
+        resourceGroupNo2.setName("SSBD-RGNo2");
+        resourceGroupNo2.setDescription("Second resource group for SSBD course.");
+        resourceGroupNo2.setMaxRentTime(12);
+        resourceGroupNo2.setStateless(false);
+
+        resourceGroupNo2.getVms().addAll(List.of(
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build()
+        ));
+
+        resourceGroupNo3 = new ResourceGroup();
+        resourceGroupNo3.setName("SSBD-RGNo3");
+        resourceGroupNo3.setDescription("Third resource group for SSBD course.");
+        resourceGroupNo3.setMaxRentTime(12);
+        resourceGroupNo3.setStateless(false);
+
+        resourceGroupNo3.getVms().addAll(List.of(
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build()
+        ));
+
+        rgPoolNo1.getResourceGroups().add(resourceGroupNo1);
+        rgPoolNo2.getResourceGroups().add(resourceGroupNo2);
+        rgPoolNo3.getResourceGroups().add(resourceGroupNo3);
+
+        reservationNo1 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().minusHours(12), LocalDateTime.now(), true);
+        reservationNo2 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(12), LocalDateTime.now().plusHours(24), true);
+        reservationNo3 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(36), LocalDateTime.now().plusHours(48), true);
+
+        metricNo1 = new Metric("cpu_count");
+        metricNo2 = new Metric("memory_size");
+        metricNo3 = new Metric("network_count");
+
+        clusterMetricNo1 = new ClusterMetric(existingClusterId, metricNo1, 20.0);
+        clusterMetricNo2 = new ClusterMetric(existingClusterId, metricNo2, 380008136704.0);
+        clusterMetricNo3 = new ClusterMetric(existingClusterId, metricNo3, 5.0);
+
+        id.setAccessible(true);
+
+        id.set(course, UUID.randomUUID());
+        id.set(team, UUID.randomUUID());
+
+        id.set(rgPoolNo1, UUID.randomUUID());
+        id.set(rgPoolNo2, UUID.randomUUID());
+        id.set(rgPoolNo3, UUID.randomUUID());
+
+        id.set(resourceGroupNo1, UUID.randomUUID());
+        id.set(resourceGroupNo2, UUID.randomUUID());
+        id.set(resourceGroupNo3, UUID.randomUUID());
+
+        id.set(reservationNo1, UUID.randomUUID());
+        id.set(reservationNo2, UUID.randomUUID());
+        id.set(reservationNo3, UUID.randomUUID());
+
+        id.set(metricNo1, UUID.randomUUID());
+        id.set(metricNo2, UUID.randomUUID());
+        id.set(metricNo3, UUID.randomUUID());
+
+        id.set(clusterMetricNo1, UUID.randomUUID());
+        id.set(clusterMetricNo2, UUID.randomUUID());
+        id.set(clusterMetricNo3, UUID.randomUUID());
+
+        id.setAccessible(false);
     }
 
     /* Tests */
@@ -365,12 +518,104 @@ public class ClusterControllerTest {
         verify(clusterService, times(1)).findClusters(pageNumber, pageSize);
     }
 
-    /* FindClusterResourcesAvailability method tests */
+    /* FindClusterResourcesAvailability method test */
 
     @WithMockUser
     @Test
-    public void Given__When_FindClusterResourcesAvailability_Then_() throws Exception {
-        // fail(); // TODO: Implement
+    public void Given_SomeReservationsExistAndClusterMetricsAreDefined_When_FindClusterResourcesAvailability_Then_ReturnsResourcesAvailabilityForTheSpecifiedPeriod() throws Exception {
+        LocalDateTime start = LocalDateTime.now().minusHours(2);
+        LocalDateTime end = LocalDateTime.now();
+
+        Cluster cluster = mock(Cluster.class);
+
+        when(cluster.id()).thenReturn(existingClusterId.toString());
+
+        List<ClusterMetric> metricValues = List.of(clusterMetricNo1, clusterMetricNo2, clusterMetricNo3);
+        Map<String, Object> values = new HashMap<>();
+        for (ClusterMetric clusterMetric : metricValues) {
+            values.put(clusterMetric.getMetric().getName(), clusterMetric.getValue());
+        }
+
+        when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
+        when(clusterMetricService.findAllMetricValuesForCluster(Mockito.eq(cluster)))
+                .thenReturn(List.of(clusterMetricNo1, clusterMetricNo2, clusterMetricNo3));
+
+        when(reservationService.findCurrentReservationsForCluster(Mockito.eq(existingClusterId), Mockito.any(LocalDateTime.class)))
+                .thenReturn(List.of(reservationNo1));
+
+        when(metricUtil.extractClusterMetricValues(Mockito.anyList())).thenReturn(values);
+        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(List.of(reservationNo1)), Mockito.eq(cluster)))
+                .thenReturn(true, false, true,false);
+
+        MvcResult result = this.mockMvc.perform(get("/clusters/{id}/availability", existingClusterId)
+                        .param("start", start.toString())
+                        .param("end", end.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        List<ResourcesAvailabilityDto> listOfDTOs = mapper.readValue(json, new TypeReference<>() {});
+
+        assertNotNull(listOfDTOs);
+        assertFalse(listOfDTOs.isEmpty());
+        assertEquals(4, listOfDTOs.size());
+
+        ResourcesAvailabilityDto firstDto = listOfDTOs.getFirst();
+        assertNotNull(firstDto);
+        assertTrue(firstDto.available());
+        assertEquals(start, firstDto.time());
+
+        ResourcesAvailabilityDto secondDto = listOfDTOs.get(1);
+        assertNotNull(secondDto);
+        assertFalse(secondDto.available());
+        assertEquals(start.plusMinutes(30), secondDto.time());
+
+        ResourcesAvailabilityDto thirdDto = listOfDTOs.get(2);
+        assertNotNull(thirdDto);
+        assertTrue(thirdDto.available());
+        assertEquals(start.plusHours(1), thirdDto.time());
+
+        ResourcesAvailabilityDto forthDto = listOfDTOs.getLast();
+        assertNotNull(forthDto);
+        assertFalse(forthDto.available());
+        assertEquals(start.plusHours(1).plusMinutes(30), forthDto.time());
+
+        verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
+        verify(clusterMetricService, times(1)).findAllMetricValuesForCluster(Mockito.eq(cluster));
+
+        verify(reservationService, times(4))
+                .findCurrentReservationsForCluster(Mockito.eq(existingClusterId), Mockito.any(LocalDateTime.class));
+
+        verify(bankerAlgorithm, times(4))
+                .process(Mockito.any(), Mockito.eq(List.of(reservationNo1)), Mockito.eq(cluster));
+    }
+
+    @WithMockUser
+    @Test
+    public void Given_StartAndEndOfThePeriodAreTheSame_When_FindClusterResourcesAvailability_Then_ReturnsEmptyResourcesAvailabilityList() throws Exception {
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime end = LocalDateTime.now();
+
+        Cluster cluster = mock(Cluster.class);
+
+        when(cluster.id()).thenReturn(existingClusterId.toString());
+
+        when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
+        when(clusterMetricService.findAllMetricValuesForCluster(Mockito.eq(cluster)))
+                .thenReturn(List.of(clusterMetricNo1, clusterMetricNo2, clusterMetricNo3));
+
+        MvcResult result = this.mockMvc.perform(get("/clusters/{id}/availability", existingClusterId)
+                        .param("start", start.toString())
+                        .param("end", end.toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
+        verify(clusterMetricService, times(1)).findAllMetricValuesForCluster(Mockito.eq(cluster));
     }
 
     /* FindHostInfoByClusterId method tests */

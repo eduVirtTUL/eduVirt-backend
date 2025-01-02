@@ -115,12 +115,12 @@ public class MetricServiceTest {
         UUID metricId = UUID.randomUUID();
 
         when(metricRepository.findById(Mockito.eq(metricId))).thenReturn(Optional.of(metric1));
-        doNothing().when(metricRepository).delete(metric1);
+        doNothing().when(metricRepository).deleteAllInBatch(List.of(metric1));
 
         metricService.deleteMetric(metricId);
 
         verify(metricRepository, times(1)).findById(Mockito.eq(metricId));
-        verify(metricRepository, times(1)).delete(Mockito.eq(metric1));
+        verify(metricRepository, times(1)).deleteAllInBatch(Mockito.eq(List.of(metric1)));
     }
 
     @Test
