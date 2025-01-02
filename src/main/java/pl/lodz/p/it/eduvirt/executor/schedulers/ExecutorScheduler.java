@@ -3,6 +3,9 @@ package pl.lodz.p.it.eduvirt.executor.schedulers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.types.User;
+import org.ovirt.engine.sdk4.types.Vm;
+import org.ovirt.engine.sdk4.types.VmStatus;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -22,7 +25,9 @@ import pl.lodz.p.it.eduvirt.service.OVirtAssignedPermissionService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -31,15 +36,26 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-//TODO michal: handling stateful pods
-//TODO michal: perhaps improvement -> .stream().parallel() when calling oVirt Api (d871bd94490e9d4f0e7f72e7c4da6b2ac48e5df7 -> last revision with comments where it could be used)
-//TODO michal: verifications count/type of registered subtasks
-//TODO michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
+//IMPROVEMENTS michal: handling stateful pods
+//IMPROVEMENTS michal: perhaps improvement -> .stream().parallel() when calling oVirt Api (d871bd94490e9d4f0e7f72e7c4da6b2ac48e5df7 -> last revision with comments where it could be used)
+//IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
+
+//IMPROVEMENTS michal: verifications count/type of registered subtasks
+//IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
+//IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
+//IMPROVEMENTS michal: perhaps real pooling instead of invoking checking conditions in fixed time
+//IMPROVEMENTS michal: rethink transactions
+//IMPROVEMENTS michal: maybe include checking VMs statues in subtasks
+//IMPROVEMENTS michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems)
+//IMPROVEMENTS michal: maybe implement different exceptions for different statues of VM (that is not in DOWN status)
+//IMPROVEMENTS michal: separate assigning/revoking permissions to different scheduled tasks
 
 @Slf4j
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
+@Profile({"prod", "dev"})
+//@Profile({"prod"})
 public class ExecutorScheduler {
 
     // Model
@@ -47,14 +63,12 @@ public class ExecutorScheduler {
     private final OVirtAssignedPermissionService ovirtAssignedPermissionService;
     private final VnicProfilePoolService vnicProfilePoolService;
 
-    //TODO michal: service instead of repository
+    //TODO michal: perhaps service instead of repository
     private final ReservationRepository reservationRepository;
 
     // Handling logging
     private final ExecutorTaskService executorTaskService;
 
-    //TODO michal: real pooling instead of invoking checking conditions in fixed time
-    //TODO michal: rethink transactions
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0)
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void createPods() {
@@ -82,7 +96,12 @@ public class ExecutorScheduler {
             Team team = reservation.getTeam();
             List<VirtualMachine> virtualMachines = resourceGroup.getVms();
 
-            //TODO michal: Check if all VMs are down
+            //Optimization step to fetch VMs from oVirt and then pass their references
+            //to checkIfVmDownStatus() and assignVnicProfileToNIC() (to avoid multi fetching VMs operations)
+            Map<UUID, Vm> ovirtVmsIdMap = fetchOvirtVms(virtualMachines);
+
+            // Check if all VMs are down
+            checkIfVmsDownStatus(new ArrayList<>(ovirtVmsIdMap.values()));
 
             //TODO michal: Verify resources or handle insufficient on VM startup command (probably the first one)
 
@@ -91,8 +110,6 @@ public class ExecutorScheduler {
             networksToMap
                     .forEach(
                             network -> {
-                                // TODO michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
-                                // TODO michal: should we register chosen vnic profile from pool?
                                 // Fetch vnic profile from pool, checking conditions (if inUse equals false)
                                 VnicProfilePoolMember chosenVnicProfile = vnicProfilePoolService.getVnicProfilesPool()
                                         .stream()
@@ -107,10 +124,11 @@ public class ExecutorScheduler {
                                 network.getInterfaces()
                                         .forEach(
                                                 nic -> {
-                                                    UUID vmId = nic.getVirtualMachine().getId();
+                                                    Vm vm = Optional.ofNullable(ovirtVmsIdMap.get(nic.getVirtualMachine().getId()))
+                                                            .orElseThrow(() -> new RuntimeException("VM not found"));
                                                     runAndRegister(
-                                                            () -> assignVnicProfileToNIC(chosenVnicProfile.getId(), vmId, nic.getId()),
-                                                            executorTask, vmId, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE, chosenVnicProfile.getId()
+                                                            () -> assignVnicProfileToNIC(chosenVnicProfile.getId(), vm, nic.getId()),
+                                                            executorTask, UUID.fromString(vm.id()), ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE, chosenVnicProfile.getId()
                                                     );
                                                 }
                                         );
@@ -146,9 +164,31 @@ public class ExecutorScheduler {
         }
     }
 
-    private void assignVnicProfileToNIC(UUID vnicProfileId, UUID vmId, UUID vmNicId) {
+    private Map<UUID, Vm> fetchOvirtVms(List<VirtualMachine> virtualMachines) {
+        Set<String> vmIdsStr = virtualMachines.stream()
+                .map(vm -> vm.getId().toString())
+                .collect(Collectors.toSet());
+        return oVirtVmService.findVmsWithNicsByVmIds(vmIdsStr)
+                .stream()
+                .collect(Collectors.toMap(vm -> UUID.fromString(vm.id()), vm -> vm));
+    }
+
+    private void checkIfVmsDownStatus(List<Vm> vms) {
+        String invalidStatusesConcString = vms.stream()
+                .filter(vm -> !vm.status().equals(VmStatus.DOWN))
+                .map(vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name()))
+                .collect(Collectors.joining(";"));
+
+        if (!invalidStatusesConcString.isEmpty()) {
+            String errorMessage = "Some VMs are in invalid statuses: " + invalidStatusesConcString;
+            log.error(errorMessage);
+            throw new RuntimeException(errorMessage);
+        }
+    }
+
+    private void assignVnicProfileToNIC(UUID vnicProfileId, Vm vm, UUID vmNicId) {
         oVirtVmService.assignVnicProfileToVm(
-                vmId.toString(),
+                vm,
                 vmNicId.toString(),
                 vnicProfileId.toString()
         );
@@ -182,7 +222,6 @@ public class ExecutorScheduler {
                     );
 
             //Private networks cleaning
-            //TODO michal: decide to do it before or after VMs shutdown
             List<ResourceGroupNetwork> networksToRemove = resourceGroup.getNetworks();
             networksToRemove
                     .forEach(

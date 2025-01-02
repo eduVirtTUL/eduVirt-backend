@@ -26,9 +26,11 @@ import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -122,6 +124,26 @@ public class OVirtVmServiceImpl implements OVirtVmService {
     }
 
     @Override
+    public List<Vm> findVmsWithNicsByVmIds(Set<String> vmIds) {
+        try (Connection connection = connectionFactory.getConnection()) {
+            String searchQuery = vmIds.stream()
+                    .collect(Collectors.joining(" or id=", "id=", ""));
+
+            return connection
+                    .systemService()
+                    .vmsService()
+                    .list()
+                    .follow("nics")
+                    .search(searchQuery)
+                    .send()
+                    .vms();
+        } catch (Throwable e) {
+            log.error("Error while fetching VMs", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void runVm(String id) {
         try (Connection connection = connectionFactory.getConnection()) {
             connection
@@ -132,7 +154,6 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .send();
         } catch (Throwable e) {
             log.error(e.getMessage());
-            //TODO michal: if VM is started lets restart it!
             throw new RuntimeException(e);
         }
     }
@@ -168,22 +189,12 @@ public class OVirtVmServiceImpl implements OVirtVmService {
     }
 
     @Override
-    public void assignVnicProfileToVm(String vmId, String vmNicId, String vnicProfileId) {
+    public void assignVnicProfileToVm(Vm vm, String vmNicId, String vnicProfileId) {
         try (Connection connection = connectionFactory.getConnection()) {
             SystemService systemService = connection
                     .systemService();
 
-            VmService vmService = systemService
-                    .vmsService()
-                    .vmService(vmId);
-
-            Vm fetchedVm = vmService
-                    .get()
-                    .follow("nics")
-                    .send()
-                    .vm();
-
-            Nic wantedNic = fetchedVm.nics()
+            Nic wantedNic = vm.nics()
                     .stream()
                     .filter(nic -> nic.id().equals(vmNicId))
                     .findFirst()
@@ -203,7 +214,9 @@ public class OVirtVmServiceImpl implements OVirtVmService {
 
             ((NicContainer) wantedNic).vnicProfile(wantedVnicProfile);
 
-            vmService
+            systemService
+                    .vmsService()
+                    .vmService(vm.id())
                     .nicsService()
                     .nicService(wantedNic.id())
                     .update()
