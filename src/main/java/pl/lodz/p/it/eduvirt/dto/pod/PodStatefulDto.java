@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.dto.pod;
 
 import lombok.Builder;
+import pl.lodz.p.it.eduvirt.dto.course.CourseBasicDto;
 
 import java.util.UUID;
 
@@ -9,6 +10,6 @@ public record PodStatefulDto(
         UUID id,
         UUID resourceGroupId,
         UUID teamId,
-        UUID courseId
+        CourseBasicDto course
 ) {
 }

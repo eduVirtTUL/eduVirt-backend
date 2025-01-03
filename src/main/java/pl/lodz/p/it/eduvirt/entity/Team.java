@@ -35,9 +35,6 @@ public class Team extends Updatable {
     @Column(name = "user_id", nullable = false)
     private List<UUID> users = new ArrayList<>();
 
-//    @ManyToMany(fetch = FetchType.LAZY)
-//    private List<User> users = new ArrayList<>();
-
     @OneToMany(mappedBy = "team")
     @ToString.Exclude
     private List<Reservation> reservations = new ArrayList<>();
@@ -45,9 +42,6 @@ public class Team extends Updatable {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
-
-    // @ManyToOne
-    // private AccessKey accessKey;
 
     @OneToMany(mappedBy = "team")
     private List<PodStateful> statefulPods = new ArrayList<>();

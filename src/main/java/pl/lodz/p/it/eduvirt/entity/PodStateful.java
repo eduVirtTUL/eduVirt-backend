@@ -12,8 +12,6 @@ import lombok.*;
 @Entity
 public class PodStateful extends HistoricalData {
 
-
-
     @ManyToOne(optional = false)
     @JoinColumn(
             name = "rg_id",

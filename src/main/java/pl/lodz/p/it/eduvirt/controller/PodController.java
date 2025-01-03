@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatefulDto;
 import pl.lodz.p.it.eduvirt.dto.pod.CreateStatelessPodDto;
+import pl.lodz.p.it.eduvirt.dto.pod.PodDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.pod.PodStatefulDto;
 import pl.lodz.p.it.eduvirt.entity.PodStateful;
 import pl.lodz.p.it.eduvirt.mappers.PodMapper;
@@ -28,11 +29,16 @@ public class PodController {
         return ResponseEntity.ok(podMapper.podStatefulToDto(createdPod));
     }
 
+    @GetMapping("/stateful/{podId}")
+    public ResponseEntity<PodDetailsDto> getStatefulPod(@PathVariable UUID podId) {
+        return ResponseEntity.ok(podMapper.podStatefulToDetailsDto(podService.getStatefulPod(podId)));
+    }
+
     @GetMapping("/stateful/team/{teamId}")
-    public ResponseEntity<List<PodStatefulDto>> getStatefulPodsByTeam(@PathVariable UUID teamId) {
+    public ResponseEntity<List<PodDetailsDto>> getStatefulPodsByTeam(@PathVariable UUID teamId) {
         return ResponseEntity.ok(
                 podService.getStatefulPodsByTeam(teamId).stream()
-                        .map(podMapper::podStatefulToDto)
+                        .map(podMapper::podStatefulToDetailsDto)
                         .toList()
         );
     }
