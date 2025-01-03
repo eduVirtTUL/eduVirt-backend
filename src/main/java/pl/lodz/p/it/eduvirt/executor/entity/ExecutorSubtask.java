@@ -57,11 +57,11 @@ public abstract class ExecutorSubtask extends AbstractEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
+    @Column(name = "successful", updatable = true, nullable = true)
+    private Boolean successful;
+
     @Column(name = "description", updatable = true, nullable = true, length = 200)
     private String description;
-
-    @Column(name = "successful", updatable = true, nullable = false, length = 200)
-    private Boolean successful;
 
     // Constructors
 
@@ -81,19 +81,19 @@ public abstract class ExecutorSubtask extends AbstractEntity {
         this.createdAt = LocalDateTime.now();
     }
 
-    public void setDescription(String description) {
-        if (Objects.isNull(this.description)) {
-            this.description = description;
-        } else {
-            throw new IllegalStateException("Cannot override subtask description");
-        }
-    }
-
     public void setSuccessful(Boolean successful) {
         if (Objects.isNull(this.successful)) {
             this.successful = successful;
         } else {
             throw new IllegalStateException("Cannot override subtask status");
+        }
+    }
+
+    public void setDescription(String description) {
+        if (Objects.isNull(this.description)) {
+            this.description = description;
+        } else {
+            throw new IllegalStateException("Cannot override subtask description");
         }
     }
 }

@@ -4,6 +4,7 @@ import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ExecutorTaskService {
@@ -14,6 +15,11 @@ public interface ExecutorTaskService {
 
     void finalizeTask(UUID taskId, boolean success, String comment);
 
-    void registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type,
-                         boolean success, String comment, UUID additionalId);
+    ExecutorSubtask registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type);
+
+    void finalizeSubTask(UUID subtaskId, boolean success, String comment, UUID additionalId);
+
+    List<ExecutorSubtask> getReservationStartExistingSubTasks(Reservation reservation);
+
+    List<ExecutorSubtask> getReservationEndExistingSubTasks(Reservation reservation);
 }

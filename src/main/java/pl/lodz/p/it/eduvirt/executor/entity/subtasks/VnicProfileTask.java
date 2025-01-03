@@ -23,7 +23,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class VnicProfileTask extends ExecutorSubtask {
 
-    @Column(name = "vnic_profile_id", updatable = true, nullable = false)
+    @Column(name = "vnic_profile_id", updatable = true, nullable = true)
     @Setter
     private UUID vnicProfileId;
 
@@ -31,10 +31,8 @@ public class VnicProfileTask extends ExecutorSubtask {
 
     public VnicProfileTask(ExecutorTask executorTask,
                            UUID vmId,
-                           SubtaskType type,
-                           UUID vnicProfileId) {
+                           SubtaskType type) {
         super(executorTask, vmId, type);
-        this.vnicProfileId = vnicProfileId;
 
         if (!List.of(SubtaskType.ASSIGN_VNIC_PROFILE, SubtaskType.REMOVE_VNIC_PROFILE).contains(type)) {
             throw new IllegalArgumentException("Invalid VNIC PROFILE subtask type");

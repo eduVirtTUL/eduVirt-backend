@@ -189,12 +189,22 @@ public class OVirtVmServiceImpl implements OVirtVmService {
     }
 
     @Override
-    public void assignVnicProfileToVm(Vm vm, String vmNicId, String vnicProfileId) {
+    public void assignVnicProfileToVm(String vmId, String vmNicId, String vnicProfileId) {
         try (Connection connection = connectionFactory.getConnection()) {
             SystemService systemService = connection
                     .systemService();
 
-            Nic wantedNic = vm.nics()
+            VmService vmService = systemService
+                    .vmsService()
+                    .vmService(vmId);
+
+            Vm fetchedVm = vmService
+                    .get()
+                    .follow("nics")
+                    .send()
+                    .vm();
+
+            Nic wantedNic = fetchedVm.nics()
                     .stream()
                     .filter(nic -> nic.id().equals(vmNicId))
                     .findFirst()
@@ -214,9 +224,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
 
             ((NicContainer) wantedNic).vnicProfile(wantedVnicProfile);
 
-            systemService
-                    .vmsService()
-                    .vmService(vm.id())
+            vmService
                     .nicsService()
                     .nicService(wantedNic.id())
                     .update()
@@ -251,7 +259,9 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("NIC not found in the VM fetched object"));
 
-            String vnicProfileToRemoveId = wantedNic.vnicProfile().id();
+            String vnicProfileToRemoveId = Optional.ofNullable(wantedNic.vnicProfile())
+                    .map(VnicProfile::id)
+                    .orElse(null);
 
             ((NicContainer) wantedNic).vnicProfile(new VnicProfileContainer());
 

@@ -30,7 +30,7 @@ public interface OVirtVmService {
 
     void powerOffVm(String id);
 
-    void assignVnicProfileToVm(Vm vm, String vmNicId, String vnicProfileId);
+    void assignVnicProfileToVm(String vmId, String vmNicId, String vnicProfileId);
 
     String removeVnicProfileFromVm(String vmId, String vmNicId);
 }

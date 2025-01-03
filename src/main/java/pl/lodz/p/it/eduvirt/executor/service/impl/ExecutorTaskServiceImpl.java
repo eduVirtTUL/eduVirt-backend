@@ -17,6 +17,7 @@ import pl.lodz.p.it.eduvirt.executor.repository.ExecutorSubtaskRepository;
 import pl.lodz.p.it.eduvirt.executor.repository.ExecutorTaskRepository;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -62,22 +63,49 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
     }
 
     @Override
-    public void registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type,
-                                boolean success, String comment, UUID additionalId) {
+    public ExecutorSubtask registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type) {
         ExecutorTask task = executorTaskRepository.findById(taskId)
                 .orElseThrow(RuntimeException::new);
 
 //        ExecutorSubtask subtask = new ExecutorSubtask(task, vmId, type);
         ExecutorSubtask subtask = switch (type) {
             case START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM -> new VmTask(task, vmId, type);
-            case ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE -> new VnicProfileTask(task, vmId, type, additionalId);
+            case ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE -> new VnicProfileTask(task, vmId, type);
             case ASSIGN_PERMISSION, REVOKE_PERMISSION -> new PermissionTask(task, vmId, type);
         };
+
+        return executorSubtaskRepository.saveAndFlush(subtask);
+    }
+
+    @Override
+    public void finalizeSubTask(UUID subtaskId, boolean success, String comment, UUID additionalId) {
+        ExecutorSubtask subtask = executorSubtaskRepository.findById(subtaskId)
+                .orElseThrow(EntityNotFoundException::new);
+
         subtask.setSuccessful(success);
         subtask.setDescription(
                 Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(200, comment.length())) : null
         );
 
+        switch (subtask) {
+            case VmTask vmTask -> { }
+            case VnicProfileTask vnicProfileTask -> {
+                vnicProfileTask.setVnicProfileId(additionalId);
+            }
+            case PermissionTask permissionTask -> { }
+            default -> throw new IllegalArgumentException("Unexpected subtask type: " + subtask);
+        }
+
         executorSubtaskRepository.saveAndFlush(subtask);
+    }
+
+    @Override
+    public List<ExecutorSubtask> getReservationStartExistingSubTasks(Reservation reservation) {
+        return executorSubtaskRepository.findByReservation(reservation.getId(), ExecutorTask.TaskType.POD_INIT);
+    }
+
+    @Override
+    public List<ExecutorSubtask> getReservationEndExistingSubTasks(Reservation reservation) {
+        return executorSubtaskRepository.findByReservation(reservation.getId(), ExecutorTask.TaskType.POD_DESTRUCT);
     }
 }

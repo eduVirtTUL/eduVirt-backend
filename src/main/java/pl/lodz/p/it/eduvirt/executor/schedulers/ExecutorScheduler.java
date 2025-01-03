@@ -25,9 +25,7 @@ import pl.lodz.p.it.eduvirt.service.OVirtAssignedPermissionService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -49,13 +47,16 @@ import java.util.stream.Collectors;
 //IMPROVEMENTS michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems)
 //IMPROVEMENTS michal: maybe implement different exceptions for different statues of VM (that is not in DOWN status)
 //IMPROVEMENTS michal: separate assigning/revoking permissions to different scheduled tasks
+//IMPROVEMENTS michal: optimized VM oVirt API calls (like in f06d3d17fa5acdd71996ed5ede4148e6753ab8b3)
+
+//IMPROVEMENTS michal: in stateful POD after reservation we should clear the state to the initial
+//IMPROVEMENTS michal: made registering subtask two step operation (.createSubtask() -> before any operation and at the end .finalizeSubtask())
 
 @Slf4j
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
 @Profile({"prod", "dev"})
-//@Profile({"prod"})
 public class ExecutorScheduler {
 
     // Model
@@ -74,7 +75,15 @@ public class ExecutorScheduler {
     public void createPods() {
         reservationRepository.findReservationsToBegin()
                 //.stream().parallel()
-                .forEach(this::startUpPod);
+                .forEach(
+                        reservation -> {
+                            try {
+                                startUpPod(reservation);
+                            } catch (Throwable e) {
+                                e.printStackTrace(System.err); //TODO michal
+                            }
+                        }
+                );
     }
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0)
@@ -82,95 +91,135 @@ public class ExecutorScheduler {
     public void destroyPods() {
         reservationRepository.findReservationsToFinish()
                 //.stream().parallel()
-                .forEach(this::stopPod);
+                .forEach(
+                        reservation -> {
+                            try {
+                                stopPod(reservation);
+                            } catch (Throwable e) {
+                                e.printStackTrace(System.err); //TODO michal
+                            }
+                        }
+                );
     }
 
     //--------------PRIVATE METHODS--------------
 
-    //TODO michal: Start new attempt to start up POD from the last successful subtask
+    /*TODO michal: Start new attempt to start up POD from the last successful subtask
+    *  * check conditions [DONE]
+    *  * map networks
+    *       * the next network
+    *       * retry in one network with chosen vnic profile in the previous task
+    *  * start VMs [DONE]
+    *  * assign permissions
+    * */
 
     private void startUpPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodInitTask(reservation);
+        List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationStartExistingSubTasks(reservation);
+
         try {
             ResourceGroup resourceGroup = reservation.getResourceGroup();
             Team team = reservation.getTeam();
             List<VirtualMachine> virtualMachines = resourceGroup.getVms();
 
-            //Optimization step to fetch VMs from oVirt and then pass their references
-            //to checkIfVmDownStatus() and assignVnicProfileToNIC() (to avoid multi fetching VMs operations)
-            Map<UUID, Vm> ovirtVmsIdMap = fetchOvirtVms(virtualMachines);
+            // Filter properly started VMs
+            Set<UUID> idsToExclude = existingSubtasks.stream()
+                    .filter(subTask -> subTask.getType().equals(ExecutorSubtask.SubtaskType.START_VM) && subTask.getSuccessful())
+                    .map(ExecutorSubtask::getVmId)
+                    .collect(Collectors.toSet());
+            List<VirtualMachine> filteredVms = virtualMachines.stream()
+                    .filter(vm -> !idsToExclude.contains(vm.getId()))
+                    .collect(Collectors.toList());
 
-            // Check if all VMs are down
-            checkIfVmsDownStatus(new ArrayList<>(ovirtVmsIdMap.values()));
+            CHECK_CONDITION_ZONE : {
+                List<Vm> ovirtVms = fetchOvirtVms(filteredVms);
+                // Check if all VMs are down
+                checkIfVmsDownStatus(ovirtVms);
 
-            //TODO michal: Verify resources or handle insufficient on VM startup command (probably the first one)
+                //TODO michal: Verify resources or handle insufficient on VM startup command (probably the first one)
+            }
 
-            //Network mapping
-            List<ResourceGroupNetwork> networksToMap = resourceGroup.getNetworks();
-            networksToMap
-                    .forEach(
-                            network -> {
-                                // Fetch vnic profile from pool, checking conditions (if inUse equals false)
-                                VnicProfilePoolMember chosenVnicProfile = vnicProfilePoolService.getVnicProfilesPool()
-                                        .stream()
-                                        .filter(vnicProfile -> !vnicProfile.getInUse())
-                                        .findFirst()
-                                        .orElseThrow(() -> new RuntimeException("No available vnic profile found in pool"));
+            /**
+             * Pomysł na obłsugę powtórnych mapowań sieci jest taki, że trzeba jeszcze do VnicProfileTask dodać pole
+             * nicId i obsłużyć je w całym toku rejestrowania zadań.
+             * Następnie na podstawie poprawnie wykonanych subtasków i powiązanych nicId robimy filtrowanie listy networksToMap,
+             * tak aby usunąć segmenty, dla których wszystkie interfejsy zostały zmapowane poprawnie.
+             * Segmenty których część interfejsów została zmapowana poprawnie należy uszczuplić o te interfejsy i
+             * pozostałym przypisać vnic profile, na podstawie tych odfiltrowanych zamiast pobierać nowy vnic profil z puli
+             */
 
-                                // Set vnic profile's property "inUse" to true
-                                vnicProfilePoolService.markVnicProfileAsOccupied(chosenVnicProfile.getId());
-
-                                // Assign vnic profile to VMs NICs
-                                network.getInterfaces()
-                                        .forEach(
-                                                nic -> {
-                                                    Vm vm = Optional.ofNullable(ovirtVmsIdMap.get(nic.getVirtualMachine().getId()))
-                                                            .orElseThrow(() -> new RuntimeException("VM not found"));
-                                                    runAndRegister(
-                                                            () -> assignVnicProfileToNIC(chosenVnicProfile.getId(), vm, nic.getId()),
-                                                            executorTask, UUID.fromString(vm.id()), ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE, chosenVnicProfile.getId()
-                                                    );
-                                                }
-                                        );
-                            }
-                    );
-
-            //Start-up VMs
-            if (reservation.getAutomaticStartup()) {
-                virtualMachines
+            MAP_PRIVATE_SEGMENTS_ZONE : {
+                //Network mapping
+                List<ResourceGroupNetwork> networksToMap = resourceGroup.getNetworks();
+                networksToMap
                         .forEach(
-                                vm -> runAndRegister(() -> oVirtVmService.runVm(vm.getId().toString()),
-                                        executorTask, vm.getId(), ExecutorSubtask.SubtaskType.START_VM
+                                network -> {
+                                    // Fetch vnic profile from pool, checking conditions (if inUse equals false)
+                                    VnicProfilePoolMember chosenVnicProfile = vnicProfilePoolService.getVnicProfilesPool()
+                                            .stream()
+                                            .filter(vnicProfile -> !vnicProfile.getInUse())
+                                            .findFirst()
+                                            .orElseThrow(() -> new RuntimeException("No available vnic profile found in pool"));
+
+                                    // Set vnic profile's property "inUse" to true
+                                    vnicProfilePoolService.markVnicProfileAsOccupied(chosenVnicProfile.getId());
+
+                                    // Assign vnic profile to VMs NICs
+                                    network.getInterfaces()
+                                            .forEach(
+                                                    nic -> {
+                                                        UUID vmId = nic.getVirtualMachine().getId();
+                                                        runAndRegister(
+                                                                () -> assignVnicProfileToNIC(chosenVnicProfile.getId(), vmId, nic.getId()),
+                                                                executorTask, vmId, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE, chosenVnicProfile.getId()
+                                                        );
+                                                    }
+                                            );
+                                }
+                        );
+            }
+
+            START_VMS_ZONE : {
+                //Start-up VMs
+                if (reservation.getAutomaticStartup()) {
+                    filteredVms
+                            .forEach(
+                                    vm -> runAndRegister(() -> oVirtVmService.runVm(vm.getId().toString()),
+                                            executorTask, vm.getId(), ExecutorSubtask.SubtaskType.START_VM
+                                    )
+                            );
+                }
+            }
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            //TODO michal: Active waiting for all VMs are running ??? // separate to different scheduled tasks
+            ASSIGN_PERMISSION_ZONE : {
+                //Assign permissions
+                reservation.getResourceGroup().getVms()
+                        .stream()
+                        .filter(vm -> !vm.isHidden())
+                        .forEach(
+                                vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), team.getUsers()),
+                                        executorTask, vm.getId(), ExecutorSubtask.SubtaskType.ASSIGN_PERMISSION
                                 )
                         );
             }
 
-            //TODO michal: Active waiting for all VMs are running ???
-
-            //Assign permissions
-            virtualMachines
-                    .stream()
-                    .filter(vm -> !vm.isHidden())
-                    .forEach(
-                            vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), team.getUsers()),
-                                    executorTask, vm.getId(), ExecutorSubtask.SubtaskType.ASSIGN_PERMISSION
-                            )
-                    );
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
             executorTaskService.finalizeTask(executorTask.getId(), true, null);
         } catch (Throwable e) {
             executorTaskService.finalizeTask(executorTask.getId(), false, e.getMessage());
-            e.printStackTrace(System.err);
+            throw e;
         }
     }
 
-    private Map<UUID, Vm> fetchOvirtVms(List<VirtualMachine> virtualMachines) {
+    private List<Vm> fetchOvirtVms(List<VirtualMachine> virtualMachines) {
         Set<String> vmIdsStr = virtualMachines.stream()
                 .map(vm -> vm.getId().toString())
                 .collect(Collectors.toSet());
-        return oVirtVmService.findVmsWithNicsByVmIds(vmIdsStr)
-                .stream()
-                .collect(Collectors.toMap(vm -> UUID.fromString(vm.id()), vm -> vm));
+        return oVirtVmService.findVmsWithNicsByVmIds(vmIdsStr);
     }
 
     private void checkIfVmsDownStatus(List<Vm> vms) {
@@ -186,9 +235,9 @@ public class ExecutorScheduler {
         }
     }
 
-    private void assignVnicProfileToNIC(UUID vnicProfileId, Vm vm, UUID vmNicId) {
+    private void assignVnicProfileToNIC(UUID vnicProfileId, UUID vmId, UUID vmNicId) {
         oVirtVmService.assignVnicProfileToVm(
-                vm,
+                vmId.toString(),
                 vmNicId.toString(),
                 vnicProfileId.toString()
         );
@@ -229,7 +278,6 @@ public class ExecutorScheduler {
                                 // Remove vnic profile from VMs NICs
                                 Set<UUID> removedVnicProfilesIdsSet = network.getInterfaces()
                                         .stream()
-//                                        .parallel()
                                         .map(
                                                 nic -> {
                                                     UUID vmId = nic.getVirtualMachine().getId();
@@ -239,6 +287,7 @@ public class ExecutorScheduler {
                                                     );
                                                 }
                                         )
+                                        .filter(Objects::nonNull)
                                         .collect(Collectors.toSet());
 
                                 // Set vnic profile's property "inUse" to false
@@ -286,19 +335,21 @@ public class ExecutorScheduler {
     }
 
     /* Registering subtasks methods */
+    // TODO michal: Ask is better nullable fields or mapping nulls to 00000000-0000-0000-0000-000000000000
 
     private <T> T runAndRegister(Supplier<T> supplier, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type,
                                  UUID additionalId) {
         UUID sanitizedVmId = Objects.requireNonNullElse(vmId, UUID.fromString("00000000-0000-0000-0000-000000000000"));
+        ExecutorSubtask executorSubtask = executorTaskService.registerSubTask(task.getId(), sanitizedVmId, type);
         try {
             T tmpVal = supplier.get();
-            if (Objects.isNull(additionalId) && tmpVal instanceof UUID) {
-                additionalId = (UUID) tmpVal;
+            if (Objects.isNull(additionalId)) {
+                additionalId = tmpVal instanceof UUID ? (UUID) tmpVal : UUID.fromString("00000000-0000-0000-0000-000000000000");
             }
-            executorTaskService.registerSubTask(task.getId(), sanitizedVmId, type, true, null, additionalId);
+            executorTaskService.finalizeSubTask(executorSubtask.getId(),true, null, additionalId);
             return tmpVal;
         } catch (Throwable e) {
-            executorTaskService.registerSubTask(task.getId(), sanitizedVmId, type, false, e.getMessage(), additionalId);
+            executorTaskService.finalizeSubTask(executorSubtask.getId(),false, e.getMessage(), additionalId);
             throw e;
         }
     }
