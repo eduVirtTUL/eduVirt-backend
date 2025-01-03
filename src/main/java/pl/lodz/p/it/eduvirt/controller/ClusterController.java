@@ -9,15 +9,15 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.dto.EventGeneralDTO;
+import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.NetworkDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
-import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
@@ -28,7 +28,6 @@ import pl.lodz.p.it.eduvirt.util.MetricUtil;
 import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
@@ -88,13 +87,10 @@ public class ClusterController {
 
     @GetMapping(path = "/{id}/availability")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ResponseEntity<?> findClusterResourcesAvailability(
+    public ResponseEntity<List<ResourcesAvailabilityDto>> findClusterResourcesAvailability(
             @PathVariable("id") UUID clusterId,
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
-        LocalDateTime startTime = start.atStartOfDay();
-        LocalDateTime endTime = end.atStartOfDay();
-
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<ClusterMetric> clusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
         List<ResourcesAvailabilityDto> resourcesAvailabilityDtos = new LinkedList<>();
@@ -172,14 +168,14 @@ public class ClusterController {
     }
 
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<EventGeneralDTO>> findEventsByClusterId(
+    public ResponseEntity<List<EventGeneralDto>> findEventsByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "25", required = false) int pageSize,
             @PathVariable("id") UUID clusterId) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<Event> events = clusterService.findEventsInCluster(cluster, pageNumber, pageSize);
 
-        List<EventGeneralDTO> listOfDTOs = events.stream().map(eventMapper::ovirtEventToGeneralDTO).toList();
+        List<EventGeneralDto> listOfDTOs = events.stream().map(eventMapper::ovirtEventToGeneralDTO).toList();
 
         if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDTOs);

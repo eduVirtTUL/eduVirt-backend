@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,4 +55,18 @@ public class Team extends AbstractEntity {
             foreignKey = @ForeignKey(name = "team_course_id_fk")
     )
     private Course course;
+
+    /* Constructor */
+
+    public Team(String name,
+                String key,
+                boolean active,
+                int maxSize,
+                Course course) {
+        this.name = name;
+        this.key = key;
+        this.active = active;
+        this.maxSize = maxSize;
+        this.course = course;
+    }
 }

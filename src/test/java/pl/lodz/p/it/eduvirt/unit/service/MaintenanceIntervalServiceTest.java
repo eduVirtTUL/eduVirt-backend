@@ -12,14 +12,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
-import pl.lodz.p.it.eduvirt.entity.Updatable;
-import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
+import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalInvalidTimeWindowException;
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.repository.MaintenanceIntervalRepository;
+import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
+import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.impl.MaintenanceIntervalServiceImpl;
+import pl.lodz.p.it.eduvirt.util.MailHelper;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -38,6 +39,15 @@ public class MaintenanceIntervalServiceTest {
     @Mock
     private MaintenanceIntervalRepository maintenanceIntervalRepository;
 
+    @Mock
+    private ReservationRepository reservationRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private MailHelper mailHelper;
+
     @InjectMocks
     private MaintenanceIntervalServiceImpl maintenanceIntervalService;
 
@@ -54,8 +64,31 @@ public class MaintenanceIntervalServiceTest {
     private MaintenanceInterval maintenanceInterval3;
     private MaintenanceInterval maintenanceInterval4;
 
+    private Course course;
+
+    private Team team;
+
+    private User userNo1;
+    private User userNo2;
+    private User userNo3;
+
+    private ResourceGroupPool rgPoolNo1;
+    private ResourceGroupPool rgPoolNo2;
+    private ResourceGroupPool rgPoolNo3;
+
+    private ResourceGroup resourceGroupNo1;
+    private ResourceGroup resourceGroupNo2;
+    private ResourceGroup resourceGroupNo3;
+
+    private Reservation reservationNo1;
+    private Reservation reservationNo2;
+    private Reservation reservationNo3;
+
     @BeforeEach
     public void prepareTestData() throws Exception {
+        Field id = AbstractEntity.class.getDeclaredField("id");
+        Field version = Updatable.class.getDeclaredField("version");
+
         maintenanceInterval1 = new MaintenanceInterval(
                 "EXAMPLE_CAUSE_1",
                 "EXAMPLE_DESCRIPTION_1",
@@ -92,7 +125,6 @@ public class MaintenanceIntervalServiceTest {
                 OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime()
         );
 
-        Field id = AbstractEntity.class.getDeclaredField("id");
         id.setAccessible(true);
         id.set(maintenanceInterval1, UUID.randomUUID());
         id.set(maintenanceInterval2, UUID.randomUUID());
@@ -100,13 +132,110 @@ public class MaintenanceIntervalServiceTest {
         id.set(maintenanceInterval4, UUID.randomUUID());
         id.setAccessible(false);
 
-        Field version = Updatable.class.getDeclaredField("version");
         version.setAccessible(true);
         version.set(maintenanceInterval1, 1L);
         version.set(maintenanceInterval2, 1L);
         version.set(maintenanceInterval3, 1L);
         version.set(maintenanceInterval4, 1L);
         version.setAccessible(false);
+
+        course = new Course();
+        course.setName("Sieciowe System Baz Danych");
+        course.setDescription("Network Database Systems");
+        course.setClusterId(existingClusterId);
+        course.setCourseKey("SukceS");
+
+        userNo1 = new User(UUID.randomUUID(), "email1@gmail.com");
+        userNo2 = new User(UUID.randomUUID(), "email2@gmail.com");
+        userNo3 = new User(UUID.randomUUID(), "email3@gmail.com");
+
+        List<User> listOfUsers = List.of(userNo1, userNo2, userNo3);
+        team = new Team("Eldorado", "SSBD-GroupKey003", true, 7, course);
+        team.getUsers().addAll(listOfUsers.stream().map(User::getId).toList());
+
+        rgPoolNo1 = new ResourceGroupPool();
+        rgPoolNo1.setName("SSBD-RGPoolNo1");
+        rgPoolNo1.setMaxRent(12);
+        rgPoolNo1.setGracePeriod(12);
+
+        rgPoolNo2 = new ResourceGroupPool();
+        rgPoolNo2.setName("SSBD-RGPoolNo2");
+        rgPoolNo2.setMaxRent(12);
+        rgPoolNo2.setGracePeriod(12);
+
+        rgPoolNo3 = new ResourceGroupPool();
+        rgPoolNo3.setName("SSBD-RGPoolNo3");
+        rgPoolNo3.setMaxRent(12);
+        rgPoolNo3.setGracePeriod(12);
+
+        resourceGroupNo1 = new ResourceGroup();
+        resourceGroupNo1.setName("SSBD-RGNo1");
+        resourceGroupNo1.setDescription("First resource group for SSBD course.");
+        resourceGroupNo1.setMaxRentTime(12);
+        resourceGroupNo1.setStateless(false);
+
+        resourceGroupNo1.getVms().addAll(List.of(
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build()
+        ));
+
+        resourceGroupNo2 = new ResourceGroup();
+        resourceGroupNo2.setName("SSBD-RGNo2");
+        resourceGroupNo2.setDescription("Second resource group for SSBD course.");
+        resourceGroupNo2.setMaxRentTime(12);
+        resourceGroupNo2.setStateless(false);
+
+        resourceGroupNo2.getVms().addAll(List.of(
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build()
+        ));
+
+        resourceGroupNo3 = new ResourceGroup();
+        resourceGroupNo3.setName("SSBD-RGNo3");
+        resourceGroupNo3.setDescription("Third resource group for SSBD course.");
+        resourceGroupNo3.setMaxRentTime(12);
+        resourceGroupNo3.setStateless(false);
+
+        resourceGroupNo3.getVms().addAll(List.of(
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build()
+        ));
+
+        rgPoolNo1.getResourceGroups().add(resourceGroupNo1);
+        rgPoolNo2.getResourceGroups().add(resourceGroupNo2);
+        rgPoolNo3.getResourceGroups().add(resourceGroupNo3);
+
+        reservationNo1 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().minusHours(12), LocalDateTime.now(), true);
+        reservationNo2 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(12), LocalDateTime.now().plusHours(24), true);
+        reservationNo3 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(36), LocalDateTime.now().plusHours(48), true);
+
+        id.setAccessible(true);
+
+        id.set(course, UUID.randomUUID());
+        id.set(team, UUID.randomUUID());
+
+        id.set(rgPoolNo1, UUID.randomUUID());
+        id.set(rgPoolNo2, UUID.randomUUID());
+        id.set(rgPoolNo3, UUID.randomUUID());
+
+        id.set(resourceGroupNo1, UUID.randomUUID());
+        id.set(resourceGroupNo2, UUID.randomUUID());
+        id.set(resourceGroupNo3, UUID.randomUUID());
+
+        id.set(reservationNo1, UUID.randomUUID());
+        id.set(reservationNo2, UUID.randomUUID());
+        id.set(reservationNo3, UUID.randomUUID());
+
+        id.setAccessible(false);
     }
 
     /* Tests */
@@ -114,7 +243,7 @@ public class MaintenanceIntervalServiceTest {
     /* CreateClusterMaintenanceInterval method tests */
 
     @Test
-    public void Given_AllDataMatchesRequiredConditions_When_CreateClusterMaintenanceInterval_Then_NewIntervalCreateSuccessfully() {
+    public void Given_AllDataMatchesRequiredConditionsAndReservationsExistDuringTheMaintenance_When_CreateClusterMaintenanceInterval_Then_NewIntervalCreateSuccessfully() {
         String cause = "example_cause";
         String description = "example_description";
         UUID clusterId = UUID.randomUUID();
@@ -128,6 +257,18 @@ public class MaintenanceIntervalServiceTest {
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end),
                 Mockito.eq(MaintenanceInterval.IntervalType.CLUSTER), Mockito.eq(clusterId))).thenReturn(List.of());
         when(maintenanceIntervalRepository.saveAndFlush(exampleMaintenanceInterval)).thenReturn(exampleMaintenanceInterval);
+        when(reservationRepository.findReservationsForGivenPeriodForCluster(
+                Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of(reservationNo1, reservationNo2));
+
+        when(userRepository.findById(Mockito.eq(userNo1.getId()))).thenReturn(Optional.of(userNo1));
+        when(userRepository.findById(Mockito.eq(userNo2.getId()))).thenReturn(Optional.of(userNo2));
+        when(userRepository.findById(Mockito.eq(userNo3.getId()))).thenReturn(Optional.of(userNo3));
+
+        doNothing().when(mailHelper).sendSimpleMail(
+                Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class));
+
+        doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo1));
+        doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo2));
 
         maintenanceIntervalService.createClusterMaintenanceInterval(cluster, cause, description, start, end);
 
@@ -135,6 +276,41 @@ public class MaintenanceIntervalServiceTest {
         verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(start), Mockito.eq(end), Mockito.eq(MaintenanceInterval.IntervalType.CLUSTER), Mockito.eq(clusterId));
         verify(maintenanceIntervalRepository, times(1)).saveAndFlush(Mockito.eq(exampleMaintenanceInterval));
+        verify(reservationRepository, times(1)).findReservationsForGivenPeriodForCluster(
+                Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end));
+
+        verify(userRepository, times(6)).findById(Mockito.any(UUID.class));
+        verify(mailHelper, times(6))
+                .sendSimpleMail(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class));
+        verify(reservationRepository, times(2)).delete(Mockito.any(Reservation.class));
+    }
+
+    @Test
+    public void Given_AllDataMatchesRequiredConditionsAndNoReservationsAreFound_When_CreateClusterMaintenanceInterval_Then_NewIntervalCreateSuccessfully() {
+        String cause = "example_cause";
+        String description = "example_description";
+        UUID clusterId = UUID.randomUUID();
+        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
+        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(3).toLocalDateTime();
+
+        MaintenanceInterval exampleMaintenanceInterval = new MaintenanceInterval(
+                cause, description, MaintenanceInterval.IntervalType.CLUSTER, existingClusterId, start, end);
+
+        when(cluster.id()).thenReturn(clusterId.toString());
+        when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end),
+                Mockito.eq(MaintenanceInterval.IntervalType.CLUSTER), Mockito.eq(clusterId))).thenReturn(List.of());
+        when(maintenanceIntervalRepository.saveAndFlush(exampleMaintenanceInterval)).thenReturn(exampleMaintenanceInterval);
+        when(reservationRepository.findReservationsForGivenPeriodForCluster(
+                Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
+
+        maintenanceIntervalService.createClusterMaintenanceInterval(cluster, cause, description, start, end);
+
+        verify(cluster, timeout(1)).id();
+        verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
+                Mockito.eq(start), Mockito.eq(end), Mockito.eq(MaintenanceInterval.IntervalType.CLUSTER), Mockito.eq(clusterId));
+        verify(maintenanceIntervalRepository, times(1)).saveAndFlush(Mockito.eq(exampleMaintenanceInterval));
+        verify(reservationRepository, times(1)).findReservationsForGivenPeriodForCluster(
+                Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end));
     }
 
     @Test
@@ -182,7 +358,7 @@ public class MaintenanceIntervalServiceTest {
     /* CreateSystemMaintenanceInterval method tests */
 
     @Test
-    public void Given_AllDataMatchesRequiredConditions_When_CreateSystemMaintenanceInterval_Then_CreatesNewSystemMaintenanceIntervalSuccessfully() {
+    public void Given_AllDataMatchesRequiredConditionsAndSomeReservationsAreFound_When_CreateSystemMaintenanceInterval_Then_CreatesNewSystemMaintenanceIntervalSuccessfully() {
         String cause = "example_cause";
         String description = "example_description";
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
@@ -195,11 +371,58 @@ public class MaintenanceIntervalServiceTest {
                 Mockito.eq(MaintenanceInterval.IntervalType.SYSTEM), Mockito.eq(null))).thenReturn(List.of());
         when(maintenanceIntervalRepository.saveAndFlush(exampleMaintenanceInterval)).thenReturn(exampleMaintenanceInterval);
 
+        when(reservationRepository.findReservationsForGivenPeriodForSystem(
+                Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of(reservationNo1, reservationNo2));
+
+        when(userRepository.findById(Mockito.eq(userNo1.getId()))).thenReturn(Optional.of(userNo1));
+        when(userRepository.findById(Mockito.eq(userNo2.getId()))).thenReturn(Optional.of(userNo2));
+        when(userRepository.findById(Mockito.eq(userNo3.getId()))).thenReturn(Optional.of(userNo3));
+
+        doNothing().when(mailHelper).sendSimpleMail(
+                Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class));
+
+        doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo1));
+        doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo2));
+
         maintenanceIntervalService.createSystemMaintenanceInterval(cause, description, start, end);
 
         verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(start), Mockito.eq(end), Mockito.eq(MaintenanceInterval.IntervalType.SYSTEM), Mockito.eq(null));
         verify(maintenanceIntervalRepository, times(1)).saveAndFlush(Mockito.eq(exampleMaintenanceInterval));
+        verify(reservationRepository, times(1))
+                .findReservationsForGivenPeriodForSystem(Mockito.eq(start), Mockito.eq(end));
+
+        verify(reservationRepository, times(1))
+                .findReservationsForGivenPeriodForSystem(Mockito.eq(start), Mockito.eq(end));
+
+        verify(userRepository, times(6)).findById(Mockito.any(UUID.class));
+        verify(mailHelper, times(6))
+                .sendSimpleMail(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class));
+        verify(reservationRepository, times(2)).delete(Mockito.any(Reservation.class));
+    }
+
+    @Test
+    public void Given_AllDataMatchesRequiredConditionsAndNoReservationsAreFound_When_CreateSystemMaintenanceInterval_Then_CreatesNewSystemMaintenanceIntervalSuccessfully() {
+        String cause = "example_cause";
+        String description = "example_description";
+        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
+        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(4).toLocalDateTime();
+
+        MaintenanceInterval exampleMaintenanceInterval = new MaintenanceInterval(
+                cause, description, MaintenanceInterval.IntervalType.SYSTEM, null, start, end);
+
+        when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end),
+                Mockito.eq(MaintenanceInterval.IntervalType.SYSTEM), Mockito.eq(null))).thenReturn(List.of());
+        when(maintenanceIntervalRepository.saveAndFlush(exampleMaintenanceInterval)).thenReturn(exampleMaintenanceInterval);
+        when(reservationRepository.findReservationsForGivenPeriodForSystem(Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
+
+        maintenanceIntervalService.createSystemMaintenanceInterval(cause, description, start, end);
+
+        verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
+                Mockito.eq(start), Mockito.eq(end), Mockito.eq(MaintenanceInterval.IntervalType.SYSTEM), Mockito.eq(null));
+        verify(maintenanceIntervalRepository, times(1)).saveAndFlush(Mockito.eq(exampleMaintenanceInterval));
+        verify(reservationRepository, times(1))
+                .findReservationsForGivenPeriodForSystem(Mockito.eq(start), Mockito.eq(end));
     }
 
     @Test

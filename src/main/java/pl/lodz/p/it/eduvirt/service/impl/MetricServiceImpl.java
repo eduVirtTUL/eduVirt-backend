@@ -3,17 +3,21 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.general.Metric;
+import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.MetricService;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.REQUIRED)
 public class MetricServiceImpl implements MetricService {
 
     private final MetricRepository metricRepository;
@@ -39,6 +43,6 @@ public class MetricServiceImpl implements MetricService {
     public void deleteMetric(UUID metricId) {
         Metric metric = metricRepository.findById(metricId)
                 .orElseThrow(() -> new MetricNotFoundException(metricId));
-        metricRepository.delete(metric);
+        metricRepository.deleteAllInBatch(List.of(metric));
     }
 }

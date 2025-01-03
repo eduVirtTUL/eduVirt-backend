@@ -8,6 +8,7 @@ import java.util.UUID;
 public class ClusterMetricExistsException extends AlreadyExistsException {
 
     public ClusterMetricExistsException(UUID clusterId, UUID metricId) {
-        super("Value for metric with %s is already defined for cluster %s".formatted(metricId, clusterId), I18n.METRIC_VALUE_ALREADY_DEFINED);
+        super("Value for metric with %s is already defined for cluster %s".formatted(metricId, clusterId),
+                I18n.CLUSTER_METRIC_VALUE_ALREADY_DEFINED);
     }
 }
