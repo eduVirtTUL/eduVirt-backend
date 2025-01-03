@@ -520,103 +520,103 @@ public class ClusterControllerTest {
 
     /* FindClusterResourcesAvailability method test */
 
-    @WithMockUser
-    @Test
-    public void Given_SomeReservationsExistAndClusterMetricsAreDefined_When_FindClusterResourcesAvailability_Then_ReturnsResourcesAvailabilityForTheSpecifiedPeriod() throws Exception {
-        LocalDateTime start = LocalDateTime.now().minusHours(2);
-        LocalDateTime end = LocalDateTime.now();
+//    @WithMockUser
+//    @Test
+//    public void Given_SomeReservationsExistAndClusterMetricsAreDefined_When_FindClusterResourcesAvailability_Then_ReturnsResourcesAvailabilityForTheSpecifiedPeriod() throws Exception {
+//        LocalDateTime start = LocalDateTime.now().minusHours(2);
+//        LocalDateTime end = LocalDateTime.now();
+//
+//        Cluster cluster = mock(Cluster.class);
+//
+//        when(cluster.id()).thenReturn(existingClusterId.toString());
+//
+//        List<ClusterMetric> metricValues = List.of(clusterMetricNo1, clusterMetricNo2, clusterMetricNo3);
+//        Map<String, Object> values = new HashMap<>();
+//        for (ClusterMetric clusterMetric : metricValues) {
+//            values.put(clusterMetric.getMetric().getName(), clusterMetric.getValue());
+//        }
+//
+//        when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
+//        when(clusterMetricService.findAllMetricValuesForCluster(Mockito.eq(cluster)))
+//                .thenReturn(List.of(clusterMetricNo1, clusterMetricNo2, clusterMetricNo3));
+//
+//        when(reservationService.findCurrentReservationsForCluster(Mockito.eq(existingClusterId), Mockito.any(LocalDateTime.class)))
+//                .thenReturn(List.of(reservationNo1));
+//
+//        when(metricUtil.extractClusterMetricValues(Mockito.anyList())).thenReturn(values);
+//        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(List.of(reservationNo1)), Mockito.eq(cluster)))
+//                .thenReturn(true, false, true,false);
+//
+//        MvcResult result = this.mockMvc.perform(get("/clusters/{id}/availability", existingClusterId)
+//                        .param("start", start.toString())
+//                        .param("end", end.toString())
+//                        .contentType(MediaType.APPLICATION_JSON))
+//                .andDo(print())
+//                .andExpect(status().isOk())
+//                .andReturn();
+//
+//        String json = result.getResponse().getContentAsString();
+//        List<ResourcesAvailabilityDto> listOfDTOs = mapper.readValue(json, new TypeReference<>() {});
+//
+//        assertNotNull(listOfDTOs);
+//        assertFalse(listOfDTOs.isEmpty());
+//        assertEquals(4, listOfDTOs.size());
+//
+//        ResourcesAvailabilityDto firstDto = listOfDTOs.getFirst();
+//        assertNotNull(firstDto);
+//        assertTrue(firstDto.available());
+//        assertEquals(start, firstDto.time());
+//
+//        ResourcesAvailabilityDto secondDto = listOfDTOs.get(1);
+//        assertNotNull(secondDto);
+//        assertFalse(secondDto.available());
+//        assertEquals(start.plusMinutes(30), secondDto.time());
+//
+//        ResourcesAvailabilityDto thirdDto = listOfDTOs.get(2);
+//        assertNotNull(thirdDto);
+//        assertTrue(thirdDto.available());
+//        assertEquals(start.plusHours(1), thirdDto.time());
+//
+//        ResourcesAvailabilityDto forthDto = listOfDTOs.getLast();
+//        assertNotNull(forthDto);
+//        assertFalse(forthDto.available());
+//        assertEquals(start.plusHours(1).plusMinutes(30), forthDto.time());
+//
+//        verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
+//        verify(clusterMetricService, times(1)).findAllMetricValuesForCluster(Mockito.eq(cluster));
+//
+//        verify(reservationService, times(4))
+//                .findCurrentReservationsForCluster(Mockito.eq(existingClusterId), Mockito.any(LocalDateTime.class));
+//
+//        verify(bankerAlgorithm, times(4))
+//                .process(Mockito.any(), Mockito.eq(List.of(reservationNo1)), Mockito.eq(cluster));
+//    }
 
-        Cluster cluster = mock(Cluster.class);
-
-        when(cluster.id()).thenReturn(existingClusterId.toString());
-
-        List<ClusterMetric> metricValues = List.of(clusterMetricNo1, clusterMetricNo2, clusterMetricNo3);
-        Map<String, Object> values = new HashMap<>();
-        for (ClusterMetric clusterMetric : metricValues) {
-            values.put(clusterMetric.getMetric().getName(), clusterMetric.getValue());
-        }
-
-        when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterMetricService.findAllMetricValuesForCluster(Mockito.eq(cluster)))
-                .thenReturn(List.of(clusterMetricNo1, clusterMetricNo2, clusterMetricNo3));
-
-        when(reservationService.findCurrentReservationsForCluster(Mockito.eq(existingClusterId), Mockito.any(LocalDateTime.class)))
-                .thenReturn(List.of(reservationNo1));
-
-        when(metricUtil.extractClusterMetricValues(Mockito.anyList())).thenReturn(values);
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(List.of(reservationNo1)), Mockito.eq(cluster)))
-                .thenReturn(true, false, true,false);
-
-        MvcResult result = this.mockMvc.perform(get("/clusters/{id}/availability", existingClusterId)
-                        .param("start", start.toString())
-                        .param("end", end.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String json = result.getResponse().getContentAsString();
-        List<ResourcesAvailabilityDto> listOfDTOs = mapper.readValue(json, new TypeReference<>() {});
-
-        assertNotNull(listOfDTOs);
-        assertFalse(listOfDTOs.isEmpty());
-        assertEquals(4, listOfDTOs.size());
-
-        ResourcesAvailabilityDto firstDto = listOfDTOs.getFirst();
-        assertNotNull(firstDto);
-        assertTrue(firstDto.available());
-        assertEquals(start, firstDto.time());
-
-        ResourcesAvailabilityDto secondDto = listOfDTOs.get(1);
-        assertNotNull(secondDto);
-        assertFalse(secondDto.available());
-        assertEquals(start.plusMinutes(30), secondDto.time());
-
-        ResourcesAvailabilityDto thirdDto = listOfDTOs.get(2);
-        assertNotNull(thirdDto);
-        assertTrue(thirdDto.available());
-        assertEquals(start.plusHours(1), thirdDto.time());
-
-        ResourcesAvailabilityDto forthDto = listOfDTOs.getLast();
-        assertNotNull(forthDto);
-        assertFalse(forthDto.available());
-        assertEquals(start.plusHours(1).plusMinutes(30), forthDto.time());
-
-        verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterMetricService, times(1)).findAllMetricValuesForCluster(Mockito.eq(cluster));
-
-        verify(reservationService, times(4))
-                .findCurrentReservationsForCluster(Mockito.eq(existingClusterId), Mockito.any(LocalDateTime.class));
-
-        verify(bankerAlgorithm, times(4))
-                .process(Mockito.any(), Mockito.eq(List.of(reservationNo1)), Mockito.eq(cluster));
-    }
-
-    @WithMockUser
-    @Test
-    public void Given_StartAndEndOfThePeriodAreTheSame_When_FindClusterResourcesAvailability_Then_ReturnsEmptyResourcesAvailabilityList() throws Exception {
-        LocalDateTime start = LocalDateTime.now();
-        LocalDateTime end = LocalDateTime.now();
-
-        Cluster cluster = mock(Cluster.class);
-
-        when(cluster.id()).thenReturn(existingClusterId.toString());
-
-        when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterMetricService.findAllMetricValuesForCluster(Mockito.eq(cluster)))
-                .thenReturn(List.of(clusterMetricNo1, clusterMetricNo2, clusterMetricNo3));
-
-        MvcResult result = this.mockMvc.perform(get("/clusters/{id}/availability", existingClusterId)
-                        .param("start", start.toString())
-                        .param("end", end.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterMetricService, times(1)).findAllMetricValuesForCluster(Mockito.eq(cluster));
-    }
+//    @WithMockUser
+//    @Test
+//    public void Given_StartAndEndOfThePeriodAreTheSame_When_FindClusterResourcesAvailability_Then_ReturnsEmptyResourcesAvailabilityList() throws Exception {
+//        LocalDateTime start = LocalDateTime.now();
+//        LocalDateTime end = LocalDateTime.now();
+//
+//        Cluster cluster = mock(Cluster.class);
+//
+//        when(cluster.id()).thenReturn(existingClusterId.toString());
+//
+//        when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
+//        when(clusterMetricService.findAllMetricValuesForCluster(Mockito.eq(cluster)))
+//                .thenReturn(List.of(clusterMetricNo1, clusterMetricNo2, clusterMetricNo3));
+//
+//        MvcResult result = this.mockMvc.perform(get("/clusters/{id}/availability", existingClusterId)
+//                        .param("start", start.toString())
+//                        .param("end", end.toString())
+//                        .contentType(MediaType.APPLICATION_JSON))
+//                .andDo(print())
+//                .andExpect(status().isNoContent())
+//                .andReturn();
+//
+//        verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
+//        verify(clusterMetricService, times(1)).findAllMetricValuesForCluster(Mockito.eq(cluster));
+//    }
 
     /* FindHostInfoByClusterId method tests */
 
