@@ -15,7 +15,7 @@ import pl.lodz.p.it.eduvirt.dto.maintenance_interval.MaintenanceIntervalDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalNotFound;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.mappers.MaintenanceIntervalMapper;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
@@ -88,10 +88,11 @@ public class MaintenanceIntervalController {
 
     @GetMapping(path = "/time-period")
     public ResponseEntity<List<MaintenanceIntervalDto>> getMaintenanceIntervalsWithinTimePeriod(
+            @RequestParam(value = "clusterId", required = false) UUID clusterId,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalService
-                .findAllMaintenanceIntervalsInTimePeriod(start, end);
+                .findAllMaintenanceIntervalsInTimePeriod(clusterId, start, end);
 
         List<MaintenanceIntervalDto> listOfDtos = foundIntervals.stream()
                 .map(maintenanceIntervalMapper::maintenanceIntervalToDto).toList();
@@ -104,7 +105,7 @@ public class MaintenanceIntervalController {
     public ResponseEntity<MaintenanceIntervalDetailsDto> getMaintenanceInterval(@PathVariable("intervalId") UUID intervalId) {
         try {
             MaintenanceInterval foundInterval = maintenanceIntervalService.findMaintenanceInterval(intervalId)
-                    .orElseThrow(MaintenanceIntervalNotFound::new);
+                    .orElseThrow(() -> new MaintenanceIntervalNotFound(intervalId));
 
             MaintenanceIntervalDetailsDto outputDto = maintenanceIntervalMapper
                     .maintenanceIntervalToDetailsDto(foundInterval);

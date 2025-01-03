@@ -18,8 +18,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.aspect.exception.GeneralControllerExceptionResolver;
-import pl.lodz.p.it.eduvirt.aspect.exception.MaintenanceIntervalExceptionResolver;
-import pl.lodz.p.it.eduvirt.aspect.exception.OVirtAPIExceptionResolver;
 import pl.lodz.p.it.eduvirt.controller.MaintenanceIntervalController;
 import pl.lodz.p.it.eduvirt.dto.maintenance_interval.CreateMaintenanceIntervalDto;
 import pl.lodz.p.it.eduvirt.dto.maintenance_interval.MaintenanceIntervalDetailsDto;
@@ -30,9 +28,9 @@ import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 import pl.lodz.p.it.eduvirt.entity.Updatable;
 import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalConflictException;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalInvalidTimeWindowException;
-import pl.lodz.p.it.eduvirt.exceptions.maintenance_interval.MaintenanceIntervalNotFound;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalInvalidTimeWindowException;
+import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.mappers.MaintenanceIntervalMapper;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
@@ -54,9 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Import({
         MaintenanceIntervalController.class,
-        MaintenanceIntervalExceptionResolver.class,
         GeneralControllerExceptionResolver.class,
-        OVirtAPIExceptionResolver.class
 })
 @WebMvcTest(controllers = {MaintenanceIntervalController.class}, useDefaultFilters = false)
 public class MaintenanceIntervalControllerTest {
@@ -254,7 +250,7 @@ public class MaintenanceIntervalControllerTest {
                         .content(mapper.writeValueAsString(createDto))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
     }
@@ -866,13 +862,14 @@ public class MaintenanceIntervalControllerTest {
                 maintenanceInterval1.getEndAt()
         );
 
-        when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(start), Mockito.eq(end)))
+        when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(maintenanceInterval4, maintenanceInterval1));
 
         when(maintenanceIntervalMapper.maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class)))
                 .thenReturn(dtoNo1, dtoNo2);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals/time-period")
+                        .param("clusterId", existingClusterId.toString())
                         .param("start", start.toString())
                         .param("end", end.toString()))
                 .andDo(print())
@@ -907,7 +904,7 @@ public class MaintenanceIntervalControllerTest {
         assertEquals(secondMaintenanceInterval.endAt(), maintenanceInterval1.getEndAt());
 
         verify(maintenanceIntervalService, times(1))
-                .findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(start), Mockito.eq(end));
+                .findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end));
 
         verify(maintenanceIntervalMapper, times(2))
                 .maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class));
@@ -919,17 +916,18 @@ public class MaintenanceIntervalControllerTest {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(24).toLocalDateTime();
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(48).toLocalDateTime();
 
-        when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(start), Mockito.eq(end)))
+        when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/maintenance-intervals/time-period")
+                        .param("clusterId", existingClusterId.toString())
                         .param("start", start.toString())
                         .param("end", end.toString()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
         verify(maintenanceIntervalService, times(1))
-                .findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(start), Mockito.eq(end));
+                .findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end));
     }
 
     /* GetMaintenanceInterval method tests */
@@ -1029,7 +1027,7 @@ public class MaintenanceIntervalControllerTest {
         mockMvc.perform(delete("/maintenance-intervals/{intervalId}", randomUUID)
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(maintenanceIntervalService, times(1))
                 .finishMaintenanceInterval(Mockito.eq(randomUUID));

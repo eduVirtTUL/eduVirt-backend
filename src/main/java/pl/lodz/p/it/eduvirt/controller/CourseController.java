@@ -5,24 +5,30 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
-import pl.lodz.p.it.eduvirt.entity.Course;
-import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedException;
+import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.service.*;
+import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
+import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
 import java.time.*;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,17 +37,25 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CourseController {
 
+    /* Services */
+
     private final ResourceGroupPoolService resourceGroupPoolService;
     private final ReservationService reservationService;
-    private final VnicProfilePoolService vnicProfilePoolService;
+    private final CourseMetricService courseMetricService;
+    private final ClusterMetricService clusterMetricService;
 
-    private final OVirtVmService vmService;
     private final OVirtClusterService clusterService;
-    private final OVirtHostService hostService;
-
     private final CourseService courseService;
+
+    /* Mappers */
+
     private final CourseMapper courseMapper;
     private final RGPoolMapper rgPoolMapper;
+
+    /* Util */
+
+    private final MetricUtil metricUtil;
+    private final BankerAlgorithm bankerAlgorithm;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -73,68 +87,37 @@ public class CourseController {
     }
 
     @GetMapping(path = "/{id}/availability")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findCourseResourcesAvailability(
             @PathVariable("id") UUID courseId,
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
-            @RequestParam("timezone") String timeZone) {
-        ZoneId clientTimeZone = ZoneId.of(timeZone);
-        ZonedDateTime clientStartTime = start.atStartOfDay().atZone(clientTimeZone);
-        LocalDateTime utcStart = clientStartTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
-
-        ZonedDateTime clientEndTime = end.atStartOfDay().atZone(clientTimeZone);
-        LocalDateTime utcEnd = clientEndTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
-
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
         Course foundCourse = courseService.getCourse(courseId);
+        UUID clusterId = foundCourse.getClusterId();
+        Cluster cluster = clusterService.findClusterById(clusterId);
 
-        // TODO: Require metric values for course in order to finish it
+        List<CourseMetric> courseMetrics = courseMetricService.getAllCourseMetricsForCourse(foundCourse.getId());
+        List<ClusterMetric> clusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
 
-//        List<CourseMetric> courseMetrics = courseMetricService.findAllMetricsValuesForCourse(foundCourse);
-//
-//        int cpuCount = courseMetrics.stream().filter(courseMetric ->
-//                courseMetric.getMetric().getName().equals("cpu_count")).getFirst().getValue();
-//        long memorySize = courseMetrics.stream().filter(courseMetric ->
-//                courseMetric.getMetric().getName().equals("memory_size")).getFirst().getValue();
-//        int networkCount = courseMetrics.stream().filter(courseMetric ->
-//                courseMetric.getMetric().getName().equals("network_count")).getFirst().getValue();
-//
-//        int durationHours = (int) Duration.between(utcStart, utcEnd).get(ChronoUnit.HOURS);
-//
-//        List<ResourcesAvailabilityDto> resourcesAvailabilityDtos = new LinkedList<>();
-//
-//        UUID clusterId = foundCourse.getClusterId();
-//        Cluster cluster = clusterService.findClusterById(clusterId);
-//
-//        LocalDateTime currentTime = utcStart;
-//        while (currentTime.isBefore(utcEnd)) {
-//            int requiredCpus = 0;
-//            long requiredMemory = 0;
-//            int requiredNetworks = 0;
-//
-//            List<Reservation> currentReservations = reservationService
-//                    .findCurrentReservationsForCourse(foundCourse, currentTime);
-//
-//            for (Reservation reservation : currentReservations) {
-//                ResourceGroup resourceGroup = reservation.getResourceGroup();
-//                List<VirtualMachine> vms = resourceGroup.getVms();
-//                for (VirtualMachine vm : vms) {
-//                    Vm oVirtVM = vmService.findVmById(vm.getId().toString());
-//                    List<Host> oVirtHosts = clusterService.findAllHostsInCluster(cluster);
-//                    Map<String, Object> resources = vmService.findVmResources(oVirtVM, oVirtHosts.getFirst(), cluster);
-//
-//                    requiredCpus += (int) resources.get("cpu");
-//                    requiredMemory += (long) resources.get("memory");
-//                }
-//                requiredCpus += resourceGroup.getNetworks().size();
-//            }
-//
-//            if (requiredCpus > cpuCount || requiredMemory > memorySize && requiredNetworks > networkCount)
-//                resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, false));
-//            else resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, true));
-//
-//            currentTime = currentTime.plusMinutes(15);
-//        }
+        List<ResourcesAvailabilityDto> resourcesAvailabilityDtos = new LinkedList<>();
 
-        throw new ApplicationOperationNotImplementedException();
+        LocalDateTime currentTime = startTime;
+        while (currentTime.isBefore(endTime)) {
+            List<Reservation> currentCourseReservations = reservationService
+                    .findCurrentReservationsForCourse(foundCourse, currentTime);
+
+            List<Reservation> currentClusterReservations = reservationService
+                    .findCurrentReservationsForCluster(clusterId, currentTime);
+
+            if (bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(courseMetrics), currentCourseReservations, cluster) &&
+                    bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(clusterMetrics), currentClusterReservations, cluster))
+                resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, true));
+            else resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, false));
+
+            currentTime = currentTime.plusMinutes(30);
+        }
+
+        if (resourcesAvailabilityDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(resourcesAvailabilityDtos);
     }
 }

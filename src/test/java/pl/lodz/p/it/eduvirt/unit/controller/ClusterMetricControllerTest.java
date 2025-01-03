@@ -18,8 +18,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.aspect.exception.GeneralControllerExceptionResolver;
-import pl.lodz.p.it.eduvirt.aspect.exception.MetricControllerExceptionResolver;
-import pl.lodz.p.it.eduvirt.aspect.exception.OVirtAPIExceptionResolver;
 import pl.lodz.p.it.eduvirt.controller.ClusterMetricController;
 import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricValueDto;
 import pl.lodz.p.it.eduvirt.dto.metric.MetricValueDto;
@@ -30,9 +28,9 @@ import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 import pl.lodz.p.it.eduvirt.entity.general.Metric;
 import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricValueAlreadyDefined;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricValueNotDefinedException;
+import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.ClusterMetricMapper;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 import pl.lodz.p.it.eduvirt.service.impl.OVirtClusterServiceImpl;
@@ -50,9 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Import({
         ClusterMetricController.class,
-        MetricControllerExceptionResolver.class,
         GeneralControllerExceptionResolver.class,
-        OVirtAPIExceptionResolver.class
 })
 @WebMvcTest(controllers = {ClusterMetricController.class}, useDefaultFilters = false)
 public class ClusterMetricControllerTest {
@@ -161,7 +157,7 @@ public class ClusterMetricControllerTest {
                         .content(mapper.writeValueAsString(createDto))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(oVirtClusterServiceImpl, times(1))
                 .findClusterById(Mockito.eq(nonExistentClusterId));
@@ -189,7 +185,7 @@ public class ClusterMetricControllerTest {
                         .content(mapper.writeValueAsString(createDto))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(oVirtClusterServiceImpl, times(1)).findClusterById(Mockito.eq(existingClusterId));
 
@@ -210,7 +206,7 @@ public class ClusterMetricControllerTest {
 
         when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
 
-        doThrow(MetricValueAlreadyDefined.class).when(clusterMetricService)
+        doThrow(ClusterMetricExistsException.class).when(clusterMetricService)
                 .createNewValueForMetric(Mockito.eq(cluster), Mockito.eq(metric1.getId()), Mockito.eq(metricValue));
 
         mockMvc.perform(post("/clusters/{clusterId}/metrics", existingClusterId)
@@ -218,7 +214,7 @@ public class ClusterMetricControllerTest {
                         .content(mapper.writeValueAsString(createDto))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isConflict());
+                .andExpect(status().isBadRequest());
 
         verify(oVirtClusterServiceImpl, times(1)).findClusterById(Mockito.eq(existingClusterId));
 
@@ -317,7 +313,7 @@ public class ClusterMetricControllerTest {
                         .param("pageNumber", String.valueOf(pageNumber))
                         .param("pageSize", String.valueOf(pageSize)))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(oVirtClusterServiceImpl, times(1))
                 .findClusterById(Mockito.eq(nonExistentClusterId));
@@ -438,7 +434,7 @@ public class ClusterMetricControllerTest {
                         .content(mapper.writeValueAsString(newValueDto))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(oVirtClusterServiceImpl, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
     }
@@ -461,7 +457,7 @@ public class ClusterMetricControllerTest {
                         .content(mapper.writeValueAsString(newValueDto))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(oVirtClusterServiceImpl, times(1)).findClusterById(Mockito.eq(existingClusterId));
 
@@ -479,14 +475,14 @@ public class ClusterMetricControllerTest {
                 .thenReturn(cluster);
 
         when(clusterMetricService.updateMetricValue(Mockito.eq(cluster), Mockito.eq(metric1.getId()), Mockito.eq(newValueDto.value())))
-                .thenThrow(MetricValueNotDefinedException.class);
+                .thenThrow(ClusterMetricNotFoundException.class);
 
         mockMvc.perform(patch("/clusters/{clusterId}/metrics/{metricIUd}", existingClusterId, metric1.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(newValueDto))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(oVirtClusterServiceImpl, times(1)).findClusterById(Mockito.eq(existingClusterId));
 
@@ -527,7 +523,7 @@ public class ClusterMetricControllerTest {
         mockMvc.perform(delete("/clusters/{clusterId}/metrics/{metricId}", nonExistentClusterId, metric1.getId())
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(oVirtClusterServiceImpl, times(1))
                 .findClusterById(Mockito.eq(nonExistentClusterId));
@@ -548,7 +544,7 @@ public class ClusterMetricControllerTest {
         mockMvc.perform(delete("/clusters/{clusterId}/metrics/{metricId}", existingClusterId, randomUUID)
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(oVirtClusterServiceImpl, times(1))
                 .findClusterById(Mockito.eq(existingClusterId));
@@ -565,13 +561,13 @@ public class ClusterMetricControllerTest {
         when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId)))
                 .thenReturn(cluster);
 
-        doThrow(MetricValueNotDefinedException.class).when(clusterMetricService)
+        doThrow(ClusterMetricNotFoundException.class).when(clusterMetricService)
                 .deleteMetricValue(Mockito.eq(cluster), Mockito.eq(metric1.getId()));
 
         mockMvc.perform(delete("/clusters/{clusterId}/metrics/{metricId}", existingClusterId, metric1.getId())
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(oVirtClusterServiceImpl, times(1))
                 .findClusterById(Mockito.eq(existingClusterId));

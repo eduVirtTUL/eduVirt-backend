@@ -8,6 +8,7 @@ import pl.lodz.p.it.eduvirt.entity.key.CourseType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Builder
 @AllArgsConstructor
@@ -17,14 +18,25 @@ import java.util.Objects;
 @Table(name = "course")
 @Entity
 public class Course extends AbstractEntity {
+
     @Column(name = "name", nullable = false, length = 100)
     private String name;
+
     @Column(name = "description", nullable = false, length = 1000)
     private String description;
+
     @OneToMany(mappedBy = "course")
     private List<ResourceGroupPool> resourceGroupPools;
+
     @OneToMany(mappedBy = "course")
     private List<Team> teams = new ArrayList<>();
+
+    @Column(name = "cluster_id", nullable = false)
+    private UUID clusterId;
+
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<CourseMetric> metrics = new ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     @Column(name = "course_type", nullable = false)
     private CourseType courseType;

@@ -8,13 +8,14 @@ import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.general.Metric;
 import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricValueAlreadyDefined;
-import pl.lodz.p.it.eduvirt.exceptions.metric.MetricValueNotDefinedException;
+import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.ClusterMetricRepository;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -29,11 +30,11 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
     public void createNewValueForMetric(Cluster cluster, UUID metricId, double value) {
         UUID clusterId = UUID.fromString(cluster.id());
         Metric metric = metricRepository.findById(metricId)
-                .orElseThrow(MetricNotFoundException::new);
+                .orElseThrow(() -> new MetricNotFoundException(metricId));
 
         clusterMetricRepository.findByClusterIdAndMetric(clusterId, metric)
                 .ifPresent(metricValue -> {
-            throw new MetricValueAlreadyDefined();
+            throw new ClusterMetricExistsException(clusterId, metricId);
         });
 
         ClusterMetric newMetricValue = new ClusterMetric(clusterId, metric, value);
@@ -47,14 +48,20 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
     }
 
     @Override
+    public List<ClusterMetric> findAllMetricValuesForCluster(Cluster cluster) {
+        UUID clusterId = UUID.fromString(cluster.id());
+        return clusterMetricRepository.findAllByClusterId(clusterId);
+    }
+
+    @Override
     public ClusterMetric updateMetricValue(Cluster cluster, UUID metricId, double newValue) {
         UUID clusterId = UUID.fromString(cluster.id());
         Metric metric = metricRepository.findById(metricId)
-                .orElseThrow(MetricNotFoundException::new);
+                .orElseThrow(() -> new MetricNotFoundException(metricId));
 
         ClusterMetric metricValue = clusterMetricRepository
                 .findByClusterIdAndMetric(clusterId, metric)
-                .orElseThrow(MetricValueNotDefinedException::new);
+                .orElseThrow(() -> new ClusterMetricNotFoundException(clusterId, metricId));
 
         metricValue.setValue(newValue);
         return clusterMetricRepository.saveAndFlush(metricValue);
@@ -65,11 +72,11 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
         UUID clusterId = UUID.fromString(cluster.id());
 
         Metric metric = metricRepository.findById(metricId)
-                .orElseThrow(MetricNotFoundException::new);
+                .orElseThrow(() -> new MetricNotFoundException(metricId));
 
         ClusterMetric metricValue = clusterMetricRepository
                 .findByClusterIdAndMetric(clusterId, metric)
-                .orElseThrow(MetricValueNotDefinedException::new);
+                .orElseThrow(() -> new ClusterMetricNotFoundException(clusterId, metricId));
 
         clusterMetricRepository.delete(metricValue);
     }

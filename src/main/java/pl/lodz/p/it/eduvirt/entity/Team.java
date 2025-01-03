@@ -10,10 +10,14 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Getter @Setter
 @Builder
-@Table(name = "team")
+@ToString
+@Table(
+        name = "team",
+        indexes = @Index(name = "team_course_id_idx", columnList = "course_id"),
+        uniqueConstraints = @UniqueConstraint(name = "team_name_course_id_unique", columnNames = {"name", "course_id"})
+)
 @Entity
 public class Team extends Updatable {
 

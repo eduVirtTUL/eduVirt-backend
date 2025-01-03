@@ -6,8 +6,7 @@ import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.types.User;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.user.UsersNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.service.OVirtUserService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
@@ -30,7 +29,7 @@ public class OVirtUserServiceImpl implements OVirtUserService {
             return systemService.usersService().list().follow("permissions").send().users();
 
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new UsersNotFoundException();
+            throw new UserNotFoundException("Users could not be found");
         }
     }
 
@@ -43,7 +42,7 @@ public class OVirtUserServiceImpl implements OVirtUserService {
             return systemService.usersService().list().send().users();
 
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new UsersNotFoundException();
+            throw new UserNotFoundException("No users could be found");
         }
     }
 
@@ -55,7 +54,7 @@ public class OVirtUserServiceImpl implements OVirtUserService {
 
             return systemService.usersService().userService(userId.toString()).get().send().user();
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new UserNotFoundException();
+            throw new UserNotFoundException("User with id %s could not be found".formatted(userId));
         }
     }
 }
