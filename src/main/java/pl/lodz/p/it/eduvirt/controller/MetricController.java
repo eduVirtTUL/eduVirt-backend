@@ -4,12 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricDto;
 import pl.lodz.p.it.eduvirt.dto.metric.MetricDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
-import pl.lodz.p.it.eduvirt.entity.general.Metric;
+import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.mappers.MetricMapper;
 import pl.lodz.p.it.eduvirt.service.MetricService;
 
@@ -25,7 +26,7 @@ public class MetricController {
     private final MetricMapper metricMapper;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> createNewMetric(@RequestBody CreateMetricDto createDto) {
+    public ResponseEntity<Void> createNewMetric(@RequestBody @Validated CreateMetricDto createDto) {
         metricService.createNewMetric(createDto.name());
         return ResponseEntity.noContent().build();
     }

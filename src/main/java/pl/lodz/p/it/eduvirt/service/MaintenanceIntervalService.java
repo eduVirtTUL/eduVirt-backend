@@ -3,7 +3,7 @@ package pl.lodz.p.it.eduvirt.service;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
+import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
 
 import java.time.LocalDateTime;
 import java.util.List;

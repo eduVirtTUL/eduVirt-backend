@@ -2,20 +2,16 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.ovirt.engine.sdk4.types.Cluster;
-import org.ovirt.engine.sdk4.types.Host;
-import org.ovirt.engine.sdk4.types.Vm;
-import org.ovirt.engine.sdk4.types.VnicProfile;
+import org.ovirt.engine.sdk4.types.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
+import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
+import pl.lodz.p.it.eduvirt.mappers.EventMapper;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -31,10 +27,17 @@ import java.util.UUID;
 @RequestMapping("/resource/vm")
 @RequiredArgsConstructor
 public class VmController {
-    private final VmMapper vmMapper;
+
+    /* Services */
+
     private final OVirtVmService oVirtVmService;
     private final OVirtClusterService oVirtClusterService;
     private final OVirtVnicProfileService oVirtVnicProfileService;
+
+    /* Mappers */
+
+    private final VmMapper vmMapper;
+    private final EventMapper eventMapper;
 
     @GetMapping
     public ResponseEntity<List<VmDto>> getVms() {
@@ -79,5 +82,20 @@ public class VmController {
         );
 
         return ResponseEntity.ok(resources);
+    }
+
+    @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<EventGeneralDto>> findEventsForVm(
+            @PathVariable("id") UUID vmId,
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
+        Vm oVirtVM = oVirtVmService.findVmById(vmId.toString());
+        List<Event> foundEvents = oVirtVmService.findEventsByVmId(oVirtVM, pageNumber, pageSize);
+
+        List<EventGeneralDto> listOfDTOs = foundEvents.stream()
+                .map(eventMapper::ovirtEventToGeneralDTO).toList();
+
+        if (foundEvents.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDTOs);
     }
 }

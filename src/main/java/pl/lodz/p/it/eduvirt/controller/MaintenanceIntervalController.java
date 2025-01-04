@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.maintenance_interval.CreateMaintenanceIntervalDto;
@@ -14,7 +15,7 @@ import pl.lodz.p.it.eduvirt.dto.maintenance_interval.MaintenanceIntervalDetailsD
 import pl.lodz.p.it.eduvirt.dto.maintenance_interval.MaintenanceIntervalDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
-import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
+import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.mappers.MaintenanceIntervalMapper;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
@@ -36,30 +37,29 @@ public class MaintenanceIntervalController {
     private final MaintenanceIntervalMapper maintenanceIntervalMapper;
 
     @PostMapping(path = "/cluster/{clusterId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> createNewClusterMaintenanceInterval(@PathVariable("clusterId") UUID clusterId,
-                                                                    @RequestBody CreateMaintenanceIntervalDto createDto) {
-        Cluster foundCluster = clusterService.findClusterById(clusterId);
+    public ResponseEntity<Void> createNewClusterMaintenanceInterval(
+            @PathVariable("clusterId") UUID clusterId,
+            @RequestBody @Validated CreateMaintenanceIntervalDto createDto) {
 
+        Cluster foundCluster = clusterService.findClusterById(clusterId);
         maintenanceIntervalService.createClusterMaintenanceInterval(
                 foundCluster,
                 createDto.cause(),
                 createDto.description(),
                 createDto.beginAt(),
-                createDto.endAt()
-        );
-
+                createDto.endAt());
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(path = "/system", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> createNewSystemMaintenanceInterval(@RequestBody CreateMaintenanceIntervalDto createDto) {
+    public ResponseEntity<Void> createNewSystemMaintenanceInterval(
+            @RequestBody @Validated CreateMaintenanceIntervalDto createDto) {
+
         maintenanceIntervalService.createSystemMaintenanceInterval(
                 createDto.cause(),
                 createDto.description(),
                 createDto.beginAt(),
-                createDto.endAt()
-        );
-
+                createDto.endAt());
         return ResponseEntity.noContent().build();
     }
 

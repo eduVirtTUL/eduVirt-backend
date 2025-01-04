@@ -8,6 +8,6 @@ import java.util.UUID;
 public class CourseMetricNotFoundException extends NotFoundException {
 
     public CourseMetricNotFoundException(UUID courseId, UUID metricId) {
-        super("Course with id " + courseId + " does not have metric with id " + metricId, I18n.METRIC_VALUE_NOT_DEFINED);
+        super("Course with id " + courseId + " does not have metric with id " + metricId, I18n.COURSE_METRIC_VALUE_NOT_DEFINED);
     }
 }

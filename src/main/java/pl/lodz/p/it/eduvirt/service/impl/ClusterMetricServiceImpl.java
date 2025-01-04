@@ -5,9 +5,11 @@ import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.general.Metric;
-import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.Metric;
+import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
 import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
@@ -21,6 +23,7 @@ import java.util.UUID;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.REQUIRED)
 public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     private final MetricRepository metricRepository;

@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.CourseMetric;
 import pl.lodz.p.it.eduvirt.entity.CourseMetricKey;
-import pl.lodz.p.it.eduvirt.entity.general.Metric;
+import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.exceptions.CourseMetricExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.CourseMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;

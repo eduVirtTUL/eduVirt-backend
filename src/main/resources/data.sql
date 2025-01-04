@@ -3,10 +3,10 @@ VALUES ('2865efff-f8e5-4960-a0ce-fc05e98828ba', 'cpu_count'),
        ('63490da4-d0f1-4e7a-88fc-3342633accc0', 'memory_size'),
        ('1929c2b2-ba03-4180-ae90-79bd2335f2a8', 'network_count');
 
-INSERT INTO public.metric_cluster (cluster_id, metric_id, metric_value)
-VALUES ('a5097950-d0c6-4d65-8b2e-4768809ad37a', '2865efff-f8e5-4960-a0ce-fc05e98828ba', 100),
-       ('a5097950-d0c6-4d65-8b2e-4768809ad37a', '63490da4-d0f1-4e7a-88fc-3342633accc0', 1073741824),
-       ('a5097950-d0c6-4d65-8b2e-4768809ad37a', '1929c2b2-ba03-4180-ae90-79bd2335f2a8', 10);
+INSERT INTO public.metric_cluster (id, cluster_id, metric_id, metric_value)
+VALUES (gen_random_uuid(),'a5097950-d0c6-4d65-8b2e-4768809ad37a', '2865efff-f8e5-4960-a0ce-fc05e98828ba', 100),
+       (gen_random_uuid(), 'a5097950-d0c6-4d65-8b2e-4768809ad37a', '63490da4-d0f1-4e7a-88fc-3342633accc0', 1073741824),
+       (gen_random_uuid(), 'a5097950-d0c6-4d65-8b2e-4768809ad37a', '1929c2b2-ba03-4180-ae90-79bd2335f2a8', 10);
 
 INSERT INTO public.private_vlans_range (range_from, range_to, id)
 VALUES (0, 4096, '0978f66d-050c-4c28-a376-9b8934d6167a');
