@@ -10,6 +10,7 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.PermissionTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VmTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VnicProfileTask;
@@ -17,8 +18,11 @@ import pl.lodz.p.it.eduvirt.executor.repository.ExecutorSubtaskRepository;
 import pl.lodz.p.it.eduvirt.executor.repository.ExecutorTaskRepository;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -67,18 +71,20 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
         ExecutorTask task = executorTaskRepository.findById(taskId)
                 .orElseThrow(RuntimeException::new);
 
-//        ExecutorSubtask subtask = new ExecutorSubtask(task, vmId, type);
+        // TODO michal: Ask is better save nulls or mapping nulls to 00000000-0000-0000-0000-000000000000
+        UUID sanitizedVmId = Objects.requireNonNullElse(vmId, UUID.fromString("00000000-0000-0000-0000-000000000000"));
+
         ExecutorSubtask subtask = switch (type) {
-            case START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM -> new VmTask(task, vmId, type);
-            case ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE -> new VnicProfileTask(task, vmId, type);
-            case ASSIGN_PERMISSION, REVOKE_PERMISSION -> new PermissionTask(task, vmId, type);
+            case START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM -> new VmTask(task, sanitizedVmId, type);
+            case ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE -> new VnicProfileTask(task, sanitizedVmId, type);
+            case ASSIGN_PERMISSION, REVOKE_PERMISSION -> new PermissionTask(task, sanitizedVmId, type);
         };
 
         return executorSubtaskRepository.saveAndFlush(subtask);
     }
 
     @Override
-    public void finalizeSubTask(UUID subtaskId, boolean success, String comment, UUID additionalId) {
+    public void finalizeSubTask(UUID subtaskId, boolean success, String comment, AdditionalId... additionalIds) {
         ExecutorSubtask subtask = executorSubtaskRepository.findById(subtaskId)
                 .orElseThrow(EntityNotFoundException::new);
 
@@ -87,10 +93,23 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
                 Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(200, comment.length())) : null
         );
 
+        Map<AdditionalId, UUID> mapOfAdditionalIds = new HashMap<>();
+        if (Objects.nonNull(additionalIds)) {
+            for (AdditionalId additionalId : additionalIds) {
+                mapOfAdditionalIds.put(
+                        additionalId,
+                        // TODO michal: Ask is better save nulls or mapping nulls to 00000000-0000-0000-0000-000000000000
+                        Optional.ofNullable(additionalId.getId())
+                                .orElse(UUID.fromString("00000000-0000-0000-0000-000000000000"))
+                );
+            }
+        }
+
         switch (subtask) {
             case VmTask vmTask -> { }
             case VnicProfileTask vnicProfileTask -> {
-                vnicProfileTask.setVnicProfileId(additionalId);
+                vnicProfileTask.setVnicProfileId(mapOfAdditionalIds.get(AdditionalId.VNIC_PROFILE));
+                vnicProfileTask.setNicId(mapOfAdditionalIds.get(AdditionalId.NIC));
             }
             case PermissionTask permissionTask -> { }
             default -> throw new IllegalArgumentException("Unexpected subtask type: " + subtask);

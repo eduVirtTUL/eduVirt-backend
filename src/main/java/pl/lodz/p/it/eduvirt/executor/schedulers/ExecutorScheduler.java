@@ -19,6 +19,7 @@ import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtAssignedPermissionService;
@@ -171,7 +172,9 @@ public class ExecutorScheduler {
                                                         UUID vmId = nic.getVirtualMachine().getId();
                                                         runAndRegister(
                                                                 () -> assignVnicProfileToNIC(chosenVnicProfile.getId(), vmId, nic.getId()),
-                                                                executorTask, vmId, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE, chosenVnicProfile.getId()
+                                                                executorTask, vmId, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE,
+                                                                AdditionalId.VNIC_PROFILE.withId(chosenVnicProfile.getId()),
+                                                                AdditionalId.NIC.withId(nic.getId())
                                                         );
                                                     }
                                             );
@@ -283,7 +286,9 @@ public class ExecutorScheduler {
                                                     UUID vmId = nic.getVirtualMachine().getId();
                                                     return runAndRegister(
                                                             () -> removeVnicProfileFromNIC(vmId, nic.getId()),
-                                                            executorTask, vmId, ExecutorSubtask.SubtaskType.REMOVE_VNIC_PROFILE
+                                                            executorTask, vmId, ExecutorSubtask.SubtaskType.REMOVE_VNIC_PROFILE,
+                                                            AdditionalId.VNIC_PROFILE,
+                                                            AdditionalId.NIC.withId(nic.getId())
                                                     );
                                                 }
                                         )
@@ -335,39 +340,30 @@ public class ExecutorScheduler {
     }
 
     /* Registering subtasks methods */
-    // TODO michal: Ask is better nullable fields or mapping nulls to 00000000-0000-0000-0000-000000000000
 
     private <T> T runAndRegister(Supplier<T> supplier, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type,
-                                 UUID additionalId) {
-        UUID sanitizedVmId = Objects.requireNonNullElse(vmId, UUID.fromString("00000000-0000-0000-0000-000000000000"));
-        ExecutorSubtask executorSubtask = executorTaskService.registerSubTask(task.getId(), sanitizedVmId, type);
+                                 AdditionalId... additionalIds) {
+        ExecutorSubtask executorSubtask = executorTaskService.registerSubTask(task.getId(), vmId, type);
         try {
             T tmpVal = supplier.get();
-            if (Objects.isNull(additionalId)) {
-                additionalId = tmpVal instanceof UUID ? (UUID) tmpVal : UUID.fromString("00000000-0000-0000-0000-000000000000");
+            if (tmpVal instanceof UUID && Objects.nonNull(additionalIds) &&
+                    additionalIds.length >= 1 && Objects.isNull(additionalIds[0].getId())) {
+                additionalIds[0].withId((UUID) tmpVal);
             }
-            executorTaskService.finalizeSubTask(executorSubtask.getId(),true, null, additionalId);
+            executorTaskService.finalizeSubTask(executorSubtask.getId(),true, null, additionalIds);
             return tmpVal;
         } catch (Throwable e) {
-            executorTaskService.finalizeSubTask(executorSubtask.getId(),false, e.getMessage(), additionalId);
+            executorTaskService.finalizeSubTask(executorSubtask.getId(),false, e.getMessage(), additionalIds);
             throw e;
         }
     }
 
-    private <T> T runAndRegister(Supplier<T> supplier, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type) {
-        return runAndRegister(supplier, task, vmId, type, null);
-    }
-
     private void runAndRegister(Runnable runnable, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type,
-                                UUID additionalId) {
+                                AdditionalId... additionalIds) {
         Supplier<?> castedSupplier = () -> {
             runnable.run();
             return null;
         };
-        runAndRegister(castedSupplier, task, vmId, type, additionalId);
-    }
-
-    private void runAndRegister(Runnable runnable, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type) {
-        runAndRegister(runnable, task, vmId, type, null);
+        runAndRegister(castedSupplier, task, vmId, type, additionalIds);
     }
 }

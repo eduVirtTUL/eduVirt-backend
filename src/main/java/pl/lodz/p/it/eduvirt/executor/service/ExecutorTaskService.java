@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.executor.service;
 import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,7 +18,7 @@ public interface ExecutorTaskService {
 
     ExecutorSubtask registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type);
 
-    void finalizeSubTask(UUID subtaskId, boolean success, String comment, UUID additionalId);
+    void finalizeSubTask(UUID subtaskId, boolean success, String comment, AdditionalId... additionalIds);
 
     List<ExecutorSubtask> getReservationStartExistingSubTasks(Reservation reservation);
 

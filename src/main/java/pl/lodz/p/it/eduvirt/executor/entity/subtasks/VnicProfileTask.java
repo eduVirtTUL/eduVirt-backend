@@ -27,6 +27,10 @@ public class VnicProfileTask extends ExecutorSubtask {
     @Setter
     private UUID vnicProfileId;
 
+    @Column(name = "nic_id", updatable = true, nullable = true)
+    @Setter
+    private UUID nicId;
+
     // Constructors
 
     public VnicProfileTask(ExecutorTask executorTask,
