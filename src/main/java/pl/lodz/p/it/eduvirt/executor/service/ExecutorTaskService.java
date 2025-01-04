@@ -6,6 +6,7 @@ import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface ExecutorTaskService {
@@ -23,4 +24,6 @@ public interface ExecutorTaskService {
     List<ExecutorSubtask> getReservationStartExistingSubTasks(Reservation reservation);
 
     List<ExecutorSubtask> getReservationEndExistingSubTasks(Reservation reservation);
+
+//    List<ExecutorTask> getReservationsToEndTasks();
 }

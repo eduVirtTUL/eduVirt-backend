@@ -93,5 +93,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             WHERE current_timestamp >= r.endTime
             AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_DESTRUCT' AND et.status != 'FAILED')
             """)
-    List<Reservation> findReservationsToFinish();
+    List<Reservation> findReservationsToStop();
 }

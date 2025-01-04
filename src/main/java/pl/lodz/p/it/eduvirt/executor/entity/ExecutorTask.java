@@ -41,6 +41,7 @@ public class ExecutorTask extends AbstractEntity {
     private TaskType type;
 
     enum TaskStatus {SUCCESSFUL, FAILED, IN_PROGRESS}
+//    enum TaskStatus {SUCCESSFUL, FAILED, IN_PROGRESS, AWAITING_TO_END_RESERVATION}
 
     @Column(name = "status", updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
