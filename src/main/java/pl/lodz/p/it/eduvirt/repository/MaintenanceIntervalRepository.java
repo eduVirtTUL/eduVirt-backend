@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,25 +21,31 @@ import java.util.UUID;
 @Transactional(propagation = Propagation.MANDATORY)
 public interface MaintenanceIntervalRepository extends JpaRepository<MaintenanceInterval, UUID> {
 
+    @PreAuthorize("hasRole('administrator')")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt > current_timestamp " +
             "AND ((mi.type = 'CLUSTER' AND mi.clusterId = :clusterId) OR mi.type = 'SYSTEM') ORDER BY mi.endAt ASC")
     Page<MaintenanceInterval> findAllActiveIntervalsForGivenCluster(@Param("clusterId") UUID clusterId, Pageable pageable);
 
+    @PreAuthorize("hasRole('administrator')")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt > current_timestamp ORDER BY mi.endAt ASC")
     Page<MaintenanceInterval> findAllActiveIntervals(Pageable pageable);
 
+    @PreAuthorize("hasRole('administrator')")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt < current_timestamp " +
             "AND ((mi.type = 'CLUSTER' AND mi.clusterId = :clusterId) OR mi.type = 'SYSTEM') ORDER BY mi.endAt DESC")
     Page<MaintenanceInterval> findAllHistoricalIntervalsForGivenCluster(@Param("clusterId") UUID clusterId, Pageable pageable);
 
+    @PreAuthorize("hasRole('administrator')")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt < current_timestamp ORDER BY mi.endAt DESC")
     Page<MaintenanceInterval> findAllHistoricalIntervals(Pageable pageable);
 
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE (mi.endAt > :start AND mi.beginAt < :end) " +
             "AND (mi.clusterId IS NULL OR mi.clusterId = :cluster)")
     List<MaintenanceInterval> findAllIntervalsInGivenTimePeriod(
             @Param("cluster") UUID clusterId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.type = :type AND mi.clusterId = :clusterId AND " +
             "mi.endAt > :start AND mi.beginAt < :end")
     List<MaintenanceInterval> findAllIntervalsInGivenTimePeriod(@Param("start") LocalDateTime start,

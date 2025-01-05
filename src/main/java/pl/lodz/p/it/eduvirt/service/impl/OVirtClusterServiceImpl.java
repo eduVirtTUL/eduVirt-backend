@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.types.*;
 import org.ovirt.engine.sdk4.services.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +20,16 @@ import java.util.UUID;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class OVirtClusterServiceImpl implements OVirtClusterService {
+
+    /* ConnectionFactory */
 
     private final ConnectionFactory connectionFactory;
 
+    /* Read methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public Cluster findClusterById(UUID clusterId) {
         try {
@@ -36,6 +42,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public List<Cluster> findClusters(int pageNumber, int pageSize) {
         try {
@@ -49,6 +56,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public List<Host> findHostsInCluster(Cluster cluster, int pageNumber, int pageSize) {
         try {
@@ -65,6 +73,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Override
     public List<Host> findAllHostsInCluster(Cluster cluster) {
         try {
@@ -79,6 +88,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Override
     public List<Vm> findVmsInCluster(Cluster cluster, int pageNumber, int pageSize) {
         try {
@@ -95,6 +105,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public List<Network> findNetworksInCluster(Cluster cluster, int pageNumber, int pageSize) {
         try {
@@ -108,6 +119,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public List<Event> findEventsInCluster(Cluster cluster, int pageNumber, int pageSize) {
         try {
@@ -122,6 +134,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public int findHostCountInCluster(Cluster cluster) {
         try {
@@ -137,6 +150,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public int findVmCountInCluster(Cluster cluster) {
         try {

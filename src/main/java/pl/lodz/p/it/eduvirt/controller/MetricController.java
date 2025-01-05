@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricDto;
@@ -19,18 +22,29 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/metrics")
+@Transactional(propagation = Propagation.NEVER)
 public class MetricController {
+
+    /* Services */
 
     private final MetricService metricService;
 
+    /* Mappers */
+
     private final MetricMapper metricMapper;
 
+    /* Create methods  */
+
+    @PreAuthorize("hasRole('administrator')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createNewMetric(@RequestBody @Validated CreateMetricDto createDto) {
         metricService.createNewMetric(createDto.name());
         return ResponseEntity.noContent().build();
     }
 
+    /* Read methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MetricDto>> getAllMetrics(
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -46,6 +60,9 @@ public class MetricController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    /* Delete methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @DeleteMapping(path = "/{metricId}")
     public ResponseEntity<Void> deleteMetric(@PathVariable UUID metricId) {
         metricService.deleteMetric(metricId);

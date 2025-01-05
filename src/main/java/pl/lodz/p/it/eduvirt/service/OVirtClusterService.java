@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public interface OVirtClusterService {
 
+    /* Read methods */
+
     Cluster findClusterById(UUID clusterId);
     List<Cluster> findClusters(int pageNumber, int pageSize);
 

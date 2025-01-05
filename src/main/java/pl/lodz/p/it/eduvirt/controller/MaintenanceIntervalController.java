@@ -7,6 +7,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
@@ -26,21 +29,28 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@LoggerInterceptor
 @RequiredArgsConstructor
 @RequestMapping(path = "/maintenance-intervals")
+@Transactional(propagation = Propagation.NEVER)
 public class MaintenanceIntervalController {
 
-    private final OVirtClusterService clusterService;
+    /* Services */
+
     private final MaintenanceIntervalService maintenanceIntervalService;
+
+    private final OVirtClusterService clusterService;
+
+    /* Mappers */
 
     private final MaintenanceIntervalMapper maintenanceIntervalMapper;
 
+    /* Create methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @PostMapping(path = "/cluster/{clusterId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createNewClusterMaintenanceInterval(
             @PathVariable("clusterId") UUID clusterId,
             @RequestBody @Validated CreateMaintenanceIntervalDto createDto) {
-
         Cluster foundCluster = clusterService.findClusterById(clusterId);
         maintenanceIntervalService.createClusterMaintenanceInterval(
                 foundCluster,
@@ -51,10 +61,10 @@ public class MaintenanceIntervalController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @PostMapping(path = "/system", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createNewSystemMaintenanceInterval(
             @RequestBody @Validated CreateMaintenanceIntervalDto createDto) {
-
         maintenanceIntervalService.createSystemMaintenanceInterval(
                 createDto.cause(),
                 createDto.description(),
@@ -63,6 +73,9 @@ public class MaintenanceIntervalController {
         return ResponseEntity.noContent().build();
     }
 
+    /* Read methods */
+
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MaintenanceIntervalDto>> getAllMaintenanceIntervals(
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -86,6 +99,7 @@ public class MaintenanceIntervalController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/time-period")
     public ResponseEntity<List<MaintenanceIntervalDto>> getMaintenanceIntervalsWithinTimePeriod(
             @RequestParam(value = "clusterId", required = false) UUID clusterId,
@@ -101,6 +115,7 @@ public class MaintenanceIntervalController {
         return ResponseEntity.ok(listOfDtos);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{intervalId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MaintenanceIntervalDetailsDto> getMaintenanceInterval(@PathVariable("intervalId") UUID intervalId) {
         try {
@@ -116,6 +131,9 @@ public class MaintenanceIntervalController {
         }
     }
 
+    /* Delete methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @DeleteMapping(path = "/{intervalId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> finishMaintenanceInterval(@PathVariable("intervalId") UUID intervalId) {
         maintenanceIntervalService.finishMaintenanceInterval(intervalId);

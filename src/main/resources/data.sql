@@ -4,9 +4,9 @@ VALUES ('2865efff-f8e5-4960-a0ce-fc05e98828ba', 'cpu_count'),
        ('1929c2b2-ba03-4180-ae90-79bd2335f2a8', 'network_count');
 
 INSERT INTO public.metric_cluster (id, cluster_id, metric_id, metric_value)
-VALUES (gen_random_uuid(),'a5097950-d0c6-4d65-8b2e-4768809ad37a', '2865efff-f8e5-4960-a0ce-fc05e98828ba', 100),
-       (gen_random_uuid(), 'a5097950-d0c6-4d65-8b2e-4768809ad37a', '63490da4-d0f1-4e7a-88fc-3342633accc0', 1073741824),
-       (gen_random_uuid(), 'a5097950-d0c6-4d65-8b2e-4768809ad37a', '1929c2b2-ba03-4180-ae90-79bd2335f2a8', 10);
+VALUES (gen_random_uuid(),'c282a57c-624e-448b-823e-a68352d10914', '2865efff-f8e5-4960-a0ce-fc05e98828ba', 100),
+       (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '63490da4-d0f1-4e7a-88fc-3342633accc0', 1073741824),
+       (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '1929c2b2-ba03-4180-ae90-79bd2335f2a8', 10);
 
 INSERT INTO public.private_vlans_range (range_from, range_to, id)
 VALUES (0, 4096, '0978f66d-050c-4c28-a376-9b8934d6167a');
@@ -19,10 +19,10 @@ VALUES (gen_random_uuid(), 'test', '', false, 0, 0);
 ------------------------------------------
 
 INSERT INTO public.course (id, name, description, team_based, cluster_id)
-VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'Systemy operacyjne', 'Operating Systems', false, 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('a7556146-23a6-4936-903c-c337c794a8c7', 'Infrastruktury środowisk rozwojowych i produkcyjnych', 'Infrastructures of Development and Production Environments', true, 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('e485ded6-c166-45f6-a924-13ce44666f7a', 'Sieciowe systemy baz danych', 'Network Database Systems', true, 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('1decd050-1328-4eca-b2de-84793a8474c2', 'Techniki utrzymania aplikacji', 'Techniques of Application Maintenance', true, 'a5097950-d0c6-4d65-8b2e-4768809ad37a');
+VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'Systemy operacyjne', 'Operating Systems', false, 'c282a57c-624e-448b-823e-a68352d10914'),
+       ('a7556146-23a6-4936-903c-c337c794a8c7', 'Infrastruktury środowisk rozwojowych i produkcyjnych', 'Infrastructures of Development and Production Environments', true, 'c282a57c-624e-448b-823e-a68352d10914'),
+       ('e485ded6-c166-45f6-a924-13ce44666f7a', 'Sieciowe systemy baz danych', 'Network Database Systems', true, 'c282a57c-624e-448b-823e-a68352d10914'),
+       ('1decd050-1328-4eca-b2de-84793a8474c2', 'Techniki utrzymania aplikacji', 'Techniques of Application Maintenance', true, 'c282a57c-624e-448b-823e-a68352d10914');
 
 --------------------------
 --- Systemy operacyjne ---
@@ -117,10 +117,10 @@ VALUES ('1b0912df-c4c0-4907-9dd4-b09573a3ef44', 0, 'ISRP-RG01', '', false, 6),
 --- Stateful pods ---
 
 INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, cluster_id)
-VALUES ('0e542d51-ba4f-4dd5-bef8-eae5b7477103', 'a7556146-23a6-4936-903c-c337c794a8c7', '1b0912df-c4c0-4907-9dd4-b09573a3ef44', 'f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('61807f79-334e-4fdd-985b-6aaa95c0bf8d', 'a7556146-23a6-4936-903c-c337c794a8c7', 'dfe85896-7c82-41c6-ba31-f9401d10c4f2', '5ef19d54-c429-499d-9654-ac052d83f3e7', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('c5cec07a-f8c1-41ca-a439-397a7aae63df', 'a7556146-23a6-4936-903c-c337c794a8c7', '0454b258-1457-4719-99b6-a9cc9576de2d', '64da3d79-52be-4936-97e3-b88597bac8b9', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('e016831f-96e4-4c96-a14d-54c167fdd5d0', 'a7556146-23a6-4936-903c-c337c794a8c7', 'a1529025-aae8-4f33-b5cf-295353d77c48', '60deabdf-ba7d-482a-b6a5-26e440850496', 'a5097950-d0c6-4d65-8b2e-4768809ad37a');
+VALUES ('0e542d51-ba4f-4dd5-bef8-eae5b7477103', 'a7556146-23a6-4936-903c-c337c794a8c7', '1b0912df-c4c0-4907-9dd4-b09573a3ef44', 'f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 'c282a57c-624e-448b-823e-a68352d10914'),
+       ('61807f79-334e-4fdd-985b-6aaa95c0bf8d', 'a7556146-23a6-4936-903c-c337c794a8c7', 'dfe85896-7c82-41c6-ba31-f9401d10c4f2', '5ef19d54-c429-499d-9654-ac052d83f3e7', 'c282a57c-624e-448b-823e-a68352d10914'),
+       ('c5cec07a-f8c1-41ca-a439-397a7aae63df', 'a7556146-23a6-4936-903c-c337c794a8c7', '0454b258-1457-4719-99b6-a9cc9576de2d', '64da3d79-52be-4936-97e3-b88597bac8b9', 'c282a57c-624e-448b-823e-a68352d10914'),
+       ('e016831f-96e4-4c96-a14d-54c167fdd5d0', 'a7556146-23a6-4936-903c-c337c794a8c7', 'a1529025-aae8-4f33-b5cf-295353d77c48', '60deabdf-ba7d-482a-b6a5-26e440850496', 'c282a57c-624e-448b-823e-a68352d10914');
 
 --- Resource group pools ---
 
@@ -181,9 +181,9 @@ VALUES ('692bde41-c8ca-4873-bbaf-edb789ae7c87', 0, 'SSBD-RG01', '', false, 6),
 --- Stateful pods ---
 
 INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, cluster_id)
-VALUES ('a57e55b8-471d-4754-acf0-15c57b877e99', 'e485ded6-c166-45f6-a924-13ce44666f7a', '692bde41-c8ca-4873-bbaf-edb789ae7c87', 'f3896c36-2133-4497-965e-0951e1f5aebf', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('849f00e3-199d-4e81-9892-5b5c2a3b5b7d', 'e485ded6-c166-45f6-a924-13ce44666f7a', 'f13f85d1-14bf-4930-bc2a-b044f3feebe2', '78908655-ee18-4863-9eef-e67519940a0b', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('a5681e23-bcec-4353-9e4d-f0c60f2efb26', 'e485ded6-c166-45f6-a924-13ce44666f7a', '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', 'a5097950-d0c6-4d65-8b2e-4768809ad37a');
+VALUES ('a57e55b8-471d-4754-acf0-15c57b877e99', 'e485ded6-c166-45f6-a924-13ce44666f7a', '692bde41-c8ca-4873-bbaf-edb789ae7c87', 'f3896c36-2133-4497-965e-0951e1f5aebf', 'c282a57c-624e-448b-823e-a68352d10914'),
+       ('849f00e3-199d-4e81-9892-5b5c2a3b5b7d', 'e485ded6-c166-45f6-a924-13ce44666f7a', 'f13f85d1-14bf-4930-bc2a-b044f3feebe2', '78908655-ee18-4863-9eef-e67519940a0b', 'c282a57c-624e-448b-823e-a68352d10914'),
+       ('a5681e23-bcec-4353-9e4d-f0c60f2efb26', 'e485ded6-c166-45f6-a924-13ce44666f7a', '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', 'c282a57c-624e-448b-823e-a68352d10914');
 
 --- Resource group pools ---
 
@@ -238,9 +238,9 @@ VALUES ('a7919551-3807-4b35-88e3-fc3a868ba014', 0, 'TUA-RG01', '', false, 6),
 --- Stateful pods ---
 
 INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, cluster_id)
-VALUES ('c971b368-92c8-4a01-86d2-dd783b5360a8', '1decd050-1328-4eca-b2de-84793a8474c2', 'a7919551-3807-4b35-88e3-fc3a868ba014', 'd46387ee-7397-4184-91eb-d01d5f301c0e', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('161f4a45-f87d-40b5-9ad6-1ec056485e01', '1decd050-1328-4eca-b2de-84793a8474c2', 'e51132d3-8ac3-4232-85e0-849c8afa6abc', 'e608c9d0-e871-4374-a052-f27ced4a9cec', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('c3db873c-cfeb-4ec2-b87b-342af78f869a', '1decd050-1328-4eca-b2de-84793a8474c2', '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '18750e93-22a7-4a23-8f8b-e0cabde8f793', 'a5097950-d0c6-4d65-8b2e-4768809ad37a');
+VALUES ('c971b368-92c8-4a01-86d2-dd783b5360a8', '1decd050-1328-4eca-b2de-84793a8474c2', 'a7919551-3807-4b35-88e3-fc3a868ba014', 'd46387ee-7397-4184-91eb-d01d5f301c0e', 'c282a57c-624e-448b-823e-a68352d10914'),
+       ('161f4a45-f87d-40b5-9ad6-1ec056485e01', '1decd050-1328-4eca-b2de-84793a8474c2', 'e51132d3-8ac3-4232-85e0-849c8afa6abc', 'e608c9d0-e871-4374-a052-f27ced4a9cec', 'c282a57c-624e-448b-823e-a68352d10914'),
+       ('c3db873c-cfeb-4ec2-b87b-342af78f869a', '1decd050-1328-4eca-b2de-84793a8474c2', '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '18750e93-22a7-4a23-8f8b-e0cabde8f793', 'c282a57c-624e-448b-823e-a68352d10914');
 
 --- Resource group pools ---
 

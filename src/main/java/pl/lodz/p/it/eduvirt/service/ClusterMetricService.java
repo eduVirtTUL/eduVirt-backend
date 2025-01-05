@@ -10,12 +10,20 @@ import java.util.UUID;
 
 public interface ClusterMetricService {
 
+    /* Create methods */
+
     void createNewValueForMetric(Cluster cluster, UUID metricId, double value);
+
+    /* Read methods */
 
     Page<ClusterMetric> findAllMetricValuesForCluster(Cluster cluster, Pageable pageable);
     List<ClusterMetric> findAllMetricValuesForCluster(Cluster cluster);
 
+    /* Update methods */
+
     ClusterMetric updateMetricValue(Cluster cluster, UUID metricId, double newValue);
+
+    /* Delete methods */
 
     void deleteMetricValue(Cluster cluster, UUID metricId);
 }

@@ -77,6 +77,8 @@
         <lombok.version>1.18.36</lombok.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <openapi.version>2.7.0</openapi.version>
+        <openapi-javadoc.version>1.8.0</openapi-javadoc.version>
+        <therapi-runtime-javadoc-scribe.version>0.15.0</therapi-runtime-javadoc-scribe.version>
     </properties>
 
     <dependencies>
@@ -156,6 +158,12 @@
             <version>${openapi.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-javadoc</artifactId>
+            <version>${openapi-javadoc.version}</version>
+        </dependency>
+
         <!--OAUTH2-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -191,6 +199,11 @@
                             <groupId>org.mapstruct</groupId>
                             <artifactId>mapstruct-processor</artifactId>
                             <version>${mapstruct.version}</version>
+                        </path>
+                        <path>
+                            <groupId>com.github.therapi</groupId>
+                            <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+                            <version>${therapi-runtime-javadoc-scribe.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
