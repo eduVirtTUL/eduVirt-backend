@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +31,7 @@ import java.util.UUID;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalService {
 
     /* Repositories */
@@ -43,6 +44,9 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
 
     private final MailHelper mailHelper;
 
+    /* Create methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public void createClusterMaintenanceInterval(Cluster cluster, String cause, String description, LocalDateTime beginAt, LocalDateTime endAt) {
         if (beginAt.isAfter(endAt))
@@ -95,6 +99,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         maintenanceIntervalRepository.saveAndFlush(maintenanceInterval);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public void createSystemMaintenanceInterval(String cause, String description, LocalDateTime beginAt, LocalDateTime endAt) {
         if (beginAt.isAfter(endAt))
@@ -146,11 +151,15 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         maintenanceIntervalRepository.saveAndFlush(maintenanceInterval);
     }
 
+    /* Read methods */
+
+    @PreAuthorize("isAuthenticated()")
     @Override
     public Optional<MaintenanceInterval> findMaintenanceInterval(UUID intervalId) {
         return maintenanceIntervalRepository.findById(intervalId);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public Page<MaintenanceInterval> findAllMaintenanceIntervals(UUID clusterId, boolean active, Pageable pageable) {
         if (active) {
@@ -163,11 +172,15 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         return maintenanceIntervalRepository.findAllHistoricalIntervals(pageable);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Override
     public List<MaintenanceInterval> findAllMaintenanceIntervalsInTimePeriod(UUID clusterId, LocalDateTime start, LocalDateTime end) {
         return maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(clusterId, start, end);
     }
 
+    /* Update / delete methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public void finishMaintenanceInterval(UUID intervalId) {
         MaintenanceInterval foundInterval = maintenanceIntervalRepository.findById(intervalId)

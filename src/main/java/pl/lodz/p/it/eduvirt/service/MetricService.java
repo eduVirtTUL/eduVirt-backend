@@ -7,9 +7,15 @@ import java.util.UUID;
 
 public interface MetricService {
 
+    /* Create methods */
+
     void createNewMetric(String metricName);
 
+    /* Read methods */
+
     Page<Metric> findAllMetrics(int pageNumber, int pageSize);
+
+    /* Delete methods */
 
     void deleteMetric(UUID metricId);
 }

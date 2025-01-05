@@ -21,6 +21,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Reservation extends HistoricalData {
 
+    public enum ReservationStatus {
+        PENDING,
+        IN_PROGRESS,
+        COMPLETED
+    }
+
     @NotNull(message = "reservations.validation.null.resource.group.id")
     @ManyToOne
     @JoinColumn(
@@ -54,6 +60,10 @@ public class Reservation extends HistoricalData {
     @NotNull(message = "reservations.validation.null.automatic.startup")
     @Column(name = "automatic_startup", nullable = false)
     private Boolean automaticStartup = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ReservationStatus status = ReservationStatus.PENDING;
 
     /* Constructors */
 

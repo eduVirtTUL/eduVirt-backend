@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -93,6 +94,7 @@ public class CourseController {
         return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/availability")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findCourseResourcesAvailability(

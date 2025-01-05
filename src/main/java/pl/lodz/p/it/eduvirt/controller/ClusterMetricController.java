@@ -7,6 +7,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricValueDto;
@@ -24,13 +27,22 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/clusters/{clusterId}/metrics")
+@Transactional(propagation = Propagation.NEVER)
 public class ClusterMetricController {
+
+    /* Services */
 
     private final ClusterMetricService clusterMetricService;
 
-    private final ClusterMetricMapper clusterMetricMapper;
     private final OVirtClusterServiceImpl oVirtClusterServiceImpl;
 
+    /* Mappers */
+
+    private final ClusterMetricMapper clusterMetricMapper;
+
+    /* Create methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createMetricValue(@PathVariable("clusterId") UUID clusterId,
                                                   @RequestBody @Validated CreateMetricValueDto createDto) {
@@ -39,10 +51,14 @@ public class ClusterMetricController {
         return ResponseEntity.noContent().build();
     }
 
+    /* Read methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PageDto<MetricValueDto>> getAllMetricValues(@RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-                                                                      @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
-                                                                      @PathVariable("clusterId") UUID clusterId) {
+    public ResponseEntity<PageDto<MetricValueDto>> getAllMetricValues(
+            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @PathVariable("clusterId") UUID clusterId) {
         try {
             Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -61,6 +77,9 @@ public class ClusterMetricController {
         }
     }
 
+    /* Update methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @PatchMapping(path = "/{metricId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MetricValueDto> updateMetricValue(@PathVariable("clusterId") UUID clusterId,
                                                             @PathVariable("metricId") UUID metricId,
@@ -71,6 +90,9 @@ public class ClusterMetricController {
         return ResponseEntity.ok(dto);
     }
 
+    /* Delete methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @DeleteMapping(path = "/{metricId}")
     public ResponseEntity<Void> deleteMetric(@PathVariable("clusterId") UUID clusterId,
                                              @PathVariable("metricId") UUID metricId) {

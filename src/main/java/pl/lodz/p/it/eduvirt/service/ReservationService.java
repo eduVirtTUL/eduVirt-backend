@@ -12,7 +12,11 @@ import java.util.UUID;
 
 public interface ReservationService {
 
+    /* Create methods */
+
     void createReservation(UUID resourceGroupId, LocalDateTime start, LocalDateTime end, boolean automaticStartup);
+
+    /* Read methods */
 
     Optional<Reservation> findReservationById(UUID reservationId);
 
@@ -25,5 +29,10 @@ public interface ReservationService {
     Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable);
     Page<Reservation> findHistoricalReservations(UUID teamId, Pageable pageable);
 
+    /* Update / delete methods */
+
     void finishReservation(Reservation reservation);
+
+    void startReservation(Reservation reservation);
+    void endReservation(Reservation reservation);
 }

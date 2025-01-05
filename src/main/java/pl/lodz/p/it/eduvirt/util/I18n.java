@@ -69,6 +69,7 @@ public class I18n {
     public static final String POD_GRACE_PERIOD_COULD_NOT_FINISH = "reservations.error.grace.period.could.not.finish";
 
     public static final String RESOURCE_GROUP_ALREADY_RESERVED = "reservations.error.resource.group.already.reserved";
+    public static final String RESERVATION_STATUS_ALREADY_SET = "reservations.error.status.already.set";
 
     /* Vlan range keys */
 

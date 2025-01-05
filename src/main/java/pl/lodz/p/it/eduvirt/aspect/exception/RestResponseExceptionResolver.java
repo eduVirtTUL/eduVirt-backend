@@ -6,7 +6,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -49,13 +48,5 @@ public class RestResponseExceptionResolver extends ResponseEntityExceptionHandle
                                         .collect(Collectors.toSet())
                         )
                 );
-    }
-
-    @ExceptionHandler(value = {Exception.class})
-    public ResponseEntity<ExceptionResponse> handleUnknownException() {
-         return ResponseEntity.internalServerError()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(new ExceptionResponse("Some unknown error occurred while processing the request",
-                        I18n.INTERNAL_SERVER_ERROR));
     }
 }

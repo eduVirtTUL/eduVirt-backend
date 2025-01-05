@@ -5,10 +5,10 @@ import org.ovirt.engine.sdk4.types.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.NetworkDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
@@ -35,9 +35,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@LoggerInterceptor
-@RequestMapping(path = "/clusters")
 @RequiredArgsConstructor
+@RequestMapping(path = "/clusters")
 @Transactional(propagation = Propagation.NEVER)
 public class ClusterController {
 
@@ -62,14 +61,16 @@ public class ClusterController {
     private final MetricUtil metricUtil;
     private final BankerAlgorithm bankerAlgorithm;
 
-    // Read methods
+    /* Read methods */
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ClusterDetailsDto> findClusterById(@PathVariable("id") UUID clusterId) {
         Cluster foundCluster = clusterService.findClusterById(clusterId);
         return ResponseEntity.ok(clusterMapper.ovirtClusterToDetailsDto(foundCluster));
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ClusterGeneralDto>> findAllClusters(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -85,6 +86,7 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/availability")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findClusterResourcesAvailability(
@@ -111,6 +113,7 @@ public class ClusterController {
         return ResponseEntity.ok(resourcesAvailabilityDtos);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<HostDto>> findHostInfoByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -125,6 +128,7 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/vms", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<VmGeneralDto>> findVirtualMachinesByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -153,6 +157,7 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/networks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<NetworkDto>> findNetworksByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -167,6 +172,7 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EventGeneralDto>> findEventsByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
