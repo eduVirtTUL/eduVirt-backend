@@ -1,8 +1,6 @@
 package pl.lodz.p.it.eduvirt.exceptions.user;
 
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationBaseException;
-
-public class UserBaseException extends ApplicationBaseException {
+public class UserBaseException extends RuntimeException {
 
     public UserBaseException() {
     }

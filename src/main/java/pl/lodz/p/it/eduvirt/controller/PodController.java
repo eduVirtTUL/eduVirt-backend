@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatefulDto;
 import pl.lodz.p.it.eduvirt.dto.pod.CreateStatelessPodDto;
@@ -35,6 +36,7 @@ public class PodController {
     }
 
     @GetMapping("/stateful/team/{teamId}")
+    @Transactional
     public ResponseEntity<List<PodDetailsDto>> getStatefulPodsByTeam(@PathVariable UUID teamId) {
         return ResponseEntity.ok(
                 podService.getStatefulPodsByTeam(teamId).stream()
@@ -84,8 +86,15 @@ public class PodController {
     }
 
     @GetMapping("/stateless/team/{teamId}")
+    @Transactional
     public ResponseEntity<List<UUID>> getStatelessPodsByTeam(@PathVariable UUID teamId) {
         return ResponseEntity.ok(podService.getStatelessPodsByTeam(teamId));
+        //TODO: fix this
+//        return ResponseEntity.ok(
+//                podService.getStatelessPodsByTeam(teamId).stream()
+//                        .map(podMapper::toStatelessDto)
+//                        .toList()
+//        );
     }
 
 }

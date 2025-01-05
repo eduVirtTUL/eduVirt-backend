@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.PodStateful;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.Team;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@LoggerInterceptor
 @RequiredArgsConstructor
 public class PodServiceImpl implements PodService {
 
@@ -65,16 +67,19 @@ public class PodServiceImpl implements PodService {
     }
 
     @Override
+    @Transactional
     public List<PodStateful> getStatefulPodsByTeam(UUID teamId) {
         return podStatefulRepository.findByTeamId(teamId);
     }
 
     @Override
+    @Transactional
     public List<PodStateful> getStatefulPodsByCourse(UUID courseId) {
         return podStatefulRepository.findByCourseId(courseId);
     }
 
     @Override
+    @Transactional
     public List<PodStateful> getStatefulPodsByResourceGroup(UUID resourceGroupId) {
         return podStatefulRepository.findByResourceGroupId(resourceGroupId);
     }
@@ -119,6 +124,7 @@ public class PodServiceImpl implements PodService {
     }
 
     @Override
+    @Transactional
     public List<UUID> getStatelessPodsByTeam(UUID teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);

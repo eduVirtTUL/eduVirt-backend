@@ -1,8 +1,6 @@
 package pl.lodz.p.it.eduvirt.exceptions.team;
 
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationBaseException;
-
-public class TeamBaseException extends ApplicationBaseException {
+public class TeamBaseException extends RuntimeException {
 
     public TeamBaseException() {
     }

@@ -35,45 +35,45 @@ INSERT INTO public.resource_group_pool_resource_groups(resource_group_pool_id, r
 VALUES ((SELECT id FROM public.resource_group_pool WHERE name = 'testStatelessRGPool'), (SELECT id FROM public.resource_group WHERE name = 'testStatelessRG2'));
 
 
-INSERT INTO public.course(id, name, description, course_type)
-VALUES ('784cca54-f15d-43e7-b76c-f95a342fdf69', 'testTeamBasedCourse', 'testTeamBasedDescription', 'TEAM_BASED');
-
-INSERT INTO public.course(id, name, description, course_type)
-VALUES ('882357a8-a4e6-4684-1623-0edd22854877', 'testSoloCourse', 'testSoloDescription', 'SOLO');
-
-INSERT INTO public.team(id, name, course_id, max_size, active, version)
-VALUES ('eedf635f-f2c4-4f62-9401-8cbbd00632f5', 'testTeamTBC1',
-        (SELECT id FROM public.course WHERE name = 'testTeamBasedCourse'), '3', true, '1');
-
-INSERT INTO public.team(id, name, course_id, max_size, active, version)
-VALUES ('ff127467-a3d5-4f73-8512-9dcc11743f66', 'testTeamTBC2',
-        (SELECT id FROM public.course WHERE name = 'testTeamBasedCourse'), '3', true, '1');
-
-INSERT INTO public.access_key(id, key_value)
-VALUES
-    ('aa11bb22-cc33-dd44-ee55-ff6677889900', 'TEAM-ALPHA-KEY-2024'),
-    ('bb22cc33-dd44-ee55-ff66-778899001122', 'TEAM-BETA-KEY-2024'),
-    ('cc33dd44-ee55-ff66-7788-990011223344', 'TEAM-GAMMA-KEY-2024');
-
-INSERT INTO public.team_access_key(id, team_id)
-VALUES
-    ('aa11bb22-cc33-dd44-ee55-ff6677889900', 'eedf635f-f2c4-4f62-9401-8cbbd00632f5'),
-    ('bb22cc33-dd44-ee55-ff66-778899001122', 'ff127467-a3d5-4f73-8512-9dcc11743f66');
-
-INSERT INTO public.course_access_key(id, course_id)
-VALUES
-    ('cc33dd44-ee55-ff66-7788-990011223344', '882357a8-a4e6-4684-1623-0edd22854877');
-VALUES (gen_random_uuid(), 'test', '', false, 0, 0);
+-- INSERT INTO public.course(id, name, description, course_type)
+-- VALUES ('784cca54-f15d-43e7-b76c-f95a342fdf69', 'testTeamBasedCourse', 'testTeamBasedDescription', 'TEAM_BASED');
+--
+-- INSERT INTO public.course(id, name, description, course_type)
+-- VALUES ('882357a8-a4e6-4684-1623-0edd22854877', 'testSoloCourse', 'testSoloDescription', 'SOLO');
+--
+-- INSERT INTO public.team(id, name, course_id, max_size, active, version)
+-- VALUES ('eedf635f-f2c4-4f62-9401-8cbbd00632f5', 'testTeamTBC1',
+--         (SELECT id FROM public.course WHERE name = 'testTeamBasedCourse'), '3', true, '1');
+--
+-- INSERT INTO public.team(id, name, course_id, max_size, active, version)
+-- VALUES ('ff127467-a3d5-4f73-8512-9dcc11743f66', 'testTeamTBC2',
+--         (SELECT id FROM public.course WHERE name = 'testTeamBasedCourse'), '3', true, '1');
+--
+-- INSERT INTO public.access_key(id, key_value)
+-- VALUES
+--     ('aa11bb22-cc33-dd44-ee55-ff6677889900', 'TEAM-ALPHA-KEY-2024'),
+--     ('bb22cc33-dd44-ee55-ff66-778899001122', 'TEAM-BETA-KEY-2024'),
+--     ('cc33dd44-ee55-ff66-7788-990011223344', 'TEAM-GAMMA-KEY-2024');
+--
+-- INSERT INTO public.team_access_key(id, team_id)
+-- VALUES
+--     ('aa11bb22-cc33-dd44-ee55-ff6677889900', 'eedf635f-f2c4-4f62-9401-8cbbd00632f5'),
+--     ('bb22cc33-dd44-ee55-ff66-778899001122', 'ff127467-a3d5-4f73-8512-9dcc11743f66');
+--
+-- INSERT INTO public.course_access_key(id, course_id)
+-- VALUES
+--     ('cc33dd44-ee55-ff66-7788-990011223344', '882357a8-a4e6-4684-1623-0edd22854877');
+-- VALUES (gen_random_uuid(), 'test', '', false, 0, 0);
 
 ------------------------------------------
 --- Sample data for reservation module ---
 ------------------------------------------
 
-INSERT INTO public.course (id, name, description, team_based, cluster_id)
-VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'Systemy operacyjne', 'Operating Systems', false, 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('a7556146-23a6-4936-903c-c337c794a8c7', 'Infrastruktury środowisk rozwojowych i produkcyjnych', 'Infrastructures of Development and Production Environments', true, 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('e485ded6-c166-45f6-a924-13ce44666f7a', 'Sieciowe systemy baz danych', 'Network Database Systems', true, 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('1decd050-1328-4eca-b2de-84793a8474c2', 'Techniki utrzymania aplikacji', 'Techniques of Application Maintenance', true, 'a5097950-d0c6-4d65-8b2e-4768809ad37a');
+INSERT INTO public.course (id, name, description, course_type, cluster_id)
+VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'Systemy operacyjne', 'Operating Systems', 'SOLO', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
+       ('a7556146-23a6-4936-903c-c337c794a8c7', 'Infrastruktury środowisk rozwojowych i produkcyjnych', 'Infrastructures of Development and Production Environments', 'TEAM_BASED', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
+       ('e485ded6-c166-45f6-a924-13ce44666f7a', 'Sieciowe systemy baz danych', 'Network Database Systems', 'SOLO', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
+       ('1decd050-1328-4eca-b2de-84793a8474c2', 'Techniki utrzymania aplikacji', 'Techniques of Application Maintenance', 'TEAM_BASED', 'a5097950-d0c6-4d65-8b2e-4768809ad37a');
 
 --------------------------
 --- Systemy operacyjne ---

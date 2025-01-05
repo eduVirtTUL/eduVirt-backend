@@ -1,8 +1,8 @@
 package pl.lodz.p.it.eduvirt.exceptions.access_key;
 
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationBaseException;
+import pl.lodz.p.it.eduvirt.exceptions.general.ApplicationBaseException;
 
-public class AccessKeyBaseException extends ApplicationBaseException {
+public class AccessKeyBaseException extends RuntimeException {
 
     public AccessKeyBaseException() {
     }

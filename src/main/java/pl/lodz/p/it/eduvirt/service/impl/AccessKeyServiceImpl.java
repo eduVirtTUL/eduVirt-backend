@@ -10,7 +10,6 @@ import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.key.CourseAccessKey;
 import pl.lodz.p.it.eduvirt.entity.key.CourseType;
 import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationBaseException;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyLengthException;
@@ -62,7 +61,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
         if (course.getCourseType() == CourseType.TEAM_BASED) {
-            throw new ApplicationBaseException("Cannot create access key for a team based course");
+            throw new RuntimeException("Cannot create access key for a team based course");
         }
 
         if (courseAccessKeyRepository.existsByCourseId(courseId)) {

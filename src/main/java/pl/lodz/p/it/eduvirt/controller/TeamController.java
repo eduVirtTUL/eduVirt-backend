@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
@@ -47,6 +48,7 @@ public class TeamController {
     }
 
     @GetMapping("/user/{userId}")
+    @Transactional
     public ResponseEntity<List<TeamWithCourseDto>> getTeamsByUser(@PathVariable UUID userId) {
         List<Team> teams = teamService.getTeamsByUser(userId);
         List<TeamWithCourseDto> teamWithCourseDtos = teams.stream()

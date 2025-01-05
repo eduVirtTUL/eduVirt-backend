@@ -1,8 +1,6 @@
 package pl.lodz.p.it.eduvirt.exceptions.pod;
 
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationBaseException;
-
-public class PodBaseException extends ApplicationBaseException {
+public class PodBaseException extends RuntimeException {
 
     public PodBaseException() {
     }

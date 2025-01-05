@@ -62,7 +62,6 @@ public class I18n {
 
     // User
 
-    public static final String USER_NOT_FOUND = "user.not.found.exception";
     public static final String USERS_NOT_FOUND = "users.not.found.exception";
 
     // General

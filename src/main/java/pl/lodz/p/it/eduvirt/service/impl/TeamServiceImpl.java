@@ -65,6 +65,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    @Transactional
     public List<Team> getTeamsByUser(UUID userId) {
         return teamRepository.findByUsersContains(userId);
     }

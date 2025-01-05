@@ -43,14 +43,15 @@ public class Team extends Updatable {
     @ToString.Exclude
     private List<Reservation> reservations = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
     @OneToMany(mappedBy = "team")
+    @ToString.Exclude
     private List<PodStateful> statefulPods = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "pod_stateless",
             joinColumns = @JoinColumn(name = "team_id"),
