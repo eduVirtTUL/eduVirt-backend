@@ -21,12 +21,25 @@ public class OVirtUserServiceImpl implements OVirtUserService {
     private final ConnectionFactory connectionFactory;
 
     @Override
-    public List<User> getAllUsers() {
+    public List<User> getAllUsersWithPermissions() {
         try {
             Connection connection = connectionFactory.getConnection();
             SystemService systemService = connection.systemService();
 
             return systemService.usersService().list().follow("permissions").send().users();
+
+        } catch (org.ovirt.engine.sdk4.Error error) {
+            throw new UserNotFoundException("Users could not be found");
+        }
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        try {
+            Connection connection = connectionFactory.getConnection();
+            SystemService systemService = connection.systemService();
+
+            return systemService.usersService().list().send().users();
 
         } catch (org.ovirt.engine.sdk4.Error error) {
             throw new UserNotFoundException("No users could be found");

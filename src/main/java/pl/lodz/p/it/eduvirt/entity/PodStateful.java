@@ -3,7 +3,6 @@ package pl.lodz.p.it.eduvirt.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -11,7 +10,7 @@ import lombok.*;
 @ToString
 @Table(name = "pod_stateful")
 @Entity
-public class PodStateful extends AbstractEntity {
+public class PodStateful extends HistoricalData {
 
     @ManyToOne(optional = false)
     @JoinColumn(
@@ -39,8 +38,5 @@ public class PodStateful extends AbstractEntity {
             nullable = false
     )
     private Course course;
-
-    @Column(name = "cluster_id", nullable = false)
-    private String clusterId;
 
 }

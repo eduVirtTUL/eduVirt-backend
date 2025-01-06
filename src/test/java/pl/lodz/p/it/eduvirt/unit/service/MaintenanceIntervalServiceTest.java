@@ -26,6 +26,7 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -143,14 +144,19 @@ public class MaintenanceIntervalServiceTest {
         course.setName("Sieciowe System Baz Danych");
         course.setDescription("Network Database Systems");
         course.setClusterId(existingClusterId);
-        course.setCourseKey("SukceS");
 
         userNo1 = new User(UUID.randomUUID(), "email1@gmail.com");
         userNo2 = new User(UUID.randomUUID(), "email2@gmail.com");
         userNo3 = new User(UUID.randomUUID(), "email3@gmail.com");
 
         List<User> listOfUsers = List.of(userNo1, userNo2, userNo3);
-        team = new Team("Eldorado", "SSBD-GroupKey003", true, 7, course);
+        team = Team.builder()
+                .name("Eldorado")
+                .active(true)
+                .maxSize(7)
+                .course(course)
+                .users(new ArrayList<>())
+                .build();
         team.getUsers().addAll(listOfUsers.stream().map(User::getId).toList());
 
         rgPoolNo1 = new ResourceGroupPool();

@@ -1,17 +1,19 @@
 package pl.lodz.p.it.eduvirt.dto.team;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Getter;
+
 import java.util.List;
 import java.util.UUID;
 
-@Value
 @Builder
+@AllArgsConstructor
+@Getter
 public class TeamDto {
     UUID id;
     String name;
-    String key;
     boolean active;
+    int maxSize;
     List<UUID> users;
-    UUID course;
 }

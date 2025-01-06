@@ -2,11 +2,11 @@ package pl.lodz.p.it.eduvirt.mappers;
 
 import org.mapstruct.Mapper;
 import org.ovirt.engine.sdk4.types.Permission;
-import pl.lodz.p.it.eduvirt.dto.permission.UserPermissionDto;
+import pl.lodz.p.it.eduvirt.dto.permission.OvirtUserPermissionDto;
 import pl.lodz.p.it.eduvirt.dto.permission.VmPermissionDto;
 
 @Mapper(componentModel = "spring")
-public interface AssignedPermissionMapper {
+public interface PermissionMapper {
 
     default VmPermissionDto ovirtVmPermissionToPermissionDto(Permission permission) {
         return new VmPermissionDto(
@@ -17,8 +17,8 @@ public interface AssignedPermissionMapper {
         );
     }
 
-    default UserPermissionDto ovirtUserPermissionToPermissionDto(Permission permission) {
-        return new UserPermissionDto(
+    default OvirtUserPermissionDto ovirtUserPermissionToPermissionDto(Permission permission) {
+        return new OvirtUserPermissionDto(
                 permission.id(),
                 permission.role() != null ? permission.role().id() : null,
                 permission.vm() != null ? permission.vm().id() : null,

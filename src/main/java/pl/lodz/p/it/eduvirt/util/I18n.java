@@ -52,6 +52,33 @@ public class I18n {
     public static final String MAINTENANCE_INTERVAL_BEGIN_AT_PAST = "maintenanceIntervals.error.begin.at.past";
     public static final String MAINTENANCE_INTERVAL_CONFLICT = "maintenanceIntervals.error.conflict";
 
+    // Pod
+
+    public static final String POD_NOT_FOUND = "pod.not.found.exception";
+    public static final String POD_STATELESS_CONFLICT = "pod.conflict.exception";
+    public static final String POD_ALREADY_EXISTS = "pod.already.exists.exception";
+
+    // Team
+
+    public static final String USER_ALREADY_IN_TEAM = "user.already.in.team.exception";
+    public static final String USER_ALREADY_IN_COURSE = "user.already.in.course.exception";
+    public static final String TEAM_ALREADY_EXISTS = "team.already.exists.exception";
+    public static final String INCORRECT_TEAM_SIZE = "incorrect.team.size.exception";
+    public static final String TEAM_VALIDATION = "team.validation.exception";
+    public static final String INCORRECT_TEAM_TYPE = "incorrect.team.type.exception";
+
+    // AccessKey
+
+    public static final String DUPLICATE_KEY_VALUE = "duplicate.key.value.exception";
+    public static final String ACCESS_KEY_NOT_FOUND = "access.key.not.found.exception";
+    public static final String INCORRECT_KEY_TYPE = "incorrect.key.type.exception";
+
+    // User
+
+    public static final String USERS_NOT_FOUND = "users.not.found.exception";
+
+    // General
+
     /* Reservation keys */
 
     public static final String RESERVATION_NOT_FOUND = "reservations.error.not.found";

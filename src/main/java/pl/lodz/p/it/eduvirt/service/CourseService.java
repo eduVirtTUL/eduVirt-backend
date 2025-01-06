@@ -12,5 +12,4 @@ public interface CourseService {
 
     Course addCourse(Course course);
 
-    Course setCourseKey(UUID courseId, String key);
 }

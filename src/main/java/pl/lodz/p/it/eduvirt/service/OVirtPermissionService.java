@@ -5,7 +5,7 @@ import org.ovirt.engine.sdk4.types.Permission;
 import java.util.List;
 import java.util.UUID;
 
-public interface OVirtAssignedPermissionService {
+public interface OVirtPermissionService {
 
     List<Permission> findPermissionsByVmId(UUID vmId);
 

@@ -9,7 +9,7 @@ import org.ovirt.engine.sdk4.types.Permission;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.exceptions.PermissionNotFoundException;
-import pl.lodz.p.it.eduvirt.service.OVirtAssignedPermissionService;
+import pl.lodz.p.it.eduvirt.service.OVirtPermissionService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-public class OvirtAssignedPermissionServiceImpl implements OVirtAssignedPermissionService {
+public class OVirtPermissionServiceImpl implements OVirtPermissionService {
 
     private final ConnectionFactory connectionFactory;
 
