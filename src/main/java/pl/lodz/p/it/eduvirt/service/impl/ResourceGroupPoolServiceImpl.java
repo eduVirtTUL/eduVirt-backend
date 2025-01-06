@@ -2,10 +2,13 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.Course;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupPoolNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group_pool.ResourceGroupPoolAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupPoolService;
@@ -21,8 +24,14 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
     private final CourseRepository courseRepository;
 
     @Override
+    @Transactional
     public ResourceGroupPool addResourceGroupPool(ResourceGroupPool resourceGroupPool, UUID courseId) {
         Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        boolean nameTaken = course.getResourceGroupPools().stream().anyMatch(rgp -> rgp.getName().equals(resourceGroupPool.getName()));
+        if (nameTaken) {
+            throw new ResourceGroupPoolAlreadyExistsException(resourceGroupPool.getName());
+        }
 
         resourceGroupPool.setCourse(course);
 
@@ -42,5 +51,44 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
     @Override
     public ResourceGroupPool getResourceGroupPool(UUID id) {
         return resourceGroupPoolRepository.findById(id).orElseThrow(() -> new ResourceGroupPoolNotFoundException(id));
+    }
+
+    @Override
+    @Transactional
+    public void addResourceGroupToPool(UUID poolId, ResourceGroup resourceGroup) {
+        ResourceGroupPool pool = resourceGroupPoolRepository.findById(poolId).orElseThrow(() -> new ResourceGroupPoolNotFoundException(poolId));
+        resourceGroup.setDescription(pool.getDescription());
+        resourceGroup.setMaxRentTime(pool.getMaxRentTime());
+        resourceGroup.setStateless(true);
+        pool.getResourceGroups().add(resourceGroup);
+        resourceGroupPoolRepository.save(pool);
+    }
+
+    @Override
+    public void deleteResourceGroupPool(UUID id) {
+        ResourceGroupPool pool = resourceGroupPoolRepository.findById(id).orElseThrow(() -> new ResourceGroupPoolNotFoundException(id));
+        resourceGroupPoolRepository.delete(pool);
+    }
+
+    @Override
+    @Transactional
+    public ResourceGroupPool updateResourceGroupPool(UUID id, ResourceGroupPool resourceGroupPool) {
+        ResourceGroupPool pool = resourceGroupPoolRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceGroupPoolNotFoundException(resourceGroupPool.getId()));
+
+        pool.getResourceGroups()
+                .forEach(resourceGroup -> {
+                    resourceGroup.setDescription(resourceGroupPool.getDescription());
+                    resourceGroup.setMaxRentTime(resourceGroupPool.getMaxRentTime());
+                });
+
+        pool.setDescription(resourceGroupPool.getDescription());
+        pool.setMaxRentTime(resourceGroupPool.getMaxRentTime());
+        pool.setGracePeriod(resourceGroupPool.getGracePeriod());
+        pool.setMaxRent(resourceGroupPool.getMaxRent());
+
+        return resourceGroupPoolRepository.save(pool);
+
     }
 }
