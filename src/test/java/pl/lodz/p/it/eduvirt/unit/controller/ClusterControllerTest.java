@@ -9,6 +9,8 @@ import org.ovirt.engine.sdk4.types.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -38,8 +40,9 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -80,10 +83,10 @@ public class ClusterControllerTest {
     private NetworkMapper networkMapper;
 
     @MockitoBean
-    private EventMapper eventMapper;
+    private VmMapper vmMapper;
 
     @MockitoBean
-    private VmMapper vmMapper;
+    private EventMapper eventMapper;
 
     /* Util */
 
@@ -1166,6 +1169,7 @@ public class ClusterControllerTest {
     public void Given_SomeEventsAreDefinedForTheGivenCluster_When_FindEventsByClusterId_Then_ReturnsAllFoundEventsForGivenCluster() throws Exception {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         Cluster cluster = mock(Cluster.class);
 
@@ -1178,30 +1182,57 @@ public class ClusterControllerTest {
                 UUID.randomUUID().toString(),
                 "EVENT_MESSAGE_1",
                 "EVENT_SEVERITY_1",
-                "EVENT_REGISTERED_AT_1"
+                LocalDateTime.now().minusHours(3)
         );
 
         EventGeneralDto eventDto2 = new EventGeneralDto(
                 UUID.randomUUID().toString(),
                 "EVENT_MESSAGE_2",
                 "EVENT_SEVERITY_2",
-                "EVENT_REGISTERED_AT_2"
+                LocalDateTime.now().minusHours(6)
         );
 
         EventGeneralDto eventDto3 = new EventGeneralDto(
                 UUID.randomUUID().toString(),
                 "EVENT_MESSAGE_3",
                 "EVENT_SEVERITY_3",
-                "EVENT_REGISTERED_AT_3"
+                LocalDateTime.now().minusHours(9)
         );
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy");
+
+        LogSeverity severityNo1 = mock(LogSeverity.class);
+        LogSeverity severityNo2 = mock(LogSeverity.class);
+        LogSeverity severityNo3 = mock(LogSeverity.class);
+
+        when(event1.id()).thenReturn(UUID.randomUUID().toString());
+        when(event1.description()).thenReturn(eventDto1.message());
+        when(event1.severity()).thenReturn(severityNo1);
+        when(severityNo1.value()).thenReturn(eventDto1.severity());
+        when(event1.time()).thenReturn(Date.from(eventDto1.registeredAt().atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("CET")).toInstant()));
+
+        when(event2.id()).thenReturn(UUID.randomUUID().toString());
+        when(event2.description()).thenReturn(eventDto2.message());
+        when(event2.severity()).thenReturn(severityNo2);
+        when(severityNo2.value()).thenReturn(eventDto2.severity());
+        when(event2.time()).thenReturn(Date.from(eventDto2.registeredAt().atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("CET")).toInstant()));
+
+        when(event3.id()).thenReturn(UUID.randomUUID().toString());
+        when(event3.description()).thenReturn(eventDto3.message());
+        when(event3.severity()).thenReturn(severityNo3);
+        when(severityNo3.value()).thenReturn(eventDto3.severity());
+        when(event3.time()).thenReturn(Date.from(eventDto3.registeredAt().atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("CET")).toInstant()));
+
+        when(eventMapper.ovirtEventToGeneralDTO(event1)).thenReturn(eventDto1);
+        when(eventMapper.ovirtEventToGeneralDTO(event2)).thenReturn(eventDto2);
+        when(eventMapper.ovirtEventToGeneralDTO(event3)).thenReturn(eventDto3);
+
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterService.findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize))).thenReturn(eventList);
-        when(eventMapper.ovirtEventToGeneralDTO(Mockito.any(Event.class))).thenReturn(eventDto1, eventDto2, eventDto3);
+        when(clusterService.findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageable))).thenReturn(eventList);
 
         MvcResult result = mockMvc.perform(get("/clusters/{clusterId}/events", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(pageNumber))
+                        .param("size", String.valueOf(pageSize)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -1254,7 +1285,7 @@ public class ClusterControllerTest {
         assertEquals(eventDto3.registeredAt(), thirdEvent.registeredAt());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterService, times(1)).findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(clusterService, times(1)).findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageable));
         verify(eventMapper, times(3)).ovirtEventToGeneralDTO(Mockito.any(Event.class));
     }
 
@@ -1280,20 +1311,21 @@ public class ClusterControllerTest {
     public void Given_NoEventsAreDefinedForTheGivenCluster_When_FindEventsByClusterId_Then_ReturnsEmptyEventList() throws Exception {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         Cluster cluster = mock(Cluster.class);
 
         List<Event> eventList = List.of();
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterService.findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize))).thenReturn(eventList);
+        when(clusterService.findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageable))).thenReturn(eventList);
 
         mockMvc.perform(get("/clusters/{clusterId}/events", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(pageNumber))
+                        .param("size", String.valueOf(pageSize)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterService, times(1)).findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(clusterService, times(1)).findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageable));
     }
 }

@@ -10,6 +10,8 @@ import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.Error;
 import org.ovirt.engine.sdk4.services.*;
 import org.ovirt.engine.sdk4.types.*;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.service.impl.OVirtClusterServiceImpl;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
@@ -673,6 +675,7 @@ public class OVirtClusterServiceTest {
     public void Given_SomeEventsExistForGivenOVirtCluster_When_FindEventsInCluster_Then_ReturnsAllFoundEventsSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         String exampleClusterName = "example_cluster_name";
 
@@ -696,7 +699,7 @@ public class OVirtClusterServiceTest {
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.events()).thenReturn(List.of(event1, event2));
 
-        List<Event> foundEvents = oVirtClusterService.findEventsInCluster(cluster, pageNumber, pageSize);
+        List<Event> foundEvents = oVirtClusterService.findEventsInCluster(cluster, pageable);
 
         assertNotNull(foundEvents);
         assertFalse(foundEvents.isEmpty());
@@ -724,6 +727,7 @@ public class OVirtClusterServiceTest {
     public void Given_NoEventsExistForGivenOVirtCluster_When_FindEventsInCluster_Then_ReturnsEmptyEventsList() {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         String exampleClusterName = "example_cluster_name";
 
@@ -744,7 +748,7 @@ public class OVirtClusterServiceTest {
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.events()).thenReturn(List.of());
 
-        List<Event> foundEvents = oVirtClusterService.findEventsInCluster(cluster, pageNumber, pageSize);
+        List<Event> foundEvents = oVirtClusterService.findEventsInCluster(cluster, pageable);
 
         assertNotNull(foundEvents);
         assertTrue(foundEvents.isEmpty());
@@ -763,6 +767,7 @@ public class OVirtClusterServiceTest {
     public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindEventsInCluster_Then_ThrowsException() {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         String exampleClusterName = "example_cluster_name";
 
@@ -783,7 +788,7 @@ public class OVirtClusterServiceTest {
         when(listRequest.send()).thenThrow(Error.class);
 
         assertThrows(EventNotFoundException.class,
-                () -> oVirtClusterService.findEventsInCluster(cluster, pageNumber, pageSize));
+                () -> oVirtClusterService.findEventsInCluster(cluster, pageable));
 
         verify(connectionFactory, times(1)).getConnection();
         verify(connection, times(1)).systemService();
