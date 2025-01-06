@@ -1,8 +1,10 @@
-package pl.lodz.p.it.eduvirt.entity.reservation;
+package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
-import pl.lodz.p.it.eduvirt.entity.Updatable;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -20,9 +22,13 @@ public class MaintenanceInterval extends Updatable {
         CLUSTER
     }
 
+    @NotBlank(message = "maintenanceIntervals.validation.null.cause.blank")
+    @Size(min = 8, message = "maintenanceIntervals.validation.cause.too.short")
+    @Size(max = 128, message = "maintenanceIntervals.validation.cause.too.long")
     @Column(name = "cause", nullable = false, length = 64)
     private String cause;
 
+    @Size(max = 256, message = "maintenanceIntervals.validation.description.too.long")
     @Column(name = "description", length = 256)
     private String description;
 
@@ -33,15 +39,17 @@ public class MaintenanceInterval extends Updatable {
     @Column(name = "cluster_id")
     private UUID clusterId;
 
+    @NotNull(message = "maintenanceIntervals.validation.null.begin.at")
     @Column(name = "begin_at", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime beginAt;
 
+    @NotNull(message = "maintenanceIntervals.validation.null.end.at")
     @Column(name = "end_at", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime endAt;
 
-    // Constructors
+    /* Constructors */
 
     @Builder
     public MaintenanceInterval(Long version,

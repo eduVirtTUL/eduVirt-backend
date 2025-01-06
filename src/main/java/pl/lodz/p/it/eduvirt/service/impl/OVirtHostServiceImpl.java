@@ -5,7 +5,10 @@ import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.services.HostService;
 import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.types.Host;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.service.OVirtHostService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
@@ -15,10 +18,12 @@ import java.util.UUID;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class OVirtHostServiceImpl implements OVirtHostService {
 
     private final ConnectionFactory connectionFactory;
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public Host findHostById(UUID hostId) {
         try {

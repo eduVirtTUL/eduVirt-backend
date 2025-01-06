@@ -4,15 +4,22 @@ import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.reservation.MaintenanceInterval;
+import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalInvalidTimeWindowException;
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.repository.MaintenanceIntervalRepository;
+import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
+import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
 import pl.lodz.p.it.eduvirt.util.I18n;
+import pl.lodz.p.it.eduvirt.util.MailHelper;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -24,10 +31,22 @@ import java.util.UUID;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalService {
 
-    private final MaintenanceIntervalRepository maintenanceIntervalRepository;
+    /* Repositories */
 
+    private final MaintenanceIntervalRepository maintenanceIntervalRepository;
+    private final ReservationRepository reservationRepository;
+    private final UserRepository userRepository;
+
+    /* Other */
+
+    private final MailHelper mailHelper;
+
+    /* Create methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public void createClusterMaintenanceInterval(Cluster cluster, String cause, String description, LocalDateTime beginAt, LocalDateTime endAt) {
         if (beginAt.isAfter(endAt))
@@ -50,9 +69,37 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         /* TODO: Perform logic on reservation that exist in the specified window of time
                  that is cancel all of them and send e-mail notification */
 
+        List<Reservation> foundReservations = reservationRepository
+                .findReservationsForGivenPeriodForCluster(clusterId, beginAt, endAt);
+
+        foundReservations.forEach(reservation -> {
+            List<UUID> userIds = reservation.getTeam().getUsers();
+
+            /* Send e-mail notification*/
+            // TODO: Handle i18
+            userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailHelper.sendSimpleMail(
+                    user.getEmail(),
+                    "Reservation cancelled!",
+                    """
+                    Hello user,
+                        \s
+                    Reservation %s of resource group %s, scheduled for the team you are a part of,
+                    from %s to %s was cancelled, since the administrator defined maintenance break that will take
+                    place during that reservation. We are sorry for the inconvenience. Please schedule
+                    your reservation again!
+                        \s
+                    Note: This message was generated automatically. Please, do not respond to it.
+                   \s""".formatted(reservation.getId(), reservation.getResourceGroup().getId(), reservation.getStartTime(), reservation.getEndTime())
+            )));
+
+            /* Delete reservation */
+            reservationRepository.delete(reservation);
+        });
+
         maintenanceIntervalRepository.saveAndFlush(maintenanceInterval);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public void createSystemMaintenanceInterval(String cause, String description, LocalDateTime beginAt, LocalDateTime endAt) {
         if (beginAt.isAfter(endAt))
@@ -74,14 +121,45 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         /* TODO: Perform logic on reservation that exist in the specified window of time
                  that is cancel all of them and send e-mail notification */
 
+        List<Reservation> foundReservations = reservationRepository
+                .findReservationsForGivenPeriodForSystem(beginAt, endAt);
+
+        foundReservations.forEach(reservation -> {
+            List<UUID> userIds = reservation.getTeam().getUsers();
+
+            /* Send e-mail notification*/
+            // TODO: Handle i18
+            userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailHelper.sendSimpleMail(
+                    user.getEmail(),
+                    "Reservation cancelled!",
+                    """
+                    Hello user,
+                        \s
+                    Reservation %s of resource group %s, scheduled for the team you are a part of,
+                    from %s to %s was cancelled, since the administrator defined maintenance break that will take
+                    place during that reservation. We are sorry for the inconvenience. Please schedule
+                    your reservation again!
+                        \s
+                    Note: This message was generated automatically. Please, do not respond to it.
+                   \s""".formatted(reservation.getId(), reservation.getResourceGroup().getId(), reservation.getStartTime(), reservation.getEndTime())
+            )));
+
+            /* Delete reservation */
+            reservationRepository.delete(reservation);
+        });
+
         maintenanceIntervalRepository.saveAndFlush(maintenanceInterval);
     }
 
+    /* Read methods */
+
+    @PreAuthorize("isAuthenticated()")
     @Override
     public Optional<MaintenanceInterval> findMaintenanceInterval(UUID intervalId) {
         return maintenanceIntervalRepository.findById(intervalId);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public Page<MaintenanceInterval> findAllMaintenanceIntervals(UUID clusterId, boolean active, Pageable pageable) {
         if (active) {
@@ -94,11 +172,15 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         return maintenanceIntervalRepository.findAllHistoricalIntervals(pageable);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Override
     public List<MaintenanceInterval> findAllMaintenanceIntervalsInTimePeriod(UUID clusterId, LocalDateTime start, LocalDateTime end) {
         return maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(clusterId, start, end);
     }
 
+    /* Update / delete methods */
+
+    @PreAuthorize("hasRole('administrator')")
     @Override
     public void finishMaintenanceInterval(UUID intervalId) {
         MaintenanceInterval foundInterval = maintenanceIntervalRepository.findById(intervalId)

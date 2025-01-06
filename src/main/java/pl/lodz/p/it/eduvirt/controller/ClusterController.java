@@ -5,19 +5,19 @@ import org.ovirt.engine.sdk4.types.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.dto.EventGeneralDTO;
+import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.NetworkDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
-import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
@@ -28,7 +28,6 @@ import pl.lodz.p.it.eduvirt.util.MetricUtil;
 import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,9 +35,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@LoggerInterceptor
-@RequestMapping(path = "/clusters")
 @RequiredArgsConstructor
+@RequestMapping(path = "/clusters")
 @Transactional(propagation = Propagation.NEVER)
 public class ClusterController {
 
@@ -63,14 +61,16 @@ public class ClusterController {
     private final MetricUtil metricUtil;
     private final BankerAlgorithm bankerAlgorithm;
 
-    // Read methods
+    /* Read methods */
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ClusterDetailsDto> findClusterById(@PathVariable("id") UUID clusterId) {
         Cluster foundCluster = clusterService.findClusterById(clusterId);
         return ResponseEntity.ok(clusterMapper.ovirtClusterToDetailsDto(foundCluster));
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ClusterGeneralDto>> findAllClusters(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -86,15 +86,13 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/availability")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ResponseEntity<?> findClusterResourcesAvailability(
+    public ResponseEntity<List<ResourcesAvailabilityDto>> findClusterResourcesAvailability(
             @PathVariable("id") UUID clusterId,
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
-        LocalDateTime startTime = start.atStartOfDay();
-        LocalDateTime endTime = end.atStartOfDay();
-
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<ClusterMetric> clusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
         List<ResourcesAvailabilityDto> resourcesAvailabilityDtos = new LinkedList<>();
@@ -115,6 +113,7 @@ public class ClusterController {
         return ResponseEntity.ok(resourcesAvailabilityDtos);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<HostDto>> findHostInfoByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -129,6 +128,7 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/vms", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<VmGeneralDto>> findVirtualMachinesByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -157,6 +157,7 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/networks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<NetworkDto>> findNetworksByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -171,15 +172,16 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<EventGeneralDTO>> findEventsByClusterId(
+    public ResponseEntity<List<EventGeneralDto>> findEventsByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "25", required = false) int pageSize,
             @PathVariable("id") UUID clusterId) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<Event> events = clusterService.findEventsInCluster(cluster, pageNumber, pageSize);
 
-        List<EventGeneralDTO> listOfDTOs = events.stream().map(eventMapper::ovirtEventToGeneralDTO).toList();
+        List<EventGeneralDto> listOfDTOs = events.stream().map(eventMapper::ovirtEventToGeneralDTO).toList();
 
         if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDTOs);

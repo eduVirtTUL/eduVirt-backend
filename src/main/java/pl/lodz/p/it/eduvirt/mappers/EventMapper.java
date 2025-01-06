@@ -3,7 +3,7 @@ package pl.lodz.p.it.eduvirt.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.ovirt.engine.sdk4.types.Event;
-import pl.lodz.p.it.eduvirt.dto.EventGeneralDTO;
+import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 
 @Mapper(componentModel = "spring")
 public interface EventMapper {
@@ -12,5 +12,5 @@ public interface EventMapper {
     @Mapping(target = "message", expression = "java(event.description())")
     @Mapping(target = "severity", expression = "java(event.severity().value())")
     @Mapping(target = "registeredAt", expression = "java(event.time().toString())")
-    EventGeneralDTO ovirtEventToGeneralDTO(Event event);
+    EventGeneralDto ovirtEventToGeneralDTO(Event event);
 }

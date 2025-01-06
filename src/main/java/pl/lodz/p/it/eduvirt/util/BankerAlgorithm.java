@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 
@@ -44,6 +44,7 @@ public class BankerAlgorithm {
             List<VirtualMachine> vms = resourceGroup.getVms();
 
             for (VirtualMachine vm : vms) {
+                // TODO: Co jest maksimum zasobów? Parametry klastra? Zasoby hosta (najmocniejszego / najsłabszego)?
                 Vm oVirtVM = vmService.findVmById(vm.getId().toString());
                 List<Host> oVirtHosts = clusterService.findAllHostsInCluster(cluster);
                 Map<String, Object> resources = vmService.findVmResources(oVirtVM, oVirtHosts.getFirst(), cluster);

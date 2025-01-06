@@ -23,7 +23,7 @@ import pl.lodz.p.it.eduvirt.dto.metric.MetricDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
-import pl.lodz.p.it.eduvirt.entity.general.Metric;
+import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.MetricMapper;
 import pl.lodz.p.it.eduvirt.service.MetricService;

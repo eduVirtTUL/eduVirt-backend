@@ -1,11 +1,12 @@
-package pl.lodz.p.it.eduvirt.entity.reservation;
+package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.lodz.p.it.eduvirt.entity.general.Metric;
-import pl.lodz.p.it.eduvirt.entity.reservation.keys.ClusterMetricKey;
 
 import java.util.UUID;
 
@@ -16,17 +17,16 @@ import java.util.UUID;
         uniqueConstraints = @UniqueConstraint(name = "cluster_metric_cluster_id_unique",
                 columnNames = {"cluster_id", "metric_id"})
 )
-@IdClass(ClusterMetricKey.class)
 @Getter
 @Setter
 @NoArgsConstructor
-public class ClusterMetric {
+public class ClusterMetric extends AbstractEntity {
 
-    @Id
+    @NotNull(message = "metrics.validation.null.cluster.id")
     @Column(name = "cluster_id", nullable = false, updatable = false)
     private UUID clusterId;
 
-    @Id
+    @NotNull(message = "metrics.validation.null.metric.id")
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(
             name = "metric_id",
@@ -36,10 +36,12 @@ public class ClusterMetric {
     )
     private Metric metric;
 
+    @PositiveOrZero(message = "metrics.validation.value.negative")
+    @Max(value = 9223372036854775807L, message = "metrics.validation.value.too.large")
     @Column(name = "metric_value")
     private Double value;
 
-    // Constructors
+    /* Constructors */
 
     public ClusterMetric(UUID clusterId,
                          Metric metric,

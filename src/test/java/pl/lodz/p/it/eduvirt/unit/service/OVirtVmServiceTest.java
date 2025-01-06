@@ -7,12 +7,15 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.ovirt.engine.sdk4.Connection;
+import org.ovirt.engine.sdk4.services.EventsService;
 import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.services.VmService;
 import org.ovirt.engine.sdk4.services.VmsService;
 import org.ovirt.engine.sdk4.types.*;
+import pl.lodz.p.it.eduvirt.exceptions.EventNotFoundException;
 import pl.lodz.p.it.eduvirt.service.impl.OVirtVmServiceImpl;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
+import org.ovirt.engine.sdk4.Error;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -43,12 +46,15 @@ public class OVirtVmServiceTest {
     @Mock
     private VmService vmService;
 
+    @Mock
+    private EventsService eventsService;
+
     /* Tests */
 
     /* FindStatisticsByVm method tests */
 
     @Test
-    public void Given_SomeVmsAreDefinedForGivenVm_When_FindStatisticsByVm_Then_ReturnsAllFoundVmSuccessfully() {
+    public void Given_SomeStatisticsAreDefinedForGivenVm_When_FindStatisticsByVm_Then_ReturnsAllFoundStatisticsSuccessfully() {
         Vm vm = mock(Vm.class);
 
         Statistic statistic1 = mock(Statistic.class);
@@ -85,7 +91,7 @@ public class OVirtVmServiceTest {
     }
 
     @Test
-    public void Given_NoVmsAreDefinedForGivenVm_When_FindStatisticsByVm_Then_ReturnsEmptyVmListSuccessfully() {
+    public void Given_NoStatisticsAreDefinedForGivenVm_When_FindStatisticsByVm_Then_ReturnsEmptyStatisticListSuccessfully() {
         Vm vm = mock(Vm.class);
 
         List<Statistic> listOfStatistics = List.of();
@@ -306,7 +312,7 @@ public class OVirtVmServiceTest {
         when(vmsService.vmService(Mockito.eq(vmId.toString()))).thenReturn(vmService);
         when(vmService.get()).thenReturn(getRequest);
         when(getRequest.follow(Mockito.eq("nics"))).thenReturn(getRequest);
-        when(getRequest.send()).thenThrow(new org.ovirt.engine.sdk4.Error("Vm not found"));
+        when(getRequest.send()).thenThrow(new Error("Vm not found"));
 
         assertThrows(RuntimeException.class, () -> oVirtVmService.findVmById(vmId.toString()));
 
@@ -384,7 +390,7 @@ public class OVirtVmServiceTest {
         when(vmsService.vmService(Mockito.eq(vmId.toString()))).thenReturn(vmService);
         when(vmService.get()).thenReturn(getRequest);
         when(getRequest.follow(Mockito.eq("nics"))).thenReturn(getRequest);
-        when(getRequest.send()).thenThrow(new org.ovirt.engine.sdk4.Error("Vm not found"));
+        when(getRequest.send()).thenThrow(new Error("Vm not found"));
 
         assertThrows(RuntimeException.class, () -> oVirtVmService.findNicsByVmId(vmId.toString()));
 
@@ -395,5 +401,140 @@ public class OVirtVmServiceTest {
         verify(vmService, times(1)).get();
         verify(getRequest, times(1)).follow(Mockito.eq("nics"));
         verify(getRequest, times(1)).send();
+    }
+
+    /* FindEventsByVmId method test */
+
+    @Test
+    public void Given_ExistentVmIdIsPassedAndSomeEventExistForGivenVm_When_FindEventsByVmId_Then_ReturnsFoundEvents() {
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        Vm vm = mock(Vm.class);
+        String existingVmName = "EXAMPLE_VM_NAME";
+
+        String searchQuery = "vm=%s page %s".formatted(existingVmName, pageNumber + 1);
+
+        Event eventNo1 = mock(Event.class);
+        Event eventNo2 = mock(Event.class);
+        Event eventNo3 = mock(Event.class);
+
+        EventsService.ListRequest listRequest = mock(EventsService.ListRequest.class);
+        EventsService.ListResponse listResponse = mock(EventsService.ListResponse.class);
+
+        List<Event> listOfEvents = List.of(eventNo1, eventNo2, eventNo3);
+
+        when(vm.name()).thenReturn(existingVmName);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.eventsService()).thenReturn(eventsService);
+        when(eventsService.list()).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.send()).thenReturn(listResponse);
+        when(listResponse.events()).thenReturn(listOfEvents);
+
+        List<Event> foundEvents = oVirtVmService.findEventsByVmId(vm, pageNumber, pageSize);
+
+        assertNotNull(foundEvents);
+        assertFalse(foundEvents.isEmpty());
+        assertEquals(foundEvents.size(), 3);
+
+        Event firstEvent = foundEvents.getFirst();
+        assertNotNull(firstEvent);
+        assertEquals(eventNo1, firstEvent);
+
+        Event secondEvent = foundEvents.get(1);
+        assertNotNull(secondEvent);
+        assertEquals(eventNo2, secondEvent);
+
+        Event thirdEvent = foundEvents.getLast();
+        assertNotNull(thirdEvent);
+        assertEquals(eventNo3, thirdEvent);
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).eventsService();
+        verify(eventsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).send();
+        verify(listResponse, times(1)).events();
+    }
+
+    @Test
+    public void Given_NonExistentVmIdIsPassed_When_FindEventsByVmId_Then_ThrowsException() {
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        Vm vm = mock(Vm.class);
+        UUID existingVmId = UUID.randomUUID();
+        String existingVmName = "EXAMPLE_VM_NAME";
+
+        String searchQuery = "vm=%s page %s".formatted(existingVmName, pageNumber + 1);
+
+        EventsService.ListRequest listRequest = mock(EventsService.ListRequest.class);
+
+        when(vm.id()).thenReturn(existingVmId.toString());
+        when(vm.name()).thenReturn(existingVmName);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.eventsService()).thenReturn(eventsService);
+        when(eventsService.list()).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.send()).thenThrow(Error.class);
+
+        assertThrows(EventNotFoundException.class,
+                () -> oVirtVmService.findEventsByVmId(vm, pageNumber, pageSize));
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).eventsService();
+        verify(eventsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).send();
+    }
+
+    @Test
+    public void Given_ExistentVmIdIsPassedAndNoEventExistForGivenVm_When_FindEventsByVmId_Then_ReturnsEmptyEventList() {
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        Vm vm = mock(Vm.class);
+        String existingVmName = "EXAMPLE_VM_NAME";
+
+        String searchQuery = "vm=%s page %s".formatted(existingVmName, pageNumber + 1);
+
+        EventsService.ListRequest listRequest = mock(EventsService.ListRequest.class);
+        EventsService.ListResponse listResponse = mock(EventsService.ListResponse.class);
+
+        when(vm.name()).thenReturn(existingVmName);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.eventsService()).thenReturn(eventsService);
+        when(eventsService.list()).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.send()).thenReturn(listResponse);
+        when(listResponse.events()).thenReturn(List.of());
+
+        List<Event> foundEvents = oVirtVmService.findEventsByVmId(vm, pageNumber, pageSize);
+
+        assertNotNull(foundEvents);
+        assertTrue(foundEvents.isEmpty());
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).eventsService();
+        verify(eventsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).send();
+        verify(listResponse, times(1)).events();
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,8 @@ import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.entity.reservation.ClusterMetric;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
@@ -86,6 +87,7 @@ public class CourseController {
         return ResponseEntity.ok(rgPoolMapper.toRGPoolDtoList(resourceGroupPools.stream()));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/availability")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findCourseResourcesAvailability(

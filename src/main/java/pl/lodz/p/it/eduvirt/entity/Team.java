@@ -2,7 +2,6 @@ package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,5 +58,19 @@ public class Team extends Updatable {
     )
     @Column(name = "rgp_id", nullable = false)
     private List<UUID> statelessPods = new ArrayList<>();
+
+    /* Constructor */
+
+    public Team(String name,
+                String key,
+                boolean active,
+                int maxSize,
+                Course course) {
+        this.name = name;
+        this.key = key;
+        this.active = active;
+        this.maxSize = maxSize;
+        this.course = course;
+    }
 
 }

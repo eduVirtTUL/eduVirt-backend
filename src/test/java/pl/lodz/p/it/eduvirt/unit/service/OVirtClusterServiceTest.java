@@ -7,9 +7,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.ovirt.engine.sdk4.Connection;
+import org.ovirt.engine.sdk4.Error;
 import org.ovirt.engine.sdk4.services.*;
 import org.ovirt.engine.sdk4.types.*;
-import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.service.impl.OVirtClusterServiceImpl;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
@@ -191,6 +192,36 @@ public class OVirtClusterServiceTest {
         verify(listResponse, times(1)).clusters();
     }
 
+    @Test
+    public void Given_SomeExceptionIsThrownDuringOVirtClass_When_FindClusters_Then_ThrowsException() {
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        String searchQuery = "page %s".formatted(pageNumber + 1);
+
+        ClustersService.ListRequest listRequest = mock(ClustersService.ListRequest.class);
+        ClustersService.ListResponse listResponse = mock(ClustersService.ListResponse.class);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.clustersService()).thenReturn(clustersService);
+        when(clustersService.list()).thenReturn(listRequest);
+        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.send()).thenThrow(Error.class);
+
+        assertThrows(ClusterNotFoundException.class,
+                () -> oVirtClusterService.findClusters(pageNumber, pageSize));
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).clustersService();
+        verify(clustersService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).send();
+    }
+
     /* FindHostsInCluster method tests */
 
     @Test
@@ -281,6 +312,40 @@ public class OVirtClusterServiceTest {
         verify(listResponse, times(1)).hosts();
     }
 
+    @Test
+    public void Given_SomeExceptionIsThrownDuringOVirtCall_FindHostsInCluster_Then_ThrowsException() {
+        int pageNumber = 0;
+        int pageSize = 10;
+        String exampleClusterName = "example_cluster_name";
+
+        Cluster cluster = mock(Cluster.class);
+        when(cluster.name()).thenReturn(exampleClusterName);
+
+        String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
+
+        HostsService.ListRequest listRequest = mock(HostsService.ListRequest.class);
+        HostsService.ListResponse listResponse = mock(HostsService.ListResponse.class);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.hostsService()).thenReturn(hostsService);
+        when(hostsService.list()).thenReturn(listRequest);
+        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.send()).thenThrow(Error.class);
+
+        assertThrows(HostNotFoundException.class,
+                () -> oVirtClusterService.findHostsInCluster(cluster, pageNumber, pageSize));
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).hostsService();
+        verify(hostsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).send();
+    }
+
     /* FindAllHostsInCluster method tests */
 
     @Test
@@ -361,6 +426,36 @@ public class OVirtClusterServiceTest {
         verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).hosts();
+    }
+
+    @Test
+    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindAllHostsInCluster_Then_ThrowsException() {
+        String exampleClusterName = "example_cluster_name";
+
+        Cluster cluster = mock(Cluster.class);
+        when(cluster.name()).thenReturn(exampleClusterName);
+
+        String searchQuery = "cluster=%s".formatted(cluster.name());
+
+        HostsService.ListRequest listRequest = mock(HostsService.ListRequest.class);
+        HostsService.ListResponse listResponse = mock(HostsService.ListResponse.class);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.hostsService()).thenReturn(hostsService);
+        when(hostsService.list()).thenReturn(listRequest);
+        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.send()).thenThrow(Error.class);
+
+        assertThrows(HostNotFoundException.class,
+                () -> oVirtClusterService.findAllHostsInCluster(cluster));
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).hostsService();
+        verify(hostsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).send();
     }
 
     /* FindVmsInCluster method tests */
@@ -455,6 +550,41 @@ public class OVirtClusterServiceTest {
         verify(listResponse, times(1)).vms();
     }
 
+    @Test
+    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindVmsInCluster_Then_ThrowsException() {
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        String exampleClusterName = "example_cluster_name";
+
+        Cluster cluster = mock(Cluster.class);
+        when(cluster.name()).thenReturn(exampleClusterName);
+
+        String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
+
+        VmsService.ListRequest listRequest = mock(VmsService.ListRequest.class);
+        VmsService.ListResponse listResponse = mock(VmsService.ListResponse.class);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.vmsService()).thenReturn(vmsService);
+        when(vmsService.list()).thenReturn(listRequest);
+        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.send()).thenThrow(Error.class);
+
+        assertThrows(VmNotFoundException.class,
+                () -> oVirtClusterService.findVmsInCluster(cluster, pageNumber, pageSize));
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).vmsService();
+        verify(vmsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).send();
+    }
+
     /* FindNetworksInCluster method tests */
 
     @Test
@@ -508,6 +638,29 @@ public class OVirtClusterServiceTest {
 
         assertNotNull(foundNetworks);
         assertTrue(foundNetworks.isEmpty());
+
+        verify(cluster, times(1)).networks();
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).followLink(Mockito.eq(allNetworks));
+    }
+
+    @Test
+    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindNetworksInCluster_Then_ThrowsException() {
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        Cluster cluster = mock(Cluster.class);
+        Network network1 = mock(Network.class);
+        Network network2 = mock(Network.class);
+
+        List<Network> allNetworks = List.of(network1, network2);
+        when(cluster.networks()).thenReturn(allNetworks);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.followLink(allNetworks)).thenThrow(Error.class);
+
+        assertThrows(NetworkNotFoundException.class,
+                () -> oVirtClusterService.findNetworksInCluster(cluster, pageNumber, pageSize));
 
         verify(cluster, times(1)).networks();
         verify(connectionFactory, times(1)).getConnection();
@@ -606,6 +759,42 @@ public class OVirtClusterServiceTest {
         verify(listResponse, times(1)).events();
     }
 
+    @Test
+    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindEventsInCluster_Then_ThrowsException() {
+        int pageNumber = 0;
+        int pageSize = 10;
+
+        String exampleClusterName = "example_cluster_name";
+
+        Cluster cluster = mock(Cluster.class);
+        when(cluster.name()).thenReturn(exampleClusterName);
+
+        String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
+
+        EventsService.ListRequest listRequest = mock(EventsService.ListRequest.class);
+        EventsService.ListResponse listResponse = mock(EventsService.ListResponse.class);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.eventsService()).thenReturn(eventsService);
+        when(eventsService.list()).thenReturn(listRequest);
+        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.send()).thenThrow(Error.class);
+
+        assertThrows(EventNotFoundException.class,
+                () -> oVirtClusterService.findEventsInCluster(cluster, pageNumber, pageSize));
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).eventsService();
+        verify(eventsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).send();
+    }
+
+
     /* FindHostCountInCluster method tests */
 
     @Test
@@ -679,6 +868,36 @@ public class OVirtClusterServiceTest {
         verify(listResponse, times(1)).hosts();
     }
 
+    @Test
+    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindHostCountInCluster_Then_ThrowsException() {
+        String exampleClusterName = "example_cluster_name";
+
+        Cluster cluster = mock(Cluster.class);
+        when(cluster.name()).thenReturn(exampleClusterName);
+
+        String searchQuery = "cluster=%s".formatted(cluster.name());
+
+        HostsService.ListRequest listRequest = mock(HostsService.ListRequest.class);
+        HostsService.ListResponse listResponse = mock(HostsService.ListResponse.class);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.hostsService()).thenReturn(hostsService);
+        when(hostsService.list()).thenReturn(listRequest);
+        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.send()).thenThrow(Error.class);
+
+        assertThrows(HostNotFoundException.class,
+                () -> oVirtClusterService.findHostCountInCluster(cluster));
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).hostsService();
+        verify(hostsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).send();
+    }
+
     /* FindVmCountInCluster method tests */
 
     @Test
@@ -750,5 +969,35 @@ public class OVirtClusterServiceTest {
         verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).vms();
+    }
+
+    @Test
+    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindVmCountInCluster_Then_ThrowsException() {
+        String exampleClusterName = "example_cluster_name";
+
+        Cluster cluster = mock(Cluster.class);
+        when(cluster.name()).thenReturn(exampleClusterName);
+
+        String searchQuery = "cluster=%s".formatted(cluster.name());
+
+        VmsService.ListRequest listRequest = mock(VmsService.ListRequest.class);
+        VmsService.ListResponse listResponse = mock(VmsService.ListResponse.class);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.vmsService()).thenReturn(vmsService);
+        when(vmsService.list()).thenReturn(listRequest);
+        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.send()).thenThrow(Error.class);
+
+        assertThrows(VmNotFoundException.class,
+                () -> oVirtClusterService.findVmCountInCluster(cluster));
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).vmsService();
+        verify(vmsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).send();
     }
 }
