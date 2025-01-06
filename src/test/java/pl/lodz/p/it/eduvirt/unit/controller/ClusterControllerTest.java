@@ -145,14 +145,18 @@ public class ClusterControllerTest {
         course.setName("Sieciowe System Baz Danych");
         course.setDescription("Network Database Systems");
         course.setClusterId(existingClusterId);
-        course.setCourseKey("SukceS");
-
         userNo1 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email1@gmail.com");
         userNo2 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email2@gmail.com");
         userNo3 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email3@gmail.com");
 
         List<pl.lodz.p.it.eduvirt.entity.User> listOfUsers = List.of(userNo1, userNo2, userNo3);
-        team = new Team("Eldorado", "SSBD-GroupKey003", true, 7, course);
+        team = Team.builder()
+                .name("Eldorado")
+                .active(true)
+                .maxSize(7)
+                .course(course)
+                .users(new ArrayList<>())
+                .build();
         team.getUsers().addAll(listOfUsers.stream().map(User::getId).toList());
 
         rgPoolNo1 = new ResourceGroupPool();
@@ -545,7 +549,7 @@ public class ClusterControllerTest {
 
         when(metricUtil.extractClusterMetricValues(Mockito.anyList())).thenReturn(values);
         when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(List.of(reservationNo1)), Mockito.eq(cluster)))
-                .thenReturn(true, false, true,false);
+                .thenReturn(true, false, true, false);
 
         MvcResult result = this.mockMvc.perform(get("/clusters/{id}/availability", existingClusterId)
                         .param("start", start.toString())
@@ -556,7 +560,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<ResourcesAvailabilityDto> listOfDTOs = mapper.readValue(json, new TypeReference<>() {});
+        List<ResourcesAvailabilityDto> listOfDTOs = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(listOfDTOs);
         assertFalse(listOfDTOs.isEmpty());
@@ -829,7 +834,7 @@ public class ClusterControllerTest {
                 String.valueOf(elapsedTime1),
                 cpuUsage1 + "%",
                 memoryUsage1 + "%",
-                networkUsage1  + "%"
+                networkUsage1 + "%"
         );
 
         VmGeneralDto vmGeneralDto2 = new VmGeneralDto(
@@ -839,7 +844,7 @@ public class ClusterControllerTest {
                 String.valueOf(elapsedTime2),
                 cpuUsage2 + "%",
                 memoryUsage2 + "%",
-                networkUsage2  + "%"
+                networkUsage2 + "%"
         );
 
         VmGeneralDto vmGeneralDto3 = new VmGeneralDto(
@@ -849,7 +854,7 @@ public class ClusterControllerTest {
                 String.valueOf(elapsedTime3),
                 cpuUsage3 + "%",
                 memoryUsage3 + "%",
-                networkUsage3  + "%"
+                networkUsage3 + "%"
         );
 
         when(statistic1.name()).thenReturn("elapsed.time");
@@ -889,7 +894,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<VmGeneralDto> foundVms = mapper.readValue(json, new TypeReference<>() {});
+        List<VmGeneralDto> foundVms = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundVms);
         assertFalse(foundVms.isEmpty());
@@ -964,7 +970,7 @@ public class ClusterControllerTest {
                         Mockito.any(String.class),
                         Mockito.any(String.class),
                         Mockito.any(String.class)
-        );
+                );
     }
 
     @WithMockUser
@@ -1057,7 +1063,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<NetworkDto> foundNetworks = mapper.readValue(json, new TypeReference<>() {});
+        List<NetworkDto> foundNetworks = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundNetworks);
         assertFalse(foundNetworks.isEmpty());
@@ -1200,7 +1207,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<EventGeneralDto> foundEvents = mapper.readValue(json, new TypeReference<>() {});
+        List<EventGeneralDto> foundEvents = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundEvents);
         assertFalse(foundEvents.isEmpty());
