@@ -1,4 +1,5 @@
 package pl.lodz.p.it.eduvirt.dto.metric;
 
-public record UpdateMetricValueDto(double value) {
-}
+public record UpdateMetricValueDto(
+        double value
+) {}

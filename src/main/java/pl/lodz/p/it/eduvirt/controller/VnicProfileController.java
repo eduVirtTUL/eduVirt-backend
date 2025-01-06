@@ -19,8 +19,8 @@ import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfilePoolMemberDto;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.BadRequestEduVirtException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
-import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileEduvirtNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileOvirtNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.VnicProfileEduvirtNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
@@ -98,7 +98,7 @@ public class VnicProfileController {
                 .filter(vnicProfile -> vnicProfile.getId().equals(id))
                 .map(vnicProfileMapper::vnicProfileToDto)
                 .findFirst()
-                .orElseThrow(VnicProfileEduvirtNotFoundException::new);
+                .orElseThrow(() -> new VnicProfileEduvirtNotFoundException(id));
 
         return ResponseEntity.ok(vnicProfileDto);
     }
@@ -115,7 +115,7 @@ public class VnicProfileController {
         try {
             vnicProfile = vnicProfileService.addVnicProfileToPool(vnicProfileId);
         } catch (VnicProfileOvirtNotFoundException e) {
-            throw new BadRequestEduVirtException(e.getMessage(), e);
+            throw new BadRequestEduVirtException(e.getMessage());
         }
 
         return ResponseEntity.ok(vnicProfileMapper.vnicProfileToDto(vnicProfile));

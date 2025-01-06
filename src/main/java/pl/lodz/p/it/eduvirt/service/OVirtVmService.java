@@ -14,6 +14,7 @@ public interface OVirtVmService {
     Vm findVmById(String id);
 
     List<Nic> findNicsByVmId(String id);
+    List<Event> findEventsByVmId(Vm vm, int pageNumber, int pageSize);
 
     List<Vm> findVms();
 }

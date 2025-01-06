@@ -30,4 +30,19 @@ public class ResourceGroupController {
     public ResponseEntity<ResourceGroupDto> getResourceGroup(@PathVariable UUID id) {
         return ResponseEntity.ok(resourceGroupMapper.toDto(resourceGroupService.getResourceGroup(id)));
     }
+
+    @PostMapping
+    public ResponseEntity<ResourceGroupDto> createResourceGroup(@RequestBody CreateResourceGroupDto createResourceGroupDto) {
+        ResourceGroup resourceGroup = resourceGroupMapper.toEntity(createResourceGroupDto);
+        return ResponseEntity.ok(resourceGroupMapper.toDto(resourceGroupService.createResourceGroup(resourceGroup)));
+    }
+
+    @GetMapping("/assigned")
+    public ResponseEntity<List<ResourceGroupDto>> getAssignedStatefulResourceGroups() {
+        return ResponseEntity.ok(
+                resourceGroupMapper.toDtos(
+                        resourceGroupService.getAssignedStatefulResourceGroups().stream()
+                )
+        );
+    }
 }

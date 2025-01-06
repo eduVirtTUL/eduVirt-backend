@@ -7,6 +7,6 @@ public record ClusterDetailsDto(
         String comment,
         String clusterCpuType,
         String compatibilityVersion,
-        Boolean useThreadsAsCpus,
+        Boolean threadsAsCores,
         String maxMemoryOverCommit
 ) {}

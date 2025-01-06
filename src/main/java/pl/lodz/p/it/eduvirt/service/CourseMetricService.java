@@ -11,6 +11,7 @@ public interface CourseMetricService {
     void removeMetricFromCourse(UUID courseId, UUID metricId);
 
     CourseMetric getCourseMetric(UUID courseId, UUID metricId);
+    List<CourseMetric> getAllCourseMetricsForCourse(UUID courseId);
 
     List<CourseMetric> getCourseMetrics(UUID courseId);
 

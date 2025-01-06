@@ -10,6 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, UUID> {
-    Optional<Course> findByCourseKey(String courseKey);
     Optional<Course> findByResourceGroupPoolsContaining(ResourceGroupPool resourceGroupPool);
 }

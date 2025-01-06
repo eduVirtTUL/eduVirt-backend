@@ -12,17 +12,10 @@ import java.util.UUID;
 
 public interface TeamRepository extends JpaRepository<Team, UUID> {
 
-    Optional<Team> findByKey(String key);
-
     List<Team> findByUsersContains(UUID userId);
 
-    @Query("SELECT DISTINCT t FROM Team t " +
-            "LEFT JOIN FETCH t.course c " +
-            "LEFT JOIN FETCH t.users " +
-            "WHERE c.id = :courseId")
-    List<Team> findByCourses_IdWithFetch(@Param("courseId") UUID courseId);
-
-    boolean existsByKey(String key);
+    @Query("SELECT t FROM Team t WHERE t.course.id = :courseId")
+    List<Team> findByCourses(@Param("courseId") UUID courseId);
 
     @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM Team t " +
             "WHERE :userId MEMBER OF t.users " +
@@ -31,5 +24,9 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
 
     @Query("SELECT t FROM Team t WHERE :user MEMBER OF t.users AND t.course = :course")
     Optional<Team> findByUserIdAndCourse(@Param("user") UUID userId, @Param("course") Course course);
-}
 
+    boolean existsByNameAndCourseId(String name, UUID courseId);
+
+    Long countByCourseId(UUID courseId);
+
+}
