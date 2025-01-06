@@ -9,4 +9,5 @@ public class CourseBasicDto {
     String name;
     String description;
     String courseType;
+    String clusterId;
 }

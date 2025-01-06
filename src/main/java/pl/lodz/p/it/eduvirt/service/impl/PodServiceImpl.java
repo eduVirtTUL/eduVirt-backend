@@ -40,7 +40,7 @@ public class PodServiceImpl implements PodService {
     @Transactional
     public PodStateful createStatefulPod(CreatePodStatefulDto dto) {
 
-        PodStateful pod = podMapper.toPodStatefulEntity(dto);
+        PodStateful pod = podMapper.createPodStatefulDtoToPodStateful(dto);
 
         Team team = teamRepository.findById(dto.teamId())
                 .orElseThrow(TeamNotFoundException::new);
@@ -63,7 +63,7 @@ public class PodServiceImpl implements PodService {
         pod.setTeam(team);
         pod.setCourse(course);
         
-        return podStatefulRepository.save(pod);
+        return podStatefulRepository.saveAndFlush(pod);
     }
 
     @Override
@@ -110,7 +110,7 @@ public class PodServiceImpl implements PodService {
         }
 
         team.getStatelessPods().add(resourceGroupPoolId);
-        teamRepository.save(team);
+        teamRepository.saveAndFlush(team);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class PodServiceImpl implements PodService {
                 .orElseThrow(TeamNotFoundException::new);
 
         team.getStatelessPods().remove(resourceGroupPoolId);
-        teamRepository.save(team);
+        teamRepository.saveAndFlush(team);
     }
 
     @Override

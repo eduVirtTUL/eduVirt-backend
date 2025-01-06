@@ -6,6 +6,7 @@ import pl.lodz.p.it.eduvirt.dto.course.CourseBasicDto;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
+import pl.lodz.p.it.eduvirt.dto.team.UpdateTeamDto;
 import pl.lodz.p.it.eduvirt.entity.Team;
 
 @Mapper(componentModel = "spring")
@@ -16,7 +17,8 @@ public interface TeamMapper {
                 team.getCourse().getId(),
                 team.getCourse().getName(),
                 team.getCourse().getDescription(),
-                team.getCourse().getCourseType().toString()
+                team.getCourse().getCourseType().toString(),
+                team.getCourse().getClusterId().toString()
         ) : null;
 
         return new TeamWithCourseDto(
@@ -39,5 +41,19 @@ public interface TeamMapper {
         );
     }
 
-    Team toEntity(CreateTeamDto createTeamDto);
+    default Team fromCreateDto(CreateTeamDto dto) {
+        Team team = new Team();
+        team.setName(dto.getName());
+        team.setMaxSize(dto.getMaxSize());
+        team.setActive(true);
+        return team;
+    }
+
+    default Team fromUpdateDto(UpdateTeamDto dto) {
+        Team team = new Team();
+        team.setName(dto.getName());
+        team.setMaxSize(dto.getMaxSize());
+        team.setActive(dto.isActive());
+        return team;
+    }
 }

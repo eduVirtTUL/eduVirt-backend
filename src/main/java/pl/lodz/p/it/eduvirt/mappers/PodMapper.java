@@ -25,7 +25,8 @@ public interface PodMapper {
                         pod.getCourse().getId(),
                         pod.getCourse().getName(),
                         pod.getCourse().getDescription(),
-                        pod.getCourse().getCourseType().name()
+                        pod.getCourse().getCourseType().name(),
+                        pod.getCourse().getClusterId().toString()
                 )
         );
     }
@@ -42,7 +43,8 @@ public interface PodMapper {
                         pod.getCourse().getId(),
                         pod.getCourse().getName(),
                         pod.getCourse().getDescription(),
-                        pod.getCourse().getCourseType().name()
+                        pod.getCourse().getCourseType().name(),
+                        pod.getCourse().getClusterId().toString()
                 ),
                 new TeamDto(
                         pod.getTeam().getId(),
@@ -59,9 +61,7 @@ public interface PodMapper {
         return new PodStatelessDto(teamId, resourceGroupPoolId);
     }
 
-    default PodStateful toPodStatefulEntity(CreatePodStatefulDto dto) {
-        return new PodStateful();
-    }
+    PodStateful createPodStatefulDtoToPodStateful(CreatePodStatefulDto dto);
 
     default List<PodStatelessDto> toStatelessDtoList(List<UUID> resourceGroupPoolIds, UUID teamId) {
         return resourceGroupPoolIds.stream()

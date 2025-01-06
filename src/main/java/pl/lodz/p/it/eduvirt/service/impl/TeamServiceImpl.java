@@ -51,6 +51,7 @@ public class TeamServiceImpl implements TeamService {
             throw new TeamAlreadyExistsException();
         }
     }
+
     @Override
     @Transactional
     public List<Team> getAllTeams() {
@@ -89,9 +90,10 @@ public class TeamServiceImpl implements TeamService {
         validateTeamSizeAndName(team, courseId);
         team.setCourse(course);
         team.setActive(true);
+        team = teamRepository.save(team);
 
         accessKeyService.createTeamKey(team.getId(), userKeyValue);
-        return teamRepository.save(team);
+        return team;
     }
 
     @Override
@@ -113,6 +115,39 @@ public class TeamServiceImpl implements TeamService {
         }
     }
 
+    // add logic later to check if there are active reservations for the team
+    @Override
+    @Transactional
+    public Team updateTeam(Team updatedTeam, UUID teamId) {
+        Team existingTeam = teamRepository.findById(teamId)
+                .orElseThrow(TeamNotFoundException::new);
+
+        if (existingTeam.getCourse().getCourseType() == CourseType.SOLO) {
+            existingTeam.setActive(updatedTeam.isActive());
+            return teamRepository.saveAndFlush(existingTeam);
+        }
+
+        if (!existingTeam.getName().equals(updatedTeam.getName())) {
+            if (teamRepository.existsByNameAndCourseId(updatedTeam.getName(), existingTeam.getCourse().getId())) {
+                throw new TeamAlreadyExistsException();
+            }
+        }
+
+        if (updatedTeam.getMaxSize() < 1 || updatedTeam.getMaxSize() > 8) {
+            throw new TeamSizeException();
+        }
+
+        if (updatedTeam.getMaxSize() < existingTeam.getUsers().size()) {
+            throw new TeamSizeException();
+        }
+
+        existingTeam.setName(updatedTeam.getName());
+        existingTeam.setMaxSize(updatedTeam.getMaxSize());
+        existingTeam.setActive(updatedTeam.isActive());
+
+        return teamRepository.saveAndFlush(existingTeam);
+    }
+
     @Override
     @Transactional
     public void addUserToTeam(String keyValue, UUID userId) {
@@ -120,10 +155,14 @@ public class TeamServiceImpl implements TeamService {
                 .orElseThrow(AccessKeyNotFoundException::new);
 
         Team team = key.getTeam();
-        validateUserNotInTeam(team, userId);
+        if (team.isActive()) {
+            validateUserNotInTeam(team, userId);
 
-        team.getUsers().add(userId);
-        teamRepository.save(team);
+            team.getUsers().add(userId);
+            teamRepository.saveAndFlush(team);
+        } else {
+            throw new RuntimeException("Team is not active");
+        }
     }
 
     @Override

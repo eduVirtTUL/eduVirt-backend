@@ -75,7 +75,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
         newCourseAccessKey.setKeyValue(keyValue);
         newCourseAccessKey.setCourse(course);
 
-        return courseAccessKeyRepository.save(newCourseAccessKey);
+        return courseAccessKeyRepository.saveAndFlush(newCourseAccessKey);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
         newTeamAccessKey.setKeyValue(keyValue);
         newTeamAccessKey.setTeam(team);
 
-        teamAccessKeyRepository.save(newTeamAccessKey);
+        teamAccessKeyRepository.saveAndFlush(newTeamAccessKey);
     }
 
     @Override
@@ -137,7 +137,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
                 .orElseThrow(AccessKeyNotFoundException::new);
 
         accessKey.setKeyValue(courseKey);
-        return courseAccessKeyRepository.save(accessKey);
+        return courseAccessKeyRepository.saveAndFlush(accessKey);
     }
 
 }

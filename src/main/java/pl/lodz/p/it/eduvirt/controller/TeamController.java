@@ -8,6 +8,7 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
+import pl.lodz.p.it.eduvirt.dto.team.UpdateTeamDto;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.mappers.TeamMapper;
 import pl.lodz.p.it.eduvirt.service.TeamService;
@@ -27,7 +28,7 @@ public class TeamController {
 
     @PostMapping
     public ResponseEntity<TeamWithCourseDto> createTeam(@RequestBody CreateTeamDto createTeamDto) {
-        Team team = teamMapper.toEntity(createTeamDto);
+        Team team = teamMapper.fromCreateDto(createTeamDto);
         Team createdTeam = teamService.createTeam(team, createTeamDto.getCourseId(), createTeamDto.getKeyValue());
         return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(createdTeam));
     }
@@ -46,6 +47,14 @@ public class TeamController {
         Team team = teamService.getTeamById(teamId);
         return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(team));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TeamWithCourseDto> updateTeam(@PathVariable UUID id, @RequestBody UpdateTeamDto updateTeamDto) {
+        Team team = teamMapper.fromUpdateDto(updateTeamDto);
+        Team updatedTeam = teamService.updateTeam(team, id);
+        return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(updatedTeam));
+    }
+
 
     @GetMapping("/user/{userId}")
     @Transactional
