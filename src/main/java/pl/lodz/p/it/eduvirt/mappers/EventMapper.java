@@ -5,12 +5,14 @@ import org.mapstruct.Mapping;
 import org.ovirt.engine.sdk4.types.Event;
 import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 
-@Mapper(componentModel = "spring")
+import java.time.ZoneId;
+
+@Mapper(componentModel = "spring", imports = {ZoneId.class})
 public interface EventMapper {
 
     @Mapping(target = "id", expression = "java(event.id())")
     @Mapping(target = "message", expression = "java(event.description())")
     @Mapping(target = "severity", expression = "java(event.severity().value())")
-    @Mapping(target = "registeredAt", expression = "java(event.time().toString())")
+    @Mapping(target = "registeredAt", expression = "java(event.time().toInstant().atZone(ZoneId.of(\"UTC\")).toLocalDateTime())")
     EventGeneralDto ovirtEventToGeneralDTO(Event event);
 }

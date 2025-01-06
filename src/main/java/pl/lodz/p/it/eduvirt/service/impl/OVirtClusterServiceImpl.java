@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.types.*;
 import org.ovirt.engine.sdk4.services.*;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -121,13 +123,20 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
 
     @PreAuthorize("hasRole('administrator')")
     @Override
-    public List<Event> findEventsInCluster(Cluster cluster, int pageNumber, int pageSize) {
+    public List<Event> findEventsInCluster(Cluster cluster, Pageable pageable) {
         try {
             Connection connection =  connectionFactory.getConnection();
             SystemService systemService = connection.systemService();
 
-            String args = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
-            return systemService.eventsService().list().search(args).max(pageSize).send().events();
+            String sortBy = "";
+            for (Sort.Order sortOrder : pageable.getSort()) {
+                sortBy = " sortby %s %s".formatted(sortOrder.getProperty(), sortOrder.getDirection());
+                break;
+            }
+
+            String args = "cluster=%s%s page %s".formatted(cluster.name(), sortBy, pageable.getPageNumber() + 1);
+
+            return systemService.eventsService().list().search(args).max(pageable.getPageSize()).send().events();
         } catch (Exception exception) {
             throw new EventNotFoundException(
                     "No events could be found for cluster %s.".formatted(cluster.id()));

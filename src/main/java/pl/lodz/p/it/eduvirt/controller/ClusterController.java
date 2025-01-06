@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.*;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -53,8 +54,8 @@ public class ClusterController {
     private final ClusterMapper clusterMapper;
     private final HostMapper hostMapper;
     private final NetworkMapper networkMapper;
-    private final EventMapper eventMapper;
     private final VmMapper vmMapper;
+    private final EventMapper eventMapper;
 
     /* Util */
 
@@ -175,13 +176,12 @@ public class ClusterController {
     @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EventGeneralDto>> findEventsByClusterId(
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "25", required = false) int pageSize,
-            @PathVariable("id") UUID clusterId) {
+            Pageable pageable, @PathVariable("id") UUID clusterId) {
         Cluster cluster = clusterService.findClusterById(clusterId);
-        List<Event> events = clusterService.findEventsInCluster(cluster, pageNumber, pageSize);
+        List<Event> events = clusterService.findEventsInCluster(cluster, pageable);
 
-        List<EventGeneralDto> listOfDTOs = events.stream().map(eventMapper::ovirtEventToGeneralDTO).toList();
+        List<EventGeneralDto> listOfDTOs = events.stream()
+                .map(eventMapper::ovirtEventToGeneralDTO).toList();
 
         if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDTOs);
