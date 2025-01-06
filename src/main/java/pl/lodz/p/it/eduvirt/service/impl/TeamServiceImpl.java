@@ -62,7 +62,7 @@ public class TeamServiceImpl implements TeamService {
     @Transactional
     public Team getTeamById(UUID teamId) {
         return teamRepository.findById(teamId)
-                .orElseThrow(TeamNotFoundException::new);
+                .orElseThrow(RuntimeException::new);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class TeamServiceImpl implements TeamService {
     @Transactional
     public Team updateTeam(Team updatedTeam, UUID teamId) {
         Team existingTeam = teamRepository.findById(teamId)
-                .orElseThrow(TeamNotFoundException::new);
+                .orElseThrow(RuntimeException::new);
 
         if (existingTeam.getCourse().getCourseType() == CourseType.SOLO) {
             existingTeam.setActive(updatedTeam.isActive());
@@ -204,7 +204,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public void removeUserFromTeam(UUID teamId, UUID userId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(TeamNotFoundException::new);
+                .orElseThrow(RuntimeException::new);
 
         if (team.getUsers().contains(userId)) {
             team.getUsers().remove(userId);

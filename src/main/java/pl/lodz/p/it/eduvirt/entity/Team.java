@@ -62,12 +62,10 @@ public class Team extends Updatable {
     /* Constructor */
 
     public Team(String name,
-                String key,
                 boolean active,
                 int maxSize,
                 Course course) {
         this.name = name;
-        this.key = key;
         this.active = active;
         this.maxSize = maxSize;
         this.course = course;
