@@ -54,9 +54,9 @@ public class Team extends Updatable {
     @CollectionTable(
             name = "pod_stateless",
             joinColumns = @JoinColumn(name = "team_id"),
-            uniqueConstraints = @UniqueConstraint(columnNames = {"team_id", "rgp_id"})
+            uniqueConstraints = @UniqueConstraint(columnNames = {"team_id", "rg_id"})
     )
-    @Column(name = "rgp_id", nullable = false)
+    @Column(name = "rg_id", nullable = false)
     private List<UUID> statelessPods = new ArrayList<>();
 
     /* Constructor */

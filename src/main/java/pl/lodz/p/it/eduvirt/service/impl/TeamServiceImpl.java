@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.entity.key.CourseAccessKey;
@@ -54,12 +55,14 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<Team> getAllTeams() {
         return teamRepository.findAll();
     }
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public Team getTeamById(UUID teamId) {
         return teamRepository.findById(teamId)
                 .orElseThrow(RuntimeException::new);
@@ -67,18 +70,21 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<Team> getTeamsByUser(UUID userId) {
         return teamRepository.findByUsersContains(userId);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<Team> getTeamsByCourse(UUID courseId) {
         return teamRepository.findByCourses(courseId);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public Team createTeam(Team team, UUID courseId, String userKeyValue) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
@@ -98,6 +104,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public void joinUsingKey(String keyValue, UUID userId) {
         try {
             teamKeyRepository.findByKeyValue(keyValue)
@@ -115,9 +122,9 @@ public class TeamServiceImpl implements TeamService {
         }
     }
 
-    // add logic later to check if there are active reservations for the team
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public Team updateTeam(Team updatedTeam, UUID teamId) {
         Team existingTeam = teamRepository.findById(teamId)
                 .orElseThrow(RuntimeException::new);
@@ -150,6 +157,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public void addUserToTeam(String keyValue, UUID userId) {
         TeamAccessKey key = teamKeyRepository.findByKeyValue(keyValue)
                 .orElseThrow(AccessKeyNotFoundException::new);
@@ -167,6 +175,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public void addUserToCourse(String keyValue, UUID userId) {
         CourseAccessKey key = courseKeyRepository.findByKeyValue(keyValue)
                 .orElseThrow(AccessKeyNotFoundException::new);
@@ -179,6 +188,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public void createSoloTeam(UUID courseId, UUID userId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
@@ -202,6 +212,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    @PreAuthorize("isAuthenticated()")
     public void removeUserFromTeam(UUID teamId, UUID userId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(RuntimeException::new);

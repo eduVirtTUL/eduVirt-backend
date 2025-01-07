@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatefulDto;
-import pl.lodz.p.it.eduvirt.dto.pod.CreateStatelessPodDto;
-import pl.lodz.p.it.eduvirt.dto.pod.PodDetailsDto;
-import pl.lodz.p.it.eduvirt.dto.pod.PodStatefulDto;
+import pl.lodz.p.it.eduvirt.dto.pod.*;
 import pl.lodz.p.it.eduvirt.entity.PodStateful;
 import pl.lodz.p.it.eduvirt.mappers.PodMapper;
 import pl.lodz.p.it.eduvirt.service.PodService;
@@ -72,16 +69,16 @@ public class PodController {
     //Stateless
     @PostMapping("/stateless")
     public ResponseEntity<Void> createStatelessPod(@RequestBody CreateStatelessPodDto createDto) {
-        podService.createStatelessPod(createDto.teamId(), createDto.resourceGroupPoolId());
+        podService.createStatelessPod(createDto.teamId(), createDto.resourceGroupId());
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/stateless/{teamId}/{resourceGroupPoolId}")
+    @DeleteMapping("/stateless/{teamId}/{resourceGroupId}")
     public ResponseEntity<Void> deleteStatelessPod(
             @PathVariable UUID teamId,
-            @PathVariable UUID resourceGroupPoolId
+            @PathVariable UUID resourceGroupId
     ) {
-        podService.deleteStatelessPod(teamId, resourceGroupPoolId);
+        podService.deleteStatelessPod(teamId, resourceGroupId);
         return ResponseEntity.noContent().build();
     }
 
@@ -89,12 +86,5 @@ public class PodController {
     @Transactional
     public ResponseEntity<List<UUID>> getStatelessPodsByTeam(@PathVariable UUID teamId) {
         return ResponseEntity.ok(podService.getStatelessPodsByTeam(teamId));
-        //TODO: fix this
-//        return ResponseEntity.ok(
-//                podService.getStatelessPodsByTeam(teamId).stream()
-//                        .map(podMapper::toStatelessDto)
-//                        .toList()
-//        );
     }
-
 }

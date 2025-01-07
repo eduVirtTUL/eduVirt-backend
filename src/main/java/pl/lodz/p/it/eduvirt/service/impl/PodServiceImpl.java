@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
@@ -31,13 +32,14 @@ public class PodServiceImpl implements PodService {
 
     private final PodRepository podStatefulRepository;
     private final ResourceGroupRepository resourceGroupRepository;
-    private final ResourceGroupPoolRepository resourceGroupPoolRepository;
     private final TeamRepository teamRepository;
     private final CourseRepository courseRepository;
     private final PodMapper podMapper;
 
+    // Stateful pods
+
     @Override
-    @Transactional
+    @PreAuthorize("isAuthenticated()")
     public PodStateful createStatefulPod(CreatePodStatefulDto dto) {
 
         PodStateful pod = podMapper.createPodStatefulDtoToPodStateful(dto);
@@ -68,23 +70,27 @@ public class PodServiceImpl implements PodService {
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<PodStateful> getStatefulPodsByTeam(UUID teamId) {
         return podStatefulRepository.findByTeamId(teamId);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<PodStateful> getStatefulPodsByCourse(UUID courseId) {
         return podStatefulRepository.findByCourseId(courseId);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<PodStateful> getStatefulPodsByResourceGroup(UUID resourceGroupId) {
         return podStatefulRepository.findByResourceGroupId(resourceGroupId);
     }
 
     @Override
+    @PreAuthorize("isAuthenticated()")
     public PodStateful getStatefulPod(UUID podId) {
         return podStatefulRepository.findById(podId)
                 .orElseThrow(PodNotFoundException::new);
@@ -92,39 +98,54 @@ public class PodServiceImpl implements PodService {
 
     //TODO: add logic if in use later
     @Override
+    @PreAuthorize("isAuthenticated()")
     public void deleteStatefulPod(UUID podId) {
+
+        PodStateful pod = podStatefulRepository.findById(podId)
+                .orElseThrow(PodNotFoundException::new);
+
+
         podStatefulRepository.deleteById(podId);
     }
 
+    //Stateless pods
+
     @Override
     @Transactional
-    public void createStatelessPod(UUID teamId, UUID resourceGroupPoolId) {
+    @PreAuthorize("isAuthenticated()")
+    public void createStatelessPod(UUID teamId, UUID resourceGroupId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
-        resourceGroupPoolRepository.findById(resourceGroupPoolId)
-                .orElseThrow(() -> new ResourceGroupPoolNotFoundException(resourceGroupPoolId));
+        ResourceGroup resourceGroup = resourceGroupRepository.findById(resourceGroupId)
+                .orElseThrow(() -> new ResourceGroupNotFoundException(resourceGroupId));
 
-        if (team.getStatelessPods().contains(resourceGroupPoolId)) {
-            throw new TeamValidationException("Stateless pod for this team and resource group pool already exists");
+        if (!resourceGroup.isStateless()) {
+            throw new RuntimeException("Cannot create stateless pod for stateful resource group");
         }
 
-        team.getStatelessPods().add(resourceGroupPoolId);
+        if (team.getStatelessPods().contains(resourceGroupId)) {
+            throw new TeamValidationException("Stateless pod for this team and resource group already exists");
+        }
+
+        team.getStatelessPods().add(resourceGroupId);
         teamRepository.saveAndFlush(team);
     }
 
     @Override
     @Transactional
-    public void deleteStatelessPod(UUID teamId, UUID resourceGroupPoolId) {
+    @PreAuthorize("isAuthenticated()")
+    public void deleteStatelessPod(UUID teamId, UUID resourceGroupId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
-        team.getStatelessPods().remove(resourceGroupPoolId);
+        team.getStatelessPods().remove(resourceGroupId);
         teamRepository.saveAndFlush(team);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<UUID> getStatelessPodsByTeam(UUID teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);

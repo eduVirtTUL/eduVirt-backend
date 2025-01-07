@@ -4,6 +4,6 @@ import java.util.UUID;
 
 public record CreateStatelessPodDto(
         UUID teamId,
-        UUID resourceGroupPoolId
+        UUID resourceGroupId
 ) {
 }
