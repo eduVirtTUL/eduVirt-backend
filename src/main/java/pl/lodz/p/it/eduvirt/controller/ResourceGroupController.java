@@ -2,10 +2,11 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
-import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 
@@ -28,12 +29,6 @@ public class ResourceGroupController {
     @GetMapping("/{id}")
     public ResponseEntity<ResourceGroupDto> getResourceGroup(@PathVariable UUID id) {
         return ResponseEntity.ok(resourceGroupMapper.toDto(resourceGroupService.getResourceGroup(id)));
-    }
-
-    @PostMapping
-    public ResponseEntity<ResourceGroupDto> createResourceGroup(@RequestBody CreateResourceGroupDto createResourceGroupDto) {
-        ResourceGroup resourceGroup = resourceGroupMapper.toEntity(createResourceGroupDto);
-        return ResponseEntity.ok(resourceGroupMapper.toDto(resourceGroupService.createResourceGroup(resourceGroup)));
     }
 
     @GetMapping("/assigned")
