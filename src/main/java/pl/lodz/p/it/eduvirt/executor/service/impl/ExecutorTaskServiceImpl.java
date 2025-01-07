@@ -128,8 +128,8 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
         return executorSubtaskRepository.findByReservation(reservation.getId(), ExecutorTask.TaskType.POD_DESTRUCT);
     }
 
-//    @Override
-//    public List<ExecutorTask> getReservationsToEndTasks() {
-//        return executorTaskRepository.findReservationsToEndTasks();
-//    }
+    @Override
+    public List<ExecutorTask> getReservationsToEndTasks() {
+        return executorTaskRepository.findReservationsToEndTasks();
+    }
 }

@@ -1,5 +1,6 @@
 package pl.lodz.p.it.eduvirt.executor.schedulers;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.types.User;
@@ -40,22 +41,22 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // Priority 0
-//IMPROVEMENTS michal: handling stateful pods (ex. in stateful POD after reservation we should clear the state to the initial ??? but it should be done in other module)
 //IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
 //IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
-//IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
 
 // Priority 1
+//IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time
 //IMPROVEMENTS michal: handle flag 'ended' in reservation table
 //IMPROVEMENTS michal: rethink transactions
 //IMPROVEMENTS michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems)
-//IMPROVEMENTS michal: maybe implement different exceptions for different statues of VM (that is not in DOWN status)
 //IMPROVEMENTS michal: separate assigning/revoking permissions to different scheduled tasks
 
 // Priority 2
 
 //IMPROVEMENTS michal: maybe include checking VMs statues in subtasks
+//IMPROVEMENTS michal: maybe implement different exceptions for different statues of VM (that is not in DOWN status)
 //IMPROVEMENTS michal: verifications count/type of registered subtasks
+//IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
 
 // Priority 3
 //IMPROVEMENTS michal: perhaps improvement -> .stream().parallel() when calling oVirt Api (d871bd94490e9d4f0e7f72e7c4da6b2ac48e5df7 -> last revision with comments where it could be used)
@@ -428,5 +429,12 @@ public class ExecutorScheduler {
             return null;
         };
         runAndRegister(castedSupplier, task, vmId, type, additionalIds);
+    }
+
+    //--------------INIT&DESTROY--------------
+
+    @PostConstruct
+    private void init() {
+        //TODO michal: fetch all IN_PROGRESS and set FAILED due to system restart
     }
 }

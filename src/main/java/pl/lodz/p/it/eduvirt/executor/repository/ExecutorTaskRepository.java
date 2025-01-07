@@ -11,8 +11,14 @@ import java.util.UUID;
 @Repository
 public interface ExecutorTaskRepository extends JpaRepository<ExecutorTask, UUID> {
 
-//    @Query("""
-//    """
-//    )
-//    List<ExecutorTask> findReservationsToEndTasks();
+    //TODO michal: include reservations that has multiply failed tries to shutdown VMs
+
+    @Query("""
+            SELECT e FROM ExecutorTask e
+            WHERE e.status = 'AWAITING_TO_END_RESERVATION'
+            """)
+    List<ExecutorTask> findReservationsToEndTasks();
+
+    @Query("SELECT e FROM ExecutorTask e WHERE e.status = 'IN_PROGRESS'")
+    List<ExecutorTask> findReservationsInProgressTasks();
 }

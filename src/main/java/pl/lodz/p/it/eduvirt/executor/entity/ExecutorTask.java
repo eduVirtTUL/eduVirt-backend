@@ -14,6 +14,7 @@ import jakarta.persistence.TemporalType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
+import pl.lodz.p.it.eduvirt.entity.HistoricalData;
 import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
 
 import java.time.LocalDateTime;
@@ -23,7 +24,7 @@ import java.util.Objects;
 @Table(name = "executor_task")
 @Getter
 @NoArgsConstructor
-public class ExecutorTask extends AbstractEntity {
+public class ExecutorTask extends HistoricalData {
 
     @ManyToOne(optional = false)
     @JoinColumn(
@@ -40,16 +41,11 @@ public class ExecutorTask extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     private TaskType type;
 
-    enum TaskStatus {SUCCESSFUL, FAILED, IN_PROGRESS}
-//    enum TaskStatus {SUCCESSFUL, FAILED, IN_PROGRESS, AWAITING_TO_END_RESERVATION}
+    enum TaskStatus {SUCCESSFUL, FAILED, IN_PROGRESS, AWAITING_TO_END_RESERVATION}
 
     @Column(name = "status", updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
     private TaskStatus status = TaskStatus.IN_PROGRESS;
-
-    @Column(name = "_created_at", updatable = false, nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime createdAt;
 
     @Column(name = "description", updatable = true, nullable = true, length = 200)
     private String description;
@@ -64,11 +60,6 @@ public class ExecutorTask extends AbstractEntity {
 
 
     // Other methods
-
-    @PrePersist
-    private void setCreatedTime() {
-        this.createdAt = LocalDateTime.now();
-    }
 
     public void setSuccessful() {
         if (status.equals(TaskStatus.IN_PROGRESS)) {

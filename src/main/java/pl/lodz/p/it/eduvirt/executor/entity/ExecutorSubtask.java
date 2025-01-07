@@ -10,15 +10,11 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
+import pl.lodz.p.it.eduvirt.entity.Updatable;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -28,7 +24,7 @@ import java.util.UUID;
 @DiscriminatorColumn(name = "kind")
 @Getter
 @NoArgsConstructor
-public abstract class ExecutorSubtask extends AbstractEntity {
+public abstract class ExecutorSubtask extends Updatable {
 
     @ManyToOne
     @JoinColumn(
@@ -53,10 +49,6 @@ public abstract class ExecutorSubtask extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     private SubtaskType type;
 
-    @Column(name = "_created_at", updatable = false, nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private LocalDateTime createdAt;
-
     @Column(name = "successful", updatable = true, nullable = true)
     private Boolean successful;
 
@@ -75,11 +67,6 @@ public abstract class ExecutorSubtask extends AbstractEntity {
     }
 
     // Other methods
-
-    @PrePersist
-    private void setCreatedTime() {
-        this.createdAt = LocalDateTime.now();
-    }
 
     public void setSuccessful(Boolean successful) {
         if (Objects.isNull(this.successful)) {
