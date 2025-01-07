@@ -221,9 +221,9 @@ public class ClusterControllerTest {
         rgPoolNo2.getResourceGroups().add(resourceGroupNo2);
         rgPoolNo3.getResourceGroups().add(resourceGroupNo3);
 
-        reservationNo1 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().minusHours(12), LocalDateTime.now(), true);
-        reservationNo2 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(12), LocalDateTime.now().plusHours(24), true);
-        reservationNo3 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(36), LocalDateTime.now().plusHours(48), true);
+        reservationNo1 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().minusHours(12), LocalDateTime.now(), true, 15);
+        reservationNo2 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(12), LocalDateTime.now().plusHours(24), true, 15);
+        reservationNo3 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(36), LocalDateTime.now().plusHours(48), true, 15);
 
         metricNo1 = new Metric("cpu_count");
         metricNo2 = new Metric("memory_size");

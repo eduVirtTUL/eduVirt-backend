@@ -37,7 +37,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
                 existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(12),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(16),
-                true
+                true,
+                15
         );
 
         mockMvc.perform(post("/reservations")
@@ -59,7 +60,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
                 nonExistentResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(12),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(16),
-                true
+                true,
+                15
         );
 
         mockMvc.perform(post("/reservations")
@@ -82,7 +84,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
                 existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().minusHours(2),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2),
-                true
+                true,
+                15
         );
 
         mockMvc.perform(post("/reservations")
@@ -105,7 +108,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
                 existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(8),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(4),
-                true
+                true,
+                15
         );
 
         mockMvc.perform(post("/reservations")
@@ -129,7 +133,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
                 existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(8),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(16),
-                true
+                true,
+                15
         );
 
         mockMvc.perform(post("/reservations")
@@ -154,7 +159,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
                 existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(8),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(12),
-                true
+                true,
+                15
         );
 
         mockMvc.perform(post("/reservations")
@@ -178,7 +184,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
                 existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(4),
-                true
+                true,
+                15
         );
 
         mockMvc.perform(post("/reservations")
@@ -201,7 +208,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
                 existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(4),
-                true
+                true,
+                15
         );
 
         mockMvc.perform(post("/reservations")
@@ -226,7 +234,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
                 existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(4),
-                true
+                true,
+                15
         );
 
         mockMvc.perform(post("/reservations")
@@ -250,7 +259,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
                 existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(6),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(10),
-                true
+                true,
+                15
         );
 
         mockMvc.perform(post("/reservations")
