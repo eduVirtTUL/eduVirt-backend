@@ -14,14 +14,25 @@ import java.util.Objects;
 @Getter
 @Setter
 @Entity
-@Table(name = "resource_group_pool")
+@Table(name = "resource_group_pool", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"name", "course_id"})
+})
 public class ResourceGroupPool extends HistoricalData {
+
     @Column(name = "name", nullable = false, length = 100)
     private String name;
+
     @Column(name = "max_rent", nullable = false)
     private int maxRent;
+
     @Column(name = "grace_period", nullable = false)
     private int gracePeriod;
+
+    @Column(name = "description", nullable = false, length = 1000)
+    private String description;
+
+    @Column(name = "max_rent_time", nullable = false)
+    private int maxRentTime;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResourceGroup> resourceGroups = new ArrayList<>();
