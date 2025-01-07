@@ -85,6 +85,7 @@ public class I18n {
     public static final String RESERVATION_CONFLICT = "reservations.error.conflict";
     public static final String RESERVATION_END_BEFORE_START = "reservations.error.end.before.start";
     public static final String RESERVATION_START_IN_PAST = "reservations.error.start.in.past";
+    public static final String RESERVATION_TOO_SHORT_EXCEPTION = "reservations.error.too.short";
 
     public static final String RESERVATION_CREATION_ERROR = "reservations.error.creation.error";
     public static final String RESERVATION_MAINTENANCE_INTERVAL_CONFLICT = "reservations.error.maintenance.interval.conflict";

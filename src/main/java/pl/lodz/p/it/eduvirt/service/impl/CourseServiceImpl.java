@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
@@ -18,6 +19,11 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public List<Course> getCourses() {
         return courseRepository.findAll();
+    }
+
+    @Override
+    public List<Course> getCoursesForStudent(UUID studentId, Pageable pageable) {
+        return courseRepository.findAllCoursesForStudent(studentId, pageable);
     }
 
     @Override

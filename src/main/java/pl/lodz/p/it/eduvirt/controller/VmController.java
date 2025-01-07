@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.types.*;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
+import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
 import pl.lodz.p.it.eduvirt.mappers.EventMapper;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
@@ -71,10 +73,16 @@ public class VmController {
     @GetMapping(path = "/{id}/required-resources", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResourcesDto> findVmRequiredResources(@PathVariable("id") UUID vmId) {
         Vm oVirtVM = oVirtVmService.findVmById(vmId.toString());
+        Qos vmCpuQos = oVirtVmService.findQosForVmCpu(oVirtVM);
         Cluster foundCluster = oVirtClusterService.findClusterById(UUID.fromString(oVirtVM.cluster().id()));
         List<Host> clusterHosts = oVirtClusterService.findAllHostsInCluster(foundCluster);
 
-        Map<String, Object> requiredResources = oVirtVmService.findVmResources(oVirtVM, clusterHosts.getFirst(), foundCluster);
+        Map<String, Object> requiredResources = oVirtVmService.findVmResources(
+                oVirtVM,
+                vmCpuQos,
+                clusterHosts.getFirst(),
+                foundCluster
+        );
 
         ResourcesDto resources = new ResourcesDto(
                 (int) requiredResources.get("cpu"),
@@ -84,13 +92,20 @@ public class VmController {
         return ResponseEntity.ok(resources);
     }
 
+    @GetMapping(path = "/clusters/{clusterId}")
+    public ResponseEntity<List<VmDto>> findVmsForCluster(@PathVariable("clusterId") UUID clusterId) {
+        Cluster foundCluster = oVirtClusterService.findClusterById(clusterId);
+        List<Vm> foundVms = oVirtVmService.findVmsForCluster(foundCluster);
+        List<VmDto> listOfDTOs = foundVms.stream().map(vmMapper::ovirtVmToDto).toList();
+        if (foundVms.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDTOs);
+    }
+
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EventGeneralDto>> findEventsForVm(
-            @PathVariable("id") UUID vmId,
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
+            @PathVariable("id") UUID vmId, Pageable pageable) {
         Vm oVirtVM = oVirtVmService.findVmById(vmId.toString());
-        List<Event> foundEvents = oVirtVmService.findEventsByVmId(oVirtVM, pageNumber, pageSize);
+        List<Event> foundEvents = oVirtVmService.findEventsByVmId(oVirtVM, pageable);
 
         List<EventGeneralDto> listOfDTOs = foundEvents.stream()
                 .map(eventMapper::ovirtEventToGeneralDTO).toList();
