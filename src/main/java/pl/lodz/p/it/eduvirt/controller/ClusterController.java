@@ -88,33 +88,6 @@ public class ClusterController {
     }
 
     @PreAuthorize("hasRole('administrator')")
-    @GetMapping(path = "/{id}/availability")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ResponseEntity<List<ResourcesAvailabilityDto>> findClusterResourcesAvailability(
-            @PathVariable("id") UUID clusterId,
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
-        Cluster cluster = clusterService.findClusterById(clusterId);
-        List<ClusterMetric> clusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
-        List<ResourcesAvailabilityDto> resourcesAvailabilityDtos = new LinkedList<>();
-
-        LocalDateTime currentTime = startTime;
-        while (currentTime.isBefore(endTime)) {
-            List<Reservation> currentReservations = reservationService
-                    .findCurrentReservationsForCluster(UUID.fromString(cluster.id()), currentTime);
-
-            if (bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(clusterMetrics), currentReservations, cluster))
-                resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, true));
-            else resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, false));
-
-            currentTime = currentTime.plusMinutes(30);
-        }
-
-        if (resourcesAvailabilityDtos.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(resourcesAvailabilityDtos);
-    }
-
-    @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<HostDto>> findHostInfoByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,

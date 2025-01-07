@@ -24,7 +24,7 @@ import java.util.UUID;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.REQUIRES_NEW)
+@Transactional(propagation = Propagation.REQUIRED)
 public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     /* Repositories */

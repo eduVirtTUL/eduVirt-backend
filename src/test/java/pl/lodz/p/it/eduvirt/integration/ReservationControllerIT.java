@@ -279,8 +279,8 @@ public class ReservationControllerIT extends IntegrationTestBase {
         ReservationDetailsDto foundReservation = mapper.readValue(json, ReservationDetailsDto.class);
 
         assertNotNull(foundReservation);
-        assertNotNull(foundReservation.getResourceGroupId());
-        assertNotNull(foundReservation.getTeamId());
+        assertNotNull(foundReservation.getResourceGroup().id());
+        assertNotNull(foundReservation.getTeam().getId());
         assertNotNull(foundReservation.getStart());
         assertNotNull(foundReservation.getEnd());
     }

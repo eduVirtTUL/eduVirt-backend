@@ -20,6 +20,7 @@ import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
 import pl.lodz.p.it.eduvirt.util.I18n;
 import pl.lodz.p.it.eduvirt.util.MailHelper;
+import pl.lodz.p.it.eduvirt.util.MailProvider;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -42,7 +43,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
 
     /* Other */
 
-    private final MailHelper mailHelper;
+    private final MailProvider mailProvider;
 
     /* Create methods */
 
@@ -77,19 +78,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
 
             /* Send e-mail notification*/
             // TODO: Handle i18
-            userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailHelper.sendSimpleMail(
-                    user.getEmail(),
-                    "Reservation cancelled!",
-                    """
-                    Hello user,
-                        \s
-                    Reservation %s of resource group %s, scheduled for the team you are a part of,
-                    from %s to %s was cancelled, since the administrator defined maintenance break that will take
-                    place during that reservation. We are sorry for the inconvenience. Please schedule
-                    your reservation again!
-                        \s
-                    Note: This message was generated automatically. Please, do not respond to it.
-                   \s""".formatted(reservation.getId(), reservation.getResourceGroup().getId(), reservation.getStartTime(), reservation.getEndTime())
+            userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
+                    user.getEmail(), reservation, "CET", "pl"
             )));
 
             /* Delete reservation */
@@ -129,19 +119,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
 
             /* Send e-mail notification*/
             // TODO: Handle i18
-            userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailHelper.sendSimpleMail(
-                    user.getEmail(),
-                    "Reservation cancelled!",
-                    """
-                    Hello user,
-                        \s
-                    Reservation %s of resource group %s, scheduled for the team you are a part of,
-                    from %s to %s was cancelled, since the administrator defined maintenance break that will take
-                    place during that reservation. We are sorry for the inconvenience. Please schedule
-                    your reservation again!
-                        \s
-                    Note: This message was generated automatically. Please, do not respond to it.
-                   \s""".formatted(reservation.getId(), reservation.getResourceGroup().getId(), reservation.getStartTime(), reservation.getEndTime())
+            userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
+                    user.getEmail(), reservation, "CET", "pl"
             )));
 
             /* Delete reservation */

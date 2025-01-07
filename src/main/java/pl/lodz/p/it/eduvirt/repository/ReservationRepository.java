@@ -42,24 +42,28 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @PreAuthorize("isAuthenticated()")
-    @Query("SELECT r FROM Reservation r WHERE r.endTime > :probeTime " +
+    @Query("SELECT r FROM Reservation r WHERE NOT ((r.startTime <= :periodStart AND r.endTime <= :periodStart) " +
+            "OR (r.startTime >= :periodEnd AND r.endTime >= :periodEnd)) " +
             "AND r.team IN (SELECT t FROM Team t WHERE t.course = :course)")
-    List<Reservation> findCurrentReservationsForCourse(
-            @Param("course") Course course, @Param("probeTime") LocalDateTime probeTime);
+    List<Reservation> findCurrentReservationsForCourse(@Param("course") Course course,
+                                                       @Param("periodStart") LocalDateTime periodStart,
+                                                       @Param("periodEnd") LocalDateTime periodEnd);
 
     @PreAuthorize("isAuthenticated()")
-    @Query("SELECT r FROM Reservation r WHERE r.endTime > :probeTime " +
+    @Query("SELECT r FROM Reservation r WHERE NOT ((r.startTime <= :periodStart AND r.endTime <= :periodStart) " +
+            "OR (r.startTime >= :periodEnd AND r.endTime >= :periodEnd)) " +
             "AND r.team IN (SELECT t FROM Team t WHERE t.course.clusterId = :cluster)")
-    List<Reservation> findCurrentReservationsForCluster(
-            @Param("cluster") UUID clusterId, @Param("probeTime") LocalDateTime probeTime);
+    List<Reservation> findCurrentReservationsForCluster(@Param("cluster") UUID clusterId,
+                                                        @Param("periodStart") LocalDateTime periodStart,
+                                                        @Param("periodEnd") LocalDateTime periodEnd);
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
-    @Query("SELECT r FROM Reservation r WHERE r.endTime > current_timestamp() AND r.team = :team")
-    Page<Reservation> findAllActiveReservations(@Param("team") Team team, Pageable pageable);
+    @Query("SELECT r FROM Reservation r WHERE r.endTime > :probeTime AND r.team = :team")
+    Page<Reservation> findAllActiveReservations(@Param("team") Team team, @Param("probeTime") LocalDateTime probeTime, Pageable pageable);
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
-    @Query("SELECT r FROM Reservation r WHERE r.endTime <= current_timestamp() AND r.team = :team")
-    Page<Reservation> findAllHistoricalReservations(@Param("team") Team team, Pageable pageable);
+    @Query("SELECT r FROM Reservation r WHERE r.endTime <= :probeTime AND r.team = :team")
+    Page<Reservation> findAllHistoricalReservations(@Param("team") Team team, @Param("probeTime") LocalDateTime probeTime, Pageable pageable);
 
     @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :resourceGroup AND r.team = :team " +
             "AND (r.startTime < :to AND r.endTime > :from)")

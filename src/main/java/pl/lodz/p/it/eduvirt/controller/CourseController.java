@@ -6,11 +6,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
+import org.ovirt.engine.sdk4.types.Host;
+import org.ovirt.engine.sdk4.types.Qos;
+import org.ovirt.engine.sdk4.types.Vm;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -29,9 +34,7 @@ import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
 import java.time.*;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/course")
@@ -43,9 +46,11 @@ public class CourseController {
     private final ResourceGroupPoolService resourceGroupPoolService;
     private final ReservationService reservationService;
     private final CourseMetricService courseMetricService;
+    private final ResourceGroupService resourceGroupService;
     private final ClusterMetricService clusterMetricService;
 
     private final OVirtClusterService clusterService;
+    private final OVirtVmService vmService;
     private final CourseService courseService;
 
     /* Mappers */
@@ -62,6 +67,19 @@ public class CourseController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<CourseDto>> getCourses() {
         return ResponseEntity.ok(courseMapper.toCourseDtoList(courseService.getCourses().stream()));
+    }
+
+    // @PreAuthorize("hasRole('student')")
+    @GetMapping(path = "/member", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<CourseDto>> getCoursesForStudent(Pageable pageable) {
+        UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<Course> foundCourses = courseService.getCoursesForStudent(studentId, pageable);
+
+        List<CourseDto> listOfDTOs = foundCourses.stream()
+                .map(courseMapper::courseToCourseDto).toList();
+
+        if (foundCourses.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDTOs);
     }
 
     @GetMapping("/{id}")
@@ -88,15 +106,29 @@ public class CourseController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path = "/{id}/availability")
+    @GetMapping(path = "/{id}/availability/resource-groups/{rgId}")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findCourseResourcesAvailability(
             @PathVariable("id") UUID courseId,
+            @PathVariable("rgId") UUID rgId,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
+        int timeWindowMinutes = 30;
         Course foundCourse = courseService.getCourse(courseId);
         UUID clusterId = foundCourse.getClusterId();
+
         Cluster cluster = clusterService.findClusterById(clusterId);
+        List<Host> hosts = clusterService.findAllHostsInCluster(cluster);
+        Map<String, Vm> foundVms = new HashMap<>();
+        Map<String, Qos> foundQos = new HashMap<>();
+        for (Vm vm : vmService.findVmsForCluster(cluster)) {
+            foundVms.put(vm.id(), vm);
+            if (vm.cpuProfile().qos() != null) {
+                foundQos.put(vm.id(), vmService.findQosForVmCpu(vm));
+            }
+        }
+
+        ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
 
         List<CourseMetric> courseMetrics = courseMetricService.getAllCourseMetricsForCourse(foundCourse.getId());
         List<ClusterMetric> clusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
@@ -106,17 +138,19 @@ public class CourseController {
         LocalDateTime currentTime = startTime;
         while (currentTime.isBefore(endTime)) {
             List<Reservation> currentCourseReservations = reservationService
-                    .findCurrentReservationsForCourse(foundCourse, currentTime);
+                    .findCurrentReservationsForCourse(foundCourse, currentTime, currentTime.plusMinutes(timeWindowMinutes));
 
             List<Reservation> currentClusterReservations = reservationService
-                    .findCurrentReservationsForCluster(clusterId, currentTime);
+                    .findCurrentReservationsForCluster(clusterId, currentTime, currentTime.plusMinutes(timeWindowMinutes));
 
-            if (bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(courseMetrics), currentCourseReservations, cluster) &&
-                    bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(clusterMetrics), currentClusterReservations, cluster))
+            if (bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(courseMetrics),
+                    currentCourseReservations, resourceGroup, cluster, hosts, foundVms, foundQos) &&
+                    bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(clusterMetrics),
+                            currentClusterReservations, resourceGroup, cluster, hosts, foundVms, foundQos))
                 resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, true));
             else resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, false));
 
-            currentTime = currentTime.plusMinutes(30);
+            currentTime = currentTime.plusMinutes(timeWindowMinutes);
         }
 
         if (resourcesAvailabilityDtos.isEmpty()) return ResponseEntity.noContent().build();
