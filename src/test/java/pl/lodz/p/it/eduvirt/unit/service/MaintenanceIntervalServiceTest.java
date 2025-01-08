@@ -21,6 +21,7 @@ import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.impl.MaintenanceIntervalServiceImpl;
 import pl.lodz.p.it.eduvirt.util.MailHelper;
+import pl.lodz.p.it.eduvirt.util.MailProvider;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -47,7 +48,7 @@ public class MaintenanceIntervalServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private MailHelper mailHelper;
+    private MailProvider mailProvider;
 
     @InjectMocks
     private MaintenanceIntervalServiceImpl maintenanceIntervalService;
@@ -220,9 +221,9 @@ public class MaintenanceIntervalServiceTest {
         rgPoolNo2.getResourceGroups().add(resourceGroupNo2);
         rgPoolNo3.getResourceGroups().add(resourceGroupNo3);
 
-        reservationNo1 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().minusHours(12), LocalDateTime.now(), true);
-        reservationNo2 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(12), LocalDateTime.now().plusHours(24), true);
-        reservationNo3 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(36), LocalDateTime.now().plusHours(48), true);
+        reservationNo1 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().minusHours(12), LocalDateTime.now(), true, 10);
+        reservationNo2 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(12), LocalDateTime.now().plusHours(24), true, 0);
+        reservationNo3 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(36), LocalDateTime.now().plusHours(48), true, 15);
 
         id.setAccessible(true);
 
@@ -270,8 +271,9 @@ public class MaintenanceIntervalServiceTest {
         when(userRepository.findById(Mockito.eq(userNo2.getId()))).thenReturn(Optional.of(userNo2));
         when(userRepository.findById(Mockito.eq(userNo3.getId()))).thenReturn(Optional.of(userNo3));
 
-        doNothing().when(mailHelper).sendSimpleMail(
-                Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class));
+        doNothing().when(mailProvider).sendReservationRemovalEmail(
+                Mockito.any(String.class), Mockito.any(Reservation.class), Mockito.any(String.class), Mockito.any(String.class)
+        );
 
         doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo1));
         doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo2));
@@ -286,8 +288,8 @@ public class MaintenanceIntervalServiceTest {
                 Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(6)).findById(Mockito.any(UUID.class));
-        verify(mailHelper, times(6))
-                .sendSimpleMail(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class));
+        verify(mailProvider, times(6))
+                .sendReservationRemovalEmail(Mockito.any(String.class), Mockito.any(Reservation.class), Mockito.any(String.class), Mockito.any(String.class));
         verify(reservationRepository, times(2)).delete(Mockito.any(Reservation.class));
     }
 
@@ -384,8 +386,8 @@ public class MaintenanceIntervalServiceTest {
         when(userRepository.findById(Mockito.eq(userNo2.getId()))).thenReturn(Optional.of(userNo2));
         when(userRepository.findById(Mockito.eq(userNo3.getId()))).thenReturn(Optional.of(userNo3));
 
-        doNothing().when(mailHelper).sendSimpleMail(
-                Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class));
+        doNothing().when(mailProvider).sendReservationRemovalEmail(
+                Mockito.any(String.class), Mockito.any(Reservation.class), Mockito.any(String.class), Mockito.any(String.class));
 
         doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo1));
         doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo2));
@@ -402,8 +404,8 @@ public class MaintenanceIntervalServiceTest {
                 .findReservationsForGivenPeriodForSystem(Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(6)).findById(Mockito.any(UUID.class));
-        verify(mailHelper, times(6))
-                .sendSimpleMail(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class));
+        verify(mailProvider, times(6)).sendReservationRemovalEmail(
+                Mockito.any(String.class), Mockito.any(Reservation.class), Mockito.any(String.class), Mockito.any(String.class));
         verify(reservationRepository, times(2)).delete(Mockito.any(Reservation.class));
     }
 

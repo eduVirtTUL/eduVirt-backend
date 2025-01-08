@@ -56,7 +56,7 @@ public class ReservationController {
     })
     ResponseEntity<Void> createNewReservation(@RequestBody @Validated CreateReservationDto createDto) {
         reservationService.createReservation(createDto.resourceGroupId(), createDto.start(),
-                createDto.end(), createDto.automaticStartup());
+                createDto.end(), createDto.automaticStartup(), createDto.notificationTime());
 
         return ResponseEntity.noContent().build();
     }
@@ -85,17 +85,8 @@ public class ReservationController {
         List<Reservation> foundReservations = reservationService
                 .findReservationsForGivenPeriod(resourceGroupId, start, end);
 
-        List<ReservationDto> listOfDtos = foundReservations.stream().map(reservation -> {
-            LocalDateTime currentStartTime = reservation.getStartTime();
-            LocalDateTime currentEndTime = reservation.getEndTime();
-
-            return new ReservationDto(
-                    reservation.getId(),
-                    reservation.getTeam().getId(),
-                    currentStartTime,
-                    currentEndTime
-            );
-        }).toList();
+        List<ReservationDto> listOfDtos = foundReservations.stream()
+                .map(reservationMapper::reservationToDto).toList();
 
         if (listOfDtos.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDtos);
@@ -103,6 +94,7 @@ public class ReservationController {
 
     @PreAuthorize("hasRole('student')")
     @GetMapping(path = "/active/courses/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getActiveReservations(
             @PathVariable("courseId") UUID courseId,
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -124,6 +116,7 @@ public class ReservationController {
 
     @PreAuthorize("hasRole('student')")
     @GetMapping(path = "/historic/courses/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getHistoricReservations(
             @PathVariable("courseId") UUID courseId,
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,

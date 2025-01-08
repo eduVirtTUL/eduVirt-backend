@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -61,6 +62,10 @@ public class Reservation extends HistoricalData {
     @Column(name = "automatic_startup", nullable = false)
     private Boolean automaticStartup = true;
 
+    @PositiveOrZero(message = "reservations.validation.notification.time.negative")
+    @Column(name = "notification_time", nullable = false)
+    private int notificationTime;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ReservationStatus status = ReservationStatus.PENDING;
@@ -71,12 +76,14 @@ public class Reservation extends HistoricalData {
                        Team team,
                        LocalDateTime startTime,
                        LocalDateTime endTime,
-                       Boolean automaticStartup) {
+                       Boolean automaticStartup,
+                       int notificationTime) {
         this.resourceGroup = resourceGroup;
         this.team = team;
         this.startTime = startTime;
         this.endTime = endTime;
         this.automaticStartup = automaticStartup;
+        this.notificationTime = notificationTime;
     }
 
     @Builder

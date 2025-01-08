@@ -1,20 +1,23 @@
 package pl.lodz.p.it.eduvirt.service;
 
 import org.ovirt.engine.sdk4.types.*;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public interface OVirtVmService {
 
     List<Statistic> findStatisticsByVm(Vm vm);
-    Map<String, Object> findVmResources(Vm vm, Host host, Cluster cluster);
+    Map<String, Object> findVmResources(Vm vm, Qos qos, Host host, Cluster cluster);
 
     Vm findVmById(String id);
 
+    List<Vm> findVmsForCluster(Cluster cluster);
+    Qos findQosForVmCpu(Vm vm);
+
     List<Nic> findNicsByVmId(String id);
-    List<Event> findEventsByVmId(Vm vm, int pageNumber, int pageSize);
+    List<Event> findEventsByVmId(Vm vm, Pageable pageable);
 
     List<Vm> findVms();
 }
