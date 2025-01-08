@@ -6,10 +6,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
-import org.springframework.data.domain.Page;
 import org.ovirt.engine.sdk4.types.Host;
 import org.ovirt.engine.sdk4.types.Qos;
 import org.ovirt.engine.sdk4.types.Vm;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -36,11 +36,6 @@ import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
 import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
-
-import java.time.*;
 import java.util.*;
 
 
@@ -73,8 +68,18 @@ public class CourseController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", defaultValue = "0", required = false) int page,
-                                                         @RequestParam(name = "size", defaultValue = "10", required = false) int size) {
+    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) Integer page,
+                                                         @RequestParam(name = "size", required = false) Integer size) {
+
+        if (page == null || size == null) {
+            List<Course> courses = courseService.getCourses();
+
+            return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                    .items(courseMapper.toCourseDtoList(courses.stream()))
+                    .page(new PageInfoDto(0, courses.size(), 1, courses.size()))
+                    .build());
+        }
+
         Page<Course> courses = courseService.getCourses(page, size);
 
         return ResponseEntity.ok(PageDto.<CourseDto>builder()
