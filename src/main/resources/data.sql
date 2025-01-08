@@ -4,7 +4,7 @@ VALUES ('2865efff-f8e5-4960-a0ce-fc05e98828ba', 'cpu_count'),
        ('1929c2b2-ba03-4180-ae90-79bd2335f2a8', 'network_count');
 
 INSERT INTO public.metric_cluster (id, cluster_id, metric_id, metric_value)
-VALUES (gen_random_uuid(),'c282a57c-624e-448b-823e-a68352d10914', '2865efff-f8e5-4960-a0ce-fc05e98828ba', 100),
+VALUES (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '2865efff-f8e5-4960-a0ce-fc05e98828ba', 100),
        (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '63490da4-d0f1-4e7a-88fc-3342633accc0', 1073741824),
        (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '1929c2b2-ba03-4180-ae90-79bd2335f2a8', 10);
 
@@ -25,14 +25,16 @@ VALUES (gen_random_uuid(), 'testStatelessRG1', '', true, 0, 120);
 INSERT INTO public.resource_group(id, name, description, stateless, version, max_rent_time)
 VALUES (gen_random_uuid(), 'testStatelessRG2', '', true, 0, 130);
 
-INSERT INTO public.resource_group_pool(id, name, max_rent,version, grace_period)
-VALUES (gen_random_uuid(), 'testStatelessRGPool', 120, 0, 120);
+INSERT INTO public.resource_group_pool(id, name, max_rent, version, grace_period, max_rent_time, description)
+VALUES (gen_random_uuid(), 'testStatelessRGPool', 120, 0, 120, 120, '');
 
 INSERT INTO public.resource_group_pool_resource_groups(resource_group_pool_id, resource_groups_id)
-VALUES ((SELECT id FROM public.resource_group_pool WHERE name = 'testStatelessRGPool'), (SELECT id FROM public.resource_group WHERE name = 'testStatelessRG1'));
+VALUES ((SELECT id FROM public.resource_group_pool WHERE name = 'testStatelessRGPool'),
+        (SELECT id FROM public.resource_group WHERE name = 'testStatelessRG1'));
 
 INSERT INTO public.resource_group_pool_resource_groups(resource_group_pool_id, resource_groups_id)
-VALUES ((SELECT id FROM public.resource_group_pool WHERE name = 'testStatelessRGPool'), (SELECT id FROM public.resource_group WHERE name = 'testStatelessRG2'));
+VALUES ((SELECT id FROM public.resource_group_pool WHERE name = 'testStatelessRGPool'),
+        (SELECT id FROM public.resource_group WHERE name = 'testStatelessRG2'));
 
 
 -- INSERT INTO public.course(id, name, description, course_type)
@@ -70,10 +72,15 @@ VALUES ((SELECT id FROM public.resource_group_pool WHERE name = 'testStatelessRG
 ------------------------------------------
 
 INSERT INTO public.course (id, name, description, course_type, cluster_id)
-VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'Systemy operacyjne', 'Operating Systems', 'SOLO', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('a7556146-23a6-4936-903c-c337c794a8c7', 'Infrastruktury środowisk rozwojowych i produkcyjnych', 'Infrastructures of Development and Production Environments', 'TEAM_BASED', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('e485ded6-c166-45f6-a924-13ce44666f7a', 'Sieciowe systemy baz danych', 'Network Database Systems', 'SOLO', 'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
-       ('1decd050-1328-4eca-b2de-84793a8474c2', 'Techniki utrzymania aplikacji', 'Techniques of Application Maintenance', 'TEAM_BASED', 'a5097950-d0c6-4d65-8b2e-4768809ad37a');
+VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'Systemy operacyjne', 'Operating Systems', 'SOLO',
+        'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
+       ('a7556146-23a6-4936-903c-c337c794a8c7', 'Infrastruktury środowisk rozwojowych i produkcyjnych',
+        'Infrastructures of Development and Production Environments', 'TEAM_BASED',
+        'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
+       ('e485ded6-c166-45f6-a924-13ce44666f7a', 'Sieciowe systemy baz danych', 'Network Database Systems', 'SOLO',
+        'a5097950-d0c6-4d65-8b2e-4768809ad37a'),
+       ('1decd050-1328-4eca-b2de-84793a8474c2', 'Techniki utrzymania aplikacji',
+        'Techniques of Application Maintenance', 'TEAM_BASED', 'a5097950-d0c6-4d65-8b2e-4768809ad37a');
 
 --------------------------
 --- Systemy operacyjne ---
@@ -116,8 +123,9 @@ VALUES ('e028a269-9890-4b02-81d9-b477ea7f552a', 0, 'SO-RG01', '', true, 3),
 
 --- Resource group pools ---
 
-INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id)
-VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 0, 'SysOp-Pool', 6, 3, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9');
+INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id, description,
+                                        max_rent_time)
+VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 0, 'SysOp-Pool', 6, 3, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '', 3);
 
 INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, resource_groups_id)
 VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 'e028a269-9890-4b02-81d9-b477ea7f552a'),
@@ -175,11 +183,16 @@ VALUES ('1b0912df-c4c0-4907-9dd4-b09573a3ef44', 0, 'ISRP-RG01', '', false, 6),
 
 --- Resource group pools ---
 
-INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id)
-VALUES ('5407b59a-d4b0-4fcd-aea6-12b2101f628a', 0, 'ISRP-RGPool01', 12, 6, 'a7556146-23a6-4936-903c-c337c794a8c7'),
-       ('37b6aad6-7cfd-472a-9a93-d9dc653fdbca', 0, 'ISRP-RGPool02', 12, 6, 'a7556146-23a6-4936-903c-c337c794a8c7'),
-       ('e98a5bbf-c94e-488a-9e83-9025faa7c75a', 0, 'ISRP-RGPool03', 12, 6, 'a7556146-23a6-4936-903c-c337c794a8c7'),
-       ('85bb749a-3666-43a7-aa6e-87c6bfcb8201', 0, 'ISRP-RGPool04', 12, 6, 'a7556146-23a6-4936-903c-c337c794a8c7');
+INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id, description,
+                                        max_rent_time)
+VALUES ('5407b59a-d4b0-4fcd-aea6-12b2101f628a', 0, 'ISRP-RGPool01', 12, 6, 'a7556146-23a6-4936-903c-c337c794a8c7', '',
+        6),
+       ('37b6aad6-7cfd-472a-9a93-d9dc653fdbca', 0, 'ISRP-RGPool02', 12, 6, 'a7556146-23a6-4936-903c-c337c794a8c7', '',
+        6),
+       ('e98a5bbf-c94e-488a-9e83-9025faa7c75a', 0, 'ISRP-RGPool03', 12, 6, 'a7556146-23a6-4936-903c-c337c794a8c7', '',
+        6),
+       ('85bb749a-3666-43a7-aa6e-87c6bfcb8201', 0, 'ISRP-RGPool04', 12, 6, 'a7556146-23a6-4936-903c-c337c794a8c7', '',
+        6);
 
 INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, resource_groups_id)
 VALUES ('5407b59a-d4b0-4fcd-aea6-12b2101f628a', '1b0912df-c4c0-4907-9dd4-b09573a3ef44'),
@@ -236,10 +249,14 @@ VALUES ('692bde41-c8ca-4873-bbaf-edb789ae7c87', 0, 'SSBD-RG01', '', false, 6),
 
 --- Resource group pools ---
 
-INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id)
-VALUES ('03d31c2f-d300-45af-a8f8-37c894d7a527', 0, 'SSBD-RGPool01', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a'),
-       ('0e484149-67a8-4c1c-80b6-901fa737f2c9', 0, 'SSBD-RGPool02', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a'),
-       ('9872c8c5-70e9-432e-8a29-7c6dafd35ddc', 0, 'SSBD-RGPool03', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a');
+INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id, description,
+                                        max_rent_time)
+VALUES ('03d31c2f-d300-45af-a8f8-37c894d7a527', 0, 'SSBD-RGPool01', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a', '',
+        6),
+       ('0e484149-67a8-4c1c-80b6-901fa737f2c9', 0, 'SSBD-RGPool02', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a', '',
+        6),
+       ('9872c8c5-70e9-432e-8a29-7c6dafd35ddc', 0, 'SSBD-RGPool03', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a', '',
+        6);
 
 INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, resource_groups_id)
 VALUES ('03d31c2f-d300-45af-a8f8-37c894d7a527', '692bde41-c8ca-4873-bbaf-edb789ae7c87'),
@@ -293,10 +310,14 @@ VALUES ('a7919551-3807-4b35-88e3-fc3a868ba014', 0, 'TUA-RG01', '', false, 6),
 
 --- Resource group pools ---
 
-INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id)
-VALUES ('33ad145f-10a6-4d4f-a06c-a1a869aa9d43', 0, 'TUA-RGPool01', 12, 6, '1decd050-1328-4eca-b2de-84793a8474c2'),
-       ('ad1b03b6-7c19-4f92-b647-9670013ce1fc', 0, 'TUA-RGPool02', 12, 6, '1decd050-1328-4eca-b2de-84793a8474c2'),
-       ('86e4d3cd-5764-426e-bff1-49eb21696187', 0, 'TUA-RGPool03', 12, 6, '1decd050-1328-4eca-b2de-84793a8474c2');
+INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id, description,
+                                        max_rent_time)
+VALUES ('33ad145f-10a6-4d4f-a06c-a1a869aa9d43', 0, 'TUA-RGPool01', 12, 6, '1decd050-1328-4eca-b2de-84793a8474c2', '',
+        6),
+       ('ad1b03b6-7c19-4f92-b647-9670013ce1fc', 0, 'TUA-RGPool02', 12, 6, '1decd050-1328-4eca-b2de-84793a8474c2', '',
+        6),
+       ('86e4d3cd-5764-426e-bff1-49eb21696187', 0, 'TUA-RGPool03', 12, 6, '1decd050-1328-4eca-b2de-84793a8474c2', '',
+        6);
 
 INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, resource_groups_id)
 VALUES ('33ad145f-10a6-4d4f-a06c-a1a869aa9d43', 'a7919551-3807-4b35-88e3-fc3a868ba014'),
