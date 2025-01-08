@@ -9,6 +9,7 @@ import org.ovirt.engine.sdk4.types.Cluster;
 import org.ovirt.engine.sdk4.types.Host;
 import org.ovirt.engine.sdk4.types.Qos;
 import org.ovirt.engine.sdk4.types.Vm;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -18,14 +19,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
+import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
+import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
-import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
@@ -33,8 +35,9 @@ import pl.lodz.p.it.eduvirt.service.*;
 import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
-import java.time.*;
+import java.time.LocalDateTime;
 import java.util.*;
+
 
 @RestController
 @RequestMapping("/course")
@@ -65,8 +68,24 @@ public class CourseController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<CourseDto>> getCourses() {
-        return ResponseEntity.ok(courseMapper.toCourseDtoList(courseService.getCourses().stream()));
+    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) Integer page,
+                                                         @RequestParam(name = "size", required = false) Integer size) {
+
+        if (page == null || size == null) {
+            List<Course> courses = courseService.getCourses();
+
+            return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                    .items(courseMapper.toCourseDtoList(courses.stream()))
+                    .page(new PageInfoDto(0, courses.size(), 1, courses.size()))
+                    .build());
+        }
+
+        Page<Course> courses = courseService.getCourses(page, size);
+
+        return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                .items(courseMapper.toCourseDtoList(courses.getContent().stream()))
+                .page(new PageInfoDto(courses.getNumber(), courses.getNumberOfElements(), courses.getTotalPages(), courses.getTotalElements()))
+                .build());
     }
 
     // @PreAuthorize("hasRole('student')")
@@ -93,7 +112,7 @@ public class CourseController {
     }
 
     @PostMapping
-    public ResponseEntity<CourseDto> addCourse(@RequestBody CreateCourseDto createCourseDto) {
+    public ResponseEntity<CourseDto> addCourse(@RequestBody @Validated CreateCourseDto createCourseDto) {
         Course course = courseService.addCourse(courseMapper.courseCreateDtoToCourse(createCourseDto));
 
         return ResponseEntity.ok(courseMapper.courseToCourseDto(course));

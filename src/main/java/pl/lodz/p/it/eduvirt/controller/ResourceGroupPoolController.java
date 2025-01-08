@@ -2,10 +2,13 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
+import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.CreateRGPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.DetailedResourceGroupPoolDto;
@@ -17,7 +20,6 @@ import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupPoolService;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -44,9 +46,18 @@ public class ResourceGroupPoolController {
     @GetMapping
     @Transactional
     @ApiResponse(responseCode = "200", description = "Returns list of resource group pools")
-    public ResponseEntity<List<DetailedResourceGroupPoolDto>> getResourceGroupPools() {
-        List<ResourceGroupPool> resourceGroupPools = resourceGroupPoolService.getResourceGroupPools();
-        return ResponseEntity.ok(rgPoolMapper.toDetailedRGPoolDtoList(resourceGroupPools.stream()));
+    public ResponseEntity<PageDto<DetailedResourceGroupPoolDto>> getResourceGroupPools(
+            @RequestParam(name = "page", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int pageSize
+    ) {
+        Page<ResourceGroupPool> resourceGroupPools = resourceGroupPoolService.getResourceGroupPools(pageNumber, pageSize);
+
+        return ResponseEntity.ok(PageDto.<DetailedResourceGroupPoolDto>builder()
+                .items(rgPoolMapper.toDetailedRGPoolDtoList(resourceGroupPools.getContent().stream()))
+                .page(new PageInfoDto(resourceGroupPools.getNumber(), resourceGroupPools.getNumberOfElements(), resourceGroupPools.getTotalPages(), resourceGroupPools.getTotalElements()))
+                .build());
+
+
     }
 
     @PostMapping("/{id}/resourceGroup")
