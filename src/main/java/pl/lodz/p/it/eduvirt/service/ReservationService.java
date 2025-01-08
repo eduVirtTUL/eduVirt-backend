@@ -14,14 +14,15 @@ public interface ReservationService {
 
     /* Create methods */
 
-    void createReservation(UUID resourceGroupId, LocalDateTime start, LocalDateTime end, boolean automaticStartup);
+    void createReservation(UUID resourceGroupId, LocalDateTime start, LocalDateTime end,
+                           boolean automaticStartup, int notificationTime);
 
     /* Read methods */
 
     Optional<Reservation> findReservationById(UUID reservationId);
 
-    List<Reservation> findCurrentReservationsForCourse(Course course, LocalDateTime currentTime);
-    List<Reservation> findCurrentReservationsForCluster(UUID clusterId, LocalDateTime currentTime);
+    List<Reservation> findCurrentReservationsForCourse(Course course, LocalDateTime start, LocalDateTime end);
+    List<Reservation> findCurrentReservationsForCluster(UUID clusterId, LocalDateTime start, LocalDateTime end);
     List<Reservation> findReservationsForGivenPeriod(UUID resourceGroupId, LocalDateTime start, LocalDateTime end);
 
     Page<Reservation> findActiveReservations(UUID userId, UUID courseId, Pageable pageable);
