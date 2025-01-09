@@ -40,6 +40,10 @@ public class Course extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "course_type", nullable = false)
     private CourseType courseType;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ResourceGroup> stateFullResourceGroups = new ArrayList<>();
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
