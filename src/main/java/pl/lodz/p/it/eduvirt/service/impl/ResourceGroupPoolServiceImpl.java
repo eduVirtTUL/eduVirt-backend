@@ -1,6 +1,8 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.Course;
@@ -39,8 +41,8 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
     }
 
     @Override
-    public List<ResourceGroupPool> getResourceGroupPools() {
-        return resourceGroupPoolRepository.findAll();
+    public Page<ResourceGroupPool> getResourceGroupPools(int page, int size) {
+        return resourceGroupPoolRepository.findAll(PageRequest.of(page, size));
     }
 
     @Override

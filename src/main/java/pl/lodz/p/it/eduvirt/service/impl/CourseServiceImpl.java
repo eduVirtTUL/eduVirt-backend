@@ -1,6 +1,8 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.entity.Course;
@@ -15,6 +17,11 @@ import java.util.UUID;
 @Service
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
+
+    @Override
+    public Page<Course> getCourses(int page, int size) {
+        return courseRepository.findAll(PageRequest.of(page, size));
+    }
 
     @Override
     public List<Course> getCourses() {
