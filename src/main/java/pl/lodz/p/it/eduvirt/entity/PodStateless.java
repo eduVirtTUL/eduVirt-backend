@@ -8,24 +8,24 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-@Table(name = "pod_stateful")
+@Table(name="pod_stateless")
 @Entity
-public class PodStateful extends AbstractEntity {
+public class PodStateless extends AbstractEntity{
 
     @ManyToOne(optional = false)
     @JoinColumn(
-            name = "rg_id",
+            name = "rgp_id",
             referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "pod_stateful_rg_id_fk"),
+            foreignKey = @ForeignKey(name = "pod_stateless_rg_id_fk"),
             nullable = false
     )
-    private ResourceGroup resourceGroup;
+    private ResourceGroupPool resourceGroupPool;
 
     @ManyToOne(optional = false)
     @JoinColumn(
             name = "team_id",
             referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "pod_stateful_team_id_fk"),
+            foreignKey = @ForeignKey(name = "pod_stateless_team_id_fk"),
             nullable = false
     )
     private Team team;
@@ -34,7 +34,7 @@ public class PodStateful extends AbstractEntity {
     @JoinColumn(
             name = "course_id",
             referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "pod_stateful_course_id_fk"),
+            foreignKey = @ForeignKey(name = "pod_stateless_course_id_fk"),
             nullable = false
     )
     private Course course;

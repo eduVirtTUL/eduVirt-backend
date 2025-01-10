@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.function.Predicate;
@@ -56,6 +57,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     }
 
     @Override
+    @PreAuthorize("isAuthenticated()")
     public CourseAccessKey createCourseKey(UUID courseId, String userCourseKey) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
@@ -79,6 +81,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     }
 
     @Override
+    @PreAuthorize("isAuthenticated()")
     public void createTeamKey(UUID teamId, String teamKey) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
@@ -98,6 +101,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     }
 
     @Override
+    @PreAuthorize("isAuthenticated()")
     public CourseAccessKey getKeyForCourse(UUID courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
@@ -112,6 +116,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     }
 
     @Override
+    @PreAuthorize("isAuthenticated()")
     public TeamAccessKey getKeyForTeam(UUID teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
@@ -129,6 +134,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
 
     //TODO: add etag shenanigans later
     @Override
+    @PreAuthorize("isAuthenticated()")
     public CourseAccessKey updateCourseKey(UUID courseId, String courseKey) {
         courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));

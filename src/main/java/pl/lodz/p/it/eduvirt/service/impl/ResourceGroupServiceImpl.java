@@ -12,7 +12,7 @@ import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.NicMapper;
 import pl.lodz.p.it.eduvirt.repository.NetworkInterfaceRepository;
-import pl.lodz.p.it.eduvirt.repository.PodRepository;
+import pl.lodz.p.it.eduvirt.repository.PodStatefulRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -33,7 +33,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     private final OVirtVnicProfileService oVirtVnicProfileService;
     private final VirtualMachineRepository virtualMachineRepository;
     private final NetworkInterfaceRepository networkInterfaceRepository;
-    private final PodRepository podRepository;
+    private final PodStatefulRepository podStatefulRepository;
 
     @Override
     public List<ResourceGroup> getResourceGroups() {
@@ -108,7 +108,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
 
     @Override
     public List<ResourceGroup> getAssignedStatefulResourceGroups() {
-        List<UUID> assignedResourceGroupIds = podRepository.findAll().stream()
+        List<UUID> assignedResourceGroupIds = podStatefulRepository.findAll().stream()
                 .map(pod -> pod.getResourceGroup().getId())
                 .toList();
         return resourceGroupRepository.findAllById(assignedResourceGroupIds);
