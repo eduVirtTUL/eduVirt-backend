@@ -43,9 +43,6 @@ public class ClusterController {
 
     /* Services*/
 
-    private final ClusterMetricService clusterMetricService;
-    private final ReservationService reservationService;
-
     private final OVirtClusterService clusterService;
     private final OVirtVmService vmService;
 
@@ -56,11 +53,6 @@ public class ClusterController {
     private final NetworkMapper networkMapper;
     private final VmMapper vmMapper;
     private final EventMapper eventMapper;
-
-    /* Util */
-
-    private final MetricUtil metricUtil;
-    private final BankerAlgorithm bankerAlgorithm;
 
     /* Read methods */
 
@@ -73,10 +65,8 @@ public class ClusterController {
 
     @PreAuthorize("hasRole('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<ClusterGeneralDto>> findAllClusters(
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        List<Cluster> clusters = clusterService.findClusters(pageNumber, pageSize);
+    public ResponseEntity<List<ClusterGeneralDto>> findAllClusters(Pageable pageable) {
+        List<Cluster> clusters = clusterService.findClusters(pageable);
         List<ClusterGeneralDto> listOfDTOs = clusters.stream().map(cluster -> {
             Long hostCount = (long) clusterService.findHostCountInCluster(cluster);
             Long vmCount = (long) clusterService.findVmCountInCluster(cluster);
@@ -90,11 +80,9 @@ public class ClusterController {
     @PreAuthorize("hasRole('administrator')")
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<HostDto>> findHostInfoByClusterId(
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-            @PathVariable("id") UUID clusterId) {
+            Pageable pageable, @PathVariable("id") UUID clusterId) {
         Cluster cluster = clusterService.findClusterById(clusterId);
-        List<Host> hosts = clusterService.findHostsInCluster(cluster, pageNumber, pageSize);
+        List<Host> hosts = clusterService.findHostsInCluster(cluster, pageable);
 
         List<HostDto> listOfDTOs = hosts.stream().map(host -> hostMapper.ovirtHostToDto(host, cluster)).toList();
 

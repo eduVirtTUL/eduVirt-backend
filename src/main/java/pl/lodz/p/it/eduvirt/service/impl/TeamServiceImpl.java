@@ -10,6 +10,7 @@ import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.team.*;
+import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
@@ -75,6 +76,14 @@ public class TeamServiceImpl implements TeamService {
     @Transactional
     public List<Team> getTeamsByCourse(UUID courseId) {
         return teamRepository.findByCourses(courseId);
+    }
+
+    @Override
+    @Transactional
+    public Team getTeamByCourseAndUser(Course course, UUID userId) {
+        return teamRepository.findByUserIdAndCourse(userId, course)
+                .orElseThrow(() -> new TeamNotFoundException(
+                        "Team for user %s could not be found in course %s.".formatted(userId, course.getId())));
     }
 
     @Override

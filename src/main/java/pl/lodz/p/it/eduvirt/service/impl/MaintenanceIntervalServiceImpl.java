@@ -19,7 +19,6 @@ import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
 import pl.lodz.p.it.eduvirt.util.I18n;
-import pl.lodz.p.it.eduvirt.util.MailHelper;
 import pl.lodz.p.it.eduvirt.util.MailProvider;
 
 import java.time.LocalDateTime;
@@ -71,7 +70,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
                  that is cancel all of them and send e-mail notification */
 
         List<Reservation> foundReservations = reservationRepository
-                .findReservationsForGivenPeriodForCluster(clusterId, beginAt, endAt);
+                .findClusterReservations(clusterId, beginAt, endAt);
 
         foundReservations.forEach(reservation -> {
             List<UUID> userIds = reservation.getTeam().getUsers();
@@ -112,7 +111,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
                  that is cancel all of them and send e-mail notification */
 
         List<Reservation> foundReservations = reservationRepository
-                .findReservationsForGivenPeriodForSystem(beginAt, endAt);
+                .findSystemReservations(beginAt, endAt);
 
         foundReservations.forEach(reservation -> {
             List<UUID> userIds = reservation.getTeam().getUsers();

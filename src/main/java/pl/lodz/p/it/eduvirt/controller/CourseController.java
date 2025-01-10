@@ -5,10 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.ovirt.engine.sdk4.types.Cluster;
-import org.ovirt.engine.sdk4.types.Host;
-import org.ovirt.engine.sdk4.types.Qos;
-import org.ovirt.engine.sdk4.types.Vm;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -24,14 +20,10 @@ import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
-import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.service.*;
-import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
-import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
 import java.time.*;
 import java.util.*;
@@ -43,25 +35,16 @@ public class CourseController {
 
     /* Services */
 
-    private final ResourceGroupPoolService resourceGroupPoolService;
     private final ReservationService reservationService;
-    private final CourseMetricService courseMetricService;
     private final ResourceGroupService resourceGroupService;
-    private final ClusterMetricService clusterMetricService;
-
-    private final OVirtClusterService clusterService;
-    private final OVirtVmService vmService;
+    private final ResourceGroupPoolService resourceGroupPoolService;
+    private final TeamService teamService;
     private final CourseService courseService;
 
     /* Mappers */
 
     private final CourseMapper courseMapper;
     private final RGPoolMapper rgPoolMapper;
-
-    /* Util */
-
-    private final MetricUtil metricUtil;
-    private final BankerAlgorithm bankerAlgorithm;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -106,54 +89,48 @@ public class CourseController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path = "/{id}/availability/resource-groups/{rgId}")
+    @GetMapping(path = "/{id}/resource-groups/{rgId}/availability")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ResponseEntity<List<ResourcesAvailabilityDto>> findCourseResourcesAvailability(
-            @PathVariable("id") UUID courseId,
-            @PathVariable("rgId") UUID rgId,
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
-        int timeWindowMinutes = 30;
-        Course foundCourse = courseService.getCourse(courseId);
-        UUID clusterId = foundCourse.getClusterId();
-
-        Cluster cluster = clusterService.findClusterById(clusterId);
-        List<Host> hosts = clusterService.findAllHostsInCluster(cluster);
-        Map<String, Vm> foundVms = new HashMap<>();
-        Map<String, Qos> foundQos = new HashMap<>();
-        for (Vm vm : vmService.findVmsForCluster(cluster)) {
-            foundVms.put(vm.id(), vm);
-            if (vm.cpuProfile().qos() != null) {
-                foundQos.put(vm.id(), vmService.findQosForVmCpu(vm));
-            }
-        }
-
+    public ResponseEntity<List<ResourcesAvailabilityDto>> findResourcesAvailabilityForResourceGroup(
+            @PathVariable("id") UUID courseId, @PathVariable("rgId") UUID rgId,
+            @RequestParam("window") int windowLength,
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        Course course = courseService.getCourse(courseId);
         ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
 
-        List<CourseMetric> courseMetrics = courseMetricService.getAllCourseMetricsForCourse(foundCourse.getId());
-        List<ClusterMetric> clusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
+        Map<LocalDateTime, Boolean> availability = reservationService
+                .checkResourceGroupAvailability(resourceGroup, course, windowLength, start, end);
 
-        List<ResourcesAvailabilityDto> resourcesAvailabilityDtos = new LinkedList<>();
-
-        LocalDateTime currentTime = startTime;
-        while (currentTime.isBefore(endTime)) {
-            List<Reservation> currentCourseReservations = reservationService
-                    .findCurrentReservationsForCourse(foundCourse, currentTime, currentTime.plusMinutes(timeWindowMinutes));
-
-            List<Reservation> currentClusterReservations = reservationService
-                    .findCurrentReservationsForCluster(clusterId, currentTime, currentTime.plusMinutes(timeWindowMinutes));
-
-            if (bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(courseMetrics),
-                    currentCourseReservations, resourceGroup, cluster, hosts, foundVms, foundQos) &&
-                    bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(clusterMetrics),
-                            currentClusterReservations, resourceGroup, cluster, hosts, foundVms, foundQos))
-                resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, true));
-            else resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, false));
-
-            currentTime = currentTime.plusMinutes(timeWindowMinutes);
+        List<ResourcesAvailabilityDto> listOfDTOs = new LinkedList<>();
+        for (LocalDateTime localDateTime : availability.keySet()) {
+            listOfDTOs.add(new ResourcesAvailabilityDto(localDateTime, availability.get(localDateTime)));
         }
 
-        if (resourcesAvailabilityDtos.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(resourcesAvailabilityDtos);
+        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDTOs);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/{id}/resource-group-pools/{rgPoolId}/availability")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ResponseEntity<List<ResourcesAvailabilityDto>> findResourcesAvailabilityForResourceGroupPool(
+            @PathVariable("id") UUID courseId, @PathVariable("rgPoolId") UUID rgPoolId,
+            @RequestParam("window") int windowLength,
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        Course course = courseService.getCourse(courseId);
+        ResourceGroupPool resourceGroupPool = resourceGroupPoolService.getResourceGroupPool(rgPoolId);
+
+        Map<LocalDateTime, Boolean> availability = reservationService
+                .checkResourceGroupPoolAvailability(resourceGroupPool, course, windowLength, start, end);
+
+        List<ResourcesAvailabilityDto> listOfDTOs = new LinkedList<>();
+        for (LocalDateTime localDateTime : availability.keySet()) {
+            listOfDTOs.add(new ResourcesAvailabilityDto(localDateTime, availability.get(localDateTime)));
+        }
+
+        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDTOs);
     }
 }

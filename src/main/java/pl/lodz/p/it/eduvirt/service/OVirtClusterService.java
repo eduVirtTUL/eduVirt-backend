@@ -11,9 +11,9 @@ public interface OVirtClusterService {
     /* Read methods */
 
     Cluster findClusterById(UUID clusterId);
-    List<Cluster> findClusters(int pageNumber, int pageSize);
+    List<Cluster> findClusters(Pageable pageable);
 
-    List<Host> findHostsInCluster(Cluster cluster, int pageNumber, int pageSize);
+    List<Host> findHostsInCluster(Cluster cluster, Pageable pageable);
     List<Host> findAllHostsInCluster(Cluster cluster);
     List<Vm> findVmsInCluster(Cluster cluster, int pageNumber, int pageSize);
     List<Network> findNetworksInCluster(Cluster cluster, int pageNumber, int pageSize);

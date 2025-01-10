@@ -37,6 +37,14 @@ public class GeneralControllerExceptionResolver {
                 .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
     }
 
+    @ExceptionHandler({ForbiddenException.class})
+    ResponseEntity<ExceptionResponse> handleForbiddenException(
+            ForbiddenException exception) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
+    }
+
     @ExceptionHandler({NotFoundException.class})
     ResponseEntity<ExceptionResponse> handleNotFoundException(
             NotFoundException exception) {

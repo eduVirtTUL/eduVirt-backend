@@ -87,7 +87,8 @@ public class PodServiceImpl implements PodService {
     @Override
     public PodStateful getStatefulPod(UUID podId) {
         return podStatefulRepository.findById(podId)
-                .orElseThrow(PodNotFoundException::new);
+                .orElseThrow(() -> new PodNotFoundException(
+                        "Stateful POD %s could not be found".formatted(podId)));
     }
 
     //TODO: add logic if in use later
