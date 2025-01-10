@@ -50,14 +50,9 @@ public class Team extends Updatable {
     @ToString.Exclude
     private List<PodStateful> statefulPods = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "pod_stateless",
-            joinColumns = @JoinColumn(name = "team_id"),
-            uniqueConstraints = @UniqueConstraint(columnNames = {"team_id", "rg_id"})
-    )
-    @Column(name = "rg_id", nullable = false)
-    private List<UUID> statelessPods = new ArrayList<>();
+    @OneToMany(mappedBy = "team")
+    @ToString.Exclude
+    private List<PodStateless> statelessPods = new ArrayList<>();
 
     /* Constructor */
 
