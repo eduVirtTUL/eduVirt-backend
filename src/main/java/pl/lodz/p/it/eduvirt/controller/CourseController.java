@@ -25,12 +25,15 @@ import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
+import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.service.*;
 import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.MetricUtil;
@@ -65,6 +68,7 @@ public class CourseController {
 
     private final MetricUtil metricUtil;
     private final BankerAlgorithm bankerAlgorithm;
+    private final ResourceGroupMapper resourceGroupMapper;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -118,10 +122,35 @@ public class CourseController {
         return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
     }
 
+    @GetMapping("/{id}/stateful")
+    @Transactional
+    public ResponseEntity<List<ResourceGroupDto>> getCourseStatefulResourceGroups(@PathVariable UUID id) {
+        List<ResourceGroup> resourceGroups = courseService.getStateFullResourceGroups(id);
+        return ResponseEntity.ok(resourceGroupMapper.toDtos(resourceGroups.stream()));
+    }
+
     @GetMapping("/{id}/resource-group-pools")
     public ResponseEntity<List<ResourceGroupPoolDto>> getCourseResourceGroupPools(@PathVariable UUID id) {
         List<ResourceGroupPool> resourceGroupPools = resourceGroupPoolService.getResourceGroupPoolsByCourse(id);
         return ResponseEntity.ok(rgPoolMapper.toRGPoolDtoList(resourceGroupPools.stream()));
+    }
+
+    @PostMapping("/{id}/resource-group")
+    public ResponseEntity<Void> createResourceGroup(@PathVariable UUID id, @RequestBody CreateResourceGroupDto createResourceGroupDto) {
+        ResourceGroup resourceGroup = resourceGroupMapper.toEntity(createResourceGroupDto);
+        courseService.addResourceGroupToCourse(id, resourceGroup);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCourse(@PathVariable UUID id) {
+        courseService.deleteCourse(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateCourse(@PathVariable UUID id, @RequestBody CreateCourseDto createCourseDto) {
+        return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("isAuthenticated()")
