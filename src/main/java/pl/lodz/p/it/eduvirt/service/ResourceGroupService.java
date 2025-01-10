@@ -18,5 +18,4 @@ public interface ResourceGroupService {
     ResourceGroup createResourceGroup(ResourceGroup resourceGroup);
 
     List<ResourceGroup> getAssignedStatefulResourceGroups();
-
 }

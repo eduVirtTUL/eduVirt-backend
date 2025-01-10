@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -14,19 +15,26 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
+import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
+import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
+import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.service.*;
 
-import java.time.*;
+import java.time.LocalDateTime;
 import java.util.*;
+
 
 @RestController
 @RequestMapping("/course")
@@ -45,11 +53,28 @@ public class CourseController {
 
     private final CourseMapper courseMapper;
     private final RGPoolMapper rgPoolMapper;
+    private final ResourceGroupMapper resourceGroupMapper;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<CourseDto>> getCourses() {
-        return ResponseEntity.ok(courseMapper.toCourseDtoList(courseService.getCourses().stream()));
+    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) Integer page,
+                                                         @RequestParam(name = "size", required = false) Integer size) {
+
+        if (page == null || size == null) {
+            List<Course> courses = courseService.getCourses();
+
+            return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                    .items(courseMapper.toCourseDtoList(courses.stream()))
+                    .page(new PageInfoDto(0, courses.size(), 1, courses.size()))
+                    .build());
+        }
+
+        Page<Course> courses = courseService.getCourses(page, size);
+
+        return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                .items(courseMapper.toCourseDtoList(courses.getContent().stream()))
+                .page(new PageInfoDto(courses.getNumber(), courses.getNumberOfElements(), courses.getTotalPages(), courses.getTotalElements()))
+                .build());
     }
 
     // @PreAuthorize("hasRole('student')")
@@ -76,16 +101,41 @@ public class CourseController {
     }
 
     @PostMapping
-    public ResponseEntity<CourseDto> addCourse(@RequestBody CreateCourseDto createCourseDto) {
+    public ResponseEntity<CourseDto> addCourse(@RequestBody @Validated CreateCourseDto createCourseDto) {
         Course course = courseService.addCourse(courseMapper.courseCreateDtoToCourse(createCourseDto));
 
         return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
+    }
+
+    @GetMapping("/{id}/stateful")
+    @Transactional
+    public ResponseEntity<List<ResourceGroupDto>> getCourseStatefulResourceGroups(@PathVariable UUID id) {
+        List<ResourceGroup> resourceGroups = courseService.getStateFullResourceGroups(id);
+        return ResponseEntity.ok(resourceGroupMapper.toDtos(resourceGroups.stream()));
     }
 
     @GetMapping("/{id}/resource-group-pools")
     public ResponseEntity<List<ResourceGroupPoolDto>> getCourseResourceGroupPools(@PathVariable UUID id) {
         List<ResourceGroupPool> resourceGroupPools = resourceGroupPoolService.getResourceGroupPoolsByCourse(id);
         return ResponseEntity.ok(rgPoolMapper.toRGPoolDtoList(resourceGroupPools.stream()));
+    }
+
+    @PostMapping("/{id}/resource-group")
+    public ResponseEntity<Void> createResourceGroup(@PathVariable UUID id, @RequestBody CreateResourceGroupDto createResourceGroupDto) {
+        ResourceGroup resourceGroup = resourceGroupMapper.toEntity(createResourceGroupDto);
+        courseService.addResourceGroupToCourse(id, resourceGroup);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCourse(@PathVariable UUID id) {
+        courseService.deleteCourse(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateCourse(@PathVariable UUID id, @RequestBody CreateCourseDto createCourseDto) {
+        return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("isAuthenticated()")
