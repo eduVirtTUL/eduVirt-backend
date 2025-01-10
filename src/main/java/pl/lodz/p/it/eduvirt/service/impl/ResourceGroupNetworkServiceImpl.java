@@ -27,6 +27,7 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     private final NetworkInterfaceRepository networkInterfaceRepository;
 
     @Override
+    @Transactional
     public ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name) {
         ResourceGroupNetwork resourceGroupNetwork = new ResourceGroupNetwork();
         resourceGroupNetwork.setName(name);
