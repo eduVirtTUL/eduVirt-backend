@@ -29,6 +29,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @LoggerInterceptor
@@ -437,6 +438,16 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         return availability;
+    }
+
+    @Override
+    public List<Reservation> findReservationsToBegin() {
+        return reservationRepository.findAllReservationsToBegin();
+    }
+
+    @Override
+    public List<Reservation> findReservationsToStop() {
+        return reservationRepository.findAllReservationsToStop();
     }
 
     /* Update / delete methods */

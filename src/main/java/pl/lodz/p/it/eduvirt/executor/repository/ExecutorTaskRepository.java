@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
+@Transactional(propagation = Propagation.MANDATORY)
 public interface ExecutorTaskRepository extends JpaRepository<ExecutorTask, UUID> {
 
     @Transactional(propagation = Propagation.REQUIRED)

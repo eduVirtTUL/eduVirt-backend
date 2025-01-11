@@ -115,11 +115,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
     //TODO michal: include IN_PROGRESS status (maybe task more than 5 min in this status...)
     @Query("""
             SELECT DISTINCT r FROM Reservation r
-            JOIN FETCH r.resourceGroup rg
             WHERE current_timestamp BETWEEN r.startTime AND r.endTime
             AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_INIT' AND et.status != 'FAILED')
             """)
-    List<Reservation> findReservationsToBegin();
+    List<Reservation> findAllReservationsToBegin();
 
     //TODO michal: r.endTime - 5 minutes -> due to the potential start of the next reservation immediately after this one
     @Query("""
@@ -128,5 +127,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_DESTRUCT' AND et.status != 'FAILED')
             AND r.status = 'IN_PROGRESS'
             """)
-    List<Reservation> findReservationsToStop();
+    List<Reservation> findAllReservationsToStop();
 }
