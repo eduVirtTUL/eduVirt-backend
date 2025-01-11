@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pl.lodz.p.it.eduvirt.entity.Course;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 
 import java.util.List;
@@ -19,4 +20,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     @Query("SELECT c FROM Course c WHERE :userId IN (SELECT t.users FROM Team t WHERE t.course = c)")
     List<Course> findAllCoursesForStudent(@Param("userId") UUID userId, Pageable pageable);
+
+    Course findByStateFullResourceGroupsContaining(ResourceGroup resourceGroup);
 }

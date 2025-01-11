@@ -16,15 +16,18 @@ import java.util.Set;
 public interface OVirtVmService {
 
     List<Statistic> findStatisticsByVm(Vm vm);
+
     Map<String, Object> findVmResources(Vm vm, Qos qos, Host host, Cluster cluster);
 
     Vm findVmWithCpuProfileById(String id);
     Vm findVmById(String id);
 
     List<Vm> findVmsForCluster(Cluster cluster);
+
     Qos findQosForVmCpu(Vm vm);
 
     List<Nic> findNicsByVmId(String id);
+
     List<Event> findEventsByVmId(Vm vm, Pageable pageable);
 
     List<Vm> findVms();

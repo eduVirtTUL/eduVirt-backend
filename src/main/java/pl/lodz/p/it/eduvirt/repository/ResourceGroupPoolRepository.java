@@ -12,5 +12,8 @@ import java.util.UUID;
 @Repository
 public interface ResourceGroupPoolRepository extends JpaRepository<ResourceGroupPool, UUID> {
     Optional<ResourceGroupPool> getResourceGroupPoolByResourceGroupsContaining(ResourceGroup resourceGroup);
+
     List<ResourceGroupPool> getByCourseId(UUID courseId);
+
+    ResourceGroupPool findByResourceGroupsContaining(ResourceGroup resourceGroup);
 }
