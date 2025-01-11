@@ -39,6 +39,9 @@ public interface ReservationService {
             ResourceGroupPool resourceGroupPool, Course course,
             int windowLength, LocalDateTime start, LocalDateTime end);
 
+    List<Reservation> findReservationsToBegin();
+    List<Reservation> findReservationsToStop();
+
     /* Update / delete methods */
 
     void finishReservation(Reservation reservation);

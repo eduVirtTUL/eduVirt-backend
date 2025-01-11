@@ -22,7 +22,6 @@ import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
-import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtPermissionService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
@@ -68,6 +67,7 @@ import java.util.stream.Collectors;
 @LoggerInterceptor
 @RequiredArgsConstructor
 @Profile({"prod", "dev"})
+@Transactional(propagation = Propagation.NEVER)
 public class ExecutorScheduler {
 
     // Model
@@ -76,16 +76,13 @@ public class ExecutorScheduler {
     private final VnicProfilePoolService vnicProfilePoolService;
     private final ReservationService reservationService;
 
-    //TODO michal: service instead of repository
-    private final ReservationRepository reservationRepository;
-
     // Handling logging
     private final ExecutorTaskService executorTaskService;
 
-    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0)
-    @Transactional(noRollbackFor = Throwable.class)
+    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0L)
+    @Transactional(propagation = Propagation.REQUIRES_NEW) //todo michal: this should have Propagation.NEVER (imo)
     public void createPods() {
-        reservationRepository.findReservationsToBegin()
+        reservationService.findReservationsToBegin()
                 //.stream().parallel()
                 .forEach(
                         reservation -> {
@@ -99,9 +96,9 @@ public class ExecutorScheduler {
     }
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0L)
-    @Transactional(noRollbackFor = Throwable.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW) //todo michal: this should have Propagation.NEVER (imo)
     public void destroyPods() {
-        reservationRepository.findReservationsToStop()
+        reservationService.findReservationsToStop()
                 //.stream().parallel()
                 .forEach(
                         reservation -> {
@@ -132,6 +129,7 @@ public class ExecutorScheduler {
 
     //--------------AGGREGATED OPERATIONS METHODS--------------
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void startUpPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodInitTask(reservation);
         List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationStartExistingSubTasks(reservation);
@@ -266,6 +264,7 @@ public class ExecutorScheduler {
 
     //TODO michal: Start new attempt to stop POD from the last successful subtask
     //TODO michal: if pod doesnt start should we invoke stopping it??? - now stopping is invoking in any cases
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void stopPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodDestroyTask(reservation);
         try {

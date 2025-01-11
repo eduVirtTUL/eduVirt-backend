@@ -6,14 +6,14 @@
 //import org.springframework.stereotype.Service;
 //import org.springframework.transaction.annotation.Transactional;
 //import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-//
+//import org.springframework.transaction.annotation.Propagation;
+//import org.springframework.transaction.annotation.Transactional;
+
 //@Slf4j
 //@Service
 //@LoggerInterceptor
 //@RequiredArgsConstructor
-//@Transactional
-//
-//
 //@Profile({"prod", "dev"})
+//@Transactional(propagation = Propagation.NEVER)
 //public class ConfirmationScheduler {
 //}
