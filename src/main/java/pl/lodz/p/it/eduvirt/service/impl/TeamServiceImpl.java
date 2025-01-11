@@ -115,26 +115,6 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @Transactional
     @PreAuthorize("isAuthenticated()")
-    public void joinUsingKey(String keyValue, UUID userId) {
-        try {
-            teamKeyRepository.findByKeyValue(keyValue)
-                    .orElseThrow(AccessKeyNotFoundException::new);
-            addUserToTeam(keyValue, userId);
-            return;
-        } catch (AccessKeyNotFoundException ignored) {
-        }
-        try {
-            courseKeyRepository.findByKeyValue(keyValue)
-                    .orElseThrow(AccessKeyNotFoundException::new);
-            addUserToCourse(keyValue, userId);
-        } catch (AccessKeyNotFoundException e) {
-            throw new AccessKeyNotFoundException();
-        }
-    }
-
-    @Override
-    @Transactional
-    @PreAuthorize("isAuthenticated()")
     public Team updateTeam(Team updatedTeam, UUID teamId) {
         Team existingTeam = teamRepository.findById(teamId)
                 .orElseThrow(RuntimeException::new);
@@ -168,14 +148,52 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @Transactional
     @PreAuthorize("isAuthenticated()")
+    public void joinUsingKey(String keyValue, UUID userId) {
+        if (keyValue == null || keyValue.isEmpty()) {
+            throw new IllegalArgumentException("Key value cannot be empty");
+        }
+        try {
+            teamKeyRepository.findByKeyValue(keyValue)
+                    .orElseThrow(AccessKeyNotFoundException::new);
+            addUserToTeam(keyValue, userId);
+            return;
+        } catch (AccessKeyNotFoundException e) {
+            // do nothing
+        }
+        try {
+            courseKeyRepository.findByKeyValue(keyValue)
+                    .orElseThrow(AccessKeyNotFoundException::new);
+            addUserToCourse(keyValue, userId);
+        } catch (AccessKeyNotFoundException e) {
+            throw new AccessKeyNotFoundException();
+        }
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("isAuthenticated()")
+    public void leaveTeam(UUID teamId, UUID userId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(TeamNotFoundException::new);
+
+        if (team.getUsers().contains(userId)) {
+            team.getUsers().remove(userId);
+            teamRepository.save(team);
+        } else {
+            throw new UserNotFoundException();
+        }
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("isAuthenticated()")
     public void addUserToTeam(String keyValue, UUID userId) {
         TeamAccessKey key = teamKeyRepository.findByKeyValue(keyValue)
                 .orElseThrow(AccessKeyNotFoundException::new);
-
         Team team = key.getTeam();
+
         if (team.isActive()) {
             validateUserNotInTeam(team, userId);
-
             team.getUsers().add(userId);
             teamRepository.saveAndFlush(team);
         } else {
@@ -194,6 +212,21 @@ public class TeamServiceImpl implements TeamService {
         validateUserNotInCourse(userId, course.getId());
 
         createSoloTeam(course.getId(), userId);
+    }
+
+    @Override
+    @PreAuthorize("isAuthenticated()")
+    public void removeUserFromTeam(UUID teamId, UUID userId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(RuntimeException::new);
+
+        if (team.getUsers().contains(userId)) {
+            team.getUsers().remove(userId);
+            teamRepository.save(team);
+
+        } else {
+            throw new UserNotFoundException();
+        }
     }
 
     @Override
@@ -221,18 +254,5 @@ public class TeamServiceImpl implements TeamService {
         teamRepository.save(team);
     }
 
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    public void removeUserFromTeam(UUID teamId, UUID userId) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(RuntimeException::new);
-
-        if (team.getUsers().contains(userId)) {
-            team.getUsers().remove(userId);
-            teamRepository.save(team);
-
-        } else {
-            throw new UserNotFoundException();
-        }
-    }
+    
 }

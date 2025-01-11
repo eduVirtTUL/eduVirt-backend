@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
@@ -75,21 +76,17 @@ public class TeamController {
         return ResponseEntity.ok(teamDtos);
     }
 
-    //TODO: make it so it takes the user from the context
     @PostMapping("/join")
-    public ResponseEntity<Void> joinUsingKey(@RequestParam String keyValue, @RequestParam UUID userId) {
-        if (keyValue == null || keyValue.isEmpty()) {
-            throw new IllegalArgumentException("Key value cannot be empty");
-        }
+    public ResponseEntity<Void> joinUsingKey(@RequestParam String keyValue) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         teamService.joinUsingKey(keyValue, userId);
         return ResponseEntity.noContent().build();
     }
 
-    //TODO: make it so it takes the user from the context
     @PostMapping("/leave")
-    public ResponseEntity<Void> leaveTeam(@RequestParam UUID teamId, @RequestParam UUID userId) {
+    public ResponseEntity<Void> leaveTeam(@RequestParam UUID teamId) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         teamService.removeUserFromTeam(teamId, userId);
         return ResponseEntity.noContent().build();
     }
-
 }

@@ -18,5 +18,6 @@ public interface TeamService {
     void addUserToCourse(String keyValue, UUID userId);
     void removeUserFromTeam(UUID teamId, UUID userId);
     void joinUsingKey(String keyValue, UUID userId);
+    void leaveTeam(UUID teamId, UUID userId);
     Team updateTeam(Team team, UUID teamId);
 }
