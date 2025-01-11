@@ -12,7 +12,7 @@ public interface UserMapper {
     default OVirtUserWithPermissionsDto ovirtUserWithPermissionsToUserDto(User user) {
         return new OVirtUserWithPermissionsDto(
                 user.id(),
-                user.name(),
+                user.principal(),
                 user.userName(),
                 user.lastName(),
                 user.email(),
