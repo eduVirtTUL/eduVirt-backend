@@ -124,4 +124,21 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
                 .filter(vm -> UUID.fromString(vm.cluster().id()).equals(clusterId))
                 .toList();
     }
+
+    @Override
+    public void deleteResourceGroup(UUID id) {
+        resourceGroupRepository.deleteById(id);
+    }
+
+    @Override
+    public void updateResourceGroup(UUID id, ResourceGroup resourceGroup) {
+        ResourceGroup existingResourceGroup = resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
+        existingResourceGroup.setName(resourceGroup.getName());
+        if (!resourceGroup.isStateless()) {
+            existingResourceGroup.setDescription(resourceGroup.getDescription());
+            existingResourceGroup.setMaxRentTime(resourceGroup.getMaxRentTime());
+        }
+
+        resourceGroupRepository.save(existingResourceGroup);
+    }
 }

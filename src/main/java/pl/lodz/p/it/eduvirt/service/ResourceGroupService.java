@@ -20,4 +20,7 @@ public interface ResourceGroupService {
 
     List<Vm> findAvailableVms(UUID rgId);
 
+    void deleteResourceGroup(UUID id);
+
+    void updateResourceGroup(UUID id, ResourceGroup resourceGroup);
 }
