@@ -7,7 +7,11 @@ import java.util.UUID;
 
 public class VnicProfileEduvirtNotFoundException extends NotFoundException {
 
+    public VnicProfileEduvirtNotFoundException(String message) {
+        super(message, I18n.VNIC_PROFILE_EDUVIRT_NOT_FOUND);
+    }
+
     public VnicProfileEduvirtNotFoundException(UUID vnicProfileId) {
-        super("Vnic profile with id %s could not be found".formatted(vnicProfileId), I18n.VNIC_PROFILE_EDUVIRT_NOT_FOUND);
+        super("Not found in EduVirt the vnic profile with id:" + vnicProfileId, I18n.VNIC_PROFILE_EDUVIRT_NOT_FOUND);
     }
 }

@@ -72,6 +72,7 @@
         <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
         <!--DB-->
         <postgresql-version>42.7.4</postgresql-version>
+        <infinispan-version>14.0.33.Final</infinispan-version>
         <!--VERSIONS-->
         <ovirt-api-sdk.version>4.5.1</ovirt-api-sdk.version>
         <lombok.version>1.18.36</lombok.version>
@@ -116,6 +117,13 @@
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-spring-boot-starter-embedded</artifactId>
+            <version>${infinispan-version}</version>
+        </dependency>
+
 
         <!--LOMBOK-->
         <dependency>

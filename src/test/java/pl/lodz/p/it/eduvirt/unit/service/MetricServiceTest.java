@@ -10,6 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
+import pl.lodz.p.it.eduvirt.repository.ClusterMetricRepository;
+import pl.lodz.p.it.eduvirt.repository.CourseMetricRepository;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.impl.MetricServiceImpl;
 
@@ -26,6 +28,12 @@ public class MetricServiceTest {
     @Mock
     private MetricRepository metricRepository;
 
+    @Mock
+    private CourseMetricRepository courseMetricRepository;
+
+    @Mock
+    private ClusterMetricRepository clusterMetricRepository;
+
     @InjectMocks
     private MetricServiceImpl metricService;
 
@@ -39,8 +47,8 @@ public class MetricServiceTest {
 
     @BeforeEach
     public void prepareTestData() {
-        metric1 = new Metric(metricName1);
-        metric2 = new Metric(metricName2);
+        metric1 = new Metric(metricName1, Metric.MetricCategory.VOLATILE_MEMORY);
+        metric2 = new Metric(metricName2, Metric.MetricCategory.NON_VOLATILE_MEMORY);
     }
 
     /* Tests */
@@ -48,12 +56,12 @@ public class MetricServiceTest {
     /* CreateNewMetric method test */
     
     @Test
-    public void Given__When_CreateNewMetric_Then_CreateNewMetricSuccessfully() {
+    public void Given_AllTheDataIsValid_When_CreateNewMetric_Then_CreateNewMetricSuccessfully() {
         String metricName = "new_metric_name";
-        Metric newMetric = new Metric(metricName);
+        Metric newMetric = new Metric(metricName, Metric.MetricCategory.COUNTABLE);
         
         when(metricRepository.saveAndFlush(Mockito.eq(newMetric))).thenReturn(newMetric);
-        metricService.createNewMetric(metricName);
+        metricService.createNewMetric(metricName, Metric.MetricCategory.COUNTABLE);
         verify(metricRepository, times(1)).saveAndFlush(Mockito.eq(newMetric));
     }
 
@@ -115,12 +123,16 @@ public class MetricServiceTest {
         UUID metricId = UUID.randomUUID();
 
         when(metricRepository.findById(Mockito.eq(metricId))).thenReturn(Optional.of(metric1));
-        doNothing().when(metricRepository).deleteAllInBatch(List.of(metric1));
+        doNothing().when(metricRepository).delete(metric1);
+        doNothing().when(courseMetricRepository).deleteByMetric(metric1);
+        doNothing().when(clusterMetricRepository).deleteByMetric(metric1);
 
         metricService.deleteMetric(metricId);
 
         verify(metricRepository, times(1)).findById(Mockito.eq(metricId));
-        verify(metricRepository, times(1)).deleteAllInBatch(Mockito.eq(List.of(metric1)));
+        verify(metricRepository, times(1)).delete(Mockito.eq(metric1));
+        verify(courseMetricRepository, times(1)).deleteByMetric(metric1);
+        verify(clusterMetricRepository, times(1)).deleteByMetric(metric1);
     }
 
     @Test

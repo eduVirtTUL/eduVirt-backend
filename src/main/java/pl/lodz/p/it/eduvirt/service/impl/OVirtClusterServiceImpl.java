@@ -46,13 +46,19 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
 
     @PreAuthorize("hasRole('administrator')")
     @Override
-    public List<Cluster> findClusters(int pageNumber, int pageSize) {
+    public List<Cluster> findClusters(Pageable pageable) {
         try {
             SystemService systemService = connectionFactory.getConnection().systemService();
             ClustersService clustersService = systemService.clustersService();
 
-            String searchQuery = "page %s".formatted(pageNumber + 1);
-            return clustersService.list().search(searchQuery).max(pageSize).send().clusters();
+            String sortBy = "";
+            for (Sort.Order sortOrder : pageable.getSort()) {
+                sortBy = "sortby %s %s ".formatted(sortOrder.getProperty(), sortOrder.getDirection());
+                break;
+            }
+
+            String searchQuery = "%spage %s".formatted(sortBy, pageable.getPageNumber() + 1);
+            return clustersService.list().search(searchQuery).max(pageable.getPageSize()).send().clusters();
         } catch (Exception exception) {
             throw new ClusterNotFoundException("No clusters could be found.");
         }
@@ -60,15 +66,22 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
 
     @PreAuthorize("hasRole('administrator')")
     @Override
-    public List<Host> findHostsInCluster(Cluster cluster, int pageNumber, int pageSize) {
+    public List<Host> findHostsInCluster(Cluster cluster, Pageable pageable) {
         try {
             Connection connection = connectionFactory.getConnection();
             SystemService systemService = connection.systemService();
-
             HostsService hostsService = systemService.hostsService();
 
-            String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
-            return hostsService.list().search(searchQuery).max(pageSize).send().hosts();
+            String sortBy = "";
+            for (Sort.Order sortOrder : pageable.getSort()) {
+                sortBy = " sortby %s %s".formatted(sortOrder.getProperty(), sortOrder.getDirection());
+                break;
+            }
+
+            String searchQuery = "cluster=%s%s page %s"
+                    .formatted(cluster.name(), sortBy, pageable.getPageNumber() + 1);
+
+            return hostsService.list().search(searchQuery).max(pageable.getPageSize()).send().hosts();
         } catch (Exception exception) {
             throw new HostNotFoundException(
                     "No hosts could be found for cluster %s.".formatted(cluster.id()));
@@ -96,7 +109,6 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         try {
             Connection connection = connectionFactory.getConnection();
             SystemService systemService = connection.systemService();
-
             VmsService vmsService = systemService.vmsService();
 
             String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
@@ -135,7 +147,6 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
             }
 
             String args = "cluster=%s%s page %s".formatted(cluster.name(), sortBy, pageable.getPageNumber() + 1);
-
             return systemService.eventsService().list().search(args).max(pageable.getPageSize()).send().events();
         } catch (Exception exception) {
             throw new EventNotFoundException(

@@ -225,9 +225,9 @@ public class ClusterControllerTest {
         reservationNo2 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(12), LocalDateTime.now().plusHours(24), true, 15);
         reservationNo3 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(36), LocalDateTime.now().plusHours(48), true, 15);
 
-        metricNo1 = new Metric("cpu_count");
-        metricNo2 = new Metric("memory_size");
-        metricNo3 = new Metric("network_count");
+        metricNo1 = new Metric("cpu_count", Metric.MetricCategory.COUNTABLE);
+        metricNo2 = new Metric("memory_size", Metric.MetricCategory.VOLATILE_MEMORY);
+        metricNo3 = new Metric("network_count", Metric.MetricCategory.COUNTABLE);
 
         clusterMetricNo1 = new ClusterMetric(existingClusterId, metricNo1, 20.0);
         clusterMetricNo2 = new ClusterMetric(existingClusterId, metricNo2, 380008136704.0);
@@ -370,6 +370,7 @@ public class ClusterControllerTest {
     public void Given_SomeClustersExistInTheOVirtDB_When_FindAllClusters_Then_ReturnsAllFoundClusters() throws Exception {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         int hostCount1 = (int) (Math.random() * 99 + 1);
         int hostCount2 = (int) (Math.random() * 99 + 1);
@@ -414,7 +415,7 @@ public class ClusterControllerTest {
                 (long) hostCount3, (long) vmCount3
         );
 
-        when(clusterService.findClusters(pageNumber, pageSize)).thenReturn(clusterList);
+        when(clusterService.findClusters(pageable)).thenReturn(clusterList);
         when(clusterService.findHostCountInCluster(Mockito.any(Cluster.class))).thenReturn(hostCount1, hostCount2, hostCount3);
         when(clusterService.findVmCountInCluster(Mockito.any(Cluster.class))).thenReturn(vmCount1, vmCount2, vmCount3);
 
@@ -422,15 +423,14 @@ public class ClusterControllerTest {
                 .thenReturn(clusterDto1, clusterDto2, clusterDto3);
 
         MvcResult result = mockMvc.perform(get("/clusters")
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(pageNumber))
+                        .param("size", String.valueOf(pageSize)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<ClusterGeneralDto> foundClusters = mapper.readValue(json, new TypeReference<>() {
-        });
+        List<ClusterGeneralDto> foundClusters = mapper.readValue(json, new TypeReference<>() {});
 
         assertNotNull(foundClusters);
         assertFalse(foundClusters.isEmpty());
@@ -496,7 +496,7 @@ public class ClusterControllerTest {
         assertEquals(clusterDto3.hostCount(), thirdCluster.hostCount());
         assertEquals(clusterDto3.vmCount(), thirdCluster.vmCount());
 
-        verify(clusterService, times(1)).findClusters(pageNumber, pageSize);
+        verify(clusterService, times(1)).findClusters(Mockito.eq(pageable));
         verify(clusterService, times(3)).findHostCountInCluster(Mockito.any(Cluster.class));
         verify(clusterService, times(3)).findVmCountInCluster(Mockito.any(Cluster.class));
 
@@ -509,18 +509,19 @@ public class ClusterControllerTest {
     public void Given_NoClustersExistInTheOVirtDB_When_FindAllClusters_Then_ReturnsEmptyClusterList() throws Exception {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         List<Cluster> clusterList = List.of();
-        when(clusterService.findClusters(pageNumber, pageSize)).thenReturn(clusterList);
+        when(clusterService.findClusters(pageable)).thenReturn(clusterList);
 
         mockMvc.perform(get("/clusters")
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(pageNumber))
+                        .param("size", String.valueOf(pageSize)))
                 .andDo(print())
                 .andExpect(status().isNoContent())
                 .andReturn();
 
-        verify(clusterService, times(1)).findClusters(pageNumber, pageSize);
+        verify(clusterService, times(1)).findClusters(Mockito.eq(pageable));
     }
 
     /* FindHostInfoByClusterId method tests */
@@ -530,6 +531,7 @@ public class ClusterControllerTest {
     public void Given_SomeHostsAreDefinedForTheGivenCluster_When_FindHostInfoByClusterId_Then_ReturnsAllFoundHostsForGivenCluster() throws Exception {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         Cluster cluster = mock(Cluster.class);
 
@@ -571,19 +573,18 @@ public class ClusterControllerTest {
         );
 
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterService.findHostsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize))).thenReturn(hostList);
+        when(clusterService.findHostsInCluster(Mockito.eq(cluster), Mockito.eq(pageable))).thenReturn(hostList);
         when(hostMapper.ovirtHostToDto(Mockito.any(Host.class), Mockito.any(Cluster.class))).thenReturn(hostDto1, hostDto2, hostDto3);
 
         MvcResult result = mockMvc.perform(get("/clusters/{clusterId}/hosts", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(pageNumber))
+                        .param("size", String.valueOf(pageSize)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<HostDto> foundHosts = mapper.readValue(json, new TypeReference<>() {
-        });
+        List<HostDto> foundHosts = mapper.readValue(json, new TypeReference<>() {});
 
         assertNotNull(foundHosts);
         assertFalse(foundHosts.isEmpty());
@@ -641,7 +642,7 @@ public class ClusterControllerTest {
         assertEquals(hostDto3.memory(), thirdHost.memory());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterService, times(1)).findHostsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(clusterService, times(1)).findHostsInCluster(Mockito.eq(cluster), Mockito.eq(pageable));
         verify(hostMapper, times(3)).ovirtHostToDto(Mockito.any(Host.class), Mockito.any(Cluster.class));
     }
 
@@ -668,22 +669,23 @@ public class ClusterControllerTest {
     public void Given_NoHostsAreDefinedForTheGivenCluster_When_FindHostInfoByClusterId_Then_ReturnsEmptyHostList() throws Exception {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         Cluster cluster = mock(Cluster.class);
 
         List<Host> hostList = List.of();
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterService.findHostsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize))).thenReturn(hostList);
+        when(clusterService.findHostsInCluster(Mockito.eq(cluster), Mockito.eq(pageable))).thenReturn(hostList);
 
         mockMvc.perform(get("/clusters/{clusterId}/hosts", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(pageNumber))
+                        .param("size", String.valueOf(pageSize)))
                 .andDo(print())
                 .andExpect(status().isNoContent())
                 .andReturn();
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterService, times(1)).findHostsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(clusterService, times(1)).findHostsInCluster(Mockito.eq(cluster), Mockito.eq(pageable));
     }
 
     /* FindVirtualMachinesByClusterId method tests */
@@ -794,8 +796,7 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<VmGeneralDto> foundVms = mapper.readValue(json, new TypeReference<>() {
-        });
+        List<VmGeneralDto> foundVms = mapper.readValue(json, new TypeReference<>() {});
 
         assertNotNull(foundVms);
         assertFalse(foundVms.isEmpty());
@@ -963,8 +964,7 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<NetworkDto> foundNetworks = mapper.readValue(json, new TypeReference<>() {
-        });
+        List<NetworkDto> foundNetworks = mapper.readValue(json, new TypeReference<>() {});
 
         assertNotNull(foundNetworks);
         assertFalse(foundNetworks.isEmpty());
@@ -1135,8 +1135,7 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<EventGeneralDto> foundEvents = mapper.readValue(json, new TypeReference<>() {
-        });
+        List<EventGeneralDto> foundEvents = mapper.readValue(json, new TypeReference<>() {});
 
         assertNotNull(foundEvents);
         assertFalse(foundEvents.isEmpty());

@@ -31,6 +31,7 @@ public class CourseMetricController {
                 -> new MetricValueDto(
                 metric.getMetric().getId(),
                 metric.getMetric().getName(),
+                metric.getMetric().getCategory(),
                 metric.getValue())).toList()
         );
     }
@@ -38,7 +39,7 @@ public class CourseMetricController {
     @GetMapping("/{metricId}")
     public ResponseEntity<MetricValueDto> getMetric(@PathVariable UUID courseId, @PathVariable UUID metricId) {
         CourseMetric metric = courseMetricService.getCourseMetric(courseId, metricId);
-        return ResponseEntity.ok(new MetricValueDto(metric.getMetric().getId(), metric.getMetric().getName(), metric.getValue()));
+        return ResponseEntity.ok(new MetricValueDto(metric.getMetric().getId(), metric.getMetric().getName(), metric.getMetric().getCategory(), metric.getValue()));
     }
 
     @DeleteMapping("/{metricId}")

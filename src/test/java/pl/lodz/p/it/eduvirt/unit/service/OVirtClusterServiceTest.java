@@ -12,6 +12,7 @@ import org.ovirt.engine.sdk4.services.*;
 import org.ovirt.engine.sdk4.types.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.service.impl.OVirtClusterServiceImpl;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
@@ -118,8 +119,11 @@ public class OVirtClusterServiceTest {
     public void Given_SomeClustersExistInTheOVirtSystem_When_FindClusters_Then_ReturnsFoundClustersSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
+        String sortField = "name";
+        Sort.Direction sortDirection = Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortDirection, sortField));
 
-        String searchQuery = "page %s".formatted(pageNumber + 1);
+        String searchQuery = "sortby %s %s page %s".formatted(sortField, sortDirection, pageNumber + 1);
 
         ClustersService.ListRequest listRequest = mock(ClustersService.ListRequest.class);
         ClustersService.ListResponse listResponse = mock(ClustersService.ListResponse.class);
@@ -136,7 +140,7 @@ public class OVirtClusterServiceTest {
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.clusters()).thenReturn(List.of(cluster1, cluster2));
 
-        List<Cluster> foundClusters = oVirtClusterService.findClusters(pageNumber, pageSize);
+        List<Cluster> foundClusters = oVirtClusterService.findClusters(pageable);
 
         assertNotNull(foundClusters);
         assertFalse(foundClusters.isEmpty());
@@ -164,6 +168,7 @@ public class OVirtClusterServiceTest {
     public void Given_NoClustersExistInTheOVirtSystem_When_FindClusters_Then_ReturnsEmptyClusterList() {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         String searchQuery = "page %s".formatted(pageNumber + 1);
 
@@ -179,7 +184,7 @@ public class OVirtClusterServiceTest {
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.clusters()).thenReturn(List.of());
 
-        List<Cluster> foundClusters = oVirtClusterService.findClusters(pageNumber, pageSize);
+        List<Cluster> foundClusters = oVirtClusterService.findClusters(pageable);
 
         assertNotNull(foundClusters);
         assertTrue(foundClusters.isEmpty());
@@ -198,11 +203,11 @@ public class OVirtClusterServiceTest {
     public void Given_SomeExceptionIsThrownDuringOVirtClass_When_FindClusters_Then_ThrowsException() {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         String searchQuery = "page %s".formatted(pageNumber + 1);
 
         ClustersService.ListRequest listRequest = mock(ClustersService.ListRequest.class);
-        ClustersService.ListResponse listResponse = mock(ClustersService.ListResponse.class);
 
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);
@@ -213,7 +218,7 @@ public class OVirtClusterServiceTest {
         when(listRequest.send()).thenThrow(Error.class);
 
         assertThrows(ClusterNotFoundException.class,
-                () -> oVirtClusterService.findClusters(pageNumber, pageSize));
+                () -> oVirtClusterService.findClusters(pageable));
 
         verify(connectionFactory, times(1)).getConnection();
         verify(connection, times(1)).systemService();
@@ -230,12 +235,16 @@ public class OVirtClusterServiceTest {
     public void Given_SomeHostsExistInTheGivenOVirtCluster_When_FindHostsInCluster_Then_ReturnsAllFoundHostsSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
+        String sortField = "name";
+        Sort.Direction sortDirection = Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortDirection, sortField));
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
         when(cluster.name()).thenReturn(exampleClusterName);
 
-        String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
+        String searchQuery = "cluster=%s sortby %s %s page %s".formatted(cluster.name(), sortField, sortDirection, pageNumber + 1);
 
         HostsService.ListRequest listRequest = mock(HostsService.ListRequest.class);
         HostsService.ListResponse listResponse = mock(HostsService.ListResponse.class);
@@ -252,7 +261,7 @@ public class OVirtClusterServiceTest {
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.hosts()).thenReturn(List.of(host1, host2));
 
-        List<Host> foundHosts = oVirtClusterService.findHostsInCluster(cluster, pageNumber, pageSize);
+        List<Host> foundHosts = oVirtClusterService.findHostsInCluster(cluster, pageable);
 
         assertNotNull(foundHosts);
         assertFalse(foundHosts.isEmpty());
@@ -280,6 +289,7 @@ public class OVirtClusterServiceTest {
     public void Given_NoHostsExistInTheGivenOVirtCluster_When_FindHostsInCluster_Then_ReturnsEmptyHostList() {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
@@ -299,7 +309,7 @@ public class OVirtClusterServiceTest {
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.hosts()).thenReturn(List.of());
 
-        List<Host> foundHosts = oVirtClusterService.findHostsInCluster(cluster, pageNumber, pageSize);
+        List<Host> foundHosts = oVirtClusterService.findHostsInCluster(cluster, pageable);
 
         assertNotNull(foundHosts);
         assertTrue(foundHosts.isEmpty());
@@ -318,6 +328,7 @@ public class OVirtClusterServiceTest {
     public void Given_SomeExceptionIsThrownDuringOVirtCall_FindHostsInCluster_Then_ThrowsException() {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
@@ -326,7 +337,6 @@ public class OVirtClusterServiceTest {
         String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
 
         HostsService.ListRequest listRequest = mock(HostsService.ListRequest.class);
-        HostsService.ListResponse listResponse = mock(HostsService.ListResponse.class);
 
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);
@@ -337,7 +347,7 @@ public class OVirtClusterServiceTest {
         when(listRequest.send()).thenThrow(Error.class);
 
         assertThrows(HostNotFoundException.class,
-                () -> oVirtClusterService.findHostsInCluster(cluster, pageNumber, pageSize));
+                () -> oVirtClusterService.findHostsInCluster(cluster, pageable));
 
         verify(connectionFactory, times(1)).getConnection();
         verify(connection, times(1)).systemService();
@@ -440,7 +450,6 @@ public class OVirtClusterServiceTest {
         String searchQuery = "cluster=%s".formatted(cluster.name());
 
         HostsService.ListRequest listRequest = mock(HostsService.ListRequest.class);
-        HostsService.ListResponse listResponse = mock(HostsService.ListResponse.class);
 
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);
@@ -565,7 +574,6 @@ public class OVirtClusterServiceTest {
         String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
 
         VmsService.ListRequest listRequest = mock(VmsService.ListRequest.class);
-        VmsService.ListResponse listResponse = mock(VmsService.ListResponse.class);
 
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);
@@ -675,14 +683,16 @@ public class OVirtClusterServiceTest {
     public void Given_SomeEventsExistForGivenOVirtCluster_When_FindEventsInCluster_Then_ReturnsAllFoundEventsSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        String sortField = "severity";
+        Sort.Direction sortDirection = Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortDirection, sortField));
 
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
         when(cluster.name()).thenReturn(exampleClusterName);
 
-        String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
+        String searchQuery = "cluster=%s sortby %s %s page %s".formatted(cluster.name(), sortField, sortDirection, pageNumber + 1);
 
         EventsService.ListRequest listRequest = mock(EventsService.ListRequest.class);
         EventsService.ListResponse listResponse = mock(EventsService.ListResponse.class);
@@ -777,7 +787,6 @@ public class OVirtClusterServiceTest {
         String searchQuery = "cluster=%s page %s".formatted(cluster.name(), pageNumber + 1);
 
         EventsService.ListRequest listRequest = mock(EventsService.ListRequest.class);
-        EventsService.ListResponse listResponse = mock(EventsService.ListResponse.class);
 
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);
@@ -883,7 +892,6 @@ public class OVirtClusterServiceTest {
         String searchQuery = "cluster=%s".formatted(cluster.name());
 
         HostsService.ListRequest listRequest = mock(HostsService.ListRequest.class);
-        HostsService.ListResponse listResponse = mock(HostsService.ListResponse.class);
 
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);
@@ -986,7 +994,6 @@ public class OVirtClusterServiceTest {
         String searchQuery = "cluster=%s".formatted(cluster.name());
 
         VmsService.ListRequest listRequest = mock(VmsService.ListRequest.class);
-        VmsService.ListResponse listResponse = mock(VmsService.ListResponse.class);
 
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);

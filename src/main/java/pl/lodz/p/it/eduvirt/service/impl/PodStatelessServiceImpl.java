@@ -48,8 +48,7 @@ public class PodStatelessServiceImpl implements PodStatelessService {
         }
 
         pod.setResourceGroupPool(resourceGroupPool);
-        pod.setTeam(team);
-        pod.setCourse(course);
+        team.addStatelessPod(pod);
 
         return podStatelessRepository.saveAndFlush(pod);
     }
@@ -58,7 +57,7 @@ public class PodStatelessServiceImpl implements PodStatelessService {
     @Override
     public void deleteStatelessPod(UUID podId) {
         if (!podStatelessRepository.existsById(podId)) {
-            throw new PodNotFoundException();
+            throw new PodNotFoundException("POD %s could not be found!".formatted(podId));
         }
         podStatelessRepository.deleteById(podId);
     }
@@ -85,6 +84,6 @@ public class PodStatelessServiceImpl implements PodStatelessService {
     @Override
     public PodStateless getStatelessPod(UUID podId) {
         return podStatelessRepository.findById(podId)
-                .orElseThrow(PodNotFoundException::new);
+                .orElseThrow(() -> new PodNotFoundException("POD %s could not be found".formatted(podId)));
     }
 }

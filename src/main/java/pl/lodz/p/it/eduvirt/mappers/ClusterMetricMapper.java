@@ -10,6 +10,7 @@ public interface ClusterMetricMapper {
 
     @Mapping(target = "id", expression = "java(clusterMetric.getMetric().getId())")
     @Mapping(target = "name", expression = "java(clusterMetric.getMetric().getName())")
+    @Mapping(target = "category", expression = "java(clusterMetric.getMetric().getCategory())")
     @Mapping(target = "value", expression = "java(clusterMetric.getValue())")
     MetricValueDto clusterMetricToDto(ClusterMetric clusterMetric);
 }

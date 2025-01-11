@@ -1,5 +1,6 @@
 package pl.lodz.p.it.eduvirt.service;
 
+import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Team;
 
 import java.util.List;
@@ -10,6 +11,7 @@ public interface TeamService {
     Team getTeamById(UUID teamId);
     List<Team> getTeamsByUser(UUID userId);
     List<Team> getTeamsByCourse(UUID courseId);
+    Team getTeamByCourseAndUser(Course course, UUID userId);
     Team createTeam(Team team, UUID courseId, String keyValue);
     void createSoloTeam(UUID courseId, UUID userId);
     void addUserToTeam(String keyValue, UUID userId);

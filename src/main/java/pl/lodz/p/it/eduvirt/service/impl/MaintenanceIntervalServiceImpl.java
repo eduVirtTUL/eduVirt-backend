@@ -11,20 +11,18 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
-import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalConflictException;
-import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalInvalidTimeWindowException;
-import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
+import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.repository.MaintenanceIntervalRepository;
 import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
 import pl.lodz.p.it.eduvirt.util.I18n;
-import pl.lodz.p.it.eduvirt.util.MailHelper;
 import pl.lodz.p.it.eduvirt.util.MailProvider;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,6 +56,9 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
             throw new MaintenanceIntervalInvalidTimeWindowException(
                     I18n.MAINTENANCE_INTERVAL_BEGIN_AT_PAST);
 
+        if (ChronoUnit.HOURS.between(beginAt, endAt) > 24)
+            throw new MaintenanceIntervalTooLongException("Maintenance interval length cannot exceed 24 hours");
+
         UUID clusterId = UUID.fromString(cluster.id());
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
                 .findAllIntervalsInGivenTimePeriod(beginAt, endAt, MaintenanceInterval.IntervalType.CLUSTER, clusterId);
@@ -71,7 +72,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
                  that is cancel all of them and send e-mail notification */
 
         List<Reservation> foundReservations = reservationRepository
-                .findReservationsForGivenPeriodForCluster(clusterId, beginAt, endAt);
+                .findClusterReservations(clusterId, beginAt, endAt);
 
         foundReservations.forEach(reservation -> {
             List<UUID> userIds = reservation.getTeam().getUsers();
@@ -112,7 +113,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
                  that is cancel all of them and send e-mail notification */
 
         List<Reservation> foundReservations = reservationRepository
-                .findReservationsForGivenPeriodForSystem(beginAt, endAt);
+                .findSystemReservations(beginAt, endAt);
 
         foundReservations.forEach(reservation -> {
             List<UUID> userIds = reservation.getTeam().getUsers();
@@ -166,7 +167,9 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
                 .orElseThrow(() -> new MaintenanceIntervalNotFound(intervalId));
 
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        if (foundInterval.getBeginAt().isBefore(currentTime)) {
+        if (foundInterval.getEndAt().isBefore(currentTime)) {
+            throw new MaintenanceIntervalAlreadyFinishedException("Maintenance interval already finished!");
+        } else if (foundInterval.getBeginAt().isBefore(currentTime)) {
             foundInterval.setEndAt(currentTime);
             maintenanceIntervalRepository.saveAndFlush(foundInterval);
         } else {

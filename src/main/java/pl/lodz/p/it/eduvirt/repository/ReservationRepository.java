@@ -10,10 +10,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.Course;
-import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
-import pl.lodz.p.it.eduvirt.entity.Team;
-import pl.lodz.p.it.eduvirt.entity.Reservation;
+import pl.lodz.p.it.eduvirt.entity.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,50 +21,112 @@ import java.util.UUID;
 @Transactional(propagation = Propagation.MANDATORY)
 public interface ReservationRepository extends JpaRepository<Reservation, UUID> {
 
+    /* Check methods for Reservation creation */
+
     @PreAuthorize("isAuthenticated()")
-    @Query("SELECT r FROM Reservation r WHERE r.endTime > :start AND r.startTime < :end AND r.resourceGroup = :rg")
-    List<Reservation> findReservationForGivenPeriodForResourceGroup(
-            @Param("rg") ResourceGroup resourceGroup, @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+    @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :rg " +
+            "AND NOT ((r.startTime <= :start AND r.endTime <= :start) " +
+            "OR (r.startTime >= :end AND r.endTime >= :end))")
+    List<Reservation> findRgReservations(@Param("rg") ResourceGroup resourceGroup,
+                                         @Param("start") LocalDateTime start,
+                                         @Param("end") LocalDateTime end);
+
+    @PreAuthorize("isAuthenticated()")
+    @Query("SELECT r FROM Reservation r WHERE r.resourceGroup " +
+            "IN (SELECT rgp.resourceGroups FROM ResourceGroupPool rgp WHERE rgp = :rgp) " +
+            "AND NOT ((r.startTime <= :start AND r.endTime <= :start) " +
+            "OR (r.startTime >= :end AND r.endTime >= :end))")
+    List<Reservation> findRgPoolReservations(@Param("rgp") ResourceGroupPool rgp,
+                                             @Param("start") LocalDateTime start,
+                                             @Param("end") LocalDateTime end);
+
+    @PreAuthorize("isAuthenticated()")
+    @Query("SELECT r FROM Reservation r WHERE r.team.course = :course " +
+            "AND NOT((r.startTime <= :start AND r.endTime <= :start) " +
+            "OR (r.startTime >= :end AND r.endTime >= :end))")
+    List<Reservation> findCourseReservations(@Param("course") Course course,
+                                             @Param("start") LocalDateTime start,
+                                             @Param("end") LocalDateTime end);
 
     @PreAuthorize("hasRole('administrator')")
-    @Query("SELECT r FROM Reservation r WHERE r.endTime > :start AND r.startTime < :end AND r.team.course.clusterId = :clusterId")
-    List<Reservation> findReservationsForGivenPeriodForCluster(
-            @Param("clusterId") UUID clusterId, @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
+    @Query("SELECT r FROM Reservation r WHERE r.team.course.clusterId = :clusterId " +
+            "AND NOT ((r.startTime <= :start AND r.endTime <= :start) " +
+            "OR (r.startTime >= :end AND r.endTime >= :end))")
+    List<Reservation> findClusterReservations(@Param("clusterId") UUID clusterId,
+                                              @Param("start") LocalDateTime start,
+                                              @Param("end") LocalDateTime end);
 
     @PreAuthorize("hasRole('administrator')")
-    @Query("SELECT r FROM Reservation r WHERE r.endTime > :start AND r.startTime < :end")
-    List<Reservation> findReservationsForGivenPeriodForSystem(
+    @Query("SELECT r FROM Reservation r WHERE NOT((r.startTime <= :start AND r.endTime <= :start) " +
+            "OR (r.startTime >= :end AND r.endTime >= :end))")
+    List<Reservation> findSystemReservations(@Param("start") LocalDateTime start,
+                                             @Param("end") LocalDateTime end);
+
+    @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :rg AND r.team = :team " +
+            "AND NOT ((r.startTime <= :start AND r.endTime <= :start) " +
+            "OR (r.startTime >= :end AND r.endTime >= :end))")
+    List<Reservation> findRgReservationsForGivenTeam(
+            @Param("rg") ResourceGroup rg, @Param("team") Team team,
             @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    @PreAuthorize("isAuthenticated()")
-    @Query("SELECT r FROM Reservation r WHERE NOT ((r.startTime <= :periodStart AND r.endTime <= :periodStart) " +
-            "OR (r.startTime >= :periodEnd AND r.endTime >= :periodEnd)) " +
-            "AND r.team IN (SELECT t FROM Team t WHERE t.course = :course)")
-    List<Reservation> findCurrentReservationsForCourse(@Param("course") Course course,
-                                                       @Param("periodStart") LocalDateTime periodStart,
-                                                       @Param("periodEnd") LocalDateTime periodEnd);
+    @Query("SELECT r FROM Reservation r WHERE r.team = :team AND " +
+            "r.resourceGroup IN (SELECT rgp.resourceGroups FROM ResourceGroupPool rgp WHERE rgp = :rgp) " +
+            "AND NOT ((r.startTime <= :start AND r.endTime <= :start) " +
+            "OR (r.startTime >= :end AND r.endTime >= :end))")
+    List<Reservation> findRgPoolReservationsForGivenTeam(
+            @Param("rgp") ResourceGroupPool rgp, @Param("team") Team team,
+            @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    @PreAuthorize("isAuthenticated()")
-    @Query("SELECT r FROM Reservation r WHERE NOT ((r.startTime <= :periodStart AND r.endTime <= :periodStart) " +
-            "OR (r.startTime >= :periodEnd AND r.endTime >= :periodEnd)) " +
-            "AND r.team IN (SELECT t FROM Team t WHERE t.course.clusterId = :cluster)")
-    List<Reservation> findCurrentReservationsForCluster(@Param("cluster") UUID clusterId,
-                                                        @Param("periodStart") LocalDateTime periodStart,
-                                                        @Param("periodEnd") LocalDateTime periodEnd);
+    @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :rg AND r.team = :team")
+    List<Reservation> findAllRgReservationsForGivenTeam(@Param("rg") ResourceGroup rg,
+                                                        @Param("team") Team team);
+
+    @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :rg AND r.team = :team")
+    Page<Reservation> findAllRgReservationsForGivenTeam(@Param("rg") ResourceGroup rg,
+                                                        @Param("team") Team team, Pageable pageable);
+
+    @Query("SELECT r FROM Reservation r WHERE r.team = :team AND " +
+            "r.resourceGroup IN (SELECT rgp.resourceGroups FROM ResourceGroupPool rgp WHERE rgp = :rgp)")
+    List<Reservation> findAllRgPoolReservationsForGivenTeam(@Param("rgp") ResourceGroupPool rgp,
+                                                            @Param("team") Team team);
+
+    @Query("SELECT r FROM Reservation r WHERE r.team = :team AND " +
+            "r.resourceGroup IN (SELECT rgp.resourceGroups FROM ResourceGroupPool rgp WHERE rgp = :rgp)")
+    Page<Reservation> findAllRgPoolReservationsForGivenTeam(@Param("rgp") ResourceGroupPool rgp,
+                                                            @Param("team") Team team, Pageable pageable);
+
+    /* Other */
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
     @Query("SELECT r FROM Reservation r WHERE r.endTime > :probeTime AND r.team = :team")
-    Page<Reservation> findAllActiveReservations(@Param("team") Team team, @Param("probeTime") LocalDateTime probeTime, Pageable pageable);
+    Page<Reservation> findAllActiveReservations(@Param("team") Team team,
+                                                @Param("probeTime") LocalDateTime probeTime,
+                                                Pageable pageable);
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
     @Query("SELECT r FROM Reservation r WHERE r.endTime <= :probeTime AND r.team = :team")
-    Page<Reservation> findAllHistoricalReservations(@Param("team") Team team, @Param("probeTime") LocalDateTime probeTime, Pageable pageable);
+    Page<Reservation> findAllHistoricalReservations(@Param("team") Team team,
+                                                    @Param("probeTime") LocalDateTime probeTime,
+                                                    Pageable pageable);
 
-    @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :resourceGroup AND r.team = :team " +
-            "AND (r.startTime < :to AND r.endTime > :from)")
-    List<Reservation> findResourceGroupReservationForGivenTeamInTimePeriod(
-            @Param("resourceGroup") ResourceGroup resourceGroup, @Param("team") Team team,
-            @Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+    //TODO michal: maybe add flag to reservation or check executor_task table to check which reservation was processing
+    //TODO michal: optimization
+    //TODO michal: change r.endTime to 'r.endTime - 5 minutes' for ex. -> starting reservations for a few seconds makes no sense..
+    //TODO michal: include IN_PROGRESS status (maybe task more than 5 min in this status...)
+    @Query("""
+            SELECT DISTINCT r FROM Reservation r
+            JOIN FETCH r.resourceGroup rg
+            WHERE current_timestamp BETWEEN r.startTime AND r.endTime
+            AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_INIT' AND et.status != 'FAILED')
+            """)
+    List<Reservation> findReservationsToBegin();
+
+    //TODO michal: r.endTime - 5 minutes -> due to the potential start of the next reservation immediately after this one
+    @Query("""
+            SELECT DISTINCT r FROM Reservation r
+            WHERE current_timestamp >= r.endTime
+            AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_DESTRUCT' AND et.status != 'FAILED')
+            AND r.status = 'IN_PROGRESS'
+            """)
+    List<Reservation> findReservationsToStop();
 }

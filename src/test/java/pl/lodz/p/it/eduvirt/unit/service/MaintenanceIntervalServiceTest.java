@@ -20,7 +20,6 @@ import pl.lodz.p.it.eduvirt.repository.MaintenanceIntervalRepository;
 import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.impl.MaintenanceIntervalServiceImpl;
-import pl.lodz.p.it.eduvirt.util.MailHelper;
 import pl.lodz.p.it.eduvirt.util.MailProvider;
 
 import java.lang.reflect.Field;
@@ -264,7 +263,7 @@ public class MaintenanceIntervalServiceTest {
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end),
                 Mockito.eq(MaintenanceInterval.IntervalType.CLUSTER), Mockito.eq(clusterId))).thenReturn(List.of());
         when(maintenanceIntervalRepository.saveAndFlush(exampleMaintenanceInterval)).thenReturn(exampleMaintenanceInterval);
-        when(reservationRepository.findReservationsForGivenPeriodForCluster(
+        when(reservationRepository.findClusterReservations(
                 Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of(reservationNo1, reservationNo2));
 
         when(userRepository.findById(Mockito.eq(userNo1.getId()))).thenReturn(Optional.of(userNo1));
@@ -284,7 +283,7 @@ public class MaintenanceIntervalServiceTest {
         verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(start), Mockito.eq(end), Mockito.eq(MaintenanceInterval.IntervalType.CLUSTER), Mockito.eq(clusterId));
         verify(maintenanceIntervalRepository, times(1)).saveAndFlush(Mockito.eq(exampleMaintenanceInterval));
-        verify(reservationRepository, times(1)).findReservationsForGivenPeriodForCluster(
+        verify(reservationRepository, times(1)).findClusterReservations(
                 Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(6)).findById(Mockito.any(UUID.class));
@@ -308,7 +307,7 @@ public class MaintenanceIntervalServiceTest {
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end),
                 Mockito.eq(MaintenanceInterval.IntervalType.CLUSTER), Mockito.eq(clusterId))).thenReturn(List.of());
         when(maintenanceIntervalRepository.saveAndFlush(exampleMaintenanceInterval)).thenReturn(exampleMaintenanceInterval);
-        when(reservationRepository.findReservationsForGivenPeriodForCluster(
+        when(reservationRepository.findClusterReservations(
                 Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
 
         maintenanceIntervalService.createClusterMaintenanceInterval(cluster, cause, description, start, end);
@@ -317,7 +316,7 @@ public class MaintenanceIntervalServiceTest {
         verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(start), Mockito.eq(end), Mockito.eq(MaintenanceInterval.IntervalType.CLUSTER), Mockito.eq(clusterId));
         verify(maintenanceIntervalRepository, times(1)).saveAndFlush(Mockito.eq(exampleMaintenanceInterval));
-        verify(reservationRepository, times(1)).findReservationsForGivenPeriodForCluster(
+        verify(reservationRepository, times(1)).findClusterReservations(
                 Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end));
     }
 
@@ -379,7 +378,7 @@ public class MaintenanceIntervalServiceTest {
                 Mockito.eq(MaintenanceInterval.IntervalType.SYSTEM), Mockito.eq(null))).thenReturn(List.of());
         when(maintenanceIntervalRepository.saveAndFlush(exampleMaintenanceInterval)).thenReturn(exampleMaintenanceInterval);
 
-        when(reservationRepository.findReservationsForGivenPeriodForSystem(
+        when(reservationRepository.findSystemReservations(
                 Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of(reservationNo1, reservationNo2));
 
         when(userRepository.findById(Mockito.eq(userNo1.getId()))).thenReturn(Optional.of(userNo1));
@@ -398,10 +397,10 @@ public class MaintenanceIntervalServiceTest {
                 Mockito.eq(start), Mockito.eq(end), Mockito.eq(MaintenanceInterval.IntervalType.SYSTEM), Mockito.eq(null));
         verify(maintenanceIntervalRepository, times(1)).saveAndFlush(Mockito.eq(exampleMaintenanceInterval));
         verify(reservationRepository, times(1))
-                .findReservationsForGivenPeriodForSystem(Mockito.eq(start), Mockito.eq(end));
+                .findSystemReservations(Mockito.eq(start), Mockito.eq(end));
 
         verify(reservationRepository, times(1))
-                .findReservationsForGivenPeriodForSystem(Mockito.eq(start), Mockito.eq(end));
+                .findSystemReservations(Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(6)).findById(Mockito.any(UUID.class));
         verify(mailProvider, times(6)).sendReservationRemovalEmail(
@@ -422,7 +421,7 @@ public class MaintenanceIntervalServiceTest {
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end),
                 Mockito.eq(MaintenanceInterval.IntervalType.SYSTEM), Mockito.eq(null))).thenReturn(List.of());
         when(maintenanceIntervalRepository.saveAndFlush(exampleMaintenanceInterval)).thenReturn(exampleMaintenanceInterval);
-        when(reservationRepository.findReservationsForGivenPeriodForSystem(Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
+        when(reservationRepository.findSystemReservations(Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
 
         maintenanceIntervalService.createSystemMaintenanceInterval(cause, description, start, end);
 
@@ -430,7 +429,7 @@ public class MaintenanceIntervalServiceTest {
                 Mockito.eq(start), Mockito.eq(end), Mockito.eq(MaintenanceInterval.IntervalType.SYSTEM), Mockito.eq(null));
         verify(maintenanceIntervalRepository, times(1)).saveAndFlush(Mockito.eq(exampleMaintenanceInterval));
         verify(reservationRepository, times(1))
-                .findReservationsForGivenPeriodForSystem(Mockito.eq(start), Mockito.eq(end));
+                .findSystemReservations(Mockito.eq(start), Mockito.eq(end));
     }
 
     @Test

@@ -72,11 +72,11 @@ public class MetricControllerTest {
         Field id = AbstractEntity.class.getDeclaredField("id");
 
         String metricName1 = "metric_name_no1";
-        metric1 = new Metric(metricName1);
+        metric1 = new Metric(metricName1, Metric.MetricCategory.COUNTABLE);
         String metricName2 = "metric_name_no2";
-        metric2 = new Metric(metricName2);
+        metric2 = new Metric(metricName2, Metric.MetricCategory.VOLATILE_MEMORY);
         String metricName3 = "metric_name_no3";
-        metric3 = new Metric(metricName3);
+        metric3 = new Metric(metricName3, Metric.MetricCategory.NON_VOLATILE_MEMORY);
 
         id.setAccessible(true);
         id.set(metric1, UUID.randomUUID());
@@ -93,9 +93,10 @@ public class MetricControllerTest {
     @Test
     public void Given_NewMetricNameIsPassed_When_CreateNewMetric_Then_CreatesNewMetricSuccessfully() throws Exception {
         String newMetricName = "new_metric_name";
-        CreateMetricDto createDto = new CreateMetricDto(newMetricName);
+        CreateMetricDto createDto = new CreateMetricDto(newMetricName, Metric.MetricCategory.COUNTABLE);
 
-        doNothing().when(metricService).createNewMetric(Mockito.eq(newMetricName));
+        doNothing().when(metricService)
+                .createNewMetric(Mockito.eq(newMetricName), Mockito.eq(Metric.MetricCategory.COUNTABLE));
 
         mockMvc.perform(post("/metrics")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -104,25 +105,8 @@ public class MetricControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(metricService, times(1)).createNewMetric(Mockito.eq(newMetricName));
-    }
-
-    @WithMockUser
-    // @Test
-    public void Given_ExistingMetricNameIsPassed_When_CreateNewMetric_Then_Returns409Conflict() throws Exception {
-        String newMetricName = "metric_name_no1";
-        CreateMetricDto createDto = new CreateMetricDto(newMetricName);
-
-        doThrow().when(metricService).createNewMetric(Mockito.eq(newMetricName));
-
-        mockMvc.perform(post("/metrics")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(createDto))
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isConflict());
-
-        verify(metricService, times(1)).createNewMetric(Mockito.eq(newMetricName));
+        verify(metricService, times(1))
+                .createNewMetric(Mockito.eq(newMetricName), Mockito.eq(Metric.MetricCategory.COUNTABLE));
     }
 
     /* GetAllMetrics method tests */
@@ -134,9 +118,9 @@ public class MetricControllerTest {
         int pageSize = 10;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
-        MetricDto dtoNo1 = new MetricDto(metric1.getId(), metric1.getName());
-        MetricDto dtoNo2 = new MetricDto(metric2.getId(), metric2.getName());
-        MetricDto dtoNo3 = new MetricDto(metric3.getId(), metric3.getName());
+        MetricDto dtoNo1 = new MetricDto(metric1.getId(), metric1.getName(), Metric.MetricCategory.COUNTABLE);
+        MetricDto dtoNo2 = new MetricDto(metric2.getId(), metric2.getName(), Metric.MetricCategory.VOLATILE_MEMORY);
+        MetricDto dtoNo3 = new MetricDto(metric3.getId(), metric3.getName(), Metric.MetricCategory.NON_VOLATILE_MEMORY);
 
         when(metricService.findAllMetrics(Mockito.eq(pageNumber), Mockito.eq(pageSize)))
                 .thenReturn(new PageImpl<>(List.of(metric1, metric2, metric3), pageable, 3));
@@ -174,16 +158,19 @@ public class MetricControllerTest {
         assertNotNull(firstMetric);
         assertEquals(firstMetric.id(), metric1.getId());
         assertEquals(firstMetric.name(), metric1.getName());
+        assertEquals(firstMetric.category(), metric1.getCategory());
 
         MetricDto secondMetric = foundMetrics.get(1);
         assertNotNull(secondMetric);
         assertEquals(secondMetric.id(), metric2.getId());
         assertEquals(secondMetric.name(), metric2.getName());
+        assertEquals(secondMetric.category(), metric2.getCategory());
 
         MetricDto thirdMetric = foundMetrics.getLast();
         assertNotNull(thirdMetric);
         assertEquals(thirdMetric.id(), metric3.getId());
         assertEquals(thirdMetric.name(), metric3.getName());
+        assertEquals(thirdMetric.category(), metric3.getCategory());
 
         verify(metricService, times(1)).findAllMetrics(Mockito.eq(pageNumber), Mockito.eq(pageSize));
         verify(metricMapper, times(3)).metricToDto(Mockito.any(Metric.class));

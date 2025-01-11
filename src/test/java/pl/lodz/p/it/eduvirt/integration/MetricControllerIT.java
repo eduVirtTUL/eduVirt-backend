@@ -7,6 +7,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricDto;
 import pl.lodz.p.it.eduvirt.dto.metric.MetricDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
+import pl.lodz.p.it.eduvirt.entity.Metric;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +27,7 @@ public class MetricControllerIT extends IntegrationTestBase {
      */
     // @Test
     public void Given_NewMetricName_When_NoMetricWithThatNameExists_Then_CreatesNewMetricSuccessfully() throws Exception {
-        CreateMetricDto createDto = new CreateMetricDto("new_metric_name");
+        CreateMetricDto createDto = new CreateMetricDto("new_metric_name", Metric.MetricCategory.COUNTABLE);
 
         mockMvc.perform(post("/metrics")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -42,7 +43,7 @@ public class MetricControllerIT extends IntegrationTestBase {
      */
     // @Test
     public void Given_ExistingMetricName_When_MetricWithGivenNameAlreadyExists_Then_Returns409Conflict() throws Exception {
-        CreateMetricDto createDto = new CreateMetricDto("existing_metric_name");
+        CreateMetricDto createDto = new CreateMetricDto("existing_metric_name", Metric.MetricCategory.COUNTABLE);
 
         mockMvc.perform(post("/metrics")
                         .contentType(MediaType.APPLICATION_JSON)

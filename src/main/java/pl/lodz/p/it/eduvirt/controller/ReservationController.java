@@ -21,10 +21,11 @@ import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
-import pl.lodz.p.it.eduvirt.entity.Reservation;
+import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.ReservationNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.ReservationMapper;
-import pl.lodz.p.it.eduvirt.service.ReservationService;
+import pl.lodz.p.it.eduvirt.service.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,6 +40,10 @@ public class ReservationController {
     /* Services */
 
     private final ReservationService reservationService;
+    private final ResourceGroupService resourceGroupService;
+    private final ResourceGroupPoolService resourceGroupPoolService;
+    private final CourseService courseService;
+    private final TeamService teamService;
 
     /* Mappers */
 
@@ -46,17 +51,30 @@ public class ReservationController {
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('student')")
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create new reservation", description = "This endpoint can be used to create a new reservation for the team they are a part of.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "New reservation, for given resource group and team, that the current user is a part of was created successfully."),
             @ApiResponse(responseCode = "400", description = "New reservation, for given resource group and team, that the current user is a part of was created successfully."),
             @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.")
     })
-    ResponseEntity<Void> createNewReservation(@RequestBody @Validated CreateReservationDto createDto) {
-        reservationService.createReservation(createDto.resourceGroupId(), createDto.start(),
-                createDto.end(), createDto.automaticStartup(), createDto.notificationTime());
+    @PreAuthorize("hasRole('student')")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @PostMapping(path = "/course/{courseId}/pod/{podId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<Void> createNewReservationForPod(@PathVariable("courseId") UUID courseId,
+                                                    @PathVariable("podId") UUID podId,
+                                                    @RequestBody @Validated CreateReservationDto createDto) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        // TODO: Potential refactor if course will have a list of users
+        Course course = courseService.getCourse(courseId);
+        Team team = teamService.getTeamByCourseAndUser(course, userId);
+
+        if (team.getStatelessPods().stream().anyMatch(statelessPod -> statelessPod.getId().equals(podId)))
+            reservationService.createReservationForStatelessPod(team, team.getStatelessPod(podId), createDto);
+        else if (team.getStatefulPods().stream().anyMatch(statefulPod -> statefulPod.getId().equals(podId)))
+            reservationService.createReservationForStatefulPod(team, team.getStatefulPod(podId), createDto);
+        else throw new PodNotFoundException("POD %s could not be found for the team %s, which the current user belongs to for course %s"
+                    .formatted(podId, team.getId(), course.getId()));
 
         return ResponseEntity.noContent().build();
     }
@@ -66,27 +84,70 @@ public class ReservationController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{reservationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ReservationDetailsDto> getReservationDetails(@PathVariable("reservationId") UUID reservationId) {
-        try {
-            Reservation foundReservation = reservationService.findReservationById(reservationId)
-                    .orElseThrow(() -> new ReservationNotFoundException(reservationId));
+        Reservation foundReservation = reservationService.findReservationById(reservationId)
+                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
 
-            return ResponseEntity.ok(reservationMapper.reservationToDetailsDto(foundReservation));
-        } catch (ReservationNotFoundException exception) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(reservationMapper.reservationToDetailsDto(foundReservation));
+    }
+
+    @PreAuthorize("hasRole('student')")
+    @GetMapping(path = "/course/{courseId}/pods/{podId}/previous", produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<PageDto<ReservationDto>> getPreviousReservations(
+            Pageable pageable, @PathVariable("courseId") UUID courseId, @PathVariable("podId") UUID podId) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        Course course = courseService.getCourse(courseId);
+        Team team = teamService.getTeamByCourseAndUser(course, userId);
+
+        Page<Reservation> reservations;
+        if (team.getStatelessPods().stream().anyMatch(statelessPod -> statelessPod.getId().equals(podId)))
+            reservations = reservationService.findReservationsForStatefulPod(
+                    team.getStatefulPod(podId), team, pageable);
+        else if (team.getStatelessPods().stream().anyMatch(statelessPod -> statelessPod.getId().equals(podId)))
+            reservations = reservationService.findReservationsForStatelessPod(
+                    team.getStatelessPod(podId), team, pageable);
+        else throw new PodNotFoundException("POD %s for team %s in course %s could not be found"
+                    .formatted(podId, team.getId(), course.getId()));
+
+        List<ReservationDto> listOfDtos = reservations.getContent()
+                .stream().map(reservationMapper::reservationToDto).toList();
+
+        PageDto<ReservationDto> outputDto = new PageDto<>(listOfDtos,
+                new PageInfoDto(reservations.getNumber(), reservations.getNumberOfElements(),
+                        reservations.getTotalPages(), reservations.getTotalElements()));
+
+        if (listOfDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(outputDto);
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping(path = "/period/{rgId}")
-    ResponseEntity<List<ReservationDto>> getReservationsForGivenPeriodForResourceGroup(
-            @PathVariable("rgId") UUID resourceGroupId,
+    @GetMapping(path = "/courses/{courseId}/resource-groups/{rgId}/period")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    ResponseEntity<List<ReservationDto>> getRgReservationsInGivenCourse(
+            @PathVariable("courseId") UUID courseId, @PathVariable("rgId") UUID rgId,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
-        List<Reservation> foundReservations = reservationService
-                .findReservationsForGivenPeriod(resourceGroupId, start, end);
+        Course course = courseService.getCourse(courseId);
+        ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
+        List<Reservation> reservations = reservationService.findRgReservations(resourceGroup, course, start, end);
 
-        List<ReservationDto> listOfDtos = foundReservations.stream()
-                .map(reservationMapper::reservationToDto).toList();
+        List<ReservationDto> listOfDtos = reservations.stream().map(reservationMapper::reservationToDto).toList();
+
+        if (listOfDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDtos);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/courses/{courseId}/resource-group-pools/{rgPoolId}/period")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    ResponseEntity<List<ReservationDto>> getRgPoolReservationsInGivenCourse(
+            @PathVariable("courseId") UUID courseId, @PathVariable("rgPoolId") UUID rgPoolId,
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        Course course = courseService.getCourse(courseId);
+        ResourceGroupPool resourceGroupPool = resourceGroupPoolService.getResourceGroupPool(rgPoolId);
+        List<Reservation> reservations = reservationService.findRgPoolReservations(resourceGroupPool, course, start, end);
+
+        List<ReservationDto> listOfDtos = reservations.stream().map(reservationMapper::reservationToDto).toList();
 
         if (listOfDtos.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDtos);
@@ -101,7 +162,11 @@ public class ReservationController {
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Reservation> reservationPage = reservationService.findActiveReservations(userId, courseId, pageable);
+
+        Course course = courseService.getCourse(courseId);
+        Team team = teamService.getTeamByCourseAndUser(course, userId);
+
+        Page<Reservation> reservationPage = reservationService.findActiveReservations(team.getId(), pageable);
 
         List<ReservationDto> listOfDTOs = reservationPage.getContent().stream()
                 .map(reservationMapper::reservationToDto).toList();
@@ -123,7 +188,11 @@ public class ReservationController {
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Reservation> reservationPage = reservationService.findHistoricalReservations(userId, courseId, pageable);
+
+        Course course = courseService.getCourse(courseId);
+        Team team = teamService.getTeamByCourseAndUser(course, userId);
+
+        Page<Reservation> reservationPage = reservationService.findHistoricalReservations(team.getId(), pageable);
 
         List<ReservationDto> listOfDTOs = reservationPage.getContent().stream()
                 .map(reservationMapper::reservationToDto).toList();
@@ -180,8 +249,10 @@ public class ReservationController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "/{reservationId}/cancel")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<Void> finishReservation(@PathVariable("reservationId") UUID reservationId) {
-        Reservation foundReservation = reservationService.findReservationById(reservationId)
+        Reservation foundReservation = reservationService
+                .findReservationById(reservationId)
                 .orElseThrow(() -> new ReservationNotFoundException(reservationId));
 
         reservationService.finishReservation(foundReservation);

@@ -1,7 +1,7 @@
-INSERT INTO public.metric (id, name)
-VALUES ('2865efff-f8e5-4960-a0ce-fc05e98828ba', 'cpu_count'),
-       ('63490da4-d0f1-4e7a-88fc-3342633accc0', 'memory_size'),
-       ('1929c2b2-ba03-4180-ae90-79bd2335f2a8', 'network_count');
+INSERT INTO public.metric (id, name, category)
+VALUES ('2865efff-f8e5-4960-a0ce-fc05e98828ba', 'cpu_count', 'COUNTABLE'),
+       ('63490da4-d0f1-4e7a-88fc-3342633accc0', 'memory_size', 'VOLATILE_MEMORY'),
+       ('1929c2b2-ba03-4180-ae90-79bd2335f2a8', 'network_count', 'COUNTABLE');
 
 INSERT INTO public.metric_cluster (id, cluster_id, metric_id, metric_value)
 
@@ -10,7 +10,7 @@ VALUES (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '2865efff-f8e
        (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '1929c2b2-ba03-4180-ae90-79bd2335f2a8', 10);
 
 INSERT INTO public.private_vlans_range (range_from, range_to, id)
-VALUES (0, 4096, '0978f66d-050c-4c28-a376-9b8934d6167a');
+VALUES (0, 1000, '0978f66d-050c-4c28-a376-9b8934d6167a');
 
 INSERT INTO public.resource_group(id, name, description, stateless, version, max_rent_time)
 VALUES (gen_random_uuid(), 'testStatefulRG1', '', false, 0, 120);
@@ -72,9 +72,9 @@ VALUES ((SELECT id FROM public.resource_group_pool WHERE name = 'testStatelessRG
 ------------------------------------------
 
 INSERT INTO public.administrative_break (id, version, cause, description, type, cluster_id, begin_at, end_at)
-VALUES ('2e8989cb-6811-46ce-be27-9ec7b6ea788c', 0, 'Some random cause #1', 'Some description of the break', 'SYSTEM', null, timestamp 'yesterday', timestamp 'yesterday' + interval '4 hours'),
-       ('eb4c5e2e-215c-442f-82e8-bb38900d0b47', 0, 'Some random cause #2', 'Some description of the break', 'CLUSTER', 'c282a57c-624e-448b-823e-a68352d10914', timestamp 'today', timestamp 'today' + interval '4 hours'),
-       ('0136324d-fa42-4d4a-a046-33469ecb9d0b', 0, 'Some random cause #3', 'Some description of the break', 'CLUSTER', 'c282a57c-624e-448b-823e-a68352d10914', timestamp 'tomorrow', timestamp 'tomorrow' + interval '4 hours');
+VALUES ('2e8989cb-6811-46ce-be27-9ec7b6ea788c', 0, 'Some random cause #1', 'Some description of the break', 'SYSTEM', null, timestamp 'yesterday' - interval '1 hour', timestamp 'yesterday' + interval '7 hours'),
+       ('eb4c5e2e-215c-442f-82e8-bb38900d0b47', 0, 'Some random cause #2', 'Some description of the break', 'CLUSTER', 'c282a57c-624e-448b-823e-a68352d10914', timestamp 'today' - interval '1 hour', timestamp 'today' + interval '7 hours'),
+       ('0136324d-fa42-4d4a-a046-33469ecb9d0b', 0, 'Some random cause #3', 'Some description of the break', 'CLUSTER', 'c282a57c-624e-448b-823e-a68352d10914', timestamp 'tomorrow' - interval '1 hour', timestamp 'tomorrow' + interval '7 hours');
 
 INSERT INTO public.users (id, email)
 VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', '242447@edu.p.lodz.pl');
@@ -143,8 +143,7 @@ VALUES ('e028a269-9890-4b02-81d9-b477ea7f552a', 0, 'SO-RG01', '', true, 3),
 
 --- Resource group pools ---
 
-INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id, description,
-                                        max_rent_time)
+INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id, description, max_rent_time)
 VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 0, 'SysOp-Pool', 6, 3, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '', 3);
 
 INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, resource_groups_id)
@@ -241,7 +240,7 @@ VALUES ('5407b59a-d4b0-4fcd-aea6-12b2101f628a', '1b0912df-c4c0-4907-9dd4-b09573a
 
 INSERT INTO public.reservation (id, version, rg_id, team_id, automatic_startup, notification_time, reservation_start, reservation_end, status)
 VALUES ('181426fb-6cb6-4fd9-9801-cbd03deccc2d', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44', 'f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'yesterday' + interval '11 hours', timestamp 'yesterday' + interval '17 hours', 'COMPLETED'),
-       ('24f78aff-d112-4233-b02f-e747854bcd23', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44', 'f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 15, timestamp 'today' + interval '17 hours', timestamp 'today' + interval '23 hours', 'IN_PROGRESS'),
+       ('24f78aff-d112-4233-b02f-e747854bcd23', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44', 'f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 15, timestamp 'today' + interval '11 hours', timestamp 'today' + interval '17 hours', 'IN_PROGRESS'),
        ('73f95e89-3a47-4dd5-bb51-382f79d1b976', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44', 'f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'tomorrow' + interval '11 hours', timestamp 'tomorrow' + interval '17 hours', 'PENDING');
 
 -----------------------------------
