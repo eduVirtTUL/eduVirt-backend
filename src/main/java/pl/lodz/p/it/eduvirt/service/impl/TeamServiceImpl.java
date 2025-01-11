@@ -2,12 +2,20 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import pl.lodz.p.it.eduvirt.entity.Course;
-import pl.lodz.p.it.eduvirt.entity.Team;
-import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.CourseRepository;
-import pl.lodz.p.it.eduvirt.repository.TeamRepository;
+import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.entity.key.CourseAccessKey;
+import pl.lodz.p.it.eduvirt.entity.key.CourseType;
+import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
+import pl.lodz.p.it.eduvirt.exceptions.*;
+import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.team.*;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
+import pl.lodz.p.it.eduvirt.repository.*;
+import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
+import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
+import pl.lodz.p.it.eduvirt.service.AccessKeyService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 
 import java.util.List;
@@ -19,126 +27,202 @@ public class TeamServiceImpl implements TeamService {
 
     private final TeamRepository teamRepository;
     private final CourseRepository courseRepository;
+    private final TeamAccessKeyRepository teamKeyRepository;
+    private final CourseAccessKeyRepository courseKeyRepository;
+    private final AccessKeyService accessKeyService;
 
     private void validateUserNotInCourse(UUID userId, UUID courseId) {
         if (teamRepository.existsByUserIdAndCourseId(userId, courseId)) {
-            throw new IllegalStateException("User already has a team in this course"); // change to custom exception
+            throw new UserAlreadyInCourseException();
+        }
+    }
+
+    private void validateUserNotInTeam(Team team, UUID userId) {
+        if (team.getUsers().contains(userId)) {
+            throw new UserAlreadyInTeamException();
+        }
+    }
+
+    private void validateTeamSizeAndName(Team team, UUID courseId) {
+        if (team.getMaxSize() < 1 || team.getMaxSize() > 8) {
+            throw new TeamSizeException();
+        }
+
+        if (teamRepository.existsByNameAndCourseId(team.getName(), courseId)) {
+            throw new TeamAlreadyExistsException();
         }
     }
 
     @Override
     @Transactional
-    public Team createTeam(Team team, UUID courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
-
-        if (!course.isTeamBased()) {
-            throw new IllegalStateException("Cannot manually create teams in non-team based courses"); //TODO change to custom exception
-        }
-
-        if (team.getMaxSize() < 1 || team.getMaxSize() > 8) {
-            throw new IllegalArgumentException("Team size must be between 1 and 8"); //TODO change to custom exception
-        }
-
-        String userKey = team.getKey();
-        if (userKey == null || userKey.length() < 4) {
-            throw new IllegalArgumentException("Team key must be at least 4 characters"); //TODO change to custom exception
-        }
-
-        team.setKey("t" + userKey);
-        if (teamRepository.existsByKey(team.getKey())) {
-            throw new IllegalStateException("Team with this key already exists"); //TODO change to custom exception
-        }
-
-        team.setCourse(course);
-        team.setActive(true);
-
-        return teamRepository.save(team);
-    }
-
-    @Override
-    public List<Team> getTeams() {
+    @PreAuthorize("isAuthenticated()")
+    public List<Team> getAllTeams() {
         return teamRepository.findAll();
     }
 
     @Override
-    public Team getTeam(UUID teamId) {
+    @Transactional
+    @PreAuthorize("isAuthenticated()")
+    public Team getTeamById(UUID teamId) {
         return teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found")); //TODO change to custom exception
+                .orElseThrow(RuntimeException::new);
     }
 
     @Override
+    @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<Team> getTeamsByUser(UUID userId) {
         return teamRepository.findByUsersContains(userId);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<Team> getTeamsByCourse(UUID courseId) {
-        return teamRepository.findByCourses_IdWithFetch(courseId);
-    }
-
-    @Override
-    public Team addUserToTeam(UUID teamId, UUID userId) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found")); 
-
-        validateUserNotInCourse(userId, team.getCourse().getId());
-
-        if (team.getUsers().size() >= team.getMaxSize()) {
-            throw new IllegalStateException("Team is full"); // change to custom exception
-        }
-
-        team.getUsers().add(userId);
-        return teamRepository.save(team);
+        return teamRepository.findByCourses(courseId);
     }
 
     @Override
     @Transactional
-    public Team joinTeamOrCreate(String key, UUID userId) {
-        if (key.startsWith("t")) {
-            Team team = teamRepository.findByKey(key)
-                    .orElseThrow(() -> new RuntimeException("Team not found with key: " + key)); // change to custom exception
+    @PreAuthorize("isAuthenticated()")
+    public Team createTeam(Team team, UUID courseId, String userKeyValue) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
 
-            validateUserNotInCourse(userId, team.getCourse().getId());
-
-            if (team.getUsers().size() >= team.getMaxSize()) {
-                throw new IllegalStateException("Team is full"); // change to custom exception
-            }
-
-            if (team.getUsers().contains(userId)) {
-                throw new IllegalStateException("User already in team"); // change to custom exception
-            }
-
-            team.getUsers().add(userId);
-            return teamRepository.save(team);
-        } else if (key.startsWith("s")) {
-            Course course = courseRepository.findByCourseKey(key)
-                    .orElseThrow(() -> new CourseNotFoundException("Course not found with key: " + key)); // change to custom exception
-
-            validateUserNotInCourse(userId, course.getId());
-
-            Team newTeam = Team.builder()
-                    .name(course.getName() + " - Solo Team")
-                    .key("t" + UUID.randomUUID().toString().substring(0, 8))
-                    .course(course)
-                    .users(List.of(userId))
-                    .active(true)
-                    .build();
-
-            return teamRepository.save(newTeam);
+        if (course.getCourseType() == CourseType.SOLO) {
+            throw new IncorrectTeamTypeException();
         }
 
-        throw new IllegalArgumentException("Invalid key format"); // change to custom exception
+        validateTeamSizeAndName(team, courseId);
+        team.setCourse(course);
+        team.setActive(true);
+        team = teamRepository.save(team);
+
+        accessKeyService.createTeamKey(team.getId(), userKeyValue);
+        return team;
     }
 
     @Override
-    public Team removeUserFromTeam(UUID teamId, UUID userId) {
+    @Transactional
+    @PreAuthorize("isAuthenticated()")
+    public void joinUsingKey(String keyValue, UUID userId) {
+        try {
+            teamKeyRepository.findByKeyValue(keyValue)
+                    .orElseThrow(AccessKeyNotFoundException::new);
+            addUserToTeam(keyValue, userId);
+            return;
+        } catch (AccessKeyNotFoundException ignored) {
+        }
+        try {
+            courseKeyRepository.findByKeyValue(keyValue)
+                    .orElseThrow(AccessKeyNotFoundException::new);
+            addUserToCourse(keyValue, userId);
+        } catch (AccessKeyNotFoundException e) {
+            throw new AccessKeyNotFoundException();
+        }
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("isAuthenticated()")
+    public Team updateTeam(Team updatedTeam, UUID teamId) {
+        Team existingTeam = teamRepository.findById(teamId)
+                .orElseThrow(RuntimeException::new);
+
+        if (existingTeam.getCourse().getCourseType() == CourseType.SOLO) {
+            existingTeam.setActive(updatedTeam.isActive());
+            return teamRepository.saveAndFlush(existingTeam);
+        }
+
+        if (!existingTeam.getName().equals(updatedTeam.getName())) {
+            if (teamRepository.existsByNameAndCourseId(updatedTeam.getName(), existingTeam.getCourse().getId())) {
+                throw new TeamAlreadyExistsException();
+            }
+        }
+
+        if (updatedTeam.getMaxSize() < 1 || updatedTeam.getMaxSize() > 8) {
+            throw new TeamSizeException();
+        }
+
+        if (updatedTeam.getMaxSize() < existingTeam.getUsers().size()) {
+            throw new TeamSizeException();
+        }
+
+        existingTeam.setName(updatedTeam.getName());
+        existingTeam.setMaxSize(updatedTeam.getMaxSize());
+        existingTeam.setActive(updatedTeam.isActive());
+
+        return teamRepository.saveAndFlush(existingTeam);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("isAuthenticated()")
+    public void addUserToTeam(String keyValue, UUID userId) {
+        TeamAccessKey key = teamKeyRepository.findByKeyValue(keyValue)
+                .orElseThrow(AccessKeyNotFoundException::new);
+
+        Team team = key.getTeam();
+        if (team.isActive()) {
+            validateUserNotInTeam(team, userId);
+
+            team.getUsers().add(userId);
+            teamRepository.saveAndFlush(team);
+        } else {
+            throw new RuntimeException("Team is not active");
+        }
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("isAuthenticated()")
+    public void addUserToCourse(String keyValue, UUID userId) {
+        CourseAccessKey key = courseKeyRepository.findByKeyValue(keyValue)
+                .orElseThrow(AccessKeyNotFoundException::new);
+
+        Course course = key.getCourse();
+        validateUserNotInCourse(userId, course.getId());
+
+        createSoloTeam(course.getId(), userId);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("isAuthenticated()")
+    public void createSoloTeam(UUID courseId, UUID userId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        if (course.getCourseType() != CourseType.SOLO) {
+            throw new IncorrectTeamTypeException();
+        }
+
+        Long soloTeamCount = teamRepository.countByCourseId(courseId);
+        String teamName = course.getName() + " - Solo " + (soloTeamCount + 1);
+
+        Team team = Team.builder()
+                .name(teamName)
+                .course(course)
+                .users(List.of(userId))
+                .maxSize(1)
+                .active(true)
+                .build();
+
+        teamRepository.save(team);
+    }
+
+    @Override
+    @PreAuthorize("isAuthenticated()")
+    public void removeUserFromTeam(UUID teamId, UUID userId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found")); // change to custom exception
+                .orElseThrow(RuntimeException::new);
 
-        team.getUsers().remove(userId);
+        if (team.getUsers().contains(userId)) {
+            team.getUsers().remove(userId);
+            teamRepository.save(team);
 
-        return teamRepository.save(team);
+        } else {
+            throw new UserNotFoundException();
+        }
     }
 }

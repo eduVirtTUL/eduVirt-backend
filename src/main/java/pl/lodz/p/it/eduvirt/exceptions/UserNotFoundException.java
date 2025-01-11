@@ -1,15 +1,11 @@
 package pl.lodz.p.it.eduvirt.exceptions;
 
-public class UserNotFoundException extends ApplicationBaseException {
+import pl.lodz.p.it.eduvirt.exceptions.general.NotFoundException;
+import pl.lodz.p.it.eduvirt.util.I18n;
 
-    public UserNotFoundException() {
-    }
+public class UserNotFoundException extends NotFoundException {
 
     public UserNotFoundException(String message) {
-        super(message);
-    }
-
-    public UserNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, I18n.USER_NOT_FOUND);
     }
 }

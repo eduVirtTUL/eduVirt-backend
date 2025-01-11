@@ -21,7 +21,7 @@ public class OVirtUserServiceImpl implements OVirtUserService {
     private final ConnectionFactory connectionFactory;
 
     @Override
-    public List<User> getAllUsers() {
+    public List<User> getAllUsersWithPermissions() {
         try {
             Connection connection = connectionFactory.getConnection();
             SystemService systemService = connection.systemService();
@@ -29,7 +29,20 @@ public class OVirtUserServiceImpl implements OVirtUserService {
             return systemService.usersService().list().follow("permissions").send().users();
 
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new UserNotFoundException();
+            throw new UserNotFoundException("Users could not be found");
+        }
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        try {
+            Connection connection = connectionFactory.getConnection();
+            SystemService systemService = connection.systemService();
+
+            return systemService.usersService().list().send().users();
+
+        } catch (org.ovirt.engine.sdk4.Error error) {
+            throw new UserNotFoundException("No users could be found");
         }
     }
 
@@ -41,7 +54,7 @@ public class OVirtUserServiceImpl implements OVirtUserService {
 
             return systemService.usersService().userService(userId.toString()).get().send().user();
         } catch (org.ovirt.engine.sdk4.Error error) {
-            throw new UserNotFoundException();
+            throw new UserNotFoundException("User with id %s could not be found".formatted(userId));
         }
     }
 }

@@ -1,15 +1,14 @@
 package pl.lodz.p.it.eduvirt.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+@Builder
+@Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,4 +22,7 @@ public class VirtualMachine {
 
     @ManyToOne()
     private ResourceGroup resourceGroup;
+
+    @OneToMany(mappedBy = "virtualMachine", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<NetworkInterface> networkInterfaces = new ArrayList<>();
 }

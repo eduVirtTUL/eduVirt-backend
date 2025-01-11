@@ -4,13 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Vm;
 import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
+import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.NicMapper;
-import pl.lodz.p.it.eduvirt.repository.ResourceGroupNetworkRepository;
+import pl.lodz.p.it.eduvirt.repository.NetworkInterfaceRepository;
+import pl.lodz.p.it.eduvirt.repository.PodStatefulRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -22,15 +24,16 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@LoggerInterceptor
 @RequiredArgsConstructor
 public class ResourceGroupServiceImpl implements ResourceGroupService {
     private final ResourceGroupRepository resourceGroupRepository;
     private final OVirtVmService oVirtVmService;
     private final NicMapper nicMapper;
     private final OVirtVnicProfileService oVirtVnicProfileService;
-    private final ResourceGroupNetworkRepository resourceGroupNetworkRepository;
     private final VirtualMachineRepository virtualMachineRepository;
-
+    private final NetworkInterfaceRepository networkInterfaceRepository;
+    private final PodStatefulRepository podStatefulRepository;
 
     @Override
     public List<ResourceGroup> getResourceGroups() {
@@ -81,9 +84,9 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
                                                 .profileName(profile.name());
                                     }
 
-                                    resourceGroupNetworkRepository
-                                            .getNetworkByInterface(UUID.fromString(nic.id()))
-                                            .ifPresent(resourceGroupNetwork -> nicDtoBuilder.segmentName(resourceGroupNetwork.getName()));
+                                    networkInterfaceRepository.findById(UUID.fromString(nic.id()))
+                                            .ifPresent(networkInterface
+                                                    -> nicDtoBuilder.segmentName(networkInterface.getResourceGroupNetwork().getName()));
 
                                     return nicDtoBuilder
                                             .build();
@@ -101,5 +104,13 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     @Override
     public ResourceGroup createResourceGroup(ResourceGroup resourceGroup) {
         return resourceGroupRepository.save(resourceGroup);
+    }
+
+    @Override
+    public List<ResourceGroup> getAssignedStatefulResourceGroups() {
+        List<UUID> assignedResourceGroupIds = podStatefulRepository.findAll().stream()
+                .map(pod -> pod.getResourceGroup().getId())
+                .toList();
+        return resourceGroupRepository.findAllById(assignedResourceGroupIds);
     }
 }

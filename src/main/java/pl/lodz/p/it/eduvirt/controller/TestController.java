@@ -1,15 +1,13 @@
 package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.ovirt.engine.sdk4.Connection;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.util.MailHelper;
+import pl.lodz.p.it.eduvirt.util.MailProvider;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 @RestController
@@ -19,30 +17,33 @@ import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 public class TestController {
 
     private final ConnectionFactory connectionFactory;
+
     private final MailHelper mailHelper;
+    private final MailProvider mailProvider;
 
     @GetMapping
-    public ResponseEntity<?> test() {
-        try (Connection connection = connectionFactory.getConnection()) {
-            var users = connection
-                    .systemService()
-                    .usersService()
-                    .list()
-                    .send()
-                    .users();
-            return ResponseEntity.ok(users);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public ResponseEntity<?> test(JwtAuthenticationToken auth) {
+        var test = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok("Test successful!");
     }
 
     @PostMapping(path = "/send-simple-mail/{mail-to}")
-    public ResponseEntity<?> sendSimpleMail(@PathVariable("mail-to") String mailTo) {
-        mailHelper.sendSimpleMail(
-                mailTo,
+    public ResponseEntity<Void> sendSimpleMail(@PathVariable("mail-to") String mailTo) {
+        mailHelper.sendEmail(
                 "Test mailing - eduVirt",
-                "Greetings from eduVirt Team :*!"
+                "Greetings from eduVirt Team :*!",
+                mailTo
         );
-        return ResponseEntity.ok("Mail sent successfully!");
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/send-html-mail/{mail-to}")
+    public ResponseEntity<Void> sendHtmlMail(@PathVariable("mail-to") String mailTo) {
+        mailProvider.sendHtmlTestMessage(
+                mailTo, "CET","en"
+        );
+
+        return ResponseEntity.ok().build();
     }
 }

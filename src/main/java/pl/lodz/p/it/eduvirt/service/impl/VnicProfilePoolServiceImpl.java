@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
-import pl.lodz.p.it.eduvirt.exceptions.EntityAlreadyException;
-import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileEduvirtNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.vnic_profile.VnicProfileOvirtNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.VnicProfileEduvirtNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.VnicProfileExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.VlansRangeRepository;
 import pl.lodz.p.it.eduvirt.repository.VnicProfileRepository;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
@@ -77,6 +77,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Override
     @Transactional(propagation = Propagation.NEVER)
     public List<VnicProfile> fetchOVirtVnicProfiles() {
+        //todo michal move it to OVirtVnicProfileService
         try (Connection connection = connectionFactory.getConnection()) {
             return connection.systemService()
                     .vnicProfilesService()
@@ -115,7 +116,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Transactional
     public VnicProfilePoolMember addVnicProfileToPool(UUID vnicProfileId) {
         if (vnicProfileRepository.findById(vnicProfileId).isPresent()) {
-            throw new EntityAlreadyException(vnicProfileId.toString());
+            throw new VnicProfileExistsException(vnicProfileId);
         }
         //todo michal ref to fetching only one profile from ovirt, by id/ not whole list...
         List<VnicProfile> ovirtVnicProfiles = getSynchronizedVnicProfiles().get(Boolean.FALSE);
@@ -129,7 +130,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
                     new VnicProfilePoolMember(vnicProfileId, relatedVnicProfile.get().network().vlan().idAsInteger())
             );
         } else {
-            throw new VnicProfileOvirtNotFoundException(vnicProfileId.toString());
+            throw new VnicProfileOvirtNotFoundException(vnicProfileId);
         }
     }
 
@@ -137,7 +138,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Transactional
     public void removeVnicProfileFromPool(UUID vnicProfileId) {
         if (vnicProfileRepository.findById(vnicProfileId).isEmpty()) {
-            throw new VnicProfileEduvirtNotFoundException(vnicProfileId.toString());
+            throw new VnicProfileEduvirtNotFoundException(vnicProfileId);
         }
 
         vnicProfileRepository.deleteById(vnicProfileId);
@@ -157,7 +158,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
 
     private void changeVnicProfilePoolMemberStatus(UUID vnicProfileId, boolean setInUser) {
         Optional<VnicProfilePoolMember> vnicProfileOpt = vnicProfileRepository.findById(vnicProfileId);
-        if (vnicProfileOpt.isEmpty()) throw new VnicProfileEduvirtNotFoundException(vnicProfileId.toString());
+        if (vnicProfileOpt.isEmpty()) throw new VnicProfileEduvirtNotFoundException(vnicProfileId);
 
         VnicProfilePoolMember vnicProfile = vnicProfileOpt.get();
 

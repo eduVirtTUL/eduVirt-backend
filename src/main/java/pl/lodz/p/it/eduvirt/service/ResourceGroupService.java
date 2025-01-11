@@ -16,4 +16,6 @@ public interface ResourceGroupService {
     ResourceGroup getResourceGroup(UUID id);
 
     ResourceGroup createResourceGroup(ResourceGroup resourceGroup);
+
+    List<ResourceGroup> getAssignedStatefulResourceGroups();
 }

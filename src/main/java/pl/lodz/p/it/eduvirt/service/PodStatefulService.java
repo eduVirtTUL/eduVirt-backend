@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface PodStatefulService {
-    PodStateful createPod(PodStateful pod);
-    List<PodStateful> getPodsByTeam(UUID teamId);
-    List<PodStateful> getPodsByCourse(UUID courseId);
-    List<PodStateful> getPodsByResourceGroup(UUID resourceGroupId);
-    PodStateful getPod(UUID podId);
-    void deletePod(UUID podId);
+    PodStateful createStatefulPod(PodStateful pod, UUID teamId, UUID resourceGroupId);
+    List<PodStateful> getStatefulPodsByTeam(UUID teamId);
+    List<PodStateful> getStatefulPodsByCourse(UUID courseId);
+    List<PodStateful> getStatefulPodsByResourceGroup(UUID resourceGroupId);
+    PodStateful getStatefulPod(UUID podId);
+    void deleteStatefulPod(UUID podId);
+
 }

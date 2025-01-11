@@ -5,49 +5,104 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.ovirt.engine.sdk4.types.Cluster;
+import org.ovirt.engine.sdk4.types.Host;
+import org.ovirt.engine.sdk4.types.Qos;
+import org.ovirt.engine.sdk4.types.Vm;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
-import pl.lodz.p.it.eduvirt.dto.course.SetCourseKeyDto;
+import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
+import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
-import pl.lodz.p.it.eduvirt.entity.Course;
-import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
-import pl.lodz.p.it.eduvirt.exceptions.ApplicationOperationNotImplementedException;
+import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
+import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.service.*;
+import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
+import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
-import java.time.*;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
+
 
 @RestController
 @RequestMapping("/course")
 @RequiredArgsConstructor
 public class CourseController {
 
+    /* Services */
+
     private final ResourceGroupPoolService resourceGroupPoolService;
     private final ReservationService reservationService;
-    private final VnicProfilePoolService vnicProfilePoolService;
+    private final CourseMetricService courseMetricService;
+    private final ResourceGroupService resourceGroupService;
+    private final ClusterMetricService clusterMetricService;
 
-    private final OVirtVmService vmService;
     private final OVirtClusterService clusterService;
-    private final OVirtHostService hostService;
-
+    private final OVirtVmService vmService;
     private final CourseService courseService;
+
+    /* Mappers */
+
     private final CourseMapper courseMapper;
     private final RGPoolMapper rgPoolMapper;
 
+    /* Util */
+
+    private final MetricUtil metricUtil;
+    private final BankerAlgorithm bankerAlgorithm;
+    private final ResourceGroupMapper resourceGroupMapper;
+
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<CourseDto>> getCourses() {
-        return ResponseEntity.ok(courseMapper.toCourseDtoList(courseService.getCourses().stream()));
+    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) Integer page,
+                                                         @RequestParam(name = "size", required = false) Integer size) {
+
+        if (page == null || size == null) {
+            List<Course> courses = courseService.getCourses();
+
+            return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                    .items(courseMapper.toCourseDtoList(courses.stream()))
+                    .page(new PageInfoDto(0, courses.size(), 1, courses.size()))
+                    .build());
+        }
+
+        Page<Course> courses = courseService.getCourses(page, size);
+
+        return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                .items(courseMapper.toCourseDtoList(courses.getContent().stream()))
+                .page(new PageInfoDto(courses.getNumber(), courses.getNumberOfElements(), courses.getTotalPages(), courses.getTotalElements()))
+                .build());
+    }
+
+    // @PreAuthorize("hasRole('student')")
+    @GetMapping(path = "/member", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<CourseDto>> getCoursesForStudent(Pageable pageable) {
+        UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<Course> foundCourses = courseService.getCoursesForStudent(studentId, pageable);
+
+        List<CourseDto> listOfDTOs = foundCourses.stream()
+                .map(courseMapper::courseToCourseDto).toList();
+
+        if (foundCourses.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDTOs);
     }
 
     @GetMapping("/{id}")
@@ -61,10 +116,17 @@ public class CourseController {
     }
 
     @PostMapping
-    public ResponseEntity<CourseDto> addCourse(@RequestBody CreateCourseDto createCourseDto) {
+    public ResponseEntity<CourseDto> addCourse(@RequestBody @Validated CreateCourseDto createCourseDto) {
         Course course = courseService.addCourse(courseMapper.courseCreateDtoToCourse(createCourseDto));
 
         return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
+    }
+
+    @GetMapping("/{id}/stateful")
+    @Transactional
+    public ResponseEntity<List<ResourceGroupDto>> getCourseStatefulResourceGroups(@PathVariable UUID id) {
+        List<ResourceGroup> resourceGroups = courseService.getStateFullResourceGroups(id);
+        return ResponseEntity.ok(resourceGroupMapper.toDtos(resourceGroups.stream()));
     }
 
     @GetMapping("/{id}/resource-group-pools")
@@ -73,75 +135,73 @@ public class CourseController {
         return ResponseEntity.ok(rgPoolMapper.toRGPoolDtoList(resourceGroupPools.stream()));
     }
 
-    @PatchMapping("/{id}/key")
-    public ResponseEntity<CourseDto> setCourseKey(@PathVariable UUID id, @RequestBody SetCourseKeyDto keyDto) {
-        Course course = courseService.setCourseKey(id, keyDto.key());
-        return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
+    @PostMapping("/{id}/resource-group")
+    public ResponseEntity<Void> createResourceGroup(@PathVariable UUID id, @RequestBody CreateResourceGroupDto createResourceGroupDto) {
+        ResourceGroup resourceGroup = resourceGroupMapper.toEntity(createResourceGroupDto);
+        courseService.addResourceGroupToCourse(id, resourceGroup);
+        return ResponseEntity.ok().build();
     }
 
-    @GetMapping(path = "/{id}/availability")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCourse(@PathVariable UUID id) {
+        courseService.deleteCourse(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateCourse(@PathVariable UUID id, @RequestBody CreateCourseDto createCourseDto) {
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/{id}/availability/resource-groups/{rgId}")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findCourseResourcesAvailability(
             @PathVariable("id") UUID courseId,
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
-            @RequestParam("timezone") String timeZone) {
-        ZoneId clientTimeZone = ZoneId.of(timeZone);
-        ZonedDateTime clientStartTime = start.atStartOfDay().atZone(clientTimeZone);
-        LocalDateTime utcStart = clientStartTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
-
-        ZonedDateTime clientEndTime = end.atStartOfDay().atZone(clientTimeZone);
-        LocalDateTime utcEnd = clientEndTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
-
+            @PathVariable("rgId") UUID rgId,
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
+        int timeWindowMinutes = 30;
         Course foundCourse = courseService.getCourse(courseId);
+        UUID clusterId = foundCourse.getClusterId();
 
-        // TODO: Require metric values for course in order to finish it
+        Cluster cluster = clusterService.findClusterById(clusterId);
+        List<Host> hosts = clusterService.findAllHostsInCluster(cluster);
+        Map<String, Vm> foundVms = new HashMap<>();
+        Map<String, Qos> foundQos = new HashMap<>();
+        for (Vm vm : vmService.findVmsForCluster(cluster)) {
+            foundVms.put(vm.id(), vm);
+            if (vm.cpuProfile().qos() != null) {
+                foundQos.put(vm.id(), vmService.findQosForVmCpu(vm));
+            }
+        }
 
-//        List<CourseMetric> courseMetrics = courseMetricService.findAllMetricsValuesForCourse(foundCourse);
-//
-//        int cpuCount = courseMetrics.stream().filter(courseMetric ->
-//                courseMetric.getMetric().getName().equals("cpu_count")).getFirst().getValue();
-//        long memorySize = courseMetrics.stream().filter(courseMetric ->
-//                courseMetric.getMetric().getName().equals("memory_size")).getFirst().getValue();
-//        int networkCount = courseMetrics.stream().filter(courseMetric ->
-//                courseMetric.getMetric().getName().equals("network_count")).getFirst().getValue();
-//
-//        int durationHours = (int) Duration.between(utcStart, utcEnd).get(ChronoUnit.HOURS);
-//
-//        List<ResourcesAvailabilityDto> resourcesAvailabilityDtos = new LinkedList<>();
-//
-//        UUID clusterId = foundCourse.getClusterId();
-//        Cluster cluster = clusterService.findClusterById(clusterId);
-//
-//        LocalDateTime currentTime = utcStart;
-//        while (currentTime.isBefore(utcEnd)) {
-//            int requiredCpus = 0;
-//            long requiredMemory = 0;
-//            int requiredNetworks = 0;
-//
-//            List<Reservation> currentReservations = reservationService
-//                    .findCurrentReservationsForCourse(foundCourse, currentTime);
-//
-//            for (Reservation reservation : currentReservations) {
-//                ResourceGroup resourceGroup = reservation.getResourceGroup();
-//                List<VirtualMachine> vms = resourceGroup.getVms();
-//                for (VirtualMachine vm : vms) {
-//                    Vm oVirtVM = vmService.findVmById(vm.getId().toString());
-//                    List<Host> oVirtHosts = clusterService.findAllHostsInCluster(cluster);
-//                    Map<String, Object> resources = vmService.findVmResources(oVirtVM, oVirtHosts.getFirst(), cluster);
-//
-//                    requiredCpus += (int) resources.get("cpu");
-//                    requiredMemory += (long) resources.get("memory");
-//                }
-//                requiredCpus += resourceGroup.getNetworks().size();
-//            }
-//
-//            if (requiredCpus > cpuCount || requiredMemory > memorySize && requiredNetworks > networkCount)
-//                resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, false));
-//            else resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, true));
-//
-//            currentTime = currentTime.plusMinutes(15);
-//        }
+        ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
 
-        throw new ApplicationOperationNotImplementedException();
+        List<CourseMetric> courseMetrics = courseMetricService.getAllCourseMetricsForCourse(foundCourse.getId());
+        List<ClusterMetric> clusterMetrics = clusterMetricService.findAllMetricValuesForCluster(cluster);
+
+        List<ResourcesAvailabilityDto> resourcesAvailabilityDtos = new LinkedList<>();
+
+        LocalDateTime currentTime = startTime;
+        while (currentTime.isBefore(endTime)) {
+            List<Reservation> currentCourseReservations = reservationService
+                    .findCurrentReservationsForCourse(foundCourse, currentTime, currentTime.plusMinutes(timeWindowMinutes));
+
+            List<Reservation> currentClusterReservations = reservationService
+                    .findCurrentReservationsForCluster(clusterId, currentTime, currentTime.plusMinutes(timeWindowMinutes));
+
+            if (bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(courseMetrics),
+                    currentCourseReservations, resourceGroup, cluster, hosts, foundVms, foundQos) &&
+                    bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(clusterMetrics),
+                            currentClusterReservations, resourceGroup, cluster, hosts, foundVms, foundQos))
+                resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, true));
+            else resourcesAvailabilityDtos.add(new ResourcesAvailabilityDto(currentTime, false));
+
+            currentTime = currentTime.plusMinutes(timeWindowMinutes);
+        }
+
+        if (resourcesAvailabilityDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(resourcesAvailabilityDtos);
     }
 }

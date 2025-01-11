@@ -10,7 +10,6 @@ import org.hibernate.proxy.HibernateProxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,9 +21,8 @@ public class ResourceGroupNetwork extends AbstractEntity {
 
     private String name;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "resource_group_network_interface", joinColumns = @JoinColumn(name = "resource_group_network_id"))
-    private List<UUID> interfaces = new ArrayList<>();
+    @OneToMany(mappedBy = "resourceGroupNetwork", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<NetworkInterface> interfaces = new ArrayList<>();
 
     @ManyToOne
     private ResourceGroup resourceGroup;

@@ -2,10 +2,13 @@ package pl.lodz.p.it.eduvirt;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import pl.lodz.p.it.eduvirt.configuration.KeycloackConfig;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+        ThymeleafAutoConfiguration.class
+})
 @EnableConfigurationProperties(KeycloackConfig.class)
 public class EduVirtApplication {
 

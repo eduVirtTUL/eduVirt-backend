@@ -5,7 +5,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import pl.lodz.p.it.eduvirt.aspect.exception.GeneralControllerExceptionResolver;
-import pl.lodz.p.it.eduvirt.aspect.exception.OVirtAPIExceptionResolver;
 import pl.lodz.p.it.eduvirt.controller.ReservationController;
 import pl.lodz.p.it.eduvirt.mappers.ReservationMapper;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
@@ -13,7 +12,6 @@ import pl.lodz.p.it.eduvirt.service.ReservationService;
 @Import({
         ReservationController.class,
         GeneralControllerExceptionResolver.class,
-        OVirtAPIExceptionResolver.class
 })
 @WebMvcTest(controllers = {ReservationController.class}, useDefaultFilters = false)
 public class ReservationControllerTest {

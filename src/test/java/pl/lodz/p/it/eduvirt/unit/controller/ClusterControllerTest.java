@@ -9,28 +9,35 @@ import org.ovirt.engine.sdk4.types.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.aspect.exception.GeneralControllerExceptionResolver;
-import pl.lodz.p.it.eduvirt.aspect.exception.OVirtAPIExceptionResolver;
 import pl.lodz.p.it.eduvirt.controller.ClusterController;
-import pl.lodz.p.it.eduvirt.dto.EventGeneralDTO;
+import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.NetworkDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
+import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.*;
-import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.*;
+import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
+import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -41,16 +48,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({
         ClusterController.class,
         GeneralControllerExceptionResolver.class,
-        OVirtAPIExceptionResolver.class
 })
 @WebMvcTest(controllers = {ClusterController.class}, useDefaultFilters = false)
 public class ClusterControllerTest {
+
+    /* Services */
 
     @MockitoBean
     private OVirtClusterService clusterService;
 
     @MockitoBean
     private OVirtVmService vmService;
+
+    @MockitoBean
+    private ClusterMetricService clusterMetricService;
+
+    @MockitoBean
+    private ResourceGroupService resourceGroupService;
+
+    @MockitoBean
+    private ReservationService reservationService;
 
     /* Mappers */
 
@@ -64,10 +81,18 @@ public class ClusterControllerTest {
     private NetworkMapper networkMapper;
 
     @MockitoBean
-    private EventMapper eventMapper;
+    private VmMapper vmMapper;
 
     @MockitoBean
-    private VmMapper vmMapper;
+    private EventMapper eventMapper;
+
+    /* Util */
+
+    @MockitoBean
+    private MetricUtil metricUtil;
+
+    @MockitoBean
+    private BankerAlgorithm bankerAlgorithm;
 
     /* Other */
 
@@ -81,8 +106,159 @@ public class ClusterControllerTest {
     private final UUID existingClusterId = UUID.randomUUID();
     private final UUID nonExistentClusterId = UUID.randomUUID();
 
+    private Course course;
+
+    private Team team;
+
+    private User userNo1;
+    private User userNo2;
+    private User userNo3;
+
+    private ResourceGroupPool rgPoolNo1;
+    private ResourceGroupPool rgPoolNo2;
+    private ResourceGroupPool rgPoolNo3;
+
+    private ResourceGroup resourceGroupNo1;
+    private ResourceGroup resourceGroupNo2;
+    private ResourceGroup resourceGroupNo3;
+
+    private Reservation reservationNo1;
+    private Reservation reservationNo2;
+    private Reservation reservationNo3;
+
+    private Metric metricNo1;
+    private ClusterMetric clusterMetricNo1;
+
+    private Metric metricNo2;
+    private ClusterMetric clusterMetricNo2;
+
+    private Metric metricNo3;
+    private ClusterMetric clusterMetricNo3;
+
     @BeforeEach
-    public void prepareTestData() {
+    public void prepareTestData() throws Exception {
+        mapper.findAndRegisterModules();
+
+        Field id = AbstractEntity.class.getDeclaredField("id");
+        Field version = Updatable.class.getDeclaredField("version");
+
+        course = new Course();
+        course.setName("Sieciowe System Baz Danych");
+        course.setDescription("Network Database Systems");
+        course.setClusterId(existingClusterId);
+        userNo1 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email1@gmail.com");
+        userNo2 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email2@gmail.com");
+        userNo3 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email3@gmail.com");
+
+        List<pl.lodz.p.it.eduvirt.entity.User> listOfUsers = List.of(userNo1, userNo2, userNo3);
+        team = Team.builder()
+                .name("Eldorado")
+                .active(true)
+                .maxSize(7)
+                .course(course)
+                .users(new ArrayList<>())
+                .build();
+        team.getUsers().addAll(listOfUsers.stream().map(User::getId).toList());
+
+        rgPoolNo1 = new ResourceGroupPool();
+        rgPoolNo1.setName("SSBD-RGPoolNo1");
+        rgPoolNo1.setMaxRent(12);
+        rgPoolNo1.setGracePeriod(12);
+
+        rgPoolNo2 = new ResourceGroupPool();
+        rgPoolNo2.setName("SSBD-RGPoolNo2");
+        rgPoolNo2.setMaxRent(12);
+        rgPoolNo2.setGracePeriod(12);
+
+        rgPoolNo3 = new ResourceGroupPool();
+        rgPoolNo3.setName("SSBD-RGPoolNo3");
+        rgPoolNo3.setMaxRent(12);
+        rgPoolNo3.setGracePeriod(12);
+
+        resourceGroupNo1 = new ResourceGroup();
+        resourceGroupNo1.setName("SSBD-RGNo1");
+        resourceGroupNo1.setDescription("First resource group for SSBD course.");
+        resourceGroupNo1.setMaxRentTime(12);
+        resourceGroupNo1.setStateless(false);
+
+        resourceGroupNo1.getVms().addAll(List.of(
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build()
+        ));
+
+        resourceGroupNo2 = new ResourceGroup();
+        resourceGroupNo2.setName("SSBD-RGNo2");
+        resourceGroupNo2.setDescription("Second resource group for SSBD course.");
+        resourceGroupNo2.setMaxRentTime(12);
+        resourceGroupNo2.setStateless(false);
+
+        resourceGroupNo2.getVms().addAll(List.of(
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build()
+        ));
+
+        resourceGroupNo3 = new ResourceGroup();
+        resourceGroupNo3.setName("SSBD-RGNo3");
+        resourceGroupNo3.setDescription("Third resource group for SSBD course.");
+        resourceGroupNo3.setMaxRentTime(12);
+        resourceGroupNo3.setStateless(false);
+
+        resourceGroupNo3.getVms().addAll(List.of(
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build(),
+                VirtualMachine.builder().id(UUID.randomUUID()).build()
+        ));
+
+        rgPoolNo1.getResourceGroups().add(resourceGroupNo1);
+        rgPoolNo2.getResourceGroups().add(resourceGroupNo2);
+        rgPoolNo3.getResourceGroups().add(resourceGroupNo3);
+
+        reservationNo1 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().minusHours(12), LocalDateTime.now(), true, 15);
+        reservationNo2 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(12), LocalDateTime.now().plusHours(24), true, 15);
+        reservationNo3 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(36), LocalDateTime.now().plusHours(48), true, 15);
+
+        metricNo1 = new Metric("cpu_count");
+        metricNo2 = new Metric("memory_size");
+        metricNo3 = new Metric("network_count");
+
+        clusterMetricNo1 = new ClusterMetric(existingClusterId, metricNo1, 20.0);
+        clusterMetricNo2 = new ClusterMetric(existingClusterId, metricNo2, 380008136704.0);
+        clusterMetricNo3 = new ClusterMetric(existingClusterId, metricNo3, 5.0);
+
+        id.setAccessible(true);
+
+        id.set(course, UUID.randomUUID());
+        id.set(team, UUID.randomUUID());
+
+        id.set(rgPoolNo1, UUID.randomUUID());
+        id.set(rgPoolNo2, UUID.randomUUID());
+        id.set(rgPoolNo3, UUID.randomUUID());
+
+        id.set(resourceGroupNo1, UUID.randomUUID());
+        id.set(resourceGroupNo2, UUID.randomUUID());
+        id.set(resourceGroupNo3, UUID.randomUUID());
+
+        id.set(reservationNo1, UUID.randomUUID());
+        id.set(reservationNo2, UUID.randomUUID());
+        id.set(reservationNo3, UUID.randomUUID());
+
+        id.set(metricNo1, UUID.randomUUID());
+        id.set(metricNo2, UUID.randomUUID());
+        id.set(metricNo3, UUID.randomUUID());
+
+        id.set(clusterMetricNo1, UUID.randomUUID());
+        id.set(clusterMetricNo2, UUID.randomUUID());
+        id.set(clusterMetricNo3, UUID.randomUUID());
+
+        id.setAccessible(false);
     }
 
     /* Tests */
@@ -154,7 +330,7 @@ public class ClusterControllerTest {
         assertNotNull(foundCluster.description());
         assertNotNull(foundCluster.clusterCpuType());
         assertNotNull(foundCluster.compatibilityVersion());
-        assertNotNull(foundCluster.useThreadsAsCpus());
+        assertNotNull(foundCluster.threadsAsCores());
         assertNotNull(foundCluster.maxMemoryOverCommit());
 
         assertEquals(clusterDetailsDto.id(), foundCluster.id());
@@ -163,7 +339,7 @@ public class ClusterControllerTest {
         assertEquals(clusterDetailsDto.description(), foundCluster.description());
         assertEquals(clusterDetailsDto.clusterCpuType(), foundCluster.clusterCpuType());
         assertEquals(clusterDetailsDto.compatibilityVersion(), foundCluster.compatibilityVersion());
-        assertEquals(clusterDetailsDto.useThreadsAsCpus(), foundCluster.useThreadsAsCpus());
+        assertEquals(clusterDetailsDto.threadsAsCores(), foundCluster.threadsAsCores());
         assertEquals(clusterDetailsDto.maxMemoryOverCommit(), foundCluster.maxMemoryOverCommit());
 
         verify(clusterService, times(1))
@@ -347,14 +523,6 @@ public class ClusterControllerTest {
         verify(clusterService, times(1)).findClusters(pageNumber, pageSize);
     }
 
-    /* FindClusterResourcesAvailability method tests */
-
-    @WithMockUser
-    @Test
-    public void Given__When_FindClusterResourcesAvailability_Then_() throws Exception {
-        // fail(); // TODO: Implement
-    }
-
     /* FindHostInfoByClusterId method tests */
 
     @WithMockUser
@@ -489,7 +657,7 @@ public class ClusterControllerTest {
                         .param("pageNumber", String.valueOf(pageNumber))
                         .param("pageSize", String.valueOf(pageSize)))
                 .andDo(print())
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andReturn();
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
@@ -566,7 +734,7 @@ public class ClusterControllerTest {
                 String.valueOf(elapsedTime1),
                 cpuUsage1 + "%",
                 memoryUsage1 + "%",
-                networkUsage1  + "%"
+                networkUsage1 + "%"
         );
 
         VmGeneralDto vmGeneralDto2 = new VmGeneralDto(
@@ -576,7 +744,7 @@ public class ClusterControllerTest {
                 String.valueOf(elapsedTime2),
                 cpuUsage2 + "%",
                 memoryUsage2 + "%",
-                networkUsage2  + "%"
+                networkUsage2 + "%"
         );
 
         VmGeneralDto vmGeneralDto3 = new VmGeneralDto(
@@ -586,7 +754,7 @@ public class ClusterControllerTest {
                 String.valueOf(elapsedTime3),
                 cpuUsage3 + "%",
                 memoryUsage3 + "%",
-                networkUsage3  + "%"
+                networkUsage3 + "%"
         );
 
         when(statistic1.name()).thenReturn("elapsed.time");
@@ -626,7 +794,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<VmGeneralDto> foundVms = mapper.readValue(json, new TypeReference<>() {});
+        List<VmGeneralDto> foundVms = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundVms);
         assertFalse(foundVms.isEmpty());
@@ -701,7 +870,7 @@ public class ClusterControllerTest {
                         Mockito.any(String.class),
                         Mockito.any(String.class),
                         Mockito.any(String.class)
-        );
+                );
     }
 
     @WithMockUser
@@ -716,7 +885,7 @@ public class ClusterControllerTest {
                         .param("pageNumber", String.valueOf(pageNumber))
                         .param("pageSize", String.valueOf(pageSize)))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
     }
@@ -794,7 +963,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<NetworkDto> foundNetworks = mapper.readValue(json, new TypeReference<>() {});
+        List<NetworkDto> foundNetworks = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundNetworks);
         assertFalse(foundNetworks.isEmpty());
@@ -862,7 +1032,7 @@ public class ClusterControllerTest {
                         .param("pageNumber", String.valueOf(pageNumber))
                         .param("pageSize", String.valueOf(pageSize)))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
     }
@@ -896,6 +1066,7 @@ public class ClusterControllerTest {
     public void Given_SomeEventsAreDefinedForTheGivenCluster_When_FindEventsByClusterId_Then_ReturnsAllFoundEventsForGivenCluster() throws Exception {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         Cluster cluster = mock(Cluster.class);
 
@@ -904,46 +1075,74 @@ public class ClusterControllerTest {
         Event event3 = mock(Event.class);
         List<Event> eventList = List.of(event1, event2, event3);
 
-        EventGeneralDTO eventDto1 = new EventGeneralDTO(
+        EventGeneralDto eventDto1 = new EventGeneralDto(
                 UUID.randomUUID().toString(),
                 "EVENT_MESSAGE_1",
                 "EVENT_SEVERITY_1",
-                "EVENT_REGISTERED_AT_1"
+                LocalDateTime.now().minusHours(3)
         );
 
-        EventGeneralDTO eventDto2 = new EventGeneralDTO(
+        EventGeneralDto eventDto2 = new EventGeneralDto(
                 UUID.randomUUID().toString(),
                 "EVENT_MESSAGE_2",
                 "EVENT_SEVERITY_2",
-                "EVENT_REGISTERED_AT_2"
+                LocalDateTime.now().minusHours(6)
         );
 
-        EventGeneralDTO eventDto3 = new EventGeneralDTO(
+        EventGeneralDto eventDto3 = new EventGeneralDto(
                 UUID.randomUUID().toString(),
                 "EVENT_MESSAGE_3",
                 "EVENT_SEVERITY_3",
-                "EVENT_REGISTERED_AT_3"
+                LocalDateTime.now().minusHours(9)
         );
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy");
+
+        LogSeverity severityNo1 = mock(LogSeverity.class);
+        LogSeverity severityNo2 = mock(LogSeverity.class);
+        LogSeverity severityNo3 = mock(LogSeverity.class);
+
+        when(event1.id()).thenReturn(UUID.randomUUID().toString());
+        when(event1.description()).thenReturn(eventDto1.message());
+        when(event1.severity()).thenReturn(severityNo1);
+        when(severityNo1.value()).thenReturn(eventDto1.severity());
+        when(event1.time()).thenReturn(Date.from(eventDto1.registeredAt().atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("CET")).toInstant()));
+
+        when(event2.id()).thenReturn(UUID.randomUUID().toString());
+        when(event2.description()).thenReturn(eventDto2.message());
+        when(event2.severity()).thenReturn(severityNo2);
+        when(severityNo2.value()).thenReturn(eventDto2.severity());
+        when(event2.time()).thenReturn(Date.from(eventDto2.registeredAt().atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("CET")).toInstant()));
+
+        when(event3.id()).thenReturn(UUID.randomUUID().toString());
+        when(event3.description()).thenReturn(eventDto3.message());
+        when(event3.severity()).thenReturn(severityNo3);
+        when(severityNo3.value()).thenReturn(eventDto3.severity());
+        when(event3.time()).thenReturn(Date.from(eventDto3.registeredAt().atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("CET")).toInstant()));
+
+        when(eventMapper.ovirtEventToGeneralDTO(event1)).thenReturn(eventDto1);
+        when(eventMapper.ovirtEventToGeneralDTO(event2)).thenReturn(eventDto2);
+        when(eventMapper.ovirtEventToGeneralDTO(event3)).thenReturn(eventDto3);
+
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterService.findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize))).thenReturn(eventList);
-        when(eventMapper.ovirtEventToGeneralDTO(Mockito.any(Event.class))).thenReturn(eventDto1, eventDto2, eventDto3);
+        when(clusterService.findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageable))).thenReturn(eventList);
 
         MvcResult result = mockMvc.perform(get("/clusters/{clusterId}/events", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(pageNumber))
+                        .param("size", String.valueOf(pageSize)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<EventGeneralDTO> foundEvents = mapper.readValue(json, new TypeReference<>() {});
+        List<EventGeneralDto> foundEvents = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundEvents);
         assertFalse(foundEvents.isEmpty());
         assertEquals(3, foundEvents.size());
 
-        EventGeneralDTO firstEvent = foundEvents.getFirst();
+        EventGeneralDto firstEvent = foundEvents.getFirst();
         assertNotNull(firstEvent);
 
         assertNotNull(firstEvent.id());
@@ -956,7 +1155,7 @@ public class ClusterControllerTest {
         assertEquals(eventDto1.severity(), firstEvent.severity());
         assertEquals(eventDto1.registeredAt(), firstEvent.registeredAt());
 
-        EventGeneralDTO secondEvent = foundEvents.get(1);
+        EventGeneralDto secondEvent = foundEvents.get(1);
         assertNotNull(secondEvent);
 
         assertNotNull(secondEvent.id());
@@ -969,7 +1168,7 @@ public class ClusterControllerTest {
         assertEquals(eventDto2.severity(), secondEvent.severity());
         assertEquals(eventDto2.registeredAt(), secondEvent.registeredAt());
 
-        EventGeneralDTO thirdEvent = foundEvents.getLast();
+        EventGeneralDto thirdEvent = foundEvents.getLast();
         assertNotNull(thirdEvent);
 
         assertNotNull(thirdEvent.id());
@@ -983,7 +1182,7 @@ public class ClusterControllerTest {
         assertEquals(eventDto3.registeredAt(), thirdEvent.registeredAt());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterService, times(1)).findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(clusterService, times(1)).findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageable));
         verify(eventMapper, times(3)).ovirtEventToGeneralDTO(Mockito.any(Event.class));
     }
 
@@ -999,7 +1198,7 @@ public class ClusterControllerTest {
                         .param("pageNumber", String.valueOf(pageNumber))
                         .param("pageSize", String.valueOf(pageSize)))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
     }
@@ -1009,20 +1208,21 @@ public class ClusterControllerTest {
     public void Given_NoEventsAreDefinedForTheGivenCluster_When_FindEventsByClusterId_Then_ReturnsEmptyEventList() throws Exception {
         int pageNumber = 0;
         int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         Cluster cluster = mock(Cluster.class);
 
         List<Event> eventList = List.of();
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterService.findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize))).thenReturn(eventList);
+        when(clusterService.findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageable))).thenReturn(eventList);
 
         mockMvc.perform(get("/clusters/{clusterId}/events", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(pageNumber))
+                        .param("size", String.valueOf(pageSize)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterService, times(1)).findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(clusterService, times(1)).findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageable));
     }
 }

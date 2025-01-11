@@ -35,7 +35,6 @@ build/
 .vscode/
 
 # Other excludes
-
 # Properties
 ovirt.yaml
 postgres-db.yaml

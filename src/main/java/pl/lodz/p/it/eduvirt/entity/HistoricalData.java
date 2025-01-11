@@ -4,8 +4,12 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @MappedSuperclass
@@ -38,15 +42,17 @@ public class HistoricalData extends Updatable {
 
     @PrePersist
     public void changeCreateData() {
-        //TODO: Change it later, when authentication is implemented (to put user's id in the context as well)
-//        this.createdBy = UUID.fromString((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        String performerId = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Principal::getName).orElse("00000000-0000-0000-0000-000000000000");
+        this.createdBy = UUID.fromString(performerId);
         this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
     public void changeUpdateData() {
-        //TODO: Change it later, when authentication is implemented (to put user's id in the context as well)
-//        this.updatedBy = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String performerId = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Principal::getName).orElse("00000000-0000-0000-0000-000000000000");
+        this.updatedBy = UUID.fromString(performerId);
         this.updatedAt = LocalDateTime.now();
     }
 }

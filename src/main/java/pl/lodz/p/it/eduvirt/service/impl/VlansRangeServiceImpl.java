@@ -5,9 +5,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
-import pl.lodz.p.it.eduvirt.exceptions.range.InvalidVlansRangeDefinitionException;
-import pl.lodz.p.it.eduvirt.exceptions.range.VlansRangeConflictException;
-import pl.lodz.p.it.eduvirt.exceptions.range.VlansRangeNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.InvalidVlansRangeDefinitionException;
+import pl.lodz.p.it.eduvirt.exceptions.VlansRangeConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.VlansRangeNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.VlansRangeRepository;
 import pl.lodz.p.it.eduvirt.service.VlansRangeService;
 
@@ -29,7 +29,8 @@ public class VlansRangeServiceImpl implements VlansRangeService {
 
     @Override
     public VlansRange getVlansRange(UUID id) {
-        return vlansRangeRepository.findById(id).orElseThrow(VlansRangeNotFoundException::new);
+        return vlansRangeRepository.findById(id)
+                .orElseThrow(() -> new VlansRangeNotFoundException(id));
     }
 
     @Override
@@ -41,7 +42,8 @@ public class VlansRangeServiceImpl implements VlansRangeService {
 
     @Override
     public void removeVlansRange(UUID id) {
-        vlansRangeRepository.findById(id).orElseThrow(VlansRangeNotFoundException::new);
+        vlansRangeRepository.findById(id)
+                .orElseThrow(() -> new VlansRangeNotFoundException(id));
 
         vlansRangeRepository.deleteById(id);
     }
@@ -59,7 +61,8 @@ public class VlansRangeServiceImpl implements VlansRangeService {
         if (Objects.isNull(vlansRange.getFrom()) || vlansRange.getFrom() < 0
                 || Objects.isNull(vlansRange.getTo()) || vlansRange.getTo() < 0
                 || vlansRange.getFrom() > vlansRange.getTo()) {
-            throw new InvalidVlansRangeDefinitionException();
+            // TODO: Add message
+            throw new InvalidVlansRangeDefinitionException("PLACEHOLDER");
         }
     }
 
@@ -74,7 +77,8 @@ public class VlansRangeServiceImpl implements VlansRangeService {
                  || (vlansRange.getFrom() >= vlansRangeFromList.getFrom() && vlansRange.getTo() <= vlansRangeFromList.getTo())
                  || (vlansRange.getFrom() < vlansRangeFromList.getFrom() && vlansRange.getTo() > vlansRangeFromList.getTo())
             ) {
-                throw new VlansRangeConflictException();
+                // TODO: Add message
+                throw new VlansRangeConflictException("PLACEHOLDER");
             }
         }
     }
