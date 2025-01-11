@@ -9,6 +9,7 @@ import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.services.VmService;
 import org.ovirt.engine.sdk4.types.CpuProfile;
 import org.ovirt.engine.sdk4.types.CpuTopology;
+import org.ovirt.engine.sdk4.types.Event;
 import org.ovirt.engine.sdk4.types.Nic;
 import org.ovirt.engine.sdk4.types.Qos;
 import org.ovirt.engine.sdk4.types.Statistic;

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
@@ -106,12 +106,14 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
         }
 
         switch (subtask) {
-            case VmTask vmTask -> { }
+            case VmTask vmTask -> {
+            }
             case VnicProfileTask vnicProfileTask -> {
                 vnicProfileTask.setVnicProfileId(mapOfAdditionalIds.get(AdditionalId.VNIC_PROFILE));
                 vnicProfileTask.setNicId(mapOfAdditionalIds.get(AdditionalId.NIC));
             }
-            case PermissionTask permissionTask -> { }
+            case PermissionTask permissionTask -> {
+            }
             default -> throw new IllegalArgumentException("Unexpected subtask type: " + subtask);
         }
 

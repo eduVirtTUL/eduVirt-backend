@@ -7,17 +7,12 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 import pl.lodz.p.it.eduvirt.entity.HistoricalData;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity

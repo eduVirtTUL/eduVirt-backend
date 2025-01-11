@@ -17,14 +17,14 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
-import pl.lodz.p.it.eduvirt.entity.reservation.Reservation;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
-import pl.lodz.p.it.eduvirt.service.OVirtAssignedPermissionService;
+import pl.lodz.p.it.eduvirt.service.OVirtPermissionService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
@@ -73,7 +73,7 @@ public class ExecutorScheduler {
 
     // Model
     private final OVirtVmService oVirtVmService;
-    private final OVirtAssignedPermissionService ovirtAssignedPermissionService;
+    private final OVirtPermissionService OVirtPermissionService;
     private final VnicProfilePoolService vnicProfilePoolService;
     private final ReservationService reservationService;
 
@@ -84,7 +84,7 @@ public class ExecutorScheduler {
     private final ExecutorTaskService executorTaskService;
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0)
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional(noRollbackFor = Throwable.class)
     public void createPods() {
         reservationRepository.findReservationsToBegin()
                 //.stream().parallel()
@@ -99,8 +99,8 @@ public class ExecutorScheduler {
                 );
     }
 
-    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0)
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0L)
+    @Transactional(noRollbackFor = Throwable.class)
     public void destroyPods() {
         reservationRepository.findReservationsToStop()
                 //.stream().parallel()
@@ -338,7 +338,7 @@ public class ExecutorScheduler {
 //
 ////        reservationService.markReservationAsEnded();
 //
-////        } catch (Throwable e) {
+////         catch (Throwable e) {
 ////            e.printStackTrace();
 ////        }
 //    }
@@ -376,7 +376,7 @@ public class ExecutorScheduler {
     private void addTeamPermissionsToVm(UUID vmId, List<UUID> teamMembersIds) {
         teamMembersIds
                 .forEach(
-                        userId -> ovirtAssignedPermissionService.assignPermissionToVmToUser(vmId, userId,
+                        userId -> OVirtPermissionService.assignPermissionToVmToUser(vmId, userId,
                                 "00000000-0000-0000-0001-000000000001")
                 );
     }
@@ -385,11 +385,11 @@ public class ExecutorScheduler {
         teamMembersIds
                 .forEach(
                         userId ->
-                                ovirtAssignedPermissionService.findPermissionsByVmId(vmId)
+                                OVirtPermissionService.findPermissionsByVmId(vmId)
                                         .forEach(permission -> {
                                             User userOpt = permission.user();
                                             if (Objects.nonNull(userOpt) && userOpt.id().equals(userId.toString())) {
-                                                ovirtAssignedPermissionService.revokePermissionToVmFromUser(
+                                                OVirtPermissionService.revokePermissionToVmFromUser(
                                                         UUID.fromString(permission.id())
                                                 );
                                             }
