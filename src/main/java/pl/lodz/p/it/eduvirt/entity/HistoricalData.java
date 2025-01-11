@@ -6,7 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @MappedSuperclass
@@ -39,13 +42,17 @@ public class HistoricalData extends Updatable {
 
     @PrePersist
     public void changeCreateData() {
-        this.createdBy = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        String performerId = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Principal::getName).orElse("00000000-0000-0000-0000-000000000000");
+        this.createdBy = UUID.fromString(performerId);
         this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
     public void changeUpdateData() {
-        this.updatedBy = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        String performerId = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Principal::getName).orElse("00000000-0000-0000-0000-000000000000");
+        this.updatedBy = UUID.fromString(performerId);
         this.updatedAt = LocalDateTime.now();
     }
 }

@@ -10,7 +10,7 @@ VALUES (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '2865efff-f8e
        (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '1929c2b2-ba03-4180-ae90-79bd2335f2a8', 10);
 
 INSERT INTO public.private_vlans_range (range_from, range_to, id)
-VALUES (0, 4096, '0978f66d-050c-4c28-a376-9b8934d6167a');
+VALUES (0, 1000, '0978f66d-050c-4c28-a376-9b8934d6167a');
 
 INSERT INTO public.resource_group(id, name, description, stateless, version, max_rent_time)
 VALUES (gen_random_uuid(), 'testStatefulRG1', '', false, 0, 120);

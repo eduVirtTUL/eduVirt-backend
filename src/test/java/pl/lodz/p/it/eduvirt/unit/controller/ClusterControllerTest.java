@@ -225,9 +225,9 @@ public class ClusterControllerTest {
         reservationNo2 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(12), LocalDateTime.now().plusHours(24), true, 15);
         reservationNo3 = new Reservation(resourceGroupNo1, team, LocalDateTime.now().plusHours(36), LocalDateTime.now().plusHours(48), true, 15);
 
-        metricNo1 = new Metric("cpu_count");
-        metricNo2 = new Metric("memory_size");
-        metricNo3 = new Metric("network_count");
+        metricNo1 = new Metric("cpu_count", Metric.MetricCategory.COUNTABLE);
+        metricNo2 = new Metric("memory_size", Metric.MetricCategory.VOLATILE_MEMORY);
+        metricNo3 = new Metric("network_count", Metric.MetricCategory.COUNTABLE);
 
         clusterMetricNo1 = new ClusterMetric(existingClusterId, metricNo1, 20.0);
         clusterMetricNo2 = new ClusterMetric(existingClusterId, metricNo2, 380008136704.0);
