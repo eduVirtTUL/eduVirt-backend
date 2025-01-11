@@ -7,7 +7,6 @@ import org.ovirt.engine.sdk4.internal.containers.NicContainer;
 import org.ovirt.engine.sdk4.internal.containers.VnicProfileContainer;
 import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.services.VmService;
-import org.ovirt.engine.sdk4.types.CpuProfile;
 import org.ovirt.engine.sdk4.types.CpuTopology;
 import org.ovirt.engine.sdk4.types.Event;
 import org.ovirt.engine.sdk4.types.Nic;
@@ -18,8 +17,8 @@ import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.ovirt.engine.sdk4.types.Host;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.ovirt.engine.sdk4.services.EventsService;
-import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.services.VmsService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -73,6 +72,34 @@ public class OVirtVmServiceImpl implements OVirtVmService {
         return resources;
     }
 
+    @Cacheable(value = "vms", key = "#id")
+    @Override
+    public Vm findVmWithCpuProfileById(String id) {
+        try (Connection connection = connectionFactory.getConnection()) {
+            return connection
+                    .systemService()
+                    .vmsService()
+                    .vmService(id)
+                    .get()
+                    .follow("cpu_profile")
+                    .send()
+                    .vm();
+        } catch (Exception e) {
+            throw new VmNotFoundException(
+                    "VM %s could not be found".formatted(id));
+        }
+    }
+
+    @Cacheable(value = "qos", key = "#vm.id()")
+    @Override
+    public Qos findQosForVmCpu(Vm vm) {
+        try (Connection connection = connectionFactory.getConnection()) {
+            return connection.followLink(vm.cpuProfile().qos());
+        } catch (Exception e) {
+            throw new VmNotFoundException("No VM could be found!");
+        }
+    }
+
     @Override
     public Vm findVmById(String id) {
         try (Connection connection = connectionFactory.getConnection()) {
@@ -81,7 +108,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .vmsService()
                     .vmService(id)
                     .get()
-                    .follow("cpu_profile,nics")
+                    .follow("nics")
                     .send()
                     .vm();
         } catch (Exception e) {
@@ -98,15 +125,6 @@ public class OVirtVmServiceImpl implements OVirtVmService {
             String searchQuery = "cluster=%s".formatted(cluster.name());
 
             return vmsService.list().search(searchQuery).follow("cpu_profile").send().vms();
-        } catch (Exception e) {
-            throw new VmNotFoundException("No VM could be found!");
-        }
-    }
-
-    @Override
-    public Qos findQosForVmCpu(Vm vm) {
-        try (Connection connection = connectionFactory.getConnection()) {
-            return connection.followLink(vm.cpuProfile().qos());
         } catch (Exception e) {
             throw new VmNotFoundException("No VM could be found!");
         }

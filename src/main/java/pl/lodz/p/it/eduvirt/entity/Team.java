@@ -2,6 +2,8 @@ package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import pl.lodz.p.it.eduvirt.exceptions.StatefulPodAssignmentException;
+import pl.lodz.p.it.eduvirt.exceptions.StatelessPodAssignmentException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,4 +68,43 @@ public class Team extends Updatable {
         this.course = course;
     }
 
+    /* Other methods */
+
+    public void addStatelessPod(PodStateless statelessPod) {
+        statelessPod.setTeam(this);
+        statelessPod.setCourse(course);
+        this.statelessPods.add(statelessPod);
+    }
+
+    public void addStatefulPod(PodStateful statefulPod) {
+        statefulPod.setTeam(this);
+        statefulPod.setCourse(course);
+        this.statefulPods.add(statefulPod);
+    }
+
+    public void removeStatelessPod(PodStateless statelessPod) {
+        statelessPod.setTeam(null);
+        this.statelessPods.remove(statelessPod);
+    }
+
+    public void removeStatefulPod(PodStateful statefulPod) {
+        statefulPod.setTeam(null);
+        this.statefulPods.remove(statefulPod);
+    }
+
+    /* Retrieve POD */
+
+    public PodStateless getStatelessPod(UUID podId) {
+        return this.getStatelessPods().stream()
+                .filter(podStateless -> podStateless.getId().equals(podId))
+                .findAny().orElseThrow(() -> new StatelessPodAssignmentException(
+                        "Stateless POD %s is not assigned to team %s".formatted(podId, getId())));
+    }
+
+    public PodStateful getStatefulPod(UUID podId) {
+        return this.getStatefulPods().stream()
+                .filter(pod -> pod.getId().equals(podId))
+                .findAny().orElseThrow(() -> new StatefulPodAssignmentException(
+                        "Stateful POD %s is not assigned to team %s".formatted(podId, getId())));
+    }
 }

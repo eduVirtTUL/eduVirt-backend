@@ -14,7 +14,9 @@ import org.ovirt.engine.sdk4.services.VmsService;
 import org.ovirt.engine.sdk4.types.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import pl.lodz.p.it.eduvirt.exceptions.EventNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.VmNotFoundException;
 import pl.lodz.p.it.eduvirt.service.impl.OVirtVmServiceImpl;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 import org.ovirt.engine.sdk4.Error;
@@ -120,10 +122,7 @@ public class OVirtVmServiceTest {
         Host host = mock(Host.class);
         Cluster cluster = mock(Cluster.class);
 
-        CpuProfile cpuProfileMock = mock(CpuProfile.class);
         Qos qosMock = mock(Qos.class);
-        Cpu cpuMock = mock(Cpu.class);
-        CpuTopology cpuTopologyMock = mock(CpuTopology.class);
 
         Cpu hostCpu = mock(Cpu.class);
         CpuTopology hostCpuTopology = mock(CpuTopology.class);
@@ -166,7 +165,6 @@ public class OVirtVmServiceTest {
         Host host = mock(Host.class);
         Cluster cluster = mock(Cluster.class);
 
-        CpuProfile cpuProfileMock = mock(CpuProfile.class);
         Qos qosMock = mock(Qos.class);
         Cpu cpuMock = mock(Cpu.class);
         CpuTopology cpuTopologyMock = mock(CpuTopology.class);
@@ -210,7 +208,6 @@ public class OVirtVmServiceTest {
         Cluster cluster = mock(Cluster.class);
 
         Cpu cpuMock = mock(Cpu.class);
-        CpuProfile cpuProfileMock = mock(CpuProfile.class);
         CpuTopology cpuTopologyMock = mock(CpuTopology.class);
 
         when(vm.memory()).thenReturn(BigInteger.valueOf(1048576));
@@ -239,6 +236,69 @@ public class OVirtVmServiceTest {
         verify(cpuTopologyMock, times(1)).threads();
     }
 
+    /* FindVmWithCpuProfileById method tests */
+
+    @Test
+    public void Given_ExistingVmIdentifierIsPassed_When_FindVmWithCpuProfileById_Then_ReturnsFoundVmSuccessfully() {
+        UUID vmId = UUID.randomUUID();
+
+        Vm vm = mock(Vm.class);
+
+        VmService.GetRequest getRequest = mock(VmService.GetRequest.class);
+        VmService.GetResponse getResponse = mock(VmService.GetResponse.class);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.vmsService()).thenReturn(vmsService);
+        when(vmsService.vmService(Mockito.eq(vmId.toString()))).thenReturn(vmService);
+        when(vmService.get()).thenReturn(getRequest);
+        when(getRequest.follow(Mockito.eq("cpu_profile"))).thenReturn(getRequest);
+        when(getRequest.send()).thenReturn(getResponse);
+        when(getResponse.vm()).thenReturn(vm);
+
+        Vm foundVm = oVirtVmService.findVmWithCpuProfileById(vmId.toString());
+
+        assertNotNull(foundVm);
+        assertEquals(vm, foundVm);
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).vmsService();
+        verify(vmsService, times(1)).vmService(Mockito.eq(vmId.toString()));
+        verify(vmService, times(1)).get();
+        verify(getRequest, times(1)).send();
+        verify(getRequest, times(1)).follow(Mockito.eq("cpu_profile"));
+        verify(getResponse, times(1)).vm();
+    }
+
+    @Test
+    public void Given_NonExistentVmIdentifierIsPassed_When_FindVmWithCpuProfileById_Then_ThrowsException() {
+        UUID vmId = UUID.randomUUID();
+
+        Vm vm = mock(Vm.class);
+
+        VmService.GetRequest getRequest = mock(VmService.GetRequest.class);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.vmsService()).thenReturn(vmsService);
+        when(vmsService.vmService(Mockito.eq(vmId.toString()))).thenReturn(vmService);
+        when(vmService.get()).thenReturn(getRequest);
+        when(getRequest.follow(Mockito.eq("cpu_profile"))).thenReturn(getRequest);
+        when(getRequest.send()).thenThrow(new Error("Vm not found"));
+
+        assertThrows(VmNotFoundException.class,
+                () -> oVirtVmService.findVmWithCpuProfileById(vmId.toString()));
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).vmsService();
+        verify(vmsService, times(1)).vmService(Mockito.eq(vmId.toString()));
+        verify(vmService, times(1)).get();
+        verify(getRequest, times(1)).follow(Mockito.eq("cpu_profile"));
+        verify(getRequest, times(1)).send();
+    }
+
     /* FindVmById method tests */
 
     @Test
@@ -255,7 +315,7 @@ public class OVirtVmServiceTest {
         when(systemService.vmsService()).thenReturn(vmsService);
         when(vmsService.vmService(Mockito.eq(vmId.toString()))).thenReturn(vmService);
         when(vmService.get()).thenReturn(getRequest);
-        when(getRequest.follow(Mockito.eq("cpu_profile,nics"))).thenReturn(getRequest);
+        when(getRequest.follow(Mockito.eq("nics"))).thenReturn(getRequest);
         when(getRequest.send()).thenReturn(getResponse);
         when(getResponse.vm()).thenReturn(vm);
 
@@ -270,7 +330,7 @@ public class OVirtVmServiceTest {
         verify(vmsService, times(1)).vmService(Mockito.eq(vmId.toString()));
         verify(vmService, times(1)).get();
         verify(getRequest, times(1)).send();
-        verify(getRequest, times(1)).follow(Mockito.eq("cpu_profile,nics"));
+        verify(getRequest, times(1)).follow(Mockito.eq("nics"));
         verify(getResponse, times(1)).vm();
     }
 
@@ -284,7 +344,7 @@ public class OVirtVmServiceTest {
         when(systemService.vmsService()).thenReturn(vmsService);
         when(vmsService.vmService(Mockito.eq(vmId.toString()))).thenReturn(vmService);
         when(vmService.get()).thenReturn(getRequest);
-        when(getRequest.follow(Mockito.eq("cpu_profile,nics"))).thenReturn(getRequest);
+        when(getRequest.follow(Mockito.eq("nics"))).thenReturn(getRequest);
         when(getRequest.send()).thenThrow(new Error("Vm not found"));
 
         assertThrows(RuntimeException.class, () -> oVirtVmService.findVmById(vmId.toString()));
@@ -295,6 +355,185 @@ public class OVirtVmServiceTest {
         verify(vmsService, times(1)).vmService(Mockito.eq(vmId.toString()));
         verify(vmService, times(1)).get();
         verify(getRequest, times(1)).send();
+    }
+
+    /* FindVmsForCluster method tests */
+
+    @Test
+    public void Given_ExisingClusterIsPassed_When_FindVmsForCluster_Then_ReturnsListOfFoundVms() {
+        String clusterName = "SOME_RANDOM_CLUSTER_NAME";
+        Cluster cluster = mock(Cluster.class);
+
+        Vm vm1 = mock(Vm.class);
+        Vm vm2 = mock(Vm.class);
+        Vm vm3 = mock(Vm.class);
+        List<Vm> listOfVMs = List.of(vm1, vm2, vm3);
+
+        String searchQuery = "cluster=%s".formatted(clusterName);
+
+        VmsService.ListRequest listRequest = mock(VmsService.ListRequest.class);
+        VmsService.ListResponse listResponse = mock(VmsService.ListResponse.class);
+
+        when(cluster.name()).thenReturn(clusterName);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.vmsService()).thenReturn(vmsService);
+        when(vmsService.list()).thenReturn(listRequest);
+        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.follow(Mockito.eq("cpu_profile"))).thenReturn(listRequest);
+        when(listRequest.send()).thenReturn(listResponse);
+        when(listResponse.vms()).thenReturn(listOfVMs);
+
+        List<Vm> foundVms = oVirtVmService.findVmsForCluster(cluster);
+
+        assertNotNull(foundVms);
+        assertFalse(foundVms.isEmpty());
+        assertEquals(3, foundVms.size());
+
+        Vm firstVm = foundVms.getFirst();
+        assertNotNull(firstVm);
+        assertEquals(vm1, firstVm);
+
+        Vm secondVm = foundVms.get(1);
+        assertNotNull(secondVm);
+        assertEquals(vm2, secondVm);
+
+        Vm thridVm = foundVms.getLast();
+        assertNotNull(thridVm);
+        assertEquals(vm3, thridVm);
+
+        verify(cluster, times(1)).name();
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).vmsService();
+        verify(vmsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).follow(Mockito.eq("cpu_profile"));
+        verify(listRequest, times(1)).send();
+        verify(listResponse, times(1)).vms();
+    }
+
+    @Test
+    public void Given_NonExistentClusterIsPassed_When_FindVmsForCluster_Then_ReturnsEmptyListOfVms() {
+        String clusterName = "SOME_RANDOM_CLUSTER_NAME";
+        Cluster cluster = mock(Cluster.class);
+
+        String searchQuery = "cluster=%s".formatted(clusterName);
+
+        VmsService.ListRequest listRequest = mock(VmsService.ListRequest.class);
+        VmsService.ListResponse listResponse = mock(VmsService.ListResponse.class);
+
+        when(cluster.name()).thenReturn(clusterName);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.vmsService()).thenReturn(vmsService);
+        when(vmsService.list()).thenReturn(listRequest);
+        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.follow(Mockito.eq("cpu_profile"))).thenReturn(listRequest);
+        when(listRequest.send()).thenReturn(listResponse);
+        when(listResponse.vms()).thenReturn(List.of());
+
+        List<Vm> foundVms = oVirtVmService.findVmsForCluster(cluster);
+
+        assertNotNull(foundVms);
+        assertTrue(foundVms.isEmpty());
+
+        verify(cluster, times(1)).name();
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).vmsService();
+        verify(vmsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).follow(Mockito.eq("cpu_profile"));
+        verify(listRequest, times(1)).send();
+        verify(listResponse, times(1)).vms();
+    }
+
+    @Test
+    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindVmsForCluster_Then_ThrowsException() {
+        String clusterName = "SOME_RANDOM_CLUSTER_NAME";
+        Cluster cluster = mock(Cluster.class);
+
+        String searchQuery = "cluster=%s".formatted(clusterName);
+
+        VmsService.ListRequest listRequest = mock(VmsService.ListRequest.class);
+        VmsService.ListResponse listResponse = mock(VmsService.ListResponse.class);
+
+        when(cluster.name()).thenReturn(clusterName);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.systemService()).thenReturn(systemService);
+        when(systemService.vmsService()).thenReturn(vmsService);
+        when(vmsService.list()).thenReturn(listRequest);
+        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.follow(Mockito.eq("cpu_profile"))).thenReturn(listRequest);
+        when(listRequest.send()).thenThrow(new Error("No VM could be found!"));
+
+        assertThrows(VmNotFoundException.class,
+                () -> oVirtVmService.findVmsForCluster(cluster));
+
+        verify(cluster, times(1)).name();
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).systemService();
+        verify(systemService, times(1)).vmsService();
+        verify(vmsService, times(1)).list();
+        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).follow(Mockito.eq("cpu_profile"));
+        verify(listRequest, times(1)).send();
+    }
+
+    /* FindQosForVmCpu method tests */
+
+    @Test
+    public void Given_ExistingVmIsPassed_When_FindQosForVmCpu_Then_ReturnsFoundQoSRuleForVmCpu() {
+        Vm vm = mock(Vm.class);
+        CpuProfile cpuProfile = mock(CpuProfile.class);
+        Qos qos = mock(Qos.class);
+
+        when(vm.cpuProfile()).thenReturn(cpuProfile);
+        when(cpuProfile.qos()).thenReturn(qos);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.followLink(Mockito.eq(vm.cpuProfile().qos()))).thenReturn(qos);
+
+        Qos foundQos = oVirtVmService.findQosForVmCpu(vm);
+
+        assertNotNull(foundQos);
+        assertEquals(qos, foundQos);
+
+        verify(vm, times(2)).cpuProfile();
+        verify(cpuProfile, times(2)).qos();
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).followLink(Mockito.eq(vm.cpuProfile().qos()));
+    }
+
+    @Test
+    public void Given_NonExistentVmIsPassed_When_FindQosForVmCpu_Then_ThrowsException() {
+        Vm vm = mock(Vm.class);
+        CpuProfile cpuProfile = mock(CpuProfile.class);
+        Qos qos = mock(Qos.class);
+
+        when(vm.cpuProfile()).thenReturn(cpuProfile);
+        when(cpuProfile.qos()).thenReturn(qos);
+
+        when(connectionFactory.getConnection()).thenReturn(connection);
+        when(connection.followLink(Mockito.eq(vm.cpuProfile().qos())))
+                .thenThrow(new Error("VM could not be found!"));
+
+        assertThrows(VmNotFoundException.class,
+                () -> oVirtVmService.findQosForVmCpu(vm));
+
+        verify(vm, times(2)).cpuProfile();
+        verify(cpuProfile, times(2)).qos();
+
+        verify(connectionFactory, times(1)).getConnection();
+        verify(connection, times(1)).followLink(Mockito.eq(vm.cpuProfile().qos()));
     }
 
     /* FindNicsByVmId method tests */
@@ -382,12 +621,14 @@ public class OVirtVmServiceTest {
     public void Given_ExistentVmIdIsPassedAndSomeEventExistForGivenVm_When_FindEventsByVmId_Then_ReturnsFoundEvents() {
         int pageNumber = 0;
         int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        String sortField = "time";
+        Sort.Direction sortDirection = Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortDirection, sortField));
 
         Vm vm = mock(Vm.class);
         String existingVmName = "EXAMPLE_VM_NAME";
 
-        String searchQuery = "vm=%s page %s".formatted(existingVmName, pageNumber + 1);
+        String searchQuery = "vm=%s sortby %s %s page %s".formatted(existingVmName, sortField, sortDirection, pageNumber + 1);
 
         Event eventNo1 = mock(Event.class);
         Event eventNo2 = mock(Event.class);

@@ -1,4 +1,6 @@
 spring:
+  cache:
+    cache-names: vms,qos
   host: ${HOST}
   application:
     name: eduVirt

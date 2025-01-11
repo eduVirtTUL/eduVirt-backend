@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.service;
 
 import pl.lodz.p.it.eduvirt.entity.CourseMetric;
+import pl.lodz.p.it.eduvirt.entity.Metric;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,7 +12,6 @@ public interface CourseMetricService {
     void removeMetricFromCourse(UUID courseId, UUID metricId);
 
     CourseMetric getCourseMetric(UUID courseId, UUID metricId);
-    List<CourseMetric> getAllCourseMetricsForCourse(UUID courseId);
 
     List<CourseMetric> getCourseMetrics(UUID courseId);
 

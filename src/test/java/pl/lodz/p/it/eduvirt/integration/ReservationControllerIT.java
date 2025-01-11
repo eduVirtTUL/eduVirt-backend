@@ -1,7 +1,6 @@
 package pl.lodz.p.it.eduvirt.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
@@ -34,7 +33,6 @@ public class ReservationControllerIT extends IntegrationTestBase {
     // @Test
     public void Given_ExistingResourceGroupIdentifierIsPassedAndAllTheDataMatchesConstraints_When_CreateNewReservation_Then_CreatesNewReservationSuccessfully() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
-                existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(12),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(16),
                 true,
@@ -57,7 +55,6 @@ public class ReservationControllerIT extends IntegrationTestBase {
     // @Test
     public void Given_NonExistentResourceGroupIdentifierIsPassed_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
-                nonExistentResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(12),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(16),
                 true,
@@ -81,7 +78,6 @@ public class ReservationControllerIT extends IntegrationTestBase {
     // @Test
     public void Given_ReservationStartIsInThePast_When_CreateNewReservation_Then_Returns409Conflict() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
-                existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().minusHours(2),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2),
                 true,
@@ -105,7 +101,6 @@ public class ReservationControllerIT extends IntegrationTestBase {
     // @Test
     public void Given_ReservationEndsBeforeItStarts_When_CreateNewReservation_Then_Returns409Conflict() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
-                existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(8),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(4),
                 true,
@@ -130,7 +125,6 @@ public class ReservationControllerIT extends IntegrationTestBase {
     // @Test
     public void Given_MaximumReservationLengthWouldBeExceeded_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
-                existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(8),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(16),
                 true,
@@ -156,7 +150,6 @@ public class ReservationControllerIT extends IntegrationTestBase {
     // @Test
     public void Given_MaximumReservationNumberOfGivenResourceGroupWouldBeExceeded_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
-                existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(8),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(12),
                 true,
@@ -181,7 +174,6 @@ public class ReservationControllerIT extends IntegrationTestBase {
     // @Test
     public void Given_GracePeriodSinceTheLastReservationDidNotExpire_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
-                existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(4),
                 true,
@@ -205,7 +197,6 @@ public class ReservationControllerIT extends IntegrationTestBase {
     // @Test
     public void Given_CourseResourcesAreNotSufficientForGivenReservation_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
-                existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(4),
                 true,
@@ -231,7 +222,6 @@ public class ReservationControllerIT extends IntegrationTestBase {
     // @Test
     public void Given_ClusterResourcesAreNotSufficientForGivenReservation_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
-                existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(4),
                 true,
@@ -256,7 +246,6 @@ public class ReservationControllerIT extends IntegrationTestBase {
     // @Test
     public void Given_ReservationForGivenResourceGroupAlreadyOverlapsSelectedTimePeriod_When_CreateNewReservation_Then_Returns400BadRequest() throws Exception {
         CreateReservationDto createDto = new CreateReservationDto(
-                existingResourceGroupId,
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(6),
                 OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(10),
                 true,

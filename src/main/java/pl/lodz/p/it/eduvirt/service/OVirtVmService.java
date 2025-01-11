@@ -18,6 +18,7 @@ public interface OVirtVmService {
     List<Statistic> findStatisticsByVm(Vm vm);
     Map<String, Object> findVmResources(Vm vm, Qos qos, Host host, Cluster cluster);
 
+    Vm findVmWithCpuProfileById(String id);
     Vm findVmById(String id);
 
     List<Vm> findVmsForCluster(Cluster cluster);

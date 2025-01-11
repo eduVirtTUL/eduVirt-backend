@@ -9,10 +9,11 @@ public interface MetricService {
 
     /* Create methods */
 
-    void createNewMetric(String metricName);
+    void createNewMetric(String metricName, Metric.MetricCategory category);
 
     /* Read methods */
 
+    Metric findById(UUID id);
     Page<Metric> findAllMetrics(int pageNumber, int pageSize);
 
     /* Delete methods */

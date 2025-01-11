@@ -92,9 +92,9 @@ public class ClusterMetricControllerTest {
     public void prepareTestData() throws Exception {
         Field id = AbstractEntity.class.getDeclaredField("id");
 
-        metric1 = new Metric(metricName1);
-        metric2 = new Metric(metricName2);
-        metric3 = new Metric(metricName3);
+        metric1 = new Metric(metricName1, Metric.MetricCategory.COUNTABLE);
+        metric2 = new Metric(metricName2, Metric.MetricCategory.VOLATILE_MEMORY);
+        metric3 = new Metric(metricName3, Metric.MetricCategory.NON_VOLATILE_MEMORY);
 
         clusterMetric1 = new ClusterMetric(existingClusterId, metric1, 99.9999);
         clusterMetric2 = new ClusterMetric(existingClusterId, metric2, 999.999);
@@ -233,9 +233,9 @@ public class ClusterMetricControllerTest {
 
         Cluster cluster = mock(Cluster.class);
 
-        MetricValueDto metricValueDto1 = new MetricValueDto(metric1.getId(), metric1.getName(), clusterMetric1.getValue());
-        MetricValueDto metricValueDto2 = new MetricValueDto(metric2.getId(), metric2.getName(), clusterMetric2.getValue());
-        MetricValueDto metricValueDto3 = new MetricValueDto(metric3.getId(), metric3.getName(), clusterMetric3.getValue());
+        MetricValueDto metricValueDto1 = new MetricValueDto(metric1.getId(), metric1.getName(), Metric.MetricCategory.COUNTABLE, clusterMetric1.getValue());
+        MetricValueDto metricValueDto2 = new MetricValueDto(metric2.getId(), metric2.getName(), Metric.MetricCategory.VOLATILE_MEMORY, clusterMetric2.getValue());
+        MetricValueDto metricValueDto3 = new MetricValueDto(metric3.getId(), metric3.getName(), Metric.MetricCategory.NON_VOLATILE_MEMORY, clusterMetric3.getValue());
 
         when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId)))
                 .thenReturn(cluster);
@@ -276,18 +276,21 @@ public class ClusterMetricControllerTest {
         assertNotNull(firstMetricValue);
         assertEquals(firstMetricValue.id(), metric1.getId());
         assertEquals(firstMetricValue.name(), metric1.getName());
+        assertEquals(firstMetricValue.category(), metric1.getCategory());
         assertEquals(firstMetricValue.value(), clusterMetric1.getValue());
 
         MetricValueDto secondMetricValue = foundMetricValues.get(1);
         assertNotNull(secondMetricValue);
         assertEquals(secondMetricValue.id(), metric2.getId());
         assertEquals(secondMetricValue.name(), metric2.getName());
+        assertEquals(secondMetricValue.category(), metric2.getCategory());
         assertEquals(secondMetricValue.value(), clusterMetric2.getValue());
 
         MetricValueDto thirdMetricValue = foundMetricValues.getLast();
         assertNotNull(thirdMetricValue);
         assertEquals(thirdMetricValue.id(), metric3.getId());
         assertEquals(thirdMetricValue.name(), metric3.getName());
+        assertEquals(thirdMetricValue.category(), metric3.getCategory());
         assertEquals(thirdMetricValue.value(), clusterMetric3.getValue());
 
         verify(oVirtClusterServiceImpl, times(1))
@@ -383,6 +386,7 @@ public class ClusterMetricControllerTest {
         MetricValueDto metricValueDto = new MetricValueDto(
                 metric1.getId(),
                 metric1.getName(),
+                Metric.MetricCategory.COUNTABLE,
                 newValueDto.value()
         );
 

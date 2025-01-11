@@ -48,9 +48,11 @@ public class I18n {
     /* Maintenance interval keys */
 
     public static final String MAINTENANCE_INTERVAL_NOT_FOUND = "maintenanceIntervals.error.not.found";
+    public static final String MAINTENANCE_INTERVAL_TOO_LONG = "maintenanceIntervals.error.too.long";
     public static final String MAINTENANCE_INTERVAL_INVALID_TIME_WINDOW = "maintenanceIntervals.error.invalid.time.window";
     public static final String MAINTENANCE_INTERVAL_BEGIN_AT_PAST = "maintenanceIntervals.error.begin.at.past";
     public static final String MAINTENANCE_INTERVAL_CONFLICT = "maintenanceIntervals.error.conflict";
+    public static final String MAINTENANCE_INTERVAL_ALREADY_FINISHED = "maintenanceIntervals.error.already.finished";
 
     // Pod
 
@@ -85,9 +87,10 @@ public class I18n {
     public static final String RESERVATION_CONFLICT = "reservations.error.conflict";
     public static final String RESERVATION_END_BEFORE_START = "reservations.error.end.before.start";
     public static final String RESERVATION_START_IN_PAST = "reservations.error.start.in.past";
-    public static final String RESERVATION_TOO_SHORT_EXCEPTION = "reservations.error.too.short";
+    public static final String RESERVATION_TOO_SHORT = "reservations.error.too.short";
 
     public static final String RESERVATION_CREATION_ERROR = "reservations.error.creation.error";
+    public static final String RESERVATION_DELETE_ERROR = "reservations.error.delete.error";
     public static final String RESERVATION_MAINTENANCE_INTERVAL_CONFLICT = "reservations.error.maintenance.interval.conflict";
     public static final String COURSE_RESOURCES_INSUFFICIENT = "reservations.error.course.resources.insufficient";
     public static final String CLUSTER_RESOURCES_INSUFFICIENT = "reservations.error.cluster.resources.insufficient";
@@ -97,7 +100,12 @@ public class I18n {
     public static final String POD_GRACE_PERIOD_COULD_NOT_FINISH = "reservations.error.grace.period.could.not.finish";
 
     public static final String RESOURCE_GROUP_ALREADY_RESERVED = "reservations.error.resource.group.already.reserved";
+    public static final String RESOURCE_GROUP_RESERVATION_COUNT_EXCEEDED = "reservations.error.reservation.count.exceeded";
     public static final String RESERVATION_STATUS_ALREADY_SET = "reservations.error.status.already.set";
+
+    public static final String POD_NOT_ASSIGNED = "reservations.error.pod.not.assigned";
+    public static final String STATEFUL_POD_NOT_ASSIGNED = "reservations.error.stateful.pod.not.assigned";
+    public static final String STATELESS_POD_NOT_ASSIGNED = "reservations.error.stateless.pod.not.assigned";
 
     /* Vlan range keys */
 

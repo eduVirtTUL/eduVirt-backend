@@ -38,9 +38,7 @@ public class RepositoryAspect {
         } catch (DataIntegrityViolationException exception) {
             Throwable exceptionCopy = exception;
             do {
-                if (exceptionCopy.getMessage().contains("cluster_metric_metric_id_fk")) {
-                    throw new MetricDeleteException("Given metric could not be deleted");
-                } else if (exceptionCopy.getMessage().contains("cluster_metric_cluster_id_unique")) {
+                if (exceptionCopy.getMessage().contains("cluster_metric_cluster_id_unique")) {
                     Matcher matcher = Pattern.compile(UUID_REGEX).matcher(exceptionCopy.getMessage());
                     List<UUID> matches = new LinkedList<>();
                     while (matcher.find()) { matches.add(UUID.fromString(matcher.group())); }

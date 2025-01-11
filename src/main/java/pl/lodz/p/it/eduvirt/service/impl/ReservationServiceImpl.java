@@ -3,17 +3,16 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.ovirt.engine.sdk4.types.Host;
-import org.ovirt.engine.sdk4.types.Qos;
-import org.ovirt.engine.sdk4.types.Vm;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
+import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
 import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
@@ -21,7 +20,6 @@ import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.I18n;
@@ -40,20 +38,13 @@ public class ReservationServiceImpl implements ReservationService {
     /* Services */
 
     private final OVirtClusterService clusterService;
-    private final OVirtVmService vmService;
 
     /* Repositories */
 
     private final ReservationRepository reservationRepository;
-    private final ResourceGroupRepository resourceGroupRepository;
-    private final ResourceGroupPoolRepository resourceGroupPoolRepository;
-
     private final TeamRepository teamRepository;
-    private final CourseRepository courseRepository;
-
     private final CourseMetricRepository courseMetricRepository;
     private final ClusterMetricRepository clusterMetricRepository;
-
     private final MaintenanceIntervalRepository maintenanceIntervalRepository;
 
     /* Util */
@@ -63,148 +54,257 @@ public class ReservationServiceImpl implements ReservationService {
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("isAuthenticated()")
     @Override
-    public void createReservation(UUID resourceGroupId, LocalDateTime start, LocalDateTime end,
-                                  boolean automaticStartup, int notificationTime) {
-        ResourceGroup foundResourceGroup = resourceGroupRepository.findById(resourceGroupId)
-                .orElseThrow(() -> new ResourceGroupNotFoundException(resourceGroupId));
+    public void createReservationForStatefulPod(Team team, PodStateful statefulPod, CreateReservationDto createDto) {
+        ResourceGroup resourceGroup = statefulPod.getResourceGroup();
+        Course course = statefulPod.getCourse();
 
-        ResourceGroupPool foundPool = resourceGroupPoolRepository
-                .getResourceGroupPoolByResourceGroupsContaining(foundResourceGroup)
-                .orElseThrow(() -> new ResourceGroupPoolNotFoundException(
-                        "Resource group pool containing resource group: %s not found".formatted(resourceGroupId)));
+        Cluster courseCluster = clusterService.findClusterById(course.getClusterId());
+        List<Host> clusterHosts = clusterService.findAllHostsInCluster(courseCluster);
 
-        Course foundCourse = courseRepository
-                .findByResourceGroupPoolsContaining(foundPool)
-                .orElseThrow(() -> new CourseNotFoundException(
-                        "Course containing resource group pool: %s not found".formatted(foundResourceGroup.getId())));
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString(authentication.getName());
-        Team foundTeam = teamRepository.findByUserIdAndCourse(userId, foundCourse)
-                .orElseThrow(() -> new TeamNotFoundException("Team containing user: %s not found".formatted(userId)));
-
-        Cluster foundCluster = clusterService.findClusterById(foundCourse.getClusterId());
-        List<Host> foundHosts = clusterService.findAllHostsInCluster(foundCluster);
-
-        Map<String, Vm> foundVms = new HashMap<>();
-        Map<String, Qos> foundQos = new HashMap<>();
-        for (Vm vm : vmService.findVmsForCluster(foundCluster)) {
-            foundVms.put(vm.id(), vm);
-            if (vm.cpuProfile().qos() != null) {
-                foundQos.put(vm.id(), vmService.findQosForVmCpu(vm));
-            }
-        }
-
-        /* TODO: It would be very nice to simplify it (as much as possible) */
-
+        // TODO: Uncomment after the stateless pod is done
         /* TODO: Check all the required conditions
          *        [V] Minimum reservation length (that is 1 hour)
          *        [V] Maximum reservation length
-         *        [ ] Maximum number of reservations for given resource group
+         *        [V] Maximum number of reservations for given resource group
          *        [V] Grace period for next reservation of the same resource group
+         *        [V] Maintenance interval exists during selected time period
+         *        [V] Resource group availability
          *        [V] Required resource availability for course
          *        [V] Required resource availability for cluster
-         *        [V] Resource group availability
-         *        [V] Maintenance interval exists during selected time period
-         *
-         *        NOTES:
-         *        1. Cond. 3: Resource group could be missing max. reservation count
          * */
 
-        // General data validation
+        /* [V]  General data validation */
 
+        LocalDateTime start = createDto.start();
+        LocalDateTime end = createDto.end();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+
         if (start.isBefore(currentTime)) throw new ReservationStartInPastException();
         if (end.isBefore(start)) throw new ReservationEndBeforeStartException();
 
-        // Condition no. 1: Maximum reservation length
+        /* Condition no. 1: Minimum reservation length */
 
         if ((int) ChronoUnit.HOURS.between(start, end) < 1)
             throw new ReservationTooShortException(
                     "Minimum length of the reservation in eduVirt system is exactly 1 hour.");
 
-        // Condition no. 2: Maximum reservation length
+        /* Condition no. 2: Maximum reservation length */
 
-        int maxRentHours = foundResourceGroup.getMaxRentTime();
+        int maxRentHours = resourceGroup.getMaxRentTime();
         int reservationLengthHours = (int) ChronoUnit.HOURS.between(start, end);
 
-        if (reservationLengthHours > maxRentHours)
+        if (maxRentHours != 0 && reservationLengthHours > maxRentHours)
             throw new ReservationMaxLengthExceededException("Reservation for resource group: %s could not be longer than: %d"
-                    .formatted(foundResourceGroup.getId(), maxRentHours));
+                    .formatted(resourceGroup.getId(), maxRentHours));
 
-        // Condition no. 3: Maximum number of reservations for given resource group
+        /* Condition no. 3: Maximum number of reservations for given resource group */
 
-        // TODO: This functionality is yet to be implemented
+//        int reservationLimit = resourceGroup.getMaxRent();
+//        List<Reservation> rgTeamReservations = reservationRepository
+//                .findAllRgReservationsForGivenTeam(resourceGroup, team);
+//
+//        if (reservationLimit != 0 && rgTeamReservations.size() >= reservationLimit)
+//            throw new ResourceGroupReservationCountExceededException(
+//                    "Team %s has already made all available reservations for resource group: %s"
+//                            .formatted(team.getId(), resourceGroup.getId()));
 
-        // Condition no. 4: Grace period for previous reservation
+        /* Condition no. 4: Grace period for previous reservation */
 
-        int gracePeriodInHours = foundPool.getGracePeriod();
-        List<Reservation> reservationsBefore = reservationRepository.findResourceGroupReservationForGivenTeamInTimePeriod(
-                foundResourceGroup, foundTeam, start.minusHours(gracePeriodInHours), start);
+//        int gracePeriodInHours = resourceGroup.getGracePeriod();
+//        List<Reservation> reservationsBefore = reservationRepository.findRgReservationsForGivenTeam(
+//                resourceGroup, team, start.minusHours(gracePeriodInHours), start);
+//
+//        List<Reservation> reservationsAfter = reservationRepository.findRgReservationsForGivenTeam(
+//                resourceGroup, team, end, end.plusHours(gracePeriodInHours));
+//
+//        if (gracePeriodInHours != 0 && !reservationsBefore.isEmpty())
+//            throw new ReservationGracePeriodNotFinishedException(
+//                    "Reservation grace period, which is %d hours, will not be finished before scheduled reservation."
+//                            .formatted(gracePeriodInHours));
+//
+//        if (gracePeriodInHours != 0 && !reservationsAfter.isEmpty())
+//            throw new ReservationGracePeriodCouldNotFinishException(
+//                    "Reservation grace period, which is %d hours, will not be finished before next reservation."
+//                            .formatted(gracePeriodInHours));
 
-        List<Reservation> reservationsAfter = reservationRepository.findResourceGroupReservationForGivenTeamInTimePeriod(
-                foundResourceGroup, foundTeam, end, end.plusHours(gracePeriodInHours));
-
-        if (!reservationsBefore.isEmpty())
-            throw new ReservationGracePeriodNotFinishedException(
-                    "Reservation grace period, which is %d hours, will not be finished before scheduled reservation."
-                    .formatted(gracePeriodInHours));
-
-        if (!reservationsAfter.isEmpty())
-            throw new ReservationGracePeriodCouldNotFinishException(
-                    "Reservation grace period, which is %d hours, will not be finished before next reservation."
-                            .formatted(gracePeriodInHours));
-
-        // Condition no. 5: Resources availability for given course
-
-        List<CourseMetric> foundCourseMetrics = courseMetricRepository.findAllByCourse(foundCourse);
-
-        List<Reservation> foundCourseReservations = reservationRepository.findCurrentReservationsForCourse(
-                foundCourse, start, end);
-
-        if (!bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(foundCourseMetrics),
-                foundCourseReservations, foundResourceGroup, foundCluster, foundHosts, foundVms, foundQos))
-            throw new CourseInsufficientResourcesException(foundCourse.getId());
-
-        // Condition no. 6: Resources availability for given cluster
-
-        List<ClusterMetric> foundClusterMetrics = clusterMetricRepository
-                .findAllByClusterId(foundCourse.getClusterId());
-
-        List<Reservation> foundClusterReservations = reservationRepository.findCurrentReservationsForCluster(
-                foundCourse.getClusterId(), start, end);
-
-        if (!bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(foundClusterMetrics),
-                foundClusterReservations, foundResourceGroup, foundCluster, foundHosts, foundVms, foundQos))
-            throw new ClusterInsufficientResourcesException(UUID.fromString(foundCluster.id()));
-
-        // Condition no. 7: Resource group availability
-
-        List<Reservation> foundReservations = reservationRepository
-                .findReservationForGivenPeriodForResourceGroup(foundResourceGroup, start, end);
-        if (!foundReservations.isEmpty())
-            throw new ResourceGroupAlreadyReservedException("Reservation for resource group: %s is already made"
-                    .formatted(foundResourceGroup.getId()));
-
-        // Condition no. 8: Maintenance intervals
+        /* Condition no. 5: Maintenance intervals */
 
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
-                .findAllIntervalsInGivenTimePeriod(foundCourse.getClusterId(), start, end);
+                .findAllIntervalsInGivenTimePeriod(course.getClusterId(), start, end);
 
         if (!foundIntervals.isEmpty())
             throw new ReservationCreationException(I18n.RESERVATION_MAINTENANCE_INTERVAL_CONFLICT);
 
+        /* Condition no. 6: Resource group availability */
+
+        List<Reservation> foundReservations = reservationRepository
+                .findRgReservations(resourceGroup, start, end);
+        if (!foundReservations.isEmpty())
+            throw new ResourceGroupAlreadyReservedException("Reservation for resource group: %s is already made"
+                    .formatted(resourceGroup.getId()));
+
+        /* Condition no. 7: Resources availability for given course */
+
+        List<CourseMetric> foundCourseMetrics = courseMetricRepository.findAllByCourse(course);
+        List<Reservation> foundCourseReservations = reservationRepository
+                .findCourseReservations(course, start, end);
+
+        if (!bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(foundCourseMetrics),
+                foundCourseReservations, resourceGroup, courseCluster, clusterHosts))
+            throw new CourseInsufficientResourcesException(course.getId());
+
+        /* Condition no. 8: Resources availability for given cluster */
+
+        List<ClusterMetric> foundClusterMetrics = clusterMetricRepository.findAllByClusterId(course.getClusterId());
+        List<Reservation> foundClusterReservations = reservationRepository
+                .findClusterReservations(course.getClusterId(), start, end);
+
+        if (!bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(foundClusterMetrics),
+                foundClusterReservations, resourceGroup, courseCluster, clusterHosts))
+            throw new ClusterInsufficientResourcesException(UUID.fromString(courseCluster.id()));
+
         /* TODO: Condition check end */
 
         Reservation newReservation = new Reservation(
-                foundResourceGroup,
-                foundTeam,
-                start,
-                end,
-                automaticStartup,
-                notificationTime
+                resourceGroup, team, start, end,
+                createDto.automaticStartup(),
+                createDto.notificationTime()
+        );
+
+        reservationRepository.saveAndFlush(newReservation);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Override
+    public void createReservationForStatelessPod(Team team, PodStateless statelessPod, CreateReservationDto createDto) {
+        ResourceGroupPool resourceGroupPool = statelessPod.getResourceGroupPool();
+        Course course = statelessPod.getCourse();
+
+        Cluster courseCluster = clusterService.findClusterById(course.getClusterId());
+        List<Host> clusterHosts = clusterService.findAllHostsInCluster(courseCluster);
+
+        // TODO: Finish implementing when stateless pod is done
+        /* TODO: Check all the required conditions
+         *        [V] Minimum reservation length (that is 1 hour)
+         *        [V] Maximum reservation length
+         *        [V] Maximum number of reservations for given resource group
+         *        [V] Grace period for next reservation of the same resource group
+         *        [V] Required resource availability for course
+         *        [V] Required resource availability for cluster
+         *        [V] Resource group availability
+         *        [V] Maintenance interval exists during selected time period
+         * */
+
+        /* [V]  General data validation */
+
+        LocalDateTime start = createDto.start();
+        LocalDateTime end = createDto.end();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+
+        if (start.isBefore(currentTime)) throw new ReservationStartInPastException();
+        if (end.isBefore(start)) throw new ReservationEndBeforeStartException();
+
+        /* Condition no. 1: Minimum reservation length */
+
+        if ((int) ChronoUnit.HOURS.between(start, end) < 1)
+            throw new ReservationTooShortException(
+                    "Minimum length of the reservation in eduVirt system is exactly 1 hour.");
+
+        /* Condition no. 2: Maximum reservation length */
+
+        int maxRentHours = resourceGroupPool.getMaxRentTime();
+        int reservationLengthHours = (int) ChronoUnit.HOURS.between(start, end);
+
+        if (maxRentHours != 0 && reservationLengthHours > maxRentHours)
+            throw new ReservationMaxLengthExceededException("Reservation for resource group pool: %s could not be longer than: %d"
+                    .formatted(resourceGroupPool.getId(), maxRentHours));
+
+        /* Condition no. 3: Maximum number of reservations for given resource group */
+
+        int reservationLimit = resourceGroupPool.getMaxRent();
+        List<Reservation> rgTeamReservations = reservationRepository
+                .findAllRgPoolReservationsForGivenTeam(resourceGroupPool, team);
+
+        if (reservationLimit != 0 && rgTeamReservations.size() >= reservationLimit)
+            throw new ResourceGroupReservationCountExceededException(
+                    "Team %s has already made all available reservations for resource group pool: %s"
+                            .formatted(team.getId(), resourceGroupPool.getId()));
+
+        /* Condition no. 4: Grace period for previous reservation */
+
+        int gracePeriodInHours = resourceGroupPool.getGracePeriod();
+        List<Reservation> reservationsBefore = reservationRepository.findRgPoolReservationsForGivenTeam(
+                resourceGroupPool, team, start.minusHours(gracePeriodInHours), start);
+
+        List<Reservation> reservationsAfter = reservationRepository.findRgPoolReservationsForGivenTeam(
+                resourceGroupPool, team, end, end.plusHours(gracePeriodInHours));
+
+        if (gracePeriodInHours != 0 && !reservationsBefore.isEmpty())
+            throw new ReservationGracePeriodNotFinishedException(
+                    "Reservation grace period, which is %d hours, will not be finished before scheduled reservation."
+                            .formatted(gracePeriodInHours));
+
+        if (gracePeriodInHours != 0 && !reservationsAfter.isEmpty())
+            throw new ReservationGracePeriodCouldNotFinishException(
+                    "Reservation grace period, which is %d hours, will not be finished before next reservation."
+                            .formatted(gracePeriodInHours));
+
+        /* Condition no. 5: Maintenance intervals */
+
+        List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
+                .findAllIntervalsInGivenTimePeriod(course.getClusterId(), start, end);
+
+        if (!foundIntervals.isEmpty())
+            throw new ReservationCreationException(I18n.RESERVATION_MAINTENANCE_INTERVAL_CONFLICT);
+
+        /* NOTE: That's the place where actual choosing of resource group starts */
+
+        ResourceGroup chosenResourceGroup = null;
+        for (ResourceGroup resourceGroup : resourceGroupPool.getResourceGroups()) {
+            /* Condition no. 6: Resources availability for given course */
+            List<CourseMetric> foundCourseMetrics = courseMetricRepository.findAllByCourse(course);
+            List<Reservation> foundCourseReservations = reservationRepository
+                    .findCourseReservations(course, start, end);
+
+            if (!bankerAlgorithm.process(
+                    () -> metricUtil.extractCourseMetricValues(foundCourseMetrics),
+                    foundCourseReservations, resourceGroup, courseCluster, clusterHosts)
+            ) continue;
+
+            /* Condition no. 7: Resources availability for given cluster */
+
+            List<ClusterMetric> foundClusterMetrics = clusterMetricRepository.findAllByClusterId(course.getClusterId());
+            List<Reservation> foundClusterReservations = reservationRepository
+                    .findClusterReservations(course.getClusterId(), start, end);
+
+            if (!bankerAlgorithm.process(
+                    () -> metricUtil.extractClusterMetricValues(foundClusterMetrics),
+                    foundClusterReservations, resourceGroup, courseCluster, clusterHosts)
+            ) continue;
+
+            /* Condition no. 8: Resource group availability */
+
+            List<Reservation> foundReservations = reservationRepository
+                    .findRgReservations(resourceGroup, start, end);
+            if (!foundReservations.isEmpty())
+                continue;
+
+            chosenResourceGroup = resourceGroup;
+            break;
+        }
+
+        /* TODO: Condition check end */
+
+        if (chosenResourceGroup == null)
+            throw new ReservationCreationException("Reservation of one of the resource groups inside resource group pool %s is not possible"
+                    .formatted(resourceGroupPool.getId()));
+
+        Reservation newReservation = new Reservation(
+                chosenResourceGroup, team, start, end,
+                createDto.automaticStartup(),
+                createDto.notificationTime()
         );
 
         reservationRepository.saveAndFlush(newReservation);
@@ -215,82 +315,208 @@ public class ReservationServiceImpl implements ReservationService {
     @PreAuthorize("isAuthenticated()")
     @Override
     public Optional<Reservation> findReservationById(UUID reservationId) {
-        return reservationRepository.findById(reservationId);
+        Optional<Reservation> reservationOptional = reservationRepository.findById(reservationId);
+
+        if (reservationOptional.isPresent()) {
+            Reservation foundReservation = reservationOptional.get();
+
+            /* Authorization check */
+            UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+            Course course = foundReservation.getTeam().getCourse();
+            List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+            List<String> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                    .stream().map(GrantedAuthority::getAuthority).toList();
+
+            if (!authorities.contains("administrator") &&
+                    !(authorities.contains("teacher") && true) &&
+                    !(authorities.contains("student") && users.contains(userId))) {
+                return Optional.empty();
+            }
+        }
+
+        return reservationOptional;
+    }
+
+    @PreAuthorize("hasRole('student')")
+    @Override
+    public Page<Reservation> findReservationsForStatelessPod(PodStateless statelessPod, Team team, Pageable pageable) {
+        return reservationRepository.findAllRgPoolReservationsForGivenTeam(
+                statelessPod.getResourceGroupPool(), team, pageable);
+    }
+
+    @PreAuthorize("hasRole('student')")
+    @Override
+    public Page<Reservation> findReservationsForStatefulPod(PodStateful statefulPod, Team team, Pageable pageable) {
+        return reservationRepository.findAllRgReservationsForGivenTeam(
+                statefulPod.getResourceGroup(), team, pageable);
     }
 
     @PreAuthorize("isAuthenticated()")
     @Override
-    public List<Reservation> findCurrentReservationsForCourse(Course course, LocalDateTime start, LocalDateTime end) {
-        // TODO: Add delete logic dependent on access level
-        return reservationRepository.findCurrentReservationsForCourse(course, start, end);
+    public List<Reservation> findRgReservations(ResourceGroup resourceGroup,
+                                                Course course, LocalDateTime start, LocalDateTime end) {
+        /* Authorization logic */
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        // TODO: Add check: Teacher must belong to the course that the reservation are fetched for.
+        if (!authorities.contains("administrator") &&
+                !(authorities.contains("teacher") && true) &&
+                !(authorities.contains("student") && users.contains(userId))) {
+            return List.of();
+        }
+
+        return reservationRepository.findRgReservations(resourceGroup, start, end);
     }
 
     @PreAuthorize("isAuthenticated()")
     @Override
-    public List<Reservation> findCurrentReservationsForCluster(UUID clusterId, LocalDateTime start, LocalDateTime end) {
-        // TODO: Add delete logic dependent on access level
-        return reservationRepository.findCurrentReservationsForCluster(clusterId, start, end);
-    }
+    public List<Reservation> findRgPoolReservations(ResourceGroupPool resourceGroupPool,
+                                                    Course course, LocalDateTime start, LocalDateTime end) {
+        /* Authorization logic */
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-    @PreAuthorize("isAuthenticated()")
-    @Override
-    public List<Reservation> findReservationsForGivenPeriod(UUID resourceGroupId, LocalDateTime start, LocalDateTime end) {
-        // TODO: Add delete logic dependent on access level
-        ResourceGroup resourceGroup = resourceGroupRepository.findById(resourceGroupId)
-                .orElseThrow(() -> new ResourceGroupNotFoundException(resourceGroupId));
-        return reservationRepository.findReservationForGivenPeriodForResourceGroup(resourceGroup, start, end);
-    }
+        // TODO: Add check: Teacher must belong to the course that the reservation are fetched for.
+        if (!authorities.contains("administrator") &&
+                !(authorities.contains("teacher") && true) &&
+                !(authorities.contains("student") && users.contains(userId))) {
+            return List.of();
+        }
 
-    @PreAuthorize("hasAnyRole('student')")
-    @Override
-    public Page<Reservation> findActiveReservations(UUID userId, UUID courseId, Pageable pageable) {
-        // TODO: Add delete logic dependent on access level
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
-
-        Team foundTeam = teamRepository.findByUserIdAndCourse(userId, course)
-                .orElseThrow(() -> new TeamNotFoundException(
-                        "Team containing user %s in course %s could not be found".formatted(userId, courseId)));
-
-        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        return reservationRepository.findAllActiveReservations(foundTeam, currentTime, pageable);
-    }
-
-    @PreAuthorize("hasAnyRole('student')")
-    @Override
-    public Page<Reservation> findHistoricalReservations(UUID userId, UUID courseId, Pageable pageable) {
-        // TODO: Add delete logic dependent on access level
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
-
-        Team foundTeam = teamRepository.findByUserIdAndCourse(userId, course)
-                .orElseThrow(() -> new TeamNotFoundException(
-                        "Team containing user %s in course %s could not be found".formatted(userId, courseId)));
-
-        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        return reservationRepository.findAllHistoricalReservations(foundTeam, currentTime, pageable);
+        return reservationRepository.findRgPoolReservations(resourceGroupPool, start, end);
     }
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
     @Override
     public Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable) {
-        // TODO: Add delete logic dependent on access level
         Team foundTeam = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException(teamId));
 
+        /* Authorization logic */
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        Course course = foundTeam.getCourse();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        // TODO: Add check: Teacher must belong to the course that the reservation are fetched for.
+        if (!authorities.contains("administrator") &&
+                !(authorities.contains("teacher") && true)) {
+            throw new ReservationFinishException("User %s does not have required privileges to see active reservations of team %s."
+                    .formatted(userId, foundTeam.getId()));
+        }
+
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        return reservationRepository.findAllHistoricalReservations(foundTeam, currentTime, pageable);
+        return reservationRepository.findAllActiveReservations(foundTeam, currentTime, pageable);
     }
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
     @Override
     public Page<Reservation> findHistoricalReservations(UUID teamId, Pageable pageable) {
-        // TODO: Add delete logic dependent on access level
         Team foundTeam = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException(teamId));
 
+        /* Authorization logic */
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        Course course = foundTeam.getCourse();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        // TODO: Add check: Teacher must belong to the course that the reservation is finished in.
+        if (!authorities.contains("administrator") &&
+                !(authorities.contains("teacher") && true)) {
+            throw new ReservationFinishException("User %s does not have required privileges to see historical reservations of team %s."
+                    .formatted(userId, foundTeam.getId()));
+        }
+
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         return reservationRepository.findAllHistoricalReservations(foundTeam, currentTime, pageable);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Override
+    public Map<LocalDateTime, Boolean> checkResourceGroupAvailability(ResourceGroup resourceGroup, Course course,
+                                                                      int windowLength, LocalDateTime start, LocalDateTime end) {
+        /* Authorization check */
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        // TODO: Add check: Teacher must belong to the course that the reservation is located in.
+        if (!authorities.contains("administrator") &&
+                !(authorities.contains("teacher") && true) &&
+                !(authorities.contains("student") && users.contains(userId))) {
+            throw new ReservationFinishException("User %s does not have required privileges to see resource group's %s availability."
+                    .formatted(userId, resourceGroup.getId()));
+        }
+
+        /* Availability check */
+        Map<LocalDateTime, Boolean> availability = new HashMap<>();
+
+        Cluster cluster = clusterService.findClusterById(course.getClusterId());
+        List<Host> hosts = clusterService.findAllHostsInCluster(cluster);
+
+        List<CourseMetric> courseMetrics = courseMetricRepository.findAllByCourse(course);
+        List<ClusterMetric> clusterMetrics = clusterMetricRepository.findAllByClusterId(course.getClusterId());
+
+        LocalDateTime currentTime = start;
+        while (currentTime.isBefore(end)) {
+            availability.put(currentTime, establishResourceGroupAvailability(course, resourceGroup, cluster, hosts,
+                    courseMetrics, clusterMetrics, currentTime, currentTime.plusMinutes(windowLength)));
+
+            currentTime = currentTime.plusMinutes(windowLength);
+        }
+
+        return availability;
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Override
+    public Map<LocalDateTime, Boolean> checkResourceGroupPoolAvailability(ResourceGroupPool resourceGroupPool, Course course,
+                                                                          int windowLength, LocalDateTime start, LocalDateTime end) {
+        /* Authorization check */
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        // TODO: Add check: Teacher must belong to the course that the reservation is located in.
+        if (!authorities.contains("administrator") &&
+                !(authorities.contains("teacher") && true) &&
+                !(authorities.contains("student") && users.contains(userId))) {
+            throw new ReservationFinishException("User %s does not have required privileges to see resource group pool's %s availability."
+                    .formatted(userId, resourceGroupPool));
+        }
+
+        /* Availability check */
+        Map<LocalDateTime, Boolean> availability = new HashMap<>();
+
+        Cluster cluster = clusterService.findClusterById(course.getClusterId());
+        List<Host> hosts = clusterService.findAllHostsInCluster(cluster);
+
+        List<CourseMetric> courseMetrics = courseMetricRepository.findAllByCourse(course);
+        List<ClusterMetric> clusterMetrics = clusterMetricRepository.findAllByClusterId(course.getClusterId());
+
+        LocalDateTime currentTime = start;
+        while (currentTime.isBefore(end)) {
+            boolean available = false;
+            for (ResourceGroup resourceGroup : resourceGroupPool.getResourceGroups()) {
+                available = establishResourceGroupAvailability(course, resourceGroup, cluster, hosts,
+                        courseMetrics, clusterMetrics, currentTime, currentTime.plusMinutes(windowLength));
+
+                if (available) break;
+            }
+
+            availability.put(currentTime, available);
+            currentTime = currentTime.plusMinutes(windowLength);
+        }
+
+        return availability;
     }
 
     /* Update / delete methods */
@@ -298,8 +524,24 @@ public class ReservationServiceImpl implements ReservationService {
     @PreAuthorize("isAuthenticated()")
     @Override
     public void finishReservation(Reservation reservation) {
-        // TODO: Add delete logic dependent on access level
+        /* Authorization logic */
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        Team team = reservation.getTeam();
+        Course course = reservation.getTeam().getCourse();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        // TODO: Add check: Teacher must belong to the course that the reservation is removed from.
+        if (!authorities.contains("administrator") &&
+                !(authorities.contains("teacher") && true) &&
+                !(authorities.contains("student") && team.getUsers().contains(userId))) {
+            throw new ReservationFinishException("User %s does not have required privileges to remove reservation %s."
+                    .formatted(userId, reservation.getId()));
+        }
+
+        /* Reservation ending logic */
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+
         if (reservation.getStartTime().isBefore(currentTime)) {
             reservation.setEndTime(currentTime);
             reservationRepository.saveAndFlush(reservation);
@@ -336,5 +578,28 @@ public class ReservationServiceImpl implements ReservationService {
 
         reservation.setStatus(Reservation.ReservationStatus.COMPLETED);
         reservationRepository.saveAndFlush(reservation);
+    }
+
+    /* Other methods */
+
+    @PreAuthorize("isAuthenticated()")
+    private boolean establishResourceGroupAvailability(Course course, ResourceGroup resourceGroup, Cluster cluster, List<Host> hosts,
+                                                       List<CourseMetric> courseMetrics, List<ClusterMetric> clusterMetrics,
+                                                       LocalDateTime start, LocalDateTime end) {
+        List<Reservation> currentCourseReservations = reservationRepository
+                .findCourseReservations(course, start, end);
+
+        List<Reservation> currentClusterReservations = reservationRepository
+                .findClusterReservations(course.getClusterId(), start, end);
+
+        boolean available = bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(courseMetrics),
+                currentCourseReservations, resourceGroup, cluster, hosts) &&
+                bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(clusterMetrics),
+                        currentClusterReservations, resourceGroup, cluster, hosts);
+
+        boolean reserved = !reservationRepository
+                .findRgReservations(resourceGroup, start, end).isEmpty();
+
+        return available && !reserved;
     }
 }
