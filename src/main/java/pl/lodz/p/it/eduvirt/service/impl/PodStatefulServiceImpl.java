@@ -54,8 +54,7 @@ public class PodStatefulServiceImpl implements PodStatefulService {
         }
 
         pod.setResourceGroup(resourceGroup);
-        pod.setTeam(team);
-        pod.setCourse(course);
+        team.addStatefulPod(pod);
 
         return podStatefulRepository.saveAndFlush(pod);
     }
@@ -92,7 +91,7 @@ public class PodStatefulServiceImpl implements PodStatefulService {
     public void deleteStatefulPod(UUID podId) {
 
         PodStateful pod = podStatefulRepository.findById(podId)
-                .orElseThrow(PodNotFoundException::new);
+                .orElseThrow(() -> new PodNotFoundException("POD %s could not be found!".formatted(podId)));
 
 
         podStatefulRepository.deleteById(podId);

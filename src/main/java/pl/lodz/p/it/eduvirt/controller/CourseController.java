@@ -35,7 +35,6 @@ import pl.lodz.p.it.eduvirt.service.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-
 @RestController
 @RequestMapping("/course")
 @RequiredArgsConstructor

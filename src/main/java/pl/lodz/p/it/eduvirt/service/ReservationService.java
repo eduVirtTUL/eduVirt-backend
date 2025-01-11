@@ -18,7 +18,7 @@ public interface ReservationService {
     void createReservationForStatefulPod(Team team, PodStateful podId, CreateReservationDto createDto);
 
     // TODO: Change after stateless pod is completed.
-    void createReservationForStatelessPod(Team team, UUID podId, CreateReservationDto createDto);
+    void createReservationForStatelessPod(Team team, PodStateless podId, CreateReservationDto createDto);
 
     /* Read methods */
 
@@ -27,7 +27,7 @@ public interface ReservationService {
     List<Reservation> findRgReservations(ResourceGroup resourceGroup, Course course, LocalDateTime start, LocalDateTime end);
     List<Reservation> findRgPoolReservations(ResourceGroupPool resourceGroupPool, Course course, LocalDateTime start, LocalDateTime end);
 
-    Page<Reservation> findReservationsForStatelessPod(UUID statelessPod, Team team, Pageable pageable);
+    Page<Reservation> findReservationsForStatelessPod(PodStateless statelessPod, Team team, Pageable pageable);
     Page<Reservation> findReservationsForStatefulPod(PodStateful statefulPod, Team team, Pageable pageable);
 
     Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable);

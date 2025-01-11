@@ -9,33 +9,42 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
+import pl.lodz.p.it.eduvirt.repository.ClusterMetricRepository;
+import pl.lodz.p.it.eduvirt.repository.CourseMetricRepository;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.MetricService;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-@Transactional(propagation = Propagation.REQUIRES_NEW)
+@Transactional(propagation = Propagation.REQUIRED)
 public class MetricServiceImpl implements MetricService {
 
     /* Repositories */
 
     private final MetricRepository metricRepository;
+    private final CourseMetricRepository courseMetricRepository;
+    private final ClusterMetricRepository clusterMetricRepository;
 
     /* Create methods */
 
     @PreAuthorize("hasRole('administrator')")
     @Override
-    public void createNewMetric(String metricName) {
-        String actualMetricName = metricName.toLowerCase().replaceAll("\\s+", "_");
-        Metric newMetric = new Metric(actualMetricName);
+    public void createNewMetric(String metricName, Metric.MetricCategory category) {
+        Metric newMetric = new Metric(metricName, category);
         metricRepository.saveAndFlush(newMetric);
     }
 
     /* Read methods */
+
+    @PreAuthorize("hasRole('administrator')")
+    @Override
+    public Metric findById(UUID id) {
+        return metricRepository.findById(id)
+                .orElseThrow(() -> new MetricNotFoundException(id));
+    }
 
     @PreAuthorize("hasRole('administrator')")
     @Override
@@ -55,6 +64,14 @@ public class MetricServiceImpl implements MetricService {
     public void deleteMetric(UUID metricId) {
         Metric metric = metricRepository.findById(metricId)
                 .orElseThrow(() -> new MetricNotFoundException(metricId));
-        metricRepository.deleteAllInBatch(List.of(metric));
+
+        /* Fetch all course metrics */
+        courseMetricRepository.deleteByMetric(metric);
+
+        /* Fetch all cluster metrics */
+        clusterMetricRepository.deleteByMetric(metric);
+
+        /* Delete metric after the values are removed */
+        metricRepository.delete(metric);
     }
 }

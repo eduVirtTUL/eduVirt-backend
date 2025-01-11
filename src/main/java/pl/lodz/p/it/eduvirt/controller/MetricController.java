@@ -38,7 +38,7 @@ public class MetricController {
     @PreAuthorize("hasRole('administrator')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createNewMetric(@RequestBody @Validated CreateMetricDto createDto) {
-        metricService.createNewMetric(createDto.name());
+        metricService.createNewMetric(createDto.name(), createDto.category());
         return ResponseEntity.noContent().build();
     }
 
@@ -63,6 +63,7 @@ public class MetricController {
     /* Delete methods */
 
     @PreAuthorize("hasRole('administrator')")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @DeleteMapping(path = "/{metricId}")
     public ResponseEntity<Void> deleteMetric(@PathVariable UUID metricId) {
         metricService.deleteMetric(metricId);

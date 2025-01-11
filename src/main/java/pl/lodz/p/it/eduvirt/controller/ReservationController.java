@@ -69,9 +69,9 @@ public class ReservationController {
         Course course = courseService.getCourse(courseId);
         Team team = teamService.getTeamByCourseAndUser(course, userId);
 
-        if (team.hasStatelessPod(podId))
+        if (team.getStatelessPods().stream().anyMatch(statelessPod -> statelessPod.getId().equals(podId)))
             reservationService.createReservationForStatelessPod(team, team.getStatelessPod(podId), createDto);
-        else if (team.hasStatefulPod(podId))
+        else if (team.getStatefulPods().stream().anyMatch(statefulPod -> statefulPod.getId().equals(podId)))
             reservationService.createReservationForStatefulPod(team, team.getStatefulPod(podId), createDto);
         else throw new PodNotFoundException("POD %s could not be found for the team %s, which the current user belongs to for course %s"
                     .formatted(podId, team.getId(), course.getId()));
@@ -99,10 +99,10 @@ public class ReservationController {
         Team team = teamService.getTeamByCourseAndUser(course, userId);
 
         Page<Reservation> reservations;
-        if (team.hasStatefulPod(podId))
+        if (team.getStatelessPods().stream().anyMatch(statelessPod -> statelessPod.getId().equals(podId)))
             reservations = reservationService.findReservationsForStatefulPod(
                     team.getStatefulPod(podId), team, pageable);
-        else if (team.hasStatelessPod(podId))
+        else if (team.getStatelessPods().stream().anyMatch(statelessPod -> statelessPod.getId().equals(podId)))
             reservations = reservationService.findReservationsForStatelessPod(
                     team.getStatelessPod(podId), team, pageable);
         else throw new PodNotFoundException("POD %s for team %s in course %s could not be found"

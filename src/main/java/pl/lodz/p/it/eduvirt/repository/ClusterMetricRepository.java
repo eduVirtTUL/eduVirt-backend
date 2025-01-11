@@ -28,4 +28,6 @@ public interface ClusterMetricRepository extends JpaRepository<ClusterMetric, UU
 
     @PreAuthorize("isAuthenticated()")
     List<ClusterMetric> findAllByClusterId(UUID clusterId);
+
+    void deleteByMetric(Metric metric);
 }

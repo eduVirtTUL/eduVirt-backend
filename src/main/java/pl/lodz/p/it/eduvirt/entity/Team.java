@@ -70,23 +70,33 @@ public class Team extends Updatable {
 
     /* Other methods */
 
-    /* Check POD assignment */
-
-    public boolean hasStatefulPod(UUID podId) {
-        return this.getStatefulPods().stream()
-                .anyMatch(podStateful -> podStateful.getId().equals(podId));
+    public void addStatelessPod(PodStateless statelessPod) {
+        statelessPod.setTeam(this);
+        statelessPod.setCourse(course);
+        this.statelessPods.add(statelessPod);
     }
 
-    public boolean hasStatelessPod(UUID podId) {
-        return this.getStatelessPods().stream()
-                .anyMatch(id -> id.equals(podId));
+    public void addStatefulPod(PodStateful statefulPod) {
+        statefulPod.setTeam(this);
+        statefulPod.setCourse(course);
+        this.statefulPods.add(statefulPod);
+    }
+
+    public void removeStatelessPod(PodStateless statelessPod) {
+        statelessPod.setTeam(null);
+        this.statelessPods.remove(statelessPod);
+    }
+
+    public void removeStatefulPod(PodStateful statefulPod) {
+        statefulPod.setTeam(null);
+        this.statefulPods.remove(statefulPod);
     }
 
     /* Retrieve POD */
 
-    public UUID getStatelessPod(UUID podId) {
+    public PodStateless getStatelessPod(UUID podId) {
         return this.getStatelessPods().stream()
-                .filter(id -> id.equals(podId))
+                .filter(podStateless -> podStateless.getId().equals(podId))
                 .findAny().orElseThrow(() -> new StatelessPodAssignmentException(
                         "Stateless POD %s is not assigned to team %s".formatted(podId, getId())));
     }

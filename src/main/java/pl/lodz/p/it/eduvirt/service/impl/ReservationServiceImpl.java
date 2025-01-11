@@ -18,7 +18,6 @@ import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
 import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.*;
-import pl.lodz.p.it.eduvirt.exceptions.general.OperationNotImplementedException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
@@ -179,138 +178,136 @@ public class ReservationServiceImpl implements ReservationService {
 
     @PreAuthorize("isAuthenticated()")
     @Override
-    public void createReservationForStatelessPod(Team team, UUID statelessPod, CreateReservationDto createDto) {
-        throw new OperationNotImplementedException();
+    public void createReservationForStatelessPod(Team team, PodStateless statelessPod, CreateReservationDto createDto) {
+        ResourceGroupPool resourceGroupPool = statelessPod.getResourceGroupPool();
+        Course course = statelessPod.getCourse();
 
-//        ResourceGroupPool resourceGroupPool = statelessPod.getResourceGroupPool();
-//        Course course = statelessPod.getCourse();
-//
-//        Cluster courseCluster = clusterService.findClusterById(course.getClusterId());
-//        List<Host> clusterHosts = clusterService.findAllHostsInCluster(courseCluster);
-//
-//        // TODO: Finish implementing when stateless pod is done
-//        /* TODO: Check all the required conditions
-//         *        [V] Minimum reservation length (that is 1 hour)
-//         *        [V] Maximum reservation length
-//         *        [V] Maximum number of reservations for given resource group
-//         *        [V] Grace period for next reservation of the same resource group
-//         *        [V] Required resource availability for course
-//         *        [V] Required resource availability for cluster
-//         *        [V] Resource group availability
-//         *        [V] Maintenance interval exists during selected time period
-//         * */
-//
-//        /* [V]  General data validation */
-//
-//        LocalDateTime start = createDto.start();
-//        LocalDateTime end = createDto.end();
-//        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-//
-//        if (start.isBefore(currentTime)) throw new ReservationStartInPastException();
-//        if (end.isBefore(start)) throw new ReservationEndBeforeStartException();
-//
-//        /* Condition no. 1: Minimum reservation length */
-//
-//        if ((int) ChronoUnit.HOURS.between(start, end) < 1)
-//            throw new ReservationTooShortException(
-//                    "Minimum length of the reservation in eduVirt system is exactly 1 hour.");
-//
-//        /* Condition no. 2: Maximum reservation length */
-//
-//        int maxRentHours = resourceGroupPool.getMaxRentTime();
-//        int reservationLengthHours = (int) ChronoUnit.HOURS.between(start, end);
-//
-//        if (maxRentHours != 0 && reservationLengthHours > maxRentHours)
-//            throw new ReservationMaxLengthExceededException("Reservation for resource group pool: %s could not be longer than: %d"
-//                    .formatted(resourceGroupPool.getId(), maxRentHours));
-//
-//        /* Condition no. 3: Maximum number of reservations for given resource group */
-//
-//        int reservationLimit = resourceGroupPool.getMaxRent();
-//        List<Reservation> rgTeamReservations = reservationRepository
-//                .findAllRgPoolReservationsForGivenTeam(resourceGroupPool, team);
-//
-//        if (reservationLimit != 0 && rgTeamReservations.size() >= reservationLimit)
-//            throw new ResourceGroupReservationCountExceededException(
-//                    "Team %s has already made all available reservations for resource group: %s"
-//                            .formatted(team.getId(), resourceGroup.getId()));
-//
-//        /* Condition no. 4: Grace period for previous reservation */
-//
-//        int gracePeriodInHours = resourceGroupPool.getGracePeriod();
-//        List<Reservation> reservationsBefore = reservationRepository.findRgPoolReservationsForGivenTeam(
-//                resourceGroupPool, team, start.minusHours(gracePeriodInHours), start);
-//
-//        List<Reservation> reservationsAfter = reservationRepository.findRgPoolReservationsForGivenTeam(
-//                resourceGroupPool, team, end, end.plusHours(gracePeriodInHours));
-//
-//        if (gracePeriodInHours != 0 && !reservationsBefore.isEmpty())
-//            throw new ReservationGracePeriodNotFinishedException(
-//                    "Reservation grace period, which is %d hours, will not be finished before scheduled reservation."
-//                            .formatted(gracePeriodInHours));
-//
-//        if (gracePeriodInHours != 0 && !reservationsAfter.isEmpty())
-//            throw new ReservationGracePeriodCouldNotFinishException(
-//                    "Reservation grace period, which is %d hours, will not be finished before next reservation."
-//                            .formatted(gracePeriodInHours));
-//
-//        /* Condition no. 5: Maintenance intervals */
-//
-//        List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
-//                .findAllIntervalsInGivenTimePeriod(course.getClusterId(), start, end);
-//
-//        if (!foundIntervals.isEmpty())
-//            throw new ReservationCreationException(I18n.RESERVATION_MAINTENANCE_INTERVAL_CONFLICT);
-//
-//        /* NOTE: That's the place where actual choosing of resource group starts */
-//
-//        ResourceGroup chosenResourceGroup = null;
-//        for (ResourceGroup resourceGroup : resourceGroupPool.getResourceGroups()) {
-//            /* Condition no. 6: Resources availability for given course */
-//            List<CourseMetric> foundCourseMetrics = courseMetricRepository.findAllByCourse(course);
-//            List<Reservation> foundCourseReservations = reservationRepository
-//                    .findCourseReservations(course, start, end);
-//
-//            if (!bankerAlgorithm.process(
-//                    () -> metricUtil.extractCourseMetricValues(foundCourseMetrics),
-//                    foundCourseReservations, resourceGroup, courseCluster, clusterHosts)
-//            ) continue;
-//
-//            /* Condition no. 7: Resources availability for given cluster */
-//
-//            List<ClusterMetric> foundClusterMetrics = clusterMetricRepository.findAllByClusterId(course.getClusterId());
-//            List<Reservation> foundClusterReservations = reservationRepository
-//                    .findClusterReservations(course.getClusterId(), start, end);
-//
-//            if (!bankerAlgorithm.process(
-//                    () -> metricUtil.extractClusterMetricValues(foundClusterMetrics),
-//                    foundClusterReservations, resourceGroup, courseCluster, clusterHosts)
-//            ) continue;
-//
-//            /* Condition no. 8: Resource group availability */
-//
-//            List<Reservation> foundReservations = reservationRepository
-//                    .findRgReservations(resourceGroup, start, end);
-//            if (!foundReservations.isEmpty())
-//                continue;
-//
-//            chosenResourceGroup = resourceGroup;
-//            break;
-//        }
-//
-//        /* TODO: Condition check end */
-//
-//        if (chosenResourceGroup == null)
-//            throw new ReservationCreationException("Reservation of one of the resource groups inside resource group pool %s is not possible"
-//                    .formatted(resourceGroupPool.getId()));
-//
-//        Reservation newReservation = new Reservation(
-//                chosenResourceGroup, team, start, end,
-//                createDto.automaticStartup(),
-//                createDto.notificationTime()
-//        );
-//
-//        reservationRepository.saveAndFlush(newReservation);
+        Cluster courseCluster = clusterService.findClusterById(course.getClusterId());
+        List<Host> clusterHosts = clusterService.findAllHostsInCluster(courseCluster);
+
+        // TODO: Finish implementing when stateless pod is done
+        /* TODO: Check all the required conditions
+         *        [V] Minimum reservation length (that is 1 hour)
+         *        [V] Maximum reservation length
+         *        [V] Maximum number of reservations for given resource group
+         *        [V] Grace period for next reservation of the same resource group
+         *        [V] Required resource availability for course
+         *        [V] Required resource availability for cluster
+         *        [V] Resource group availability
+         *        [V] Maintenance interval exists during selected time period
+         * */
+
+        /* [V]  General data validation */
+
+        LocalDateTime start = createDto.start();
+        LocalDateTime end = createDto.end();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+
+        if (start.isBefore(currentTime)) throw new ReservationStartInPastException();
+        if (end.isBefore(start)) throw new ReservationEndBeforeStartException();
+
+        /* Condition no. 1: Minimum reservation length */
+
+        if ((int) ChronoUnit.HOURS.between(start, end) < 1)
+            throw new ReservationTooShortException(
+                    "Minimum length of the reservation in eduVirt system is exactly 1 hour.");
+
+        /* Condition no. 2: Maximum reservation length */
+
+        int maxRentHours = resourceGroupPool.getMaxRentTime();
+        int reservationLengthHours = (int) ChronoUnit.HOURS.between(start, end);
+
+        if (maxRentHours != 0 && reservationLengthHours > maxRentHours)
+            throw new ReservationMaxLengthExceededException("Reservation for resource group pool: %s could not be longer than: %d"
+                    .formatted(resourceGroupPool.getId(), maxRentHours));
+
+        /* Condition no. 3: Maximum number of reservations for given resource group */
+
+        int reservationLimit = resourceGroupPool.getMaxRent();
+        List<Reservation> rgTeamReservations = reservationRepository
+                .findAllRgPoolReservationsForGivenTeam(resourceGroupPool, team);
+
+        if (reservationLimit != 0 && rgTeamReservations.size() >= reservationLimit)
+            throw new ResourceGroupReservationCountExceededException(
+                    "Team %s has already made all available reservations for resource group pool: %s"
+                            .formatted(team.getId(), resourceGroupPool.getId()));
+
+        /* Condition no. 4: Grace period for previous reservation */
+
+        int gracePeriodInHours = resourceGroupPool.getGracePeriod();
+        List<Reservation> reservationsBefore = reservationRepository.findRgPoolReservationsForGivenTeam(
+                resourceGroupPool, team, start.minusHours(gracePeriodInHours), start);
+
+        List<Reservation> reservationsAfter = reservationRepository.findRgPoolReservationsForGivenTeam(
+                resourceGroupPool, team, end, end.plusHours(gracePeriodInHours));
+
+        if (gracePeriodInHours != 0 && !reservationsBefore.isEmpty())
+            throw new ReservationGracePeriodNotFinishedException(
+                    "Reservation grace period, which is %d hours, will not be finished before scheduled reservation."
+                            .formatted(gracePeriodInHours));
+
+        if (gracePeriodInHours != 0 && !reservationsAfter.isEmpty())
+            throw new ReservationGracePeriodCouldNotFinishException(
+                    "Reservation grace period, which is %d hours, will not be finished before next reservation."
+                            .formatted(gracePeriodInHours));
+
+        /* Condition no. 5: Maintenance intervals */
+
+        List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
+                .findAllIntervalsInGivenTimePeriod(course.getClusterId(), start, end);
+
+        if (!foundIntervals.isEmpty())
+            throw new ReservationCreationException(I18n.RESERVATION_MAINTENANCE_INTERVAL_CONFLICT);
+
+        /* NOTE: That's the place where actual choosing of resource group starts */
+
+        ResourceGroup chosenResourceGroup = null;
+        for (ResourceGroup resourceGroup : resourceGroupPool.getResourceGroups()) {
+            /* Condition no. 6: Resources availability for given course */
+            List<CourseMetric> foundCourseMetrics = courseMetricRepository.findAllByCourse(course);
+            List<Reservation> foundCourseReservations = reservationRepository
+                    .findCourseReservations(course, start, end);
+
+            if (!bankerAlgorithm.process(
+                    () -> metricUtil.extractCourseMetricValues(foundCourseMetrics),
+                    foundCourseReservations, resourceGroup, courseCluster, clusterHosts)
+            ) continue;
+
+            /* Condition no. 7: Resources availability for given cluster */
+
+            List<ClusterMetric> foundClusterMetrics = clusterMetricRepository.findAllByClusterId(course.getClusterId());
+            List<Reservation> foundClusterReservations = reservationRepository
+                    .findClusterReservations(course.getClusterId(), start, end);
+
+            if (!bankerAlgorithm.process(
+                    () -> metricUtil.extractClusterMetricValues(foundClusterMetrics),
+                    foundClusterReservations, resourceGroup, courseCluster, clusterHosts)
+            ) continue;
+
+            /* Condition no. 8: Resource group availability */
+
+            List<Reservation> foundReservations = reservationRepository
+                    .findRgReservations(resourceGroup, start, end);
+            if (!foundReservations.isEmpty())
+                continue;
+
+            chosenResourceGroup = resourceGroup;
+            break;
+        }
+
+        /* TODO: Condition check end */
+
+        if (chosenResourceGroup == null)
+            throw new ReservationCreationException("Reservation of one of the resource groups inside resource group pool %s is not possible"
+                    .formatted(resourceGroupPool.getId()));
+
+        Reservation newReservation = new Reservation(
+                chosenResourceGroup, team, start, end,
+                createDto.automaticStartup(),
+                createDto.notificationTime()
+        );
+
+        reservationRepository.saveAndFlush(newReservation);
     }
 
     /* Read methods */
@@ -342,11 +339,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     @PreAuthorize("hasRole('student')")
     @Override
-    public Page<Reservation> findReservationsForStatelessPod(UUID statelessPod, Team team, Pageable pageable) {
-        // TODO: Add the implementation after the stateless pods are done
-        return Page.empty();
-//        return reservationRepository.findAllRgPoolReservationsForGivenTeam(
-//                stateless.getResourceGroupPool(), team, pageable);
+    public Page<Reservation> findReservationsForStatelessPod(PodStateless statelessPod, Team team, Pageable pageable) {
+        return reservationRepository.findAllRgPoolReservationsForGivenTeam(
+                statelessPod.getResourceGroupPool(), team, pageable);
     }
 
     @PreAuthorize("hasRole('student')")
@@ -501,25 +496,25 @@ public class ReservationServiceImpl implements ReservationService {
         /* Availability check */
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-//        Cluster cluster = clusterService.findClusterById(course.getClusterId());
-//        List<Host> hosts = clusterService.findAllHostsInCluster(cluster);
-//
-//        List<CourseMetric> courseMetrics = courseMetricRepository.findAllByCourse(course);
-//        List<ClusterMetric> clusterMetrics = clusterMetricRepository.findAllByClusterId(course.getClusterId());
-//
-//        LocalDateTime currentTime = start;
-//        while (currentTime.isBefore(end)) {
-//            boolean available = false;
-//            for (ResourceGroup resourceGroup : resourceGroupPool.getResourceGroups()) {
-//                available = establishResourceGroupAvailability(course, resourceGroup, cluster, hosts,
-//                        courseMetrics, clusterMetrics, currentTime, currentTime.plusMinutes(windowLength));
-//
-//                if (available) break;
-//            }
-//
-//            availability.put(currentTime, available);
-//            currentTime = currentTime.plusMinutes(windowLength);
-//        }
+        Cluster cluster = clusterService.findClusterById(course.getClusterId());
+        List<Host> hosts = clusterService.findAllHostsInCluster(cluster);
+
+        List<CourseMetric> courseMetrics = courseMetricRepository.findAllByCourse(course);
+        List<ClusterMetric> clusterMetrics = clusterMetricRepository.findAllByClusterId(course.getClusterId());
+
+        LocalDateTime currentTime = start;
+        while (currentTime.isBefore(end)) {
+            boolean available = false;
+            for (ResourceGroup resourceGroup : resourceGroupPool.getResourceGroups()) {
+                available = establishResourceGroupAvailability(course, resourceGroup, cluster, hosts,
+                        courseMetrics, clusterMetrics, currentTime, currentTime.plusMinutes(windowLength));
+
+                if (available) break;
+            }
+
+            availability.put(currentTime, available);
+            currentTime = currentTime.plusMinutes(windowLength);
+        }
 
         return availability;
     }
