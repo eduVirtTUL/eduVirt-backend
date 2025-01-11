@@ -37,10 +37,15 @@ public class PodStatelessServiceImpl implements PodStatelessService {
                 .orElseThrow(() -> new CourseNotFoundException(team.getCourse().getId()));
 
         ResourceGroupPool resourceGroupPool = resourceGroupPoolRepository.findById(resourceGroupPoolId)
-                .orElseThrow(() -> new CourseNotFoundException(resourceGroupPoolId)); //TODO: change exception
+                .orElseThrow(() -> new CourseNotFoundException(resourceGroupPoolId));
 
-        if (resourceGroupPool.getCourse() != team.getCourse())
+        if (resourceGroupPool.getCourse() != team.getCourse()) {
             throw new RuntimeException("Resource group pool does not belong to the course the team is in");
+        }
+
+        if (podStatelessRepository.existsByResourceGroupPoolId(resourceGroupPoolId)) {
+            throw new RuntimeException("Resource group pool already has a pod assigned to it");
+        }
 
         pod.setResourceGroupPool(resourceGroupPool);
         pod.setTeam(team);
