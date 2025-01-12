@@ -134,4 +134,9 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
     public List<ExecutorTask> getReservationsToEndTasks() {
         return executorTaskRepository.findReservationsToEndTasks();
     }
+
+    @Override
+    public List<ExecutorTask> getReservationsInProgressTasks() {
+        return executorTaskRepository.findReservationsInProgressTasks();
+    }
 }

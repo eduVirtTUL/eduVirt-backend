@@ -13,7 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import pl.lodz.p.it.eduvirt.entity.Updatable;
+import pl.lodz.p.it.eduvirt.entity.HistoricalData;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -24,7 +24,7 @@ import java.util.UUID;
 @DiscriminatorColumn(name = "kind")
 @Getter
 @NoArgsConstructor
-public abstract class ExecutorSubtask extends Updatable {
+public abstract class ExecutorSubtask extends HistoricalData {
 
     @ManyToOne
     @JoinColumn(

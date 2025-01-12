@@ -411,12 +411,15 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public List<Reservation> findReservationsToBegin() {
-        return reservationRepository.findAllReservationsToBegin();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        System.out.println("currentTime: " + currentTime);
+        return reservationRepository.findAllReservationsToBegin(currentTime);
     }
 
     @Override
     public List<Reservation> findReservationsToStop() {
-        return reservationRepository.findAllReservationsToStop();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        return reservationRepository.findAllReservationsToStop(currentTime);
     }
 
     /* Update / delete methods */
