@@ -119,9 +119,21 @@ public class TeamController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/leave")
+    @DeleteMapping("/leave")
     public ResponseEntity<Void> leaveTeam(@RequestParam UUID teamId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        teamService.removeUserFromTeam(teamId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{teamId}/{userId}")
+    public ResponseEntity<Void> addUserToTeam(@PathVariable UUID teamId, @PathVariable UUID userId) {
+        teamService.addUserToTeam(teamId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{teamId}/{userId}")
+    public ResponseEntity<Void> removeUserFromTeam(@PathVariable UUID teamId, @PathVariable UUID userId) {
         teamService.removeUserFromTeam(teamId, userId);
         return ResponseEntity.noContent().build();
     }

@@ -21,8 +21,25 @@ public class User {
     @Id
     private UUID id;
 
+//    @Setter
+//    @Column(name = "oVirtId", unique = true, nullable = false)
+//    private UUID oVirtId;
+
     // Note: Added email for mailing purposes
     @Setter
     @Column(name = "email", unique = true, nullable = false)
     private String email;
+    
+//    @Setter
+//    @Column(name = "principal", unique = true, nullable = false)
+//    private String principal;
+//
+//    @Setter
+//    @Column(name = "firstName", nullable = false)
+//    private String firstName;
+//
+//    @Setter
+//    @Column(name = "lastName", nullable = false)
+//    private String lastName;
+
 }

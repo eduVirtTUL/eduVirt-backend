@@ -27,8 +27,6 @@ public class AuthServiceImpl implements AuthService {
         }
 
         AccessToken actualToken = accessToken.get();
-        log.info(actualToken.getPreferredUsername());
-        log.info("DUPA");
         UUID userId = UUID.fromString(accessToken.get().getSub());
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {

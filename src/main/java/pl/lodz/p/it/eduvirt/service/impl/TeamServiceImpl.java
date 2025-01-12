@@ -145,23 +145,35 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @PreAuthorize("isAuthenticated()")
     public void joinUsingKey(String keyValue, UUID userId) {
+
         if (keyValue == null || keyValue.isEmpty()) {
             throw new IllegalArgumentException("Key value cannot be empty");
         }
-        try {
-            teamKeyRepository.findByKeyValue(keyValue)
-                    .orElseThrow(AccessKeyNotFoundException::new);
-            addUserToTeam(keyValue, userId);
-            return;
-        } catch (AccessKeyNotFoundException e) {
-            // do nothing
+
+        TeamAccessKey teamKey = teamKeyRepository.findByKeyValue(keyValue)
+                .orElse(null);
+
+        if (teamKey != null) {
+            Team team = teamKey.getTeam();
+            if (team.isActive()) {
+                validateUserNotInTeam(team, userId);
+                team.getUsers().add(userId);
+                teamRepository.saveAndFlush(team);
+            } else {
+                throw new RuntimeException("Team is not active");
+            }
         }
-        try {
-            courseKeyRepository.findByKeyValue(keyValue)
+        else {
+            CourseAccessKey courseKey = courseKeyRepository.findByKeyValue(keyValue)
                     .orElseThrow(AccessKeyNotFoundException::new);
-            addUserToCourse(keyValue, userId);
-        } catch (AccessKeyNotFoundException e) {
-            throw new AccessKeyNotFoundException();
+            Course course = courseKey.getCourse();
+
+            if (course.getCourseType() == CourseType.TEAM_BASED) {
+                throw new IncorrectTeamTypeException(); //TODO: change to CourseTypeException
+            }
+
+            validateUserNotInCourse(userId, course.getId());
+            createSoloTeam(course.getId(), userId);
         }
     }
 
@@ -181,10 +193,13 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public void addUserToTeam(String keyValue, UUID userId) {
-        TeamAccessKey key = teamKeyRepository.findByKeyValue(keyValue)
+    public void addUserToTeam(UUID teamId, UUID userId) {
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(TeamNotFoundException::new);
+
+        teamKeyRepository.findByTeamId(teamId)
                 .orElseThrow(AccessKeyNotFoundException::new);
-        Team team = key.getTeam();
 
         if (team.isActive()) {
             validateUserNotInTeam(team, userId);
@@ -197,13 +212,19 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public void addUserToCourse(String keyValue, UUID userId) {
-        CourseAccessKey key = courseKeyRepository.findByKeyValue(keyValue)
+    public void addUserToCourse(UUID courseId, UUID userId) {
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        if (course.getCourseType() == CourseType.TEAM_BASED) {
+            throw new IncorrectTeamTypeException(); //TODO: change to CourseTypeException
+        }
+
+        courseKeyRepository.findByCourseId(courseId)
                 .orElseThrow(AccessKeyNotFoundException::new);
 
-        Course course = key.getCourse();
         validateUserNotInCourse(userId, course.getId());
-
         createSoloTeam(course.getId(), userId);
     }
 

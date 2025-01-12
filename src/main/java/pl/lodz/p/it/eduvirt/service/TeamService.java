@@ -15,8 +15,8 @@ public interface TeamService {
     Team getTeamByCourseAndUser(Course course, UUID userId);
     Team createTeam(Team team, UUID courseId, String keyValue);
     void createSoloTeam(UUID courseId, UUID userId);
-    void addUserToTeam(String keyValue, UUID userId);
-    void addUserToCourse(String keyValue, UUID userId);
+    void addUserToTeam(UUID teamId, UUID userId);
+    void addUserToCourse(UUID courseId, UUID userId);
     void removeUserFromTeam(UUID teamId, UUID userId);
     void joinUsingKey(String keyValue, UUID userId);
     void leaveTeam(UUID teamId, UUID userId);

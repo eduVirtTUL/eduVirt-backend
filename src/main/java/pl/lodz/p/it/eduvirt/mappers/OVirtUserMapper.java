@@ -7,7 +7,7 @@ import pl.lodz.p.it.eduvirt.dto.permission.OvirtUserPermissionDto;
 import pl.lodz.p.it.eduvirt.dto.user.OvirtUserDto;
 
 @Mapper(componentModel = "spring")
-public interface UserMapper {
+public interface OVirtUserMapper {
 
     default OVirtUserWithPermissionsDto ovirtUserWithPermissionsToUserDto(User user) {
         return new OVirtUserWithPermissionsDto(
@@ -31,7 +31,7 @@ public interface UserMapper {
         return new OvirtUserDto(
                 user.id(),
                 user.principal(),
-                user.principal(),
+                user.userName(),
                 user.lastName(),
                 user.email(),
                 user.department()
