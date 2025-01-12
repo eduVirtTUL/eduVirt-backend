@@ -31,11 +31,11 @@ public class ResourceGroup extends HistoricalData {
     private int maxRentTime;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "resourceGroup", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "resourceGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<VirtualMachine> vms = new ArrayList<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "resourceGroup", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "resourceGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResourceGroupNetwork> networks = new ArrayList<>();
 
     @Override

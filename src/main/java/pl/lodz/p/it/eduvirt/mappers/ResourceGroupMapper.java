@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.mappers;
 import org.mapstruct.Mapper;
 import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group.UpdateResourceGroupDto;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 
 import java.util.List;
@@ -15,4 +16,6 @@ public interface ResourceGroupMapper {
     List<ResourceGroupDto> toDtos(Stream<ResourceGroup> resourceGroup);
 
     ResourceGroup toEntity(CreateResourceGroupDto resourceGroupDto);
+
+    ResourceGroup toEntity(UpdateResourceGroupDto resourceGroupDto);
 }

@@ -4,10 +4,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group.AddVmDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group.EditVmDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
+import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
+import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
@@ -25,6 +29,8 @@ public class ResourceGroupVmController {
     private final OVirtVmService oVirtVmService;
     private final VirtualMachineService virtualMachineService;
     private final OVirtVnicProfileService oVirtVnicProfileService;
+    private final ResourceGroupMapper resourceGroupMapper;
+    private final VmMapper vmMapper;
 
     @GetMapping
     @Transactional
@@ -51,5 +57,18 @@ public class ResourceGroupVmController {
     public ResponseEntity<Void> deleteVm(@PathVariable UUID rgId, @PathVariable UUID id) {
         virtualMachineService.deleteVirtualMachine(id, rgId);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<Void> updateVm(@PathVariable UUID rgId, @PathVariable UUID id, @RequestBody @Validated EditVmDto editVm) {
+        virtualMachineService.updateVirtualMachine(id, editVm.hidden());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<List<VmDto>> getAvailableVms(@PathVariable UUID rgId) {
+        return ResponseEntity.ok(
+                vmMapper.ovirtVmsToDtos(resourceGroupService.findAvailableVms(rgId).stream())
+        );
     }
 }

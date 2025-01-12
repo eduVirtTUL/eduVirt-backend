@@ -4,23 +4,25 @@ import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Vm;
 import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
+import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupAlreadyExists;
 import pl.lodz.p.it.eduvirt.mappers.NicMapper;
-import pl.lodz.p.it.eduvirt.repository.NetworkInterfaceRepository;
-import pl.lodz.p.it.eduvirt.repository.PodStatefulRepository;
-import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
-import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
+import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -33,7 +35,9 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     private final OVirtVnicProfileService oVirtVnicProfileService;
     private final VirtualMachineRepository virtualMachineRepository;
     private final NetworkInterfaceRepository networkInterfaceRepository;
+    private final ResourceGroupPoolRepository resourceGroupPoolRepository;
     private final PodStatefulRepository podStatefulRepository;
+    private final CourseRepository courseRepository;
 
     @Override
     public List<ResourceGroup> getResourceGroups() {
@@ -96,14 +100,10 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
                         .build();
     }
 
+
     @Override
     public ResourceGroup getResourceGroup(UUID id) {
         return resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
-    }
-
-    @Override
-    public ResourceGroup createResourceGroup(ResourceGroup resourceGroup) {
-        return resourceGroupRepository.save(resourceGroup);
     }
 
     @Override
@@ -112,5 +112,53 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
                 .map(pod -> pod.getResourceGroup().getId())
                 .toList();
         return resourceGroupRepository.findAllById(assignedResourceGroupIds);
+    }
+
+    @Transactional
+    @Override
+    public List<Vm> findAvailableVms(UUID rgId) {
+        ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId).orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
+
+        UUID clusterId;
+
+        if (resourceGroup.isStateless()) {
+            clusterId = resourceGroupPoolRepository.findByResourceGroupsContaining(resourceGroup).getCourse().getClusterId();
+        } else {
+            clusterId = courseRepository.findByStateFullResourceGroupsContaining(resourceGroup).getClusterId();
+        }
+
+        return oVirtVmService.findVms().stream()
+                .filter(vm -> UUID.fromString(vm.cluster().id()).equals(clusterId))
+                .toList();
+    }
+
+    @Transactional
+    @Override
+    public void deleteResourceGroup(UUID id) {
+        resourceGroupRepository.deleteById(id);
+    }
+
+    @Transactional
+    @Override
+    public ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup) {
+        ResourceGroup existingResourceGroup = resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
+        existingResourceGroup.setName(resourceGroup.getName());
+        boolean isNameTaken;
+        if (existingResourceGroup.isStateless()) {
+            ResourceGroupPool pool = resourceGroupPoolRepository.findByResourceGroupsContaining(existingResourceGroup);
+            isNameTaken = pool.getResourceGroups().stream().anyMatch(rg -> Objects.equals(rg.getName(), resourceGroup.getName()));
+        } else {
+            existingResourceGroup.setDescription(resourceGroup.getDescription());
+            existingResourceGroup.setMaxRentTime(resourceGroup.getMaxRentTime());
+
+            Course course = courseRepository.findByStateFullResourceGroupsContaining(existingResourceGroup);
+            isNameTaken = course.getStateFullResourceGroups().stream().anyMatch(rg -> Objects.equals(rg.getName(), resourceGroup.getName()));
+        }
+
+        if (isNameTaken) {
+            throw new ResourceGroupAlreadyExists();
+        }
+
+        return resourceGroupRepository.save(existingResourceGroup);
     }
 }
