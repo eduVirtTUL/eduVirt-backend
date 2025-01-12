@@ -12,7 +12,7 @@ import pl.lodz.p.it.eduvirt.entity.PodStateful;
 
 @Mapper(componentModel = "spring")
 public interface PodStatefulMapper {
-    
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "team", ignore = true)
     @Mapping(target = "course", ignore = true)
@@ -30,7 +30,9 @@ public interface PodStatefulMapper {
                 new ResourceGroupDto(
                         pod.getResourceGroup().getId().toString(),
                         pod.getResourceGroup().getName(),
-                        pod.getResourceGroup().isStateless()
+                        pod.getResourceGroup().getDescription(),
+                        pod.getResourceGroup().isStateless(),
+                        pod.getResourceGroup().getMaxRentTime()
                 ),
                 new CourseBasicDto(
                         pod.getCourse().getId(),
