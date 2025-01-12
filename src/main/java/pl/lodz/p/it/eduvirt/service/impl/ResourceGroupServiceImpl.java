@@ -4,12 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Vm;
 import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
+import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupAlreadyExists;
 import pl.lodz.p.it.eduvirt.mappers.NicMapper;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -18,6 +22,7 @@ import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -95,6 +100,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
                         .build();
     }
 
+
     @Override
     public ResourceGroup getResourceGroup(UUID id) {
         return resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
@@ -108,6 +114,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
         return resourceGroupRepository.findAllById(assignedResourceGroupIds);
     }
 
+    @Transactional
     @Override
     public List<Vm> findAvailableVms(UUID rgId) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId).orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
@@ -125,20 +132,33 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
                 .toList();
     }
 
+    @Transactional
     @Override
     public void deleteResourceGroup(UUID id) {
         resourceGroupRepository.deleteById(id);
     }
 
+    @Transactional
     @Override
-    public void updateResourceGroup(UUID id, ResourceGroup resourceGroup) {
+    public ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup) {
         ResourceGroup existingResourceGroup = resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
         existingResourceGroup.setName(resourceGroup.getName());
-        if (!resourceGroup.isStateless()) {
+        boolean isNameTaken;
+        if (existingResourceGroup.isStateless()) {
+            ResourceGroupPool pool = resourceGroupPoolRepository.findByResourceGroupsContaining(existingResourceGroup);
+            isNameTaken = pool.getResourceGroups().stream().anyMatch(rg -> Objects.equals(rg.getName(), resourceGroup.getName()));
+        } else {
             existingResourceGroup.setDescription(resourceGroup.getDescription());
             existingResourceGroup.setMaxRentTime(resourceGroup.getMaxRentTime());
+
+            Course course = courseRepository.findByStateFullResourceGroupsContaining(existingResourceGroup);
+            isNameTaken = course.getStateFullResourceGroups().stream().anyMatch(rg -> Objects.equals(rg.getName(), resourceGroup.getName()));
         }
 
-        resourceGroupRepository.save(existingResourceGroup);
+        if (isNameTaken) {
+            throw new ResourceGroupAlreadyExists();
+        }
+
+        return resourceGroupRepository.save(existingResourceGroup);
     }
 }

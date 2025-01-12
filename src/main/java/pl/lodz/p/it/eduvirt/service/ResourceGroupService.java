@@ -22,5 +22,5 @@ public interface ResourceGroupService {
 
     void deleteResourceGroup(UUID id);
 
-    void updateResourceGroup(UUID id, ResourceGroup resourceGroup);
+    ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup);
 }

@@ -1,5 +1,8 @@
 package pl.lodz.p.it.eduvirt.controller;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -7,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.UpdateResourceGroupDto;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
+import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 
@@ -47,9 +51,12 @@ public class ResourceGroupController {
     }
 
     @PutMapping("/{id}")
+    @ApiResponse(responseCode = "200", description = "Resource group updated successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid resource group data", content = {@Content(schema = @Schema(implementation = ExceptionResponse.class))})
     public ResponseEntity<ResourceGroupDto> updateResourceGroup(@PathVariable UUID id, @RequestBody @Validated UpdateResourceGroupDto resourceGroupDto) {
         ResourceGroup resourceGroup = resourceGroupMapper.toEntity(resourceGroupDto);
-        resourceGroupService.updateResourceGroup(id, resourceGroup);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(
+                resourceGroupMapper.toDto(resourceGroupService.updateResourceGroup(id, resourceGroup))
+        );
     }
 }
