@@ -9,7 +9,6 @@ import org.ovirt.engine.sdk4.types.VmStatus;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.NetworkInterface;
@@ -242,11 +241,15 @@ public class ExecutorScheduler {
             ASSIGN_PERMISSION_ZONE:
             {
                 //Assign permissions
+                List<UUID> oVirtIds = team.getUsers().stream()
+                        .map(pl.lodz.p.it.eduvirt.entity.User::getOVirtId)
+                        .toList();
+            
                 reservation.getResourceGroup().getVms()
                         .stream()
                         .filter(vm -> !vm.isHidden())
                         .forEach(
-                                vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), team.getUsers()),
+                                vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), oVirtIds),
                                         executorTask, vm.getId(), ExecutorSubtask.SubtaskType.ASSIGN_PERMISSION
                                 )
                         );
@@ -272,9 +275,14 @@ public class ExecutorScheduler {
 
             //TODO michal: maybe separate to different scheduled tasks (to not stop the rest of stopping POD operations)
             //Revoke permissions
+
+            List<UUID> oVirtIds = team.getUsers().stream()
+                    .map(pl.lodz.p.it.eduvirt.entity.User::getOVirtId)
+                    .toList();
+
             virtualMachines
                     .forEach(
-                            vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), team.getUsers()),
+                            vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), oVirtIds),
                                     executorTask, vm.getId(), ExecutorSubtask.SubtaskType.REVOKE_PERMISSION
                             )
                     );

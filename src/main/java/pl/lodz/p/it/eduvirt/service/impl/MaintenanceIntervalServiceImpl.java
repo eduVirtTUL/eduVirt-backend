@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
+import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.repository.MaintenanceIntervalRepository;
 import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
@@ -75,8 +76,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
                 .findClusterReservations(clusterId, beginAt, endAt);
 
         foundReservations.forEach(reservation -> {
-            List<UUID> userIds = reservation.getTeam().getUsers();
-
+            List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
             /* Send e-mail notification*/
             // TODO: Handle i18
             userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
@@ -116,7 +116,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
                 .findSystemReservations(beginAt, endAt);
 
         foundReservations.forEach(reservation -> {
-            List<UUID> userIds = reservation.getTeam().getUsers();
+            List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
 
             /* Send e-mail notification*/
             // TODO: Handle i18

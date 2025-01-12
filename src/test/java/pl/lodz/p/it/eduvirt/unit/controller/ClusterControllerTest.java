@@ -146,11 +146,11 @@ public class ClusterControllerTest {
         course.setName("Sieciowe System Baz Danych");
         course.setDescription("Network Database Systems");
         course.setClusterId(existingClusterId);
-        userNo1 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email1@gmail.com");
-        userNo2 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email2@gmail.com");
-        userNo3 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email3@gmail.com");
+        userNo1 = new User(UUID.randomUUID(), "email1@gmail.com");
+        userNo2 = new User(UUID.randomUUID(), "email2@gmail.com");
+        userNo3 = new User(UUID.randomUUID(), "email3@gmail.com");
 
-        List<pl.lodz.p.it.eduvirt.entity.User> listOfUsers = List.of(userNo1, userNo2, userNo3);
+        List<User> listOfUsers = List.of(userNo1, userNo2, userNo3);
         team = Team.builder()
                 .name("Eldorado")
                 .active(true)

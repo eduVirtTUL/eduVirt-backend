@@ -35,6 +35,7 @@ public class TeamServiceImpl implements TeamService {
     private final TeamAccessKeyRepository teamKeyRepository;
     private final CourseAccessKeyRepository courseKeyRepository;
     private final AccessKeyService accessKeyService;
+    private final UserRepository userRepository;
 
     private void validateUserNotInCourse(UUID userId, UUID courseId) {
         if (teamRepository.existsByUserIdAndCourseId(userId, courseId)) {
@@ -43,7 +44,11 @@ public class TeamServiceImpl implements TeamService {
     }
 
     private void validateUserNotInTeam(Team team, UUID userId) {
-        if (team.getUsers().contains(userId)) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        if (team.getUsers().contains(user)) {
             throw new UserAlreadyInTeamException();
         }
     }
@@ -59,22 +64,20 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
-    public Page<Team> getAllTeams(Pageable pageable) {
-        return teamRepository.findAll(pageable);
+    public Team getTeamById(UUID teamId) {
+        return teamRepository.findByIdWithUsers(teamId)
+                .orElseThrow(() -> new TeamNotFoundException(teamId.toString()));
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
-    public Team getTeamById(UUID teamId) {
-        return teamRepository.findById(teamId)
-                .orElseThrow(RuntimeException::new);
+    public Page<Team> getAllTeams(Pageable pageable) {
+        return teamRepository.findAllWithUsers(pageable);
     }
 
     @Override
     @PreAuthorize("isAuthenticated()")
     public Page<Team> getTeamsByUser(UUID userId, Pageable pageable) {
-        return teamRepository.findByUsersContains(userId, pageable);
+        return teamRepository.findByUsersId(userId, pageable);
     }
 
     @Override
@@ -150,6 +153,9 @@ public class TeamServiceImpl implements TeamService {
             throw new IllegalArgumentException("Key value cannot be empty");
         }
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
         TeamAccessKey teamKey = teamKeyRepository.findByKeyValue(keyValue)
                 .orElse(null);
 
@@ -157,7 +163,7 @@ public class TeamServiceImpl implements TeamService {
             Team team = teamKey.getTeam();
             if (team.isActive()) {
                 validateUserNotInTeam(team, userId);
-                team.getUsers().add(userId);
+                team.getUsers().add(user);
                 teamRepository.saveAndFlush(team);
             } else {
                 throw new RuntimeException("Team is not active");
@@ -183,8 +189,11 @@ public class TeamServiceImpl implements TeamService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
-        if (team.getUsers().contains(userId)) {
-            team.getUsers().remove(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        if (team.getUsers().contains(user)) {
+            team.getUsers().remove(user);
             teamRepository.save(team);
         } else {
             throw new UserNotFoundException();
@@ -198,12 +207,15 @@ public class TeamServiceImpl implements TeamService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
         teamKeyRepository.findByTeamId(teamId)
                 .orElseThrow(AccessKeyNotFoundException::new);
 
         if (team.isActive()) {
             validateUserNotInTeam(team, userId);
-            team.getUsers().add(userId);
+            team.getUsers().add(user);
             teamRepository.saveAndFlush(team);
         } else {
             throw new RuntimeException("Team is not active");
@@ -234,8 +246,11 @@ public class TeamServiceImpl implements TeamService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(RuntimeException::new);
 
-        if (team.getUsers().contains(userId)) {
-            team.getUsers().remove(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        if (team.getUsers().contains(user)) {
+            team.getUsers().remove(user);
             teamRepository.save(team);
 
         } else {
@@ -249,6 +264,9 @@ public class TeamServiceImpl implements TeamService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
         if (course.getCourseType() != CourseType.SOLO) {
             throw new IncorrectTeamTypeException();
         }
@@ -259,7 +277,7 @@ public class TeamServiceImpl implements TeamService {
         Team team = Team.builder()
                 .name(teamName)
                 .course(course)
-                .users(List.of(userId))
+                .users(List.of(user))
                 .maxSize(1)
                 .active(true)
                 .build();

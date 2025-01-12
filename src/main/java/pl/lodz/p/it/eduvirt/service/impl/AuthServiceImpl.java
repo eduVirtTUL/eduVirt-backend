@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.AuthService;
+import pl.lodz.p.it.eduvirt.service.OVirtUserService;
 import pl.lodz.p.it.eduvirt.util.jwt.AccessToken;
 import pl.lodz.p.it.eduvirt.util.jwt.JwtHelper;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final OVirtUserService oVirtUserService;
 
     @Override
     public void loginWithExternalToken(String externalToken) {
@@ -29,13 +31,25 @@ public class AuthServiceImpl implements AuthService {
         AccessToken actualToken = accessToken.get();
         UUID userId = UUID.fromString(accessToken.get().getSub());
         Optional<User> user = userRepository.findById(userId);
+
         if (user.isEmpty()) {
-            User newUser = new User(userId, actualToken.getEmail());
+            UUID oVirtUserId = UUID.fromString(oVirtUserService.getUserByPrincipal(actualToken.getPreferredUsername()).id());
+
+            User newUser = new User(userId, oVirtUserId, actualToken.getEmail(), actualToken.getGivenName(), actualToken.getPreferredUsername(), actualToken.getFamilyName(), null);
             userRepository.save(newUser);
+
         } else {
             User actualUser = user.get();
             if (!actualUser.getEmail().equals(actualToken.getEmail())) {
                 actualUser.setEmail(actualToken.getEmail());
+                userRepository.save(actualUser);
+            }
+            if (!actualUser.getFirstName().equals(actualToken.getGivenName())) {
+                actualUser.setFirstName(actualToken.getGivenName());
+                userRepository.save(actualUser);
+            }
+            if (!actualUser.getLastName().equals(actualToken.getFamilyName())) {
+                actualUser.setLastName(actualToken.getFamilyName());
                 userRepository.save(actualUser);
             }
         }
