@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
@@ -11,6 +12,7 @@ import pl.lodz.p.it.eduvirt.util.jwt.JwtHelper;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -25,6 +27,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         AccessToken actualToken = accessToken.get();
+        log.info(actualToken.getPreferredUsername());
+        log.info("DUPA");
         UUID userId = UUID.fromString(accessToken.get().getSub());
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {

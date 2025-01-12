@@ -30,8 +30,8 @@ public interface UserMapper {
     default OvirtUserDto ovirtUserToUserDto(User user) {
         return new OvirtUserDto(
                 user.id(),
-                user.name(),
-                user.userName(),
+                user.principal(),
+                user.principal(),
                 user.lastName(),
                 user.email(),
                 user.department()
