@@ -5,18 +5,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.types.User;
 import org.ovirt.engine.sdk4.types.Vm;
-import org.ovirt.engine.sdk4.types.VmStatus;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.NetworkInterface;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
-import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.executor.VmInvalidStatusException;
 import pl.lodz.p.it.eduvirt.exceptions.executor.VmTransitionalStatusException;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 //IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
 //IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
 //IMPROVEMENTS michal: improvements for transactions
+//IMPROVEMENTS michal: change some // /* */
 
 // Priority 1
 //IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
@@ -60,10 +62,10 @@ import java.util.stream.Collectors;
 //IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
 
 // Priority 3
-//IMPROVEMENTS michal: perhaps improvement -> .stream().parallel() when calling oVirt Api (d871bd94490e9d4f0e7f72e7c4da6b2ac48e5df7 -> last revision with comments where it could be used)
-//IMPROVEMENTS michal: perhaps optimized VM oVirt API calls (like in f06d3d17fa5acdd71996ed5ede4148e6753ab8b3)
+//IMPROVEMENTS michal: perhaps improvement -> .stream().parallel() when calling oVirt Api (d871bd94490e... -> last revision with comments where it could be used)
+//IMPROVEMENTS michal: perhaps optimized VM oVirt API calls (like in f06d3d17fa5...)
 //IMPROVEMENTS michal: perhaps real pooling instead of invoking checking conditions in fixed time
-//IMPROVEMENTS michal: separate assigning/revoking permissions to different scheduled tasks (rather not)
+//IMPROVEMENTS michal: separate revoking permissions to different scheduled tasks (rather not)
 
 @Slf4j
 @Service
@@ -122,7 +124,8 @@ public class ExecutorScheduler {
 //                .forEach(
 //                        task -> {
 //                            try {
-//                                checkPodStatusAndEndReservation(task);
+
+    /// /                                checkPodStatusAndEndReservation(task);
 //                            } catch (Throwable e) {
 //                                e.printStackTrace(System.err); //TODO michal
 //                            }
@@ -131,7 +134,6 @@ public class ExecutorScheduler {
 //    }
 
     //--------------AGGREGATED OPERATIONS METHODS--------------
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void startUpPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodInitTask(reservation);
@@ -144,36 +146,49 @@ public class ExecutorScheduler {
 
             CHECK_CONDITION_ZONE:
             {
-                // Filter properly started VMs
-                Set<UUID> vmsIdsToExclude = existingSubtasks.stream()
-                        .filter(subTask -> subTask.getType().equals(ExecutorSubtask.SubtaskType.START_VM) && subTask.getSuccessful())
-                        .map(ExecutorSubtask::getVmId)
-                        .collect(Collectors.toSet());
-                List<VirtualMachine> filteredVms = new ArrayList<>(originalVms);
-                filteredVms.removeIf(vm -> vmsIdsToExclude.contains(vm.getId()));
+                //todo to_test
+                Predicate<ExecutorSubtask> predicate = st ->
+                        st.getType().equals(ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES) && st.getSuccessful();
+                if (existingSubtasks.stream().anyMatch(predicate)) {
+                    break CHECK_CONDITION_ZONE;
+                }
 
-                List<Vm> ovirtVms = fetchOvirtVms(filteredVms);
+                // Filter properly started VMs
+                List<VirtualMachine> filteredVmsToCheck = filterVmsBySubtasks(
+                        existingSubtasks,
+                        originalVms,
+                        ExecutorSubtask.SubtaskType.START_VM,
+                        true
+                );
+                List<Vm> ovirtVms = fetchOvirtVms(filteredVmsToCheck);
+
                 // Check if all VMs are down
-                checkIfVmsDownStatus(ovirtVms);
+                runAndRegister(
+                        () -> checkIfVmsDownStatus(ovirtVms),
+                        executorTask, null, ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES
+                );;
 
                 //TODO michal: Verify resources or handle insufficient on VM startup command (probably the first one)
             }
 
             MAP_PRIVATE_SEGMENTS_ZONE:
             {
+                Predicate<ExecutorSubtask> predicate = st ->
+                        st.getType().equals(ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE) && st.getSuccessful();
                 // Map<K, V> -> K: nicId, V: vnicProfileId
                 Map<UUID, UUID> nicsIdsToExclude = existingSubtasks.stream()
-                        .filter(subtask -> subtask.getType().equals(ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE) && subtask.getSuccessful())
+                        .filter(predicate)
                         .collect(Collectors.toMap(
-                                subtask -> ((VnicProfileTask) subtask).getNicId(),
-                                subtask -> ((VnicProfileTask) subtask).getVnicProfileId()
+                                st -> ((VnicProfileTask) st).getNicId(),
+                                st -> ((VnicProfileTask) st).getVnicProfileId()
                         ));
 
-                //Network mapping
+                // Network mapping
                 List<ResourceGroupNetwork> networksToMap = resourceGroup.getNetworks();
                 networksToMap
                         .forEach(
                                 network -> {
+                                    // Filter already assigned NICs
                                     List<NetworkInterface> interfaces = network.getInterfaces();
                                     int numOfInterfacesBeforeFiltering = interfaces.size();
 
@@ -206,6 +221,11 @@ public class ExecutorScheduler {
                                         vnicProfilePoolService.markVnicProfileAsOccupied(chosenVnicProfileId);
                                     }
 
+                                    //TODO michal: check if transaction rollback setting 'inUse' flag (BIG PROBLEM)
+                                    //TODO michal: potentially if error occurs on the first nic, in the next iteration
+                                    // will be choose the new one vnic profile from pool (and the previous one will be
+                                    // marked as occupied without assigning to any NIC - resource blocking)
+
                                     // Assign vnic profile to VMs NICs
                                     interfaces
                                             .forEach(
@@ -226,115 +246,200 @@ public class ExecutorScheduler {
 
             START_VMS_ZONE:
             {
-                //Start-up VMs
+                // Start-up VMs
                 if (reservation.getAutomaticStartup()) {
-                    // Filter properly started VMs
-                    Set<UUID> vmsIdsToExclude = existingSubtasks.stream()
-                            .filter(subTask -> subTask.getType().equals(ExecutorSubtask.SubtaskType.START_VM))
-                            .map(ExecutorSubtask::getVmId)
-                            .collect(Collectors.toSet());
-                    List<VirtualMachine> filteredVms = new ArrayList<>(originalVms);
-                    filteredVms.removeIf(vm -> vmsIdsToExclude.contains(vm.getId()));
+                    //todo to_test
 
-                    filteredVms
+                    // Filter VMs for which an attempt was made to launch
+                    List<VirtualMachine> filteredVmsToStart = filterVmsBySubtasks(
+                            existingSubtasks,
+                            originalVms,
+                            ExecutorSubtask.SubtaskType.START_VM,
+                            false
+                    );
+
+                    filteredVmsToStart
                             .forEach(
-                                    vm -> runAndRegister(() -> oVirtVmService.runVm(vm.getId().toString()),
-                                            executorTask, vm.getId(), ExecutorSubtask.SubtaskType.START_VM
-                                    )
+                                    vm -> {
+                                        try {
+                                            runAndRegister(
+                                                    () -> oVirtVmService.runVm(vm.getId().toString()),
+                                                    executorTask, vm.getId(), ExecutorSubtask.SubtaskType.START_VM
+                                            );
+                                        } catch (Throwable nestedException) {
+                                            // If the exception was related to a call to oVirt's API is intentionally
+                                            // swallowed, so as not to interrupt the executor algorithm
+                                            // (this is conditioned on one attempt to run the VM,
+                                            // next attempts can be made by students manually)
+                                            if (nestedException.getCause() instanceof org.ovirt.engine.sdk4.Error) {
+                                                return;
+                                            }
+                                            throw nestedException;
+                                        }
+                                    }
                             );
                 }
             }
 
-            //TODO michal: maybe filter already assigned permissions (maybe because this operation is idempotent)
             ASSIGN_PERMISSION_ZONE:
             {
-                //Assign permissions
-                List<UUID> oVirtIds = team.getUsers().stream()
-                        .map(pl.lodz.p.it.eduvirt.entity.User::getOVirtId)
-                        .toList();
-            
-                reservation.getResourceGroup().getVms()
+                //todo to_test
+
+                // Filter VMs for which permission have been assigned
+                List<VirtualMachine> filteredVmsToAssignPermission = filterVmsBySubtasks(
+                        existingSubtasks,
+                        originalVms,
+                        ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE,
+                        true
+                );
+
+                // Assign permissions
+                filteredVmsToAssignPermission
                         .stream()
                         .filter(vm -> !vm.isHidden())
                         .forEach(
-                                vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), oVirtIds),
+                                vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), team.getUsers()),
                                         executorTask, vm.getId(), ExecutorSubtask.SubtaskType.ASSIGN_PERMISSION
                                 )
                         );
             }
 
-            //Mark reservation as started
+            // Mark reservation as started
             reservationService.startReservation(reservation);
 
-            executorTaskService.finalizeTask(executorTask.getId(), true, null);
+            executorTaskService.finalizeTask(executorTask.getId(), true);
         } catch (Throwable e) {
             executorTaskService.finalizeTask(executorTask.getId(), false, e.getMessage());
             throw e;
         }
     }
 
-    //TODO michal: Start new attempt to stop POD from the last successful subtask
     //TODO michal: if pod doesnt start should we invoke stopping it??? - now stopping is invoking in any cases
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void stopPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodDestroyTask(reservation);
+        List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationEndExistingSubTasks(reservation);
+
         try {
             ResourceGroup resourceGroup = reservation.getResourceGroup();
             Team team = reservation.getTeam();
-            List<VirtualMachine> virtualMachines = resourceGroup.getVms();
+            List<VirtualMachine> originalVms = resourceGroup.getVms();
 
-            //TODO michal: maybe separate to different scheduled tasks (to not stop the rest of stopping POD operations)
-            //Revoke permissions
+            REVOKE_PERMISSION_ZONE:
+            {
+                //todo to_test
 
-            List<UUID> oVirtIds = team.getUsers().stream()
-                    .map(pl.lodz.p.it.eduvirt.entity.User::getOVirtId)
-                    .toList();
+                // Filter VMs for which permission have been assigned
+                List<VirtualMachine> filteredVmsToRevokePermission = filterVmsBySubtasks(
+                        existingSubtasks,
+                        originalVms,
+                        ExecutorSubtask.SubtaskType.REVOKE_PERMISSION,
+                        true
+                );
 
-            virtualMachines
-                    .forEach(
-                            vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), oVirtIds),
-                                    executorTask, vm.getId(), ExecutorSubtask.SubtaskType.REVOKE_PERMISSION
-                            )
-                    );
+                // Revoke permissions
+                // We do not do filtering by hidden flag in case, as a result of an error,
+                // some permissions to a VM have been granted to this team
+                filteredVmsToRevokePermission
+                        .forEach(
+                                vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), team.getUsers()),
+                                        executorTask, vm.getId(), ExecutorSubtask.SubtaskType.REVOKE_PERMISSION
+                                )
+                        );
+            }
 
-            //Private networks cleaning
-            List<ResourceGroupNetwork> networksToRemove = resourceGroup.getNetworks();
-            networksToRemove
-                    .forEach(
-                            network -> {
-                                // Remove vnic profile from VMs NICs
-                                Set<UUID> removedVnicProfilesIdsSet = network.getInterfaces()
-                                        .stream()
-                                        .map(
-                                                nic -> {
-                                                    UUID vmId = nic.getVirtualMachine().getId();
-                                                    return runAndRegister(
-                                                            () -> removeVnicProfileFromNIC(vmId, nic.getId()),
-                                                            executorTask, vmId, ExecutorSubtask.SubtaskType.REMOVE_VNIC_PROFILE,
-                                                            AdditionalId.VNIC_PROFILE,
-                                                            AdditionalId.NIC.withId(nic.getId())
-                                                    );
-                                                }
-                                        )
-                                        .filter(Objects::nonNull)
-                                        .collect(Collectors.toSet());
+            CLEAR_PRIVATE_SEGMENTS_ZONE:
+            {
+                //todo to_test
+                Predicate<ExecutorSubtask> predicate = st ->
+                        st.getType().equals(ExecutorSubtask.SubtaskType.REMOVE_VNIC_PROFILE) && st.getSuccessful();
+                Set<UUID> nicsIdsToExclude = existingSubtasks.stream()
+                        .filter(predicate)
+                        .map(st -> ((VnicProfileTask) st).getNicId())
+                        .collect(Collectors.toSet());
 
-                                // Set vnic profile's property "inUse" to false
-                                removedVnicProfilesIdsSet.forEach(vnicProfilePoolService::markVnicProfileAsFree);
-                            }
-                    );
+                // Private networks cleaning
+                List<ResourceGroupNetwork> networksToRemove = resourceGroup.getNetworks();
+                networksToRemove
+                        .forEach(
+                                network -> {
+                                    // Filter already cleaned NICs
+                                    List<NetworkInterface> interfaces = network.getInterfaces();
+                                    interfaces.removeIf(nic -> nicsIdsToExclude.contains(nic.getId()));
 
-            //Shutdown VMs
-            virtualMachines
-                    .forEach(
-                            vm -> runAndRegister(() -> oVirtVmService.shutdownVm(vm.getId().toString()),
-                                    executorTask, vm.getId(), ExecutorSubtask.SubtaskType.SHUTDOWN_VM
-                            )
-                    );
+                                    if (interfaces.isEmpty()) {
+                                        return;
+                                    }
 
-            //TODO michal: when waiting to vm shutdown for a long time, use power off
+                                    //todo check remove <EMPTY> vnic profile
 
-            executorTaskService.finalizeTask(executorTask.getId(), true, null);
+                                    // Remove vnic profile from VMs NICs
+                                    Set<UUID> removedVnicProfilesIdsSet = interfaces
+                                            .stream()
+                                            .map(
+                                                    nic -> {
+                                                        UUID vmId = nic.getVirtualMachine().getId();
+                                                        return runAndRegister(
+                                                                () -> removeVnicProfileFromNIC(vmId, nic.getId()),
+                                                                executorTask, vmId, ExecutorSubtask.SubtaskType.REMOVE_VNIC_PROFILE,
+                                                                AdditionalId.VNIC_PROFILE,
+                                                                AdditionalId.NIC.withId(nic.getId())
+                                                        );
+                                                    }
+                                            )
+                                            .filter(Objects::nonNull)
+                                            .collect(Collectors.toSet());
+
+                                    // Set vnic profile's property "inUse" to false
+                                    if (removedVnicProfilesIdsSet.size() == 1) {
+                                        vnicProfilePoolService.markVnicProfileAsFree(removedVnicProfilesIdsSet.iterator().next());
+                                    } else {
+                                        // TODO michal: Solution? take the vnic profile id from startUpPod subtasks???
+                                        log.error("More than one assigned vnic profile was detected within " +
+                                                "the private network segment, which prevented from marking, " +
+                                                "the nominal vnic profile as free in the pool");
+                                    }
+                                }
+                        );
+            }
+
+            STOP_VMS_ZONE:
+            {
+                //TODO michal: if this filtering is necessery??
+                //TODO to_test
+
+                // Filter VMs for which an attempt was made to shutdown
+                List<VirtualMachine> filteredVmsToStop = filterVmsBySubtasks(
+                        existingSubtasks,
+                        originalVms,
+                        ExecutorSubtask.SubtaskType.SHUTDOWN_VM,
+                        false
+                );
+
+                // Shutdown VMs
+                filteredVmsToStop
+                        .forEach(
+                                vm -> {
+                                    try {
+                                        runAndRegister(
+                                                () -> oVirtVmService.shutdownVm(vm.getId().toString()),
+                                                executorTask, vm.getId(), ExecutorSubtask.SubtaskType.SHUTDOWN_VM
+                                        );
+                                    } catch (Throwable nestedException) {
+                                        // If the exception was related to a call to oVirt's API is intentionally
+                                        // swallowed, so as not to interrupt the executor algorithm
+                                        // (this is conditioned on one attempt to shutdown the VM,
+                                        // attempts to stop will be made by another time task, as POWER_OFF operations
+                                        if (nestedException.getCause() instanceof org.ovirt.engine.sdk4.Error) {
+                                            return;
+                                        }
+                                        throw nestedException;
+                                    }
+                                }
+                        );
+            }
+
+            executorTaskService.finalizeTask(executorTask.getId(), true);
         } catch (Throwable e) {
             executorTaskService.finalizeTask(executorTask.getId(), false, e.getMessage());
             throw e;
@@ -372,13 +477,13 @@ public class ExecutorScheduler {
 
     private void checkIfVmsDownStatus(List<Vm> vms) {
         //TODO michal: How to handle this differentiation
-        Set<Vm> validStatus = new HashSet<>();
         Set<Vm> invalidStatus = new HashSet<>();
         Set<Vm> transitionalValidStatus = new HashSet<>();
 
         vms.forEach(vm -> {
                     switch (vm.status()) {
-                        case DOWN, POWERING_DOWN, IMAGE_LOCKED -> validStatus.add(vm);
+                        case DOWN, POWERING_DOWN, IMAGE_LOCKED -> {
+                        }
                         case UP, MIGRATING, POWERING_UP, RESTORING_STATE,
                              SAVING_STATE, SUSPENDED, PAUSED,
                              NOT_RESPONDING, UNASSIGNED, UNKNOWN -> invalidStatus.add(vm);
@@ -406,17 +511,6 @@ public class ExecutorScheduler {
             log.error(errorMessage);
             throw new VmTransitionalStatusException(errorMessage);
         }
-        //OLD_IMPL
-//        String invalidStatusesConcString = vms.stream()
-//                .filter(vm -> !vm.status().equals(VmStatus.DOWN))
-//                .map(vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name()))
-//                .collect(Collectors.joining(";"));
-//
-//        if (!invalidStatusesConcString.isEmpty()) {
-//            String errorMessage = "Some VMs are in invalid statuses: " + invalidStatusesConcString;
-//            log.error(errorMessage);
-//            throw new RuntimeException(errorMessage);
-//        }
     }
 
     private void assignVnicProfileToNIC(UUID vnicProfileId, UUID vmId, UUID vmNicId) {
@@ -457,8 +551,7 @@ public class ExecutorScheduler {
         ).map(UUID::fromString).orElse(null);
     }
 
-//--------------REGISTERING SUBTASKS METHODS--------------
-
+    //--------------REGISTERING SUBTASKS METHODS--------------
     private <T> T runAndRegister(Supplier<T> supplier, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type,
                                  AdditionalId... additionalIds) {
         ExecutorSubtask executorSubtask = executorTaskService.registerSubTask(task.getId(), vmId, type);
@@ -468,7 +561,7 @@ public class ExecutorScheduler {
                     additionalIds.length >= 1 && Objects.isNull(additionalIds[0].getId())) {
                 additionalIds[0].withId((UUID) tmpVal);
             }
-            executorTaskService.finalizeSubTask(executorSubtask.getId(), true, null, additionalIds);
+            executorTaskService.finalizeSubTask(executorSubtask.getId(), true, additionalIds);
             return tmpVal;
         } catch (Throwable e) {
             executorTaskService.finalizeSubTask(executorSubtask.getId(), false, e.getMessage(), additionalIds);
@@ -485,8 +578,7 @@ public class ExecutorScheduler {
         runAndRegister(castedSupplier, task, vmId, type, additionalIds);
     }
 
-//--------------INIT&DESTROY--------------
-
+    //--------------INIT&DESTROY--------------
     @PostConstruct
     private void init() {
         // Fetch all IN_PROGRESS and set FAILED due to system restart
@@ -494,4 +586,22 @@ public class ExecutorScheduler {
         executorTaskService.getReservationsInProgressTasks()
                 .forEach(task -> executorTaskService.finalizeTask(task.getId(), false, "Failed due to system restart"));
     }
+
+    //--------------UTILS--------------
+    private static List<VirtualMachine> filterVmsBySubtasks(final List<ExecutorSubtask> subtasks,
+                                                            final List<VirtualMachine> originalVms,
+                                                            ExecutorSubtask.SubtaskType searchedSubtaskType,
+                                                            boolean onlySuccessful) {
+        Set<UUID> vmsIdsToExclude = subtasks.stream()
+                .filter(subtask ->
+                        subtask.getType().equals(searchedSubtaskType) && (!onlySuccessful || subtask.getSuccessful())
+                )
+                .map(ExecutorSubtask::getVmId)
+                .collect(Collectors.toSet());
+        List<VirtualMachine> filteredVms = new ArrayList<>(originalVms);
+        filteredVms.removeIf(vm -> vmsIdsToExclude.contains(vm.getId()));
+
+        return filteredVms;
+    }
+
 }
