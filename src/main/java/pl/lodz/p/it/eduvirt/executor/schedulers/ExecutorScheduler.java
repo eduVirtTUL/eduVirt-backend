@@ -283,6 +283,11 @@ public class ExecutorScheduler {
 
             ASSIGN_PERMISSION_ZONE:
             {
+                // Get team users ids
+                List<UUID> oVirtIds = team.getUsers().stream()
+                        .map(pl.lodz.p.it.eduvirt.entity.User::getOVirtId)
+                        .toList();
+
                 //todo to_test
 
                 // Filter VMs for which permission have been assigned
@@ -298,7 +303,7 @@ public class ExecutorScheduler {
                         .stream()
                         .filter(vm -> !vm.isHidden())
                         .forEach(
-                                vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), team.getUsers()),
+                                vm -> runAndRegister(() -> addTeamPermissionsToVm(vm.getId(), oVirtIds),
                                         executorTask, vm.getId(), ExecutorSubtask.SubtaskType.ASSIGN_PERMISSION
                                 )
                         );
@@ -327,6 +332,11 @@ public class ExecutorScheduler {
 
             REVOKE_PERMISSION_ZONE:
             {
+                // Get team users ids
+                List<UUID> oVirtIds = team.getUsers().stream()
+                        .map(pl.lodz.p.it.eduvirt.entity.User::getOVirtId)
+                        .toList();
+
                 //todo to_test
 
                 // Filter VMs for which permission have been assigned
@@ -342,7 +352,7 @@ public class ExecutorScheduler {
                 // some permissions to a VM have been granted to this team
                 filteredVmsToRevokePermission
                         .forEach(
-                                vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), team.getUsers()),
+                                vm -> runAndRegister(() -> revokeTeamPermissionsToVm(vm.getId(), oVirtIds),
                                         executorTask, vm.getId(), ExecutorSubtask.SubtaskType.REVOKE_PERMISSION
                                 )
                         );
