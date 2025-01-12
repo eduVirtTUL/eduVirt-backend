@@ -17,6 +17,8 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
+import pl.lodz.p.it.eduvirt.exceptions.executor.VmInvalidStatusException;
+import pl.lodz.p.it.eduvirt.exceptions.executor.VmTransitionalStatusException;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
@@ -28,6 +30,7 @@ import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,18 +44,18 @@ import java.util.stream.Collectors;
 // Priority 0
 //IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
 //IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
+//IMPROVEMENTS michal: improvements for transactions
 
 // Priority 1
-//IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time
+//IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
+
 //IMPROVEMENTS michal: handle flag 'ended' in reservation table
-//IMPROVEMENTS michal: rethink transactions
-//IMPROVEMENTS michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems)
-//IMPROVEMENTS michal: separate assigning/revoking permissions to different scheduled tasks
+//IMPROVEMENTS michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems) (probably no limit)
+//IMPROVEMENTS michal: implement different exceptions for different statues of VM (that is not in DOWN status)
 
 // Priority 2
 
 //IMPROVEMENTS michal: maybe include checking VMs statues in subtasks
-//IMPROVEMENTS michal: maybe implement different exceptions for different statues of VM (that is not in DOWN status)
 //IMPROVEMENTS michal: verifications count/type of registered subtasks
 //IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
 
@@ -60,7 +63,7 @@ import java.util.stream.Collectors;
 //IMPROVEMENTS michal: perhaps improvement -> .stream().parallel() when calling oVirt Api (d871bd94490e9d4f0e7f72e7c4da6b2ac48e5df7 -> last revision with comments where it could be used)
 //IMPROVEMENTS michal: perhaps optimized VM oVirt API calls (like in f06d3d17fa5acdd71996ed5ede4148e6753ab8b3)
 //IMPROVEMENTS michal: perhaps real pooling instead of invoking checking conditions in fixed time
-
+//IMPROVEMENTS michal: separate assigning/revoking permissions to different scheduled tasks (rather not)
 
 @Slf4j
 @Service
@@ -137,17 +140,18 @@ public class ExecutorScheduler {
         try {
             ResourceGroup resourceGroup = reservation.getResourceGroup();
             Team team = reservation.getTeam();
-            List<VirtualMachine> filteredVms = new ArrayList<>(resourceGroup.getVms());
-
-            // Filter properly started VMs
-            Set<UUID> vmsIdsToExclude = existingSubtasks.stream()
-                    .filter(subTask -> subTask.getType().equals(ExecutorSubtask.SubtaskType.START_VM) && subTask.getSuccessful())
-                    .map(ExecutorSubtask::getVmId)
-                    .collect(Collectors.toSet());
-            filteredVms.removeIf(vm -> vmsIdsToExclude.contains(vm.getId()));
+            List<VirtualMachine> originalVms = new ArrayList<>(resourceGroup.getVms());
 
             CHECK_CONDITION_ZONE:
             {
+                // Filter properly started VMs
+                Set<UUID> vmsIdsToExclude = existingSubtasks.stream()
+                        .filter(subTask -> subTask.getType().equals(ExecutorSubtask.SubtaskType.START_VM) && subTask.getSuccessful())
+                        .map(ExecutorSubtask::getVmId)
+                        .collect(Collectors.toSet());
+                List<VirtualMachine> filteredVms = new ArrayList<>(originalVms);
+                filteredVms.removeIf(vm -> vmsIdsToExclude.contains(vm.getId()));
+
                 List<Vm> ovirtVms = fetchOvirtVms(filteredVms);
                 // Check if all VMs are down
                 checkIfVmsDownStatus(ovirtVms);
@@ -219,10 +223,19 @@ public class ExecutorScheduler {
                         );
             }
 
+
             START_VMS_ZONE:
             {
                 //Start-up VMs
                 if (reservation.getAutomaticStartup()) {
+                    // Filter properly started VMs
+                    Set<UUID> vmsIdsToExclude = existingSubtasks.stream()
+                            .filter(subTask -> subTask.getType().equals(ExecutorSubtask.SubtaskType.START_VM))
+                            .map(ExecutorSubtask::getVmId)
+                            .collect(Collectors.toSet());
+                    List<VirtualMachine> filteredVms = new ArrayList<>(originalVms);
+                    filteredVms.removeIf(vm -> vmsIdsToExclude.contains(vm.getId()));
+
                     filteredVms
                             .forEach(
                                     vm -> runAndRegister(() -> oVirtVmService.runVm(vm.getId().toString()),
@@ -232,9 +245,6 @@ public class ExecutorScheduler {
                 }
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            //TODO michal: maybe separate to different scheduled tasks (simplified 'Active waiting' for all VMs are running )
             //TODO michal: maybe filter already assigned permissions (maybe because this operation is idempotent)
             ASSIGN_PERMISSION_ZONE:
             {
@@ -253,7 +263,8 @@ public class ExecutorScheduler {
                         );
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////
+            //Mark reservation as started
+            reservationService.startReservation(reservation);
 
             executorTaskService.finalizeTask(executorTask.getId(), true, null);
         } catch (Throwable e) {
@@ -345,13 +356,13 @@ public class ExecutorScheduler {
 //
 ////        reservationService.markReservationAsEnded();
 //
-////         catch (Throwable e) {
-////            e.printStackTrace();
-////        }
+
+    /// /         catch (Throwable e) {
+    /// /            e.printStackTrace();
+    /// /        }
 //    }
 
     //--------------PRIVATE METHODS--------------
-
     private List<Vm> fetchOvirtVms(List<VirtualMachine> virtualMachines) {
         Set<String> vmIdsStr = virtualMachines.stream()
                 .map(vm -> vm.getId().toString())
@@ -360,16 +371,52 @@ public class ExecutorScheduler {
     }
 
     private void checkIfVmsDownStatus(List<Vm> vms) {
-        String invalidStatusesConcString = vms.stream()
-                .filter(vm -> !vm.status().equals(VmStatus.DOWN))
-                .map(vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name()))
-                .collect(Collectors.joining(";"));
+        //TODO michal: How to handle this differentiation
+        Set<Vm> validStatus = new HashSet<>();
+        Set<Vm> invalidStatus = new HashSet<>();
+        Set<Vm> transitionalValidStatus = new HashSet<>();
 
-        if (!invalidStatusesConcString.isEmpty()) {
+        vms.forEach(vm -> {
+                    switch (vm.status()) {
+                        case DOWN, POWERING_DOWN, IMAGE_LOCKED -> validStatus.add(vm);
+                        case UP, MIGRATING, POWERING_UP, RESTORING_STATE,
+                             SAVING_STATE, SUSPENDED, PAUSED,
+                             NOT_RESPONDING, UNASSIGNED, UNKNOWN -> invalidStatus.add(vm);
+                        case REBOOT_IN_PROGRESS, WAIT_FOR_LAUNCH -> transitionalValidStatus.add(vm);
+                    }
+                }
+        );
+
+        if (!invalidStatus.isEmpty()) {
+            String invalidStatusesConcString = invalidStatus.stream()
+                    .map(vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name()))
+                    .collect(Collectors.joining(";"));
+
             String errorMessage = "Some VMs are in invalid statuses: " + invalidStatusesConcString;
             log.error(errorMessage);
-            throw new RuntimeException(errorMessage);
+            throw new VmInvalidStatusException(errorMessage);
         }
+
+        if (!transitionalValidStatus.isEmpty()) {
+            String transitionalStatusesConcString = transitionalValidStatus.stream()
+                    .map(vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name()))
+                    .collect(Collectors.joining(";"));
+
+            String errorMessage = "Some VMs are in invalid statuses: " + transitionalStatusesConcString;
+            log.error(errorMessage);
+            throw new VmTransitionalStatusException(errorMessage);
+        }
+        //OLD_IMPL
+//        String invalidStatusesConcString = vms.stream()
+//                .filter(vm -> !vm.status().equals(VmStatus.DOWN))
+//                .map(vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name()))
+//                .collect(Collectors.joining(";"));
+//
+//        if (!invalidStatusesConcString.isEmpty()) {
+//            String errorMessage = "Some VMs are in invalid statuses: " + invalidStatusesConcString;
+//            log.error(errorMessage);
+//            throw new RuntimeException(errorMessage);
+//        }
     }
 
     private void assignVnicProfileToNIC(UUID vnicProfileId, UUID vmId, UUID vmNicId) {
@@ -410,7 +457,7 @@ public class ExecutorScheduler {
         ).map(UUID::fromString).orElse(null);
     }
 
-    //--------------REGISTERING SUBTASKS METHODS--------------
+//--------------REGISTERING SUBTASKS METHODS--------------
 
     private <T> T runAndRegister(Supplier<T> supplier, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type,
                                  AdditionalId... additionalIds) {
@@ -438,10 +485,13 @@ public class ExecutorScheduler {
         runAndRegister(castedSupplier, task, vmId, type, additionalIds);
     }
 
-    //--------------INIT&DESTROY--------------
+//--------------INIT&DESTROY--------------
 
     @PostConstruct
     private void init() {
-        //TODO michal: fetch all IN_PROGRESS and set FAILED due to system restart
+        // Fetch all IN_PROGRESS and set FAILED due to system restart
+        // (solution for tasks that are stuck in IN_PROGRESS status )
+        executorTaskService.getReservationsInProgressTasks()
+                .forEach(task -> executorTaskService.finalizeTask(task.getId(), false, "Failed due to system restart"));
     }
 }

@@ -25,4 +25,6 @@ public interface ExecutorTaskService {
     List<ExecutorSubtask> getReservationEndExistingSubTasks(Reservation reservation);
 
     List<ExecutorTask> getReservationsToEndTasks();
+
+    List<ExecutorTask> getReservationsInProgressTasks();
 }

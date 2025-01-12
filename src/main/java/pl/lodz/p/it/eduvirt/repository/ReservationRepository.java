@@ -109,23 +109,25 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                                                     @Param("probeTime") LocalDateTime probeTime,
                                                     Pageable pageable);
 
-    //TODO michal: maybe add flag to reservation or check executor_task table to check which reservation was processing
     //TODO michal: optimization
     //TODO michal: change r.endTime to 'r.endTime - 5 minutes' for ex. -> starting reservations for a few seconds makes no sense..
-    //TODO michal: include IN_PROGRESS status (maybe task more than 5 min in this status...)
+    //TODO michal: probably remove last condition
+    //TODO michal: is necessary to include IN_PROGRESS status (on transaction rollback it should be set back to the PENDING status)
     @Query("""
             SELECT DISTINCT r FROM Reservation r
-            WHERE current_timestamp BETWEEN r.startTime AND r.endTime
+            WHERE :probeTime BETWEEN r.startTime AND r.endTime
+            AND r.status = 'PENDING'
             AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_INIT' AND et.status != 'FAILED')
             """)
-    List<Reservation> findAllReservationsToBegin();
+    List<Reservation> findAllReservationsToBegin(@Param("probeTime") LocalDateTime probeTime);
 
     //TODO michal: r.endTime - 5 minutes -> due to the potential start of the next reservation immediately after this one
+    //TODO michal: probably remove last condition
     @Query("""
             SELECT DISTINCT r FROM Reservation r
-            WHERE current_timestamp >= r.endTime
-            AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_DESTRUCT' AND et.status != 'FAILED')
+            WHERE :probeTime >= r.endTime
             AND r.status = 'IN_PROGRESS'
+            AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_DESTRUCT' AND et.status != 'FAILED')
             """)
-    List<Reservation> findAllReservationsToStop();
+    List<Reservation> findAllReservationsToStop(@Param("probeTime") LocalDateTime probeTime);
 }
