@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.UpdateResourceGroupDto;
@@ -46,7 +47,7 @@ public class ResourceGroupController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResourceGroupDto> updateResourceGroup(@PathVariable UUID id, @RequestBody UpdateResourceGroupDto resourceGroupDto) {
+    public ResponseEntity<ResourceGroupDto> updateResourceGroup(@PathVariable UUID id, @RequestBody @Validated UpdateResourceGroupDto resourceGroupDto) {
         ResourceGroup resourceGroup = resourceGroupMapper.toEntity(resourceGroupDto);
         resourceGroupService.updateResourceGroup(id, resourceGroup);
         return ResponseEntity.ok().build();
