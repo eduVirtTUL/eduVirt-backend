@@ -13,4 +13,6 @@ public interface OVirtUserService {
 
     User getUserById(UUID userId);
 
+    User getUserByPrincipal(String principal);
+
 }

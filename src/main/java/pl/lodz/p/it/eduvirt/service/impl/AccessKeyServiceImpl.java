@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.function.Predicate;
 
@@ -26,6 +27,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AccessKeyServiceImpl implements AccessKeyService {
 
     private final CourseRepository courseRepository;
@@ -58,6 +60,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
 
     @Override
     @PreAuthorize("isAuthenticated()")
+    @Transactional
     public CourseAccessKey createCourseKey(UUID courseId, String userCourseKey) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
@@ -82,7 +85,8 @@ public class AccessKeyServiceImpl implements AccessKeyService {
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public void createTeamKey(UUID teamId, String teamKey) {
+    @Transactional
+    public TeamAccessKey createTeamKey(UUID teamId, String teamKey) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
@@ -97,7 +101,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
         newTeamAccessKey.setKeyValue(keyValue);
         newTeamAccessKey.setTeam(team);
 
-        teamAccessKeyRepository.saveAndFlush(newTeamAccessKey);
+        return teamAccessKeyRepository.saveAndFlush(newTeamAccessKey);
     }
 
     @Override
@@ -130,20 +134,4 @@ public class AccessKeyServiceImpl implements AccessKeyService {
                     .orElseThrow(AccessKeyNotFoundException::new);
         }
     }
-
-
-    //TODO: add etag shenanigans later
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    public CourseAccessKey updateCourseKey(UUID courseId, String courseKey) {
-        courseRepository.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
-
-        CourseAccessKey accessKey = courseAccessKeyRepository.findByCourseId(courseId)
-                .orElseThrow(AccessKeyNotFoundException::new);
-
-        accessKey.setKeyValue(courseKey);
-        return courseAccessKeyRepository.saveAndFlush(accessKey);
-    }
-
 }

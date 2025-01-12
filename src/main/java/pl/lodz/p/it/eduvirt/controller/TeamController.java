@@ -1,10 +1,16 @@
 package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
+import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
+import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
@@ -34,12 +40,22 @@ public class TeamController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TeamWithCourseDto>> getTeams() {
-        List<Team> teams = teamService.getAllTeams();
-        List<TeamWithCourseDto> teamWithCourseDtos = teams.stream()
+    public ResponseEntity<PageDto<TeamWithCourseDto>> getTeams(
+            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Team> teamsPage = teamService.getAllTeams(pageable);
+        
+        List<TeamWithCourseDto> teamDtos = teamsPage.getContent().stream()
                 .map(teamMapper::teamToTeamWithCourseDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(teamWithCourseDtos);
+
+        PageDto<TeamWithCourseDto> pageDto = new PageDto<>(teamDtos,
+                new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
+                        teamsPage.getTotalPages(), teamsPage.getTotalElements()));
+
+        if (teamDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(pageDto);
     }
 
     @GetMapping("/{teamId}")
@@ -55,41 +71,70 @@ public class TeamController {
         return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(updatedTeam));
     }
 
-
     @GetMapping("/user/{userId}")
     @Transactional
-    public ResponseEntity<List<TeamWithCourseDto>> getTeamsByUser(@PathVariable UUID userId) {
-        List<Team> teams = teamService.getTeamsByUser(userId);
-        List<TeamWithCourseDto> teamWithCourseDtos = teams.stream()
+    public ResponseEntity<PageDto<TeamWithCourseDto>> getTeamsByUser(
+            @PathVariable UUID userId,
+            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Team> teamsPage = teamService.getTeamsByUser(userId, pageable);
+        
+        List<TeamWithCourseDto> teamDtos = teamsPage.getContent().stream()
                 .map(teamMapper::teamToTeamWithCourseDto)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(teamWithCourseDtos);
+
+        PageDto<TeamWithCourseDto> pageDto = new PageDto<>(teamDtos,
+                new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
+                        teamsPage.getTotalPages(), teamsPage.getTotalElements()));
+
+        if (teamDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(pageDto);
     }
 
     @GetMapping("/course/{courseId}")
-    public ResponseEntity<List<TeamDto>> getTeamsByCourse(@PathVariable UUID courseId) {
-        List<Team> teams = teamService.getTeamsByCourse(courseId);
-        List<TeamDto> teamDtos = teams.stream()
+    public ResponseEntity<PageDto<TeamDto>> getTeamsByCourse(
+            @PathVariable UUID courseId,
+            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Team> teamsPage = teamService.getTeamsByCourse(courseId, pageable);
+        
+        List<TeamDto> teamDtos = teamsPage.getContent().stream()
                 .map(teamMapper::teamToTeamDto)
                 .toList();
-        return ResponseEntity.ok(teamDtos);
+
+        PageDto<TeamDto> pageDto = new PageDto<>(teamDtos,
+                new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
+                        teamsPage.getTotalPages(), teamsPage.getTotalElements()));
+
+        if (teamDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(pageDto);
     }
 
-    //TODO: make it so it takes the user from the context
     @PostMapping("/join")
-    public ResponseEntity<Void> joinUsingKey(@RequestParam String keyValue, @RequestParam UUID userId) {
-        if (keyValue == null || keyValue.isEmpty()) {
-            throw new IllegalArgumentException("Key value cannot be empty");
-        }
+    public ResponseEntity<Void> joinUsingKey(@RequestParam String keyValue) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         teamService.joinUsingKey(keyValue, userId);
         return ResponseEntity.noContent().build();
     }
 
-    //TODO: make it so it takes the user from the context
     @PostMapping("/leave")
-    public ResponseEntity<Void> leaveTeam(@RequestParam UUID teamId, @RequestParam UUID userId) {
+    public ResponseEntity<Void> leaveTeam(@RequestParam UUID teamId) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         teamService.removeUserFromTeam(teamId, userId);
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/add/{teamId}/{userId}")
+    public ResponseEntity<Void> addUserToTeam(@PathVariable UUID teamId, @PathVariable UUID userId) {
+        teamService.addUserToTeam(teamId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/remove/{teamId}/{userId}")
+    public ResponseEntity<Void> removeUserFromTeam(@PathVariable UUID teamId, @PathVariable UUID userId) {
+        teamService.removeUserFromTeam(teamId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

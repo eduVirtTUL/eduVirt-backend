@@ -47,11 +47,4 @@ public class AccessKeyController {
             return ResponseEntity.noContent().build();
         }
     }
-
-    // enhance this with etag later
-    @PutMapping("/course/{courseId}")
-    public ResponseEntity<CourseAccessKeyDto> updateCourseKey(@PathVariable UUID courseId, @RequestParam String courseKey) {
-        CourseAccessKey key = accessKeyService.updateCourseKey(courseId, courseKey);
-        return ResponseEntity.ok(accessKeyMapper.toCourseKeyDto(key));
-    }
 }

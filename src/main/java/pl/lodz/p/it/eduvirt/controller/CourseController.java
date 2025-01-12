@@ -182,4 +182,10 @@ public class CourseController {
         if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDTOs);
     }
+
+    @PostMapping("/{courseId}/{userId}")
+    public ResponseEntity<Void> addUserToCourse(@PathVariable UUID courseId, @PathVariable UUID userId) {
+        teamService.addUserToCourse(courseId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

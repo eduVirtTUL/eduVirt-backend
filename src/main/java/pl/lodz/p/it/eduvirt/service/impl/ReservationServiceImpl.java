@@ -46,6 +46,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final CourseMetricRepository courseMetricRepository;
     private final ClusterMetricRepository clusterMetricRepository;
     private final MaintenanceIntervalRepository maintenanceIntervalRepository;
+    private final UserRepository userRepository;
 
     /* Util */
 
@@ -322,14 +323,15 @@ public class ReservationServiceImpl implements ReservationService {
 
             /* Authorization check */
             UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+            User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
             Course course = foundReservation.getTeam().getCourse();
-            List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+            List<User> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
             List<String> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                     .stream().map(GrantedAuthority::getAuthority).toList();
 
             if (!authorities.contains("administrator") &&
                     !(authorities.contains("teacher") && true) &&
-                    !(authorities.contains("student") && users.contains(userId))) {
+                    !(authorities.contains("student") && users.contains(user))) {
                 return Optional.empty();
             }
         }
@@ -357,14 +359,15 @@ public class ReservationServiceImpl implements ReservationService {
                                                 Course course, LocalDateTime start, LocalDateTime end) {
         /* Authorization logic */
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        List<User> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         // TODO: Add check: Teacher must belong to the course that the reservation are fetched for.
         if (!authorities.contains("administrator") &&
                 !(authorities.contains("teacher") && true) &&
-                !(authorities.contains("student") && users.contains(userId))) {
+                !(authorities.contains("student") && users.contains(user))) {
             return List.of();
         }
 
@@ -377,14 +380,15 @@ public class ReservationServiceImpl implements ReservationService {
                                                     Course course, LocalDateTime start, LocalDateTime end) {
         /* Authorization logic */
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        List<User> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         // TODO: Add check: Teacher must belong to the course that the reservation are fetched for.
         if (!authorities.contains("administrator") &&
                 !(authorities.contains("teacher") && true) &&
-                !(authorities.contains("student") && users.contains(userId))) {
+                !(authorities.contains("student") && users.contains(user))) {
             return List.of();
         }
 
@@ -443,14 +447,15 @@ public class ReservationServiceImpl implements ReservationService {
                                                                       int windowLength, LocalDateTime start, LocalDateTime end) {
         /* Authorization check */
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        List<User> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         // TODO: Add check: Teacher must belong to the course that the reservation is located in.
         if (!authorities.contains("administrator") &&
                 !(authorities.contains("teacher") && true) &&
-                !(authorities.contains("student") && users.contains(userId))) {
+                !(authorities.contains("student") && users.contains(user))) {
             throw new ReservationFinishException("User %s does not have required privileges to see resource group's %s availability."
                     .formatted(userId, resourceGroup.getId()));
         }
@@ -481,14 +486,15 @@ public class ReservationServiceImpl implements ReservationService {
                                                                           int windowLength, LocalDateTime start, LocalDateTime end) {
         /* Authorization check */
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        List<User> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         // TODO: Add check: Teacher must belong to the course that the reservation is located in.
         if (!authorities.contains("administrator") &&
                 !(authorities.contains("teacher") && true) &&
-                !(authorities.contains("student") && users.contains(userId))) {
+                !(authorities.contains("student") && users.contains(user))) {
             throw new ReservationFinishException("User %s does not have required privileges to see resource group pool's %s availability."
                     .formatted(userId, resourceGroupPool));
         }

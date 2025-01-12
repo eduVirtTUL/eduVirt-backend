@@ -8,6 +8,7 @@ import pl.lodz.p.it.eduvirt.dto.pod.PodStatefulDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.pod.PodStatefulDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
+import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.PodStateful;
 
 @Mapper(componentModel = "spring")
@@ -44,9 +45,15 @@ public interface PodStatefulMapper {
                         pod.getTeam().getName(),
                         pod.getTeam().isActive(),
                         pod.getTeam().getMaxSize(),
-                        pod.getTeam().getUsers()
+                        pod.getTeam().getUsers().stream().map(user -> new UserDto(
+                                user.getId().toString(),
+                                user.getOVirtId().toString(),
+                                user.getEmail(),
+                                user.getUserName(),
+                                user.getFirstName(),
+                                user.getLastName()
+                        )).toList()
                 )
-
         );
     }
 }

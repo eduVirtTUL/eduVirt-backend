@@ -7,6 +7,7 @@ import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
 import pl.lodz.p.it.eduvirt.dto.team.UpdateTeamDto;
+import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.Team;
 
 @Mapper(componentModel = "spring")
@@ -26,7 +27,14 @@ public interface TeamMapper {
                 team.getName(),
                 team.isActive(),
                 team.getMaxSize(),
-                team.getUsers(),
+                team.getUsers().stream().map(user -> new UserDto(
+                        user.getId().toString(),
+                        user.getOVirtId().toString(),
+                        user.getEmail(),
+                        user.getUserName(),
+                        user.getFirstName(),
+                        user.getLastName()
+                )).toList(),
                 courseBasicDto
         );
     }
@@ -37,7 +45,14 @@ public interface TeamMapper {
                 team.getName(),
                 team.isActive(),
                 team.getMaxSize(),
-                team.getUsers()
+                team.getUsers().stream().map(user -> new UserDto(
+                        user.getId().toString(),
+                        user.getOVirtId().toString(),
+                        user.getEmail(),
+                        user.getUserName(),
+                        user.getFirstName(),
+                        user.getLastName()
+                )).toList()
         );
     }
 
