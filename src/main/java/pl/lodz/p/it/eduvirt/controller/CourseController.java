@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.exceptions.ApplicationAccessDeniedException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
@@ -156,8 +158,21 @@ public class CourseController {
             listOfDTOs.add(new ResourcesAvailabilityDto(localDateTime, availability.get(localDateTime)));
         }
 
-        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(listOfDTOs);
+        /* Check authorization */
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                (authorities.contains("teacher") && true) ||
+                (authorities.contains("student") && users.contains(userId))) &&
+                !listOfDTOs.isEmpty()) {
+            return ResponseEntity.ok(listOfDTOs);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -179,7 +194,20 @@ public class CourseController {
             listOfDTOs.add(new ResourcesAvailabilityDto(localDateTime, availability.get(localDateTime)));
         }
 
-        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(listOfDTOs);
+        /* Check authorization */
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                (authorities.contains("teacher") && true) ||
+                (authorities.contains("student") && users.contains(userId))) &&
+                !listOfDTOs.isEmpty()) {
+            return ResponseEntity.ok(listOfDTOs);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 }

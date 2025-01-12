@@ -13,9 +13,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalConflictException;
-import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalInvalidTimeWindowException;
-import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
+import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.repository.MaintenanceIntervalRepository;
 import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
@@ -253,8 +251,9 @@ public class MaintenanceIntervalServiceTest {
         String cause = "example_cause";
         String description = "example_description";
         UUID clusterId = UUID.randomUUID();
-        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
-        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(3).toLocalDateTime();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(3);
 
         MaintenanceInterval exampleMaintenanceInterval = new MaintenanceInterval(
                 cause, description, MaintenanceInterval.IntervalType.CLUSTER, existingClusterId, start, end);
@@ -297,8 +296,9 @@ public class MaintenanceIntervalServiceTest {
         String cause = "example_cause";
         String description = "example_description";
         UUID clusterId = UUID.randomUUID();
-        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
-        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(3).toLocalDateTime();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(3);
 
         MaintenanceInterval exampleMaintenanceInterval = new MaintenanceInterval(
                 cause, description, MaintenanceInterval.IntervalType.CLUSTER, existingClusterId, start, end);
@@ -324,8 +324,9 @@ public class MaintenanceIntervalServiceTest {
     public void Given_MaintenanceIntervalBeginAtAfterEndAt_When_CreateClusterMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
-        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(4).toLocalDateTime();
-        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(4);
+        LocalDateTime end = currentTime.plusHours(2);
 
         assertThrows(MaintenanceIntervalInvalidTimeWindowException.class, () -> maintenanceIntervalService
                 .createClusterMaintenanceInterval(cluster, cause, description, start, end));
@@ -335,11 +336,24 @@ public class MaintenanceIntervalServiceTest {
     public void Given_MaintenanceIntervalBeginAtIsInThePast_When_CreateClusterMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
-        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(1).toLocalDateTime();
-        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).plusMinutes(59).toLocalDateTime();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.minusMinutes(1);
+        LocalDateTime end = currentTime.plusHours(2).plusMinutes(59);
 
         assertThrows(MaintenanceIntervalInvalidTimeWindowException.class, () -> maintenanceIntervalService
                 .createClusterMaintenanceInterval(cluster, cause, description, start, end));
+    }
+
+    @Test
+    public void Given_MaintenanceIntervalToBeCreatedIsLongerThan24Hours_When_CreateClusterMaintenanceInterval_Then_ThrowsException() {
+        String cause = "example_cause";
+        String description = "example_description";
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(8);
+        LocalDateTime end = start.plusHours(40);
+
+        assertThrows(MaintenanceIntervalTooLongException.class,
+                () -> maintenanceIntervalService.createClusterMaintenanceInterval(cluster, cause, description, start, end));
     }
 
     @Test
@@ -347,8 +361,9 @@ public class MaintenanceIntervalServiceTest {
         String cause = "example_cause";
         String description = "example_description";
         UUID clusterId = UUID.randomUUID();
-        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
-        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(3).toLocalDateTime();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(3);
 
         when(cluster.id()).thenReturn(clusterId.toString());
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end),
@@ -368,8 +383,9 @@ public class MaintenanceIntervalServiceTest {
     public void Given_AllDataMatchesRequiredConditionsAndSomeReservationsAreFound_When_CreateSystemMaintenanceInterval_Then_CreatesNewSystemMaintenanceIntervalSuccessfully() {
         String cause = "example_cause";
         String description = "example_description";
-        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
-        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(4).toLocalDateTime();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(4);
 
         MaintenanceInterval exampleMaintenanceInterval = new MaintenanceInterval(
                 cause, description, MaintenanceInterval.IntervalType.SYSTEM, null, start, end);
@@ -412,8 +428,9 @@ public class MaintenanceIntervalServiceTest {
     public void Given_AllDataMatchesRequiredConditionsAndNoReservationsAreFound_When_CreateSystemMaintenanceInterval_Then_CreatesNewSystemMaintenanceIntervalSuccessfully() {
         String cause = "example_cause";
         String description = "example_description";
-        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
-        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(4).toLocalDateTime();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(4);
 
         MaintenanceInterval exampleMaintenanceInterval = new MaintenanceInterval(
                 cause, description, MaintenanceInterval.IntervalType.SYSTEM, null, start, end);
@@ -436,8 +453,9 @@ public class MaintenanceIntervalServiceTest {
     public void Given_MaintenanceIntervalBeginAtAfterEndAt_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
-        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(4).toLocalDateTime();
-        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(4);
+        LocalDateTime end = currentTime.plusHours(2);
 
         assertThrows(MaintenanceIntervalInvalidTimeWindowException.class, () -> maintenanceIntervalService
                 .createSystemMaintenanceInterval(cause, description, start, end));
@@ -447,10 +465,23 @@ public class MaintenanceIntervalServiceTest {
     public void Given_MaintenanceIntervalBeginAtIsInThePast_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
-        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(1).toLocalDateTime();
-        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).plusHours(59).toLocalDateTime();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.minusMinutes(1);
+        LocalDateTime end = currentTime.plusHours(2).plusMinutes(59);
 
         assertThrows(MaintenanceIntervalInvalidTimeWindowException.class, () -> maintenanceIntervalService
+                .createSystemMaintenanceInterval(cause, description, start, end));
+    }
+
+    @Test
+    public void Given_MaintenanceIntervalToBeCreatedIsLongerThan24Hours_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
+        String cause = "example_cause";
+        String description = "example_description";
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(8);
+        LocalDateTime end = currentTime.plusHours(40);
+
+        assertThrows(MaintenanceIntervalTooLongException.class, () -> maintenanceIntervalService
                 .createSystemMaintenanceInterval(cause, description, start, end));
     }
 
@@ -458,8 +489,9 @@ public class MaintenanceIntervalServiceTest {
     public void Given_OtherMaintenanceIntervalsExistForGivenCluster_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
-        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2).toLocalDateTime();
-        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(4).toLocalDateTime();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(4);
 
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(Mockito.eq(start), Mockito.eq(end),
                 Mockito.eq(MaintenanceInterval.IntervalType.SYSTEM), Mockito.eq(null))).thenReturn(List.of(maintenanceInterval1, maintenanceInterval2));
@@ -665,6 +697,24 @@ public class MaintenanceIntervalServiceTest {
         when(maintenanceIntervalRepository.findById(randomUUID)).thenReturn(Optional.empty());
         assertThrows(MaintenanceIntervalNotFound.class, () -> maintenanceIntervalService.finishMaintenanceInterval(randomUUID));
         verify(maintenanceIntervalRepository, times(1)).findById(Mockito.eq(randomUUID));
+    }
+
+    @Test
+    public void Given_ExistingIdentifierIsPassedMaintenanceIntervalForMaintenanceIntervalThatIsAlreadyFinished_When_FinishMaintenanceInterval_Then_ThrowsException() {
+        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).minusHours(24).toLocalDateTime();
+        LocalDateTime end = start.plusHours(8);
+
+        maintenanceInterval1.setBeginAt(start);
+        maintenanceInterval1.setEndAt(end);
+
+        when(maintenanceIntervalRepository.findById(maintenanceInterval1.getId()))
+                .thenReturn(Optional.of(maintenanceInterval1));
+
+        assertThrows(MaintenanceIntervalAlreadyFinishedException.class,
+                () -> maintenanceIntervalService.finishMaintenanceInterval(maintenanceInterval1.getId()));
+
+        verify(maintenanceIntervalRepository, times(1))
+                .findById(Mockito.eq(maintenanceInterval1.getId()));
     }
 
     @Test

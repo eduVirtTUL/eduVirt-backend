@@ -16,8 +16,6 @@ public interface ReservationService {
     /* Create methods */
 
     void createReservationForStatefulPod(Team team, PodStateful podId, CreateReservationDto createDto);
-
-    // TODO: Change after stateless pod is completed.
     void createReservationForStatelessPod(Team team, PodStateless podId, CreateReservationDto createDto);
 
     /* Read methods */

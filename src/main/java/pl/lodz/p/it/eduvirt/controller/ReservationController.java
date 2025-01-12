@@ -11,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,13 +23,17 @@ import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.exceptions.ApplicationAccessDeniedException;
+import pl.lodz.p.it.eduvirt.exceptions.ReservationFinishException;
 import pl.lodz.p.it.eduvirt.exceptions.ReservationNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.ReservationMapper;
 import pl.lodz.p.it.eduvirt.service.*;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -84,10 +89,27 @@ public class ReservationController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{reservationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ReservationDetailsDto> getReservationDetails(@PathVariable("reservationId") UUID reservationId) {
-        Reservation foundReservation = reservationService.findReservationById(reservationId)
-                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
+        Optional<Reservation> reservationOptional = reservationService.findReservationById(reservationId);
 
-        return ResponseEntity.ok(reservationMapper.reservationToDetailsDto(foundReservation));
+        if (reservationOptional.isPresent()) {
+            Reservation foundReservation = reservationOptional.get();
+
+            /* Check authorization */
+
+            UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+            Course course = foundReservation.getTeam().getCourse();
+            List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+            List<String> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                    .stream().map(GrantedAuthority::getAuthority).toList();
+
+            if (authorities.contains("administrator") ||
+                    (authorities.contains("teacher") && true) ||
+                    (authorities.contains("student") && users.contains(userId))) {
+                return ResponseEntity.ok(reservationMapper.reservationToDetailsDto(foundReservation));
+            }
+        }
+
+        throw new ReservationNotFoundException(reservationId);
     }
 
     @PreAuthorize("hasRole('student')")
@@ -132,8 +154,21 @@ public class ReservationController {
 
         List<ReservationDto> listOfDtos = reservations.stream().map(reservationMapper::reservationToDto).toList();
 
-        if (listOfDtos.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(listOfDtos);
+        /* Check authorization */
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                (authorities.contains("teacher") && true) ||
+                (authorities.contains("student") && users.contains(userId))) &&
+                !reservations.isEmpty()) {
+            return ResponseEntity.ok(listOfDtos);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -149,8 +184,20 @@ public class ReservationController {
 
         List<ReservationDto> listOfDtos = reservations.stream().map(reservationMapper::reservationToDto).toList();
 
-        if (listOfDtos.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(listOfDtos);
+        /* Check authorization */
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                !(authorities.contains("teacher") && true) ||
+                !(authorities.contains("student") && users.contains(userId))) && !reservations.isEmpty()) {
+            return ResponseEntity.ok(listOfDtos);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasRole('student')")
@@ -175,8 +222,19 @@ public class ReservationController {
                 new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
                         reservationPage.getTotalPages(), reservationPage.getTotalElements()));
 
-        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(outputDto);
+        /* Check authorization */
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                (authorities.contains("teacher") && true) ||
+                (authorities.contains("student") && team.getUsers().contains(userId))) &&
+                !listOfDTOs.isEmpty()) {
+            return ResponseEntity.ok(outputDto);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasRole('student')")
@@ -201,8 +259,19 @@ public class ReservationController {
                 new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
                         reservationPage.getTotalPages(), reservationPage.getTotalElements()));
 
-        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(outputDto);
+        /* Check authorization */
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                (authorities.contains("teacher") && true) ||
+                (authorities.contains("student") && team.getUsers().contains(userId))) &&
+                !listOfDTOs.isEmpty()) {
+            return ResponseEntity.ok(outputDto);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
@@ -221,8 +290,18 @@ public class ReservationController {
                 new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
                         reservationPage.getTotalPages(), reservationPage.getTotalElements()));
 
-        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(outputDto);
+        /* Check authorization */
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                (authorities.contains("teacher") && true)) &&
+                !listOfDTOs.isEmpty()) {
+            return ResponseEntity.ok(outputDto);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
@@ -241,8 +320,16 @@ public class ReservationController {
                 new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
                         reservationPage.getTotalPages(), reservationPage.getTotalElements()));
 
-        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(outputDto);
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                (authorities.contains("teacher") && true)) &&
+                !listOfDTOs.isEmpty()) {
+            return ResponseEntity.ok(outputDto);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     /* Update / delete methods */
@@ -251,12 +338,25 @@ public class ReservationController {
     @PostMapping(path = "/{reservationId}/cancel")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<Void> finishReservation(@PathVariable("reservationId") UUID reservationId) {
-        Reservation foundReservation = reservationService
-                .findReservationById(reservationId)
-                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
+        Optional<Reservation> reservationOptional = reservationService.findReservationById(reservationId);
 
-        reservationService.finishReservation(foundReservation);
+        if (reservationOptional.isPresent()) {
+            Reservation foundReservation = reservationOptional.get();
 
-        return ResponseEntity.noContent().build();
+            UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+            Team team = foundReservation.getTeam();
+            Course course = foundReservation.getTeam().getCourse();
+            List<String> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                    .stream().map(GrantedAuthority::getAuthority).toList();
+
+            if (authorities.contains("administrator") ||
+                    (authorities.contains("teacher") && true) ||
+                    (authorities.contains("student") && team.getUsers().contains(userId))) {
+                reservationService.finishReservation(foundReservation);
+                return ResponseEntity.noContent().build();
+            }
+        }
+
+        throw new ReservationNotFoundException(reservationId);
     }
 }

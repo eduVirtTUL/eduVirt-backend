@@ -6,8 +6,6 @@ import org.ovirt.engine.sdk4.types.Host;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +26,7 @@ import pl.lodz.p.it.eduvirt.util.MetricUtil;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @LoggerInterceptor
@@ -92,8 +91,8 @@ public class ReservationServiceImpl implements ReservationService {
 
         /* Condition no. 2: Maximum reservation length */
 
-        int maxRentHours = resourceGroup.getMaxRentTime();
-        int reservationLengthHours = (int) ChronoUnit.HOURS.between(start, end);
+        long maxRentHours = TimeUnit.HOURS.toSeconds(resourceGroup.getMaxRentTime());
+        long reservationLengthHours = ChronoUnit.SECONDS.between(start, end);
 
         if (maxRentHours != 0 && reservationLengthHours > maxRentHours)
             throw new ReservationMaxLengthExceededException("Reservation for resource group: %s could not be longer than: %d"
@@ -208,16 +207,16 @@ public class ReservationServiceImpl implements ReservationService {
 
         /* Condition no. 1: Minimum reservation length */
 
-        if ((int) ChronoUnit.HOURS.between(start, end) < 1)
+        long reservationLength = ChronoUnit.SECONDS.between(start, end);
+        if (reservationLength < 3600)
             throw new ReservationTooShortException(
                     "Minimum length of the reservation in eduVirt system is exactly 1 hour.");
 
         /* Condition no. 2: Maximum reservation length */
 
-        int maxRentHours = resourceGroupPool.getMaxRentTime();
-        int reservationLengthHours = (int) ChronoUnit.HOURS.between(start, end);
+        long maxRentHours = TimeUnit.HOURS.toSeconds(resourceGroupPool.getMaxRentTime());
 
-        if (maxRentHours != 0 && reservationLengthHours > maxRentHours)
+        if (maxRentHours != 0 && reservationLength > maxRentHours)
             throw new ReservationMaxLengthExceededException("Reservation for resource group pool: %s could not be longer than: %d"
                     .formatted(resourceGroupPool.getId(), maxRentHours));
 
@@ -268,10 +267,8 @@ public class ReservationServiceImpl implements ReservationService {
             List<Reservation> foundCourseReservations = reservationRepository
                     .findCourseReservations(course, start, end);
 
-            if (!bankerAlgorithm.process(
-                    () -> metricUtil.extractCourseMetricValues(foundCourseMetrics),
-                    foundCourseReservations, resourceGroup, courseCluster, clusterHosts)
-            ) continue;
+            if (!bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(foundCourseMetrics),
+                    foundCourseReservations, resourceGroup, courseCluster, clusterHosts)) continue;
 
             /* Condition no. 7: Resources availability for given cluster */
 
@@ -279,17 +276,14 @@ public class ReservationServiceImpl implements ReservationService {
             List<Reservation> foundClusterReservations = reservationRepository
                     .findClusterReservations(course.getClusterId(), start, end);
 
-            if (!bankerAlgorithm.process(
-                    () -> metricUtil.extractClusterMetricValues(foundClusterMetrics),
-                    foundClusterReservations, resourceGroup, courseCluster, clusterHosts)
-            ) continue;
+            if (!bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(foundClusterMetrics),
+                    foundClusterReservations, resourceGroup, courseCluster, clusterHosts)) continue;
 
             /* Condition no. 8: Resource group availability */
 
             List<Reservation> foundReservations = reservationRepository
                     .findRgReservations(resourceGroup, start, end);
-            if (!foundReservations.isEmpty())
-                continue;
+            if (!foundReservations.isEmpty()) continue;
 
             chosenResourceGroup = resourceGroup;
             break;
@@ -315,26 +309,7 @@ public class ReservationServiceImpl implements ReservationService {
     @PreAuthorize("isAuthenticated()")
     @Override
     public Optional<Reservation> findReservationById(UUID reservationId) {
-        Optional<Reservation> reservationOptional = reservationRepository.findById(reservationId);
-
-        if (reservationOptional.isPresent()) {
-            Reservation foundReservation = reservationOptional.get();
-
-            /* Authorization check */
-            UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-            Course course = foundReservation.getTeam().getCourse();
-            List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
-            List<String> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
-                    .stream().map(GrantedAuthority::getAuthority).toList();
-
-            if (!authorities.contains("administrator") &&
-                    !(authorities.contains("teacher") && true) &&
-                    !(authorities.contains("student") && users.contains(userId))) {
-                return Optional.empty();
-            }
-        }
-
-        return reservationOptional;
+        return reservationRepository.findById(reservationId);
     }
 
     @PreAuthorize("hasRole('student')")
@@ -355,19 +330,6 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public List<Reservation> findRgReservations(ResourceGroup resourceGroup,
                                                 Course course, LocalDateTime start, LocalDateTime end) {
-        /* Authorization logic */
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        // TODO: Add check: Teacher must belong to the course that the reservation are fetched for.
-        if (!authorities.contains("administrator") &&
-                !(authorities.contains("teacher") && true) &&
-                !(authorities.contains("student") && users.contains(userId))) {
-            return List.of();
-        }
-
         return reservationRepository.findRgReservations(resourceGroup, start, end);
     }
 
@@ -375,41 +337,13 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public List<Reservation> findRgPoolReservations(ResourceGroupPool resourceGroupPool,
                                                     Course course, LocalDateTime start, LocalDateTime end) {
-        /* Authorization logic */
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        // TODO: Add check: Teacher must belong to the course that the reservation are fetched for.
-        if (!authorities.contains("administrator") &&
-                !(authorities.contains("teacher") && true) &&
-                !(authorities.contains("student") && users.contains(userId))) {
-            return List.of();
-        }
-
         return reservationRepository.findRgPoolReservations(resourceGroupPool, start, end);
     }
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
     @Override
     public Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable) {
-        Team foundTeam = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException(teamId));
-
-        /* Authorization logic */
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        Course course = foundTeam.getCourse();
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        // TODO: Add check: Teacher must belong to the course that the reservation are fetched for.
-        if (!authorities.contains("administrator") &&
-                !(authorities.contains("teacher") && true)) {
-            throw new ReservationFinishException("User %s does not have required privileges to see active reservations of team %s."
-                    .formatted(userId, foundTeam.getId()));
-        }
-
+        Team foundTeam = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         return reservationRepository.findAllActiveReservations(foundTeam, currentTime, pageable);
     }
@@ -417,22 +351,7 @@ public class ReservationServiceImpl implements ReservationService {
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
     @Override
     public Page<Reservation> findHistoricalReservations(UUID teamId, Pageable pageable) {
-        Team foundTeam = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException(teamId));
-
-        /* Authorization logic */
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        Course course = foundTeam.getCourse();
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        // TODO: Add check: Teacher must belong to the course that the reservation is finished in.
-        if (!authorities.contains("administrator") &&
-                !(authorities.contains("teacher") && true)) {
-            throw new ReservationFinishException("User %s does not have required privileges to see historical reservations of team %s."
-                    .formatted(userId, foundTeam.getId()));
-        }
-
+        Team foundTeam = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         return reservationRepository.findAllHistoricalReservations(foundTeam, currentTime, pageable);
     }
@@ -441,21 +360,6 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public Map<LocalDateTime, Boolean> checkResourceGroupAvailability(ResourceGroup resourceGroup, Course course,
                                                                       int windowLength, LocalDateTime start, LocalDateTime end) {
-        /* Authorization check */
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        // TODO: Add check: Teacher must belong to the course that the reservation is located in.
-        if (!authorities.contains("administrator") &&
-                !(authorities.contains("teacher") && true) &&
-                !(authorities.contains("student") && users.contains(userId))) {
-            throw new ReservationFinishException("User %s does not have required privileges to see resource group's %s availability."
-                    .formatted(userId, resourceGroup.getId()));
-        }
-
-        /* Availability check */
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
         Cluster cluster = clusterService.findClusterById(course.getClusterId());
@@ -479,21 +383,6 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public Map<LocalDateTime, Boolean> checkResourceGroupPoolAvailability(ResourceGroupPool resourceGroupPool, Course course,
                                                                           int windowLength, LocalDateTime start, LocalDateTime end) {
-        /* Authorization check */
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<UUID> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        // TODO: Add check: Teacher must belong to the course that the reservation is located in.
-        if (!authorities.contains("administrator") &&
-                !(authorities.contains("teacher") && true) &&
-                !(authorities.contains("student") && users.contains(userId))) {
-            throw new ReservationFinishException("User %s does not have required privileges to see resource group pool's %s availability."
-                    .formatted(userId, resourceGroupPool));
-        }
-
-        /* Availability check */
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
         Cluster cluster = clusterService.findClusterById(course.getClusterId());
@@ -524,25 +413,12 @@ public class ReservationServiceImpl implements ReservationService {
     @PreAuthorize("isAuthenticated()")
     @Override
     public void finishReservation(Reservation reservation) {
-        /* Authorization logic */
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        Team team = reservation.getTeam();
-        Course course = reservation.getTeam().getCourse();
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        // TODO: Add check: Teacher must belong to the course that the reservation is removed from.
-        if (!authorities.contains("administrator") &&
-                !(authorities.contains("teacher") && true) &&
-                !(authorities.contains("student") && team.getUsers().contains(userId))) {
-            throw new ReservationFinishException("User %s does not have required privileges to remove reservation %s."
-                    .formatted(userId, reservation.getId()));
-        }
-
-        /* Reservation ending logic */
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
 
-        if (reservation.getStartTime().isBefore(currentTime)) {
+        if (reservation.getEndTime().isBefore(currentTime)) {
+            throw new ReservationAlreadyFinishedException(
+                    "Reservation %s has already finished!".formatted(reservation.getId()));
+        } else if (reservation.getStartTime().isBefore(currentTime)) {
             reservation.setEndTime(currentTime);
             reservationRepository.saveAndFlush(reservation);
         } else {

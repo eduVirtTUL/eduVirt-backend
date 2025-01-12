@@ -102,8 +102,8 @@ public class I18n {
     public static final String RESOURCE_GROUP_ALREADY_RESERVED = "reservations.error.resource.group.already.reserved";
     public static final String RESOURCE_GROUP_RESERVATION_COUNT_EXCEEDED = "reservations.error.reservation.count.exceeded";
     public static final String RESERVATION_STATUS_ALREADY_SET = "reservations.error.status.already.set";
+    public static final String RESERVATION_ALREADY_FINISHED = "reservations.error.status.already.finished";
 
-    public static final String POD_NOT_ASSIGNED = "reservations.error.pod.not.assigned";
     public static final String STATEFUL_POD_NOT_ASSIGNED = "reservations.error.stateful.pod.not.assigned";
     public static final String STATELESS_POD_NOT_ASSIGNED = "reservations.error.stateless.pod.not.assigned";
 
@@ -119,6 +119,7 @@ public class I18n {
 
     /* General keys */
 
+    public static final String ACCESS_DENIED_ERROR = "general.error.access.denied.exception";
     public static final String OPERATION_NOT_IMPLEMENTED = "general.error.operation.not.implemented";
     public static final String CONNECTION_OPEN_ERROR = "general.error.connection.open.error";
     public static final String CONSTRAINT_VIOLATION_EXCEPTION = "general.error.constraint.violation.exception";

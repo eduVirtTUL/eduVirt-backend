@@ -65,6 +65,23 @@ public class MetricServiceTest {
         verify(metricRepository, times(1)).saveAndFlush(Mockito.eq(newMetric));
     }
 
+    /* FindById method test */
+
+    @Test
+    public void Given_ExistingMetricIdentifierIsPassed_When_FindById_Then_ReturnsFoundMetricSuccessfully() {
+        when(metricRepository.findById(Mockito.eq(metric1.getId()))).thenReturn(Optional.of(metric1));
+        metricService.findById(metric1.getId());
+        verify(metricRepository, times(1)).findById(Mockito.eq(metric1.getId()));
+    }
+
+    @Test
+    public void Given_NonExistentMetricIdentifierIsPassed_When_FindById_Then_ThrowsException() {
+        UUID nonExistentMetricId = UUID.randomUUID();
+        when(metricRepository.findById(Mockito.eq(nonExistentMetricId))).thenReturn(Optional.empty());
+        assertThrows(MetricNotFoundException.class, () -> metricService.findById(nonExistentMetricId));
+        verify(metricRepository, times(1)).findById(Mockito.eq(nonExistentMetricId));
+    }
+
     /* FindAllMetrics method test */
 
     @Test
