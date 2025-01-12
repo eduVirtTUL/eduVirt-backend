@@ -76,8 +76,8 @@ VALUES ('2e8989cb-6811-46ce-be27-9ec7b6ea788c', 0, 'Some random cause #1', 'Some
        ('eb4c5e2e-215c-442f-82e8-bb38900d0b47', 0, 'Some random cause #2', 'Some description of the break', 'CLUSTER', 'c282a57c-624e-448b-823e-a68352d10914', timestamp 'today' - interval '1 hour', timestamp 'today' + interval '7 hours'),
        ('0136324d-fa42-4d4a-a046-33469ecb9d0b', 0, 'Some random cause #3', 'Some description of the break', 'CLUSTER', 'c282a57c-624e-448b-823e-a68352d10914', timestamp 'tomorrow' - interval '1 hour', timestamp 'tomorrow' + interval '7 hours');
 
-INSERT INTO public.users (id, email)
-VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', '242447@edu.p.lodz.pl');
+-- INSERT INTO public.user (id, ovirt_id, email, user_name, first_name, last_name)
+-- VALUES ('4edf0d7d-e5cc-4ba5-a7a9-8acaa2763eca', '11f4cd51-350e-4ed5-8074-4f13c012e6cb' , '242447@edu.p.lodz.pl', 'nexto','Piotr', 'Kwiatkowski');
 
 ------------------------------------------
 --- Sample data for reservation module ---
@@ -121,17 +121,17 @@ VALUES ('72fc908f-5d02-4c81-91a3-2bccaa627946', 0, 'SO-Student001', true, 1, 'b9
        ('33e44d4e-c937-4d13-a060-f41a4c3c05fb', 0, 'SO-Student010', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9');
 
 
-INSERT INTO public.user_team (team_id, user_id)
-VALUES ('72fc908f-5d02-4c81-91a3-2bccaa627946', '4e88cecc-fa80-4145-b5a8-e2e4acf24279'),
-       ('cb97b2f0-646f-4876-906f-0fd44cf6d63a', gen_random_uuid()),
-       ('12ca7f40-c596-44ae-a8d2-671843ecc9e5', gen_random_uuid()),
-       ('83698296-0b9f-40ae-a8e7-2caec8068e1e', gen_random_uuid()),
-       ('b4232713-05fa-411a-a40d-9a3e15f13fa0', gen_random_uuid()),
-       ('d82a711e-a308-4127-95f9-2c38851c3e71', gen_random_uuid()),
-       ('89f530ca-f5a0-40cd-b00a-1997c96dd9d3', gen_random_uuid()),
-       ('bbf54d7d-3ccb-4cea-9726-baef3c58e2dd', gen_random_uuid()),
-       ('c5aaa2ae-4ba7-4b87-86b5-52643d92de47', gen_random_uuid()),
-       ('33e44d4e-c937-4d13-a060-f41a4c3c05fb', gen_random_uuid());
+-- INSERT INTO public.user_team (team_id, user_id)
+-- VALUES ('72fc908f-5d02-4c81-91a3-2bccaa627946', '4e88cecc-fa80-4145-b5a8-e2e4acf24279'),
+--        ('cb97b2f0-646f-4876-906f-0fd44cf6d63a', gen_random_uuid()),
+--        ('12ca7f40-c596-44ae-a8d2-671843ecc9e5', gen_random_uuid()),
+--        ('83698296-0b9f-40ae-a8e7-2caec8068e1e', gen_random_uuid()),
+--        ('b4232713-05fa-411a-a40d-9a3e15f13fa0', gen_random_uuid()),
+--        ('d82a711e-a308-4127-95f9-2c38851c3e71', gen_random_uuid()),
+--        ('89f530ca-f5a0-40cd-b00a-1997c96dd9d3', gen_random_uuid()),
+--        ('bbf54d7d-3ccb-4cea-9726-baef3c58e2dd', gen_random_uuid()),
+--        ('c5aaa2ae-4ba7-4b87-86b5-52643d92de47', gen_random_uuid()),
+--        ('33e44d4e-c937-4d13-a060-f41a4c3c05fb', gen_random_uuid());
 
 --- Resource groups ---
 
@@ -176,25 +176,25 @@ VALUES ('44c2419e-20bc-4dd5-a2e9-e7a44b1e8552', 'f15e7fe3-60a6-4d2c-a124-ad763f6
        ('883f2352-416b-479a-8323-cb62a663fe41', '64da3d79-52be-4936-97e3-b88597bac8b9'),
        ('492c81df-b3c5-44d5-84e6-5d3eb77b4728', '60deabdf-ba7d-482a-b6a5-26e440850496');
 
-INSERT INTO public.user_team (team_id, user_id)
-VALUES ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', '4e88cecc-fa80-4145-b5a8-e2e4acf24279'),
-       ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', gen_random_uuid()),
-       ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', gen_random_uuid()),
-       ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', gen_random_uuid()),
-       ('5ef19d54-c429-499d-9654-ac052d83f3e7', gen_random_uuid()),
-       ('5ef19d54-c429-499d-9654-ac052d83f3e7', gen_random_uuid()),
-       ('5ef19d54-c429-499d-9654-ac052d83f3e7', gen_random_uuid()),
-       ('5ef19d54-c429-499d-9654-ac052d83f3e7', gen_random_uuid()),
-       ('5ef19d54-c429-499d-9654-ac052d83f3e7', gen_random_uuid()),
-       ('64da3d79-52be-4936-97e3-b88597bac8b9', gen_random_uuid()),
-       ('64da3d79-52be-4936-97e3-b88597bac8b9', gen_random_uuid()),
-       ('64da3d79-52be-4936-97e3-b88597bac8b9', gen_random_uuid()),
-       ('64da3d79-52be-4936-97e3-b88597bac8b9', gen_random_uuid()),
-       ('60deabdf-ba7d-482a-b6a5-26e440850496', gen_random_uuid()),
-       ('60deabdf-ba7d-482a-b6a5-26e440850496', gen_random_uuid()),
-       ('60deabdf-ba7d-482a-b6a5-26e440850496', gen_random_uuid()),
-       ('60deabdf-ba7d-482a-b6a5-26e440850496', gen_random_uuid()),
-       ('60deabdf-ba7d-482a-b6a5-26e440850496', gen_random_uuid());
+-- INSERT INTO public.user_team (team_id, user_id)
+-- VALUES ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', '4e88cecc-fa80-4145-b5a8-e2e4acf24279'),
+--        ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', gen_random_uuid()),
+--        ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', gen_random_uuid()),
+--        ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', gen_random_uuid()),
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', gen_random_uuid()),
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', gen_random_uuid()),
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', gen_random_uuid()),
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', gen_random_uuid()),
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', gen_random_uuid()),
+--        ('64da3d79-52be-4936-97e3-b88597bac8b9', gen_random_uuid()),
+--        ('64da3d79-52be-4936-97e3-b88597bac8b9', gen_random_uuid()),
+--        ('64da3d79-52be-4936-97e3-b88597bac8b9', gen_random_uuid()),
+--        ('64da3d79-52be-4936-97e3-b88597bac8b9', gen_random_uuid()),
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', gen_random_uuid()),
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', gen_random_uuid()),
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', gen_random_uuid()),
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', gen_random_uuid()),
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', gen_random_uuid());
 
 --- Resource groups ---
 
@@ -264,27 +264,27 @@ VALUES ('18ed4422-1976-4296-9924-56e8a03e59a3', 'f3896c36-2133-4497-965e-0951e1f
        ('a6dcf8e8-c317-4d50-b2f7-41012856918b', '78908655-ee18-4863-9eef-e67519940a0b'),
        ('60ea45d0-f657-4a43-bc45-a4ea6ee6db88', '40517c17-58b9-41ce-b53e-abaf0e7782fd');
 
-INSERT INTO public.user_team (team_id, user_id)
-VALUES ('f3896c36-2133-4497-965e-0951e1f5aebf', '4e88cecc-fa80-4145-b5a8-e2e4acf24279'),
-       ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
-       ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
-       ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
-       ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
-       ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
-       ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
-       ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
-       ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
-       ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
-       ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
-       ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
-       ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
-       ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid()),
-       ('40517c17-58b9-41ce-b53e-abaf0e7782fd', 'abfc5d9b-1350-444d-9d9a-1bfde79667ad'),
-       ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid()),
-       ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid()),
-       ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid()),
-       ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid()),
-       ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid());
+-- INSERT INTO public.user_team (team_id, user_id)
+-- VALUES ('f3896c36-2133-4497-965e-0951e1f5aebf', '4e88cecc-fa80-4145-b5a8-e2e4acf24279'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', gen_random_uuid()),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', gen_random_uuid()),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid()),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', 'abfc5d9b-1350-444d-9d9a-1bfde79667ad'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid()),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid()),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid()),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid()),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', gen_random_uuid());
 
 --- Resource groups ---
 
@@ -341,25 +341,25 @@ VALUES ('91f834d9-3c1c-460e-b28d-0e9f46a8b5ac', 'd46387ee-7397-4184-91eb-d01d5f3
        ('c3e69479-681a-4b61-b627-e25f03c72eee', 'e608c9d0-e871-4374-a052-f27ced4a9cec'),
        ('90cf4fdd-53b2-4062-b162-1d3c6f4c3ec0', '18750e93-22a7-4a23-8f8b-e0cabde8f793');
 
-INSERT INTO public.user_team (team_id, user_id)
-VALUES ('d46387ee-7397-4184-91eb-d01d5f301c0e', '4e88cecc-fa80-4145-b5a8-e2e4acf24279'),
-       ('d46387ee-7397-4184-91eb-d01d5f301c0e', gen_random_uuid()),
-       ('d46387ee-7397-4184-91eb-d01d5f301c0e', gen_random_uuid()),
-       ('d46387ee-7397-4184-91eb-d01d5f301c0e', gen_random_uuid()),
-       ('d46387ee-7397-4184-91eb-d01d5f301c0e', gen_random_uuid()),
-       ('d46387ee-7397-4184-91eb-d01d5f301c0e', gen_random_uuid()),
-       ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
-       ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
-       ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
-       ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
-       ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
-       ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
-       ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid()),
-       ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid()),
-       ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid()),
-       ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid()),
-       ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid()),
-       ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid());
+-- INSERT INTO public.user_team (team_id, user_id)
+-- VALUES ('d46387ee-7397-4184-91eb-d01d5f301c0e', '4e88cecc-fa80-4145-b5a8-e2e4acf24279'),
+--        ('d46387ee-7397-4184-91eb-d01d5f301c0e', gen_random_uuid()),
+--        ('d46387ee-7397-4184-91eb-d01d5f301c0e', gen_random_uuid()),
+--        ('d46387ee-7397-4184-91eb-d01d5f301c0e', gen_random_uuid()),
+--        ('d46387ee-7397-4184-91eb-d01d5f301c0e', gen_random_uuid()),
+--        ('d46387ee-7397-4184-91eb-d01d5f301c0e', gen_random_uuid()),
+--        ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
+--        ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
+--        ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
+--        ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
+--        ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
+--        ('e608c9d0-e871-4374-a052-f27ced4a9cec', gen_random_uuid()),
+--        ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid()),
+--        ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid()),
+--        ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid()),
+--        ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid()),
+--        ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid()),
+--        ('18750e93-22a7-4a23-8f8b-e0cabde8f793', gen_random_uuid());
 
 --- Resource groups ---
 

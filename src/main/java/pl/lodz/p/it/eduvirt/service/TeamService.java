@@ -2,21 +2,23 @@ package pl.lodz.p.it.eduvirt.service;
 
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Team;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface TeamService {
-    List<Team> getAllTeams();
+    Page<Team> getAllTeams(Pageable pageable);
+    Page<Team> getTeamsByUser(UUID userId, Pageable pageable);
+    Page<Team> getTeamsByCourse(UUID courseId, Pageable pageable);
     Team getTeamById(UUID teamId);
-    List<Team> getTeamsByUser(UUID userId);
-    List<Team> getTeamsByCourse(UUID courseId);
     Team getTeamByCourseAndUser(Course course, UUID userId);
     Team createTeam(Team team, UUID courseId, String keyValue);
     void createSoloTeam(UUID courseId, UUID userId);
-    void addUserToTeam(String keyValue, UUID userId);
-    void addUserToCourse(String keyValue, UUID userId);
+    void addUserToTeam(UUID teamId, UUID userId);
+    void addUserToCourse(UUID courseId, UUID userId);
     void removeUserFromTeam(UUID teamId, UUID userId);
     void joinUsingKey(String keyValue, UUID userId);
+    void leaveTeam(UUID teamId, UUID userId);
     Team updateTeam(Team team, UUID teamId);
 }

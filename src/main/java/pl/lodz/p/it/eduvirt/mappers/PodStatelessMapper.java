@@ -8,6 +8,7 @@ import pl.lodz.p.it.eduvirt.dto.pod.PodStatelessDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.pod.PodStatelessDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
+import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.PodStateless;
 
 @Mapper(componentModel = "spring")
@@ -44,7 +45,14 @@ public interface PodStatelessMapper {
                         pod.getTeam().getName(),
                         pod.getTeam().isActive(),
                         pod.getTeam().getMaxSize(),
-                        pod.getTeam().getUsers()
+                        pod.getTeam().getUsers().stream().map(user -> new UserDto(
+                                user.getId().toString(),
+                                user.getOVirtId().toString(),
+                                user.getEmail(),
+                                user.getUserName(),
+                                user.getFirstName(),
+                                user.getLastName()
+                        )).toList()
                 )
 
         );

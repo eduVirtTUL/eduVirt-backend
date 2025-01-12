@@ -31,18 +31,14 @@ public class Team extends Updatable {
     @Column(name = "max_size", nullable = false)
     private int maxSize;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "user_team",
-            joinColumns = @JoinColumn(name = "team_id"),
-            uniqueConstraints = @UniqueConstraint(columnNames = {"team_id", "user_id"})
+    @ManyToMany
+    @JoinTable(
+        name = "team_users",
+        joinColumns = @JoinColumn(name = "team_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    @Column(name = "user_id", nullable = false)
-    private List<UUID> users = new ArrayList<>();
-
-    @OneToMany(mappedBy = "team")
     @ToString.Exclude
-    private List<Reservation> reservations = new ArrayList<>();
+    private List<User> users = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)

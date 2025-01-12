@@ -13,14 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.authentication.TestingAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.test.context.support.WithSecurityContext;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.*;
@@ -219,10 +211,10 @@ public class ReservationServiceTest {
 
         userWithoutAccess = UUID.fromString("5c0d34af-5c97-479a-9551-21d263e51a95");
 
-        user1 = new User(userId1, "example1@example.com");
-        user2 = new User(userId2, "example2@example.com");
-        user3 = new User(userId3, "example3@example.com");
-        user4 = new User(userId4, "example4@example.com");
+        user1 = new User(userId1, UUID.randomUUID(), "example1@example.com", "UserName1", "FirstName1", "LastName1");
+        user2 = new User(userId2, UUID.randomUUID(), "example2@example.com", "UserName2", "FirstName2", "LastName2");
+        user3 = new User(userId3, UUID.randomUUID(), "example3@example.com", "UserName3", "FirstName3", "LastName3");
+        user4 = new User(userId4, UUID.randomUUID(), "example4@example.com", "UserName4", "FirstName4", "LastName4");
 
         course = new Course();
         course.setName("Sieciowe System Baz Danych");
@@ -243,7 +235,7 @@ public class ReservationServiceTest {
                 .statefulPods(new LinkedList<>())
                 .statelessPods(new LinkedList<>())
                 .build();
-        team1.getUsers().addAll(listOfUsers1.stream().map(User::getId).toList());
+        team1.getUsers().addAll(listOfUsers1);
 
         List<User> listOfUsers2 = List.of(user3, user4);
         team2 = team1 = Team.builder()
@@ -255,7 +247,7 @@ public class ReservationServiceTest {
                 .statefulPods(new LinkedList<>())
                 .statelessPods(new LinkedList<>())
                 .build();
-        team2.getUsers().addAll(listOfUsers2.stream().map(User::getId).toList());
+        team2.getUsers().addAll(listOfUsers2);
 
         id.setAccessible(true);
         id.set(team1, UUID.randomUUID());

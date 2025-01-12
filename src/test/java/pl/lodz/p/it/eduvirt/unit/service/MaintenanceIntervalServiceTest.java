@@ -143,9 +143,9 @@ public class MaintenanceIntervalServiceTest {
         course.setDescription("Network Database Systems");
         course.setClusterId(existingClusterId);
 
-        userNo1 = new User(UUID.randomUUID(), "email1@gmail.com");
-        userNo2 = new User(UUID.randomUUID(), "email2@gmail.com");
-        userNo3 = new User(UUID.randomUUID(), "email3@gmail.com");
+        userNo1 = new User(UUID.randomUUID(), UUID.randomUUID(), "email1@gmail.com", "UserName1", "FirstName1", "LastName1", List.of());
+        userNo2 = new User(UUID.randomUUID(), UUID.randomUUID(), "email2@gmail.com", "UserName2", "FirstName2", "LastName2", List.of());
+        userNo3 = new User(UUID.randomUUID(), UUID.randomUUID(), "email3@gmail.com", "UserName3", "FirstName3", "LastName3", List.of());
 
         List<User> listOfUsers = List.of(userNo1, userNo2, userNo3);
         team = Team.builder()
@@ -155,7 +155,7 @@ public class MaintenanceIntervalServiceTest {
                 .course(course)
                 .users(new ArrayList<>())
                 .build();
-        team.getUsers().addAll(listOfUsers.stream().map(User::getId).toList());
+        team.getUsers().addAll(listOfUsers);
 
         rgPoolNo1 = new ResourceGroupPool();
         rgPoolNo1.setName("SSBD-RGPoolNo1");

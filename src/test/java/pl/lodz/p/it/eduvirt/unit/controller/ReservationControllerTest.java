@@ -13,6 +13,7 @@ import pl.lodz.p.it.eduvirt.controller.ReservationController;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.mappers.ReservationMapper;
+import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.*;
 
 import java.lang.reflect.Field;
@@ -52,6 +53,11 @@ public class ReservationControllerTest {
 
     @MockitoBean
     private TeamService teamService;
+
+    /* Repository */
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     /* Mappers */
 
@@ -174,10 +180,10 @@ public class ReservationControllerTest {
         userId3 = UUID.randomUUID();
         userId4 = UUID.randomUUID();
 
-        user1 = new User(userId1, "example1@example.com");
-        user2 = new User(userId2, "example2@example.com");
-        user3 = new User(userId3, "example3@example.com");
-        user4 = new User(userId4, "example4@example.com");
+        user1 = new User(userId1, UUID.randomUUID(), "example1@example.com", "UserName1", "FirstName1", "LastName1");
+        user2 = new User(userId2, UUID.randomUUID(), "example2@example.com", "UserName2", "FirstName2", "LastName2");
+        user3 = new User(userId3, UUID.randomUUID(), "example3@example.com", "UserName3", "FirstName3", "LastName3");
+        user4 = new User(userId4, UUID.randomUUID(), "example4@example.com", "UserName4", "FirstName4", "LastName4");
 
         course = new Course();
         course.setName("Sieciowe System Baz Danych");
@@ -198,7 +204,7 @@ public class ReservationControllerTest {
                 .statefulPods(new LinkedList<>())
                 .statelessPods(new LinkedList<>())
                 .build();
-        team1.getUsers().addAll(listOfUsers1.stream().map(User::getId).toList());
+        team1.getUsers().addAll(listOfUsers1);
 
         List<User> listOfUsers2 = List.of(user3, user4);
         team2 = team1 = Team.builder()
@@ -210,7 +216,7 @@ public class ReservationControllerTest {
                 .statefulPods(new LinkedList<>())
                 .statelessPods(new LinkedList<>())
                 .build();
-        team2.getUsers().addAll(listOfUsers2.stream().map(User::getId).toList());
+        team2.getUsers().addAll(listOfUsers2);
 
         id.setAccessible(true);
         id.set(team1, UUID.randomUUID());

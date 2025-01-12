@@ -146,11 +146,12 @@ public class ClusterControllerTest {
         course.setName("Sieciowe System Baz Danych");
         course.setDescription("Network Database Systems");
         course.setClusterId(existingClusterId);
-        userNo1 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email1@gmail.com");
-        userNo2 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email2@gmail.com");
-        userNo3 = new pl.lodz.p.it.eduvirt.entity.User(UUID.randomUUID(), "email3@gmail.com");
 
-        List<pl.lodz.p.it.eduvirt.entity.User> listOfUsers = List.of(userNo1, userNo2, userNo3);
+        userNo1 = new User(UUID.randomUUID(), UUID.randomUUID(), "email1@gmail.com", "UserName1", "FirstName1", "LastName1");
+        userNo2 = new User(UUID.randomUUID(), UUID.randomUUID(), "email2@gmail.com", "UserName2", "FirstName2", "LastName2");
+        userNo3 = new User(UUID.randomUUID(), UUID.randomUUID(), "email3@gmail.com", "UserName3", "FirstName3", "LastName3");
+
+        List<User> listOfUsers = List.of(userNo1, userNo2, userNo3);
         team = Team.builder()
                 .name("Eldorado")
                 .active(true)
@@ -158,7 +159,7 @@ public class ClusterControllerTest {
                 .course(course)
                 .users(new ArrayList<>())
                 .build();
-        team.getUsers().addAll(listOfUsers.stream().map(User::getId).toList());
+        team.getUsers().addAll(listOfUsers);
 
         rgPoolNo1 = new ResourceGroupPool();
         rgPoolNo1.setName("SSBD-RGPoolNo1");

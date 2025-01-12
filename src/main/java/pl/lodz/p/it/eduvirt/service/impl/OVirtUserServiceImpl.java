@@ -57,4 +57,34 @@ public class OVirtUserServiceImpl implements OVirtUserService {
             throw new UserNotFoundException("User with id %s could not be found".formatted(userId));
         }
     }
+
+    @Override
+    public User getUserByPrincipal(String principal) {
+        try {
+            Connection connection = connectionFactory.getConnection();
+            SystemService systemService = connection.systemService();
+
+            String searchQuery = "usrname=%s@internalkeycloak-authz".formatted(principal);
+
+            List<User> users = systemService.usersService()
+                    .list()
+                    .search(searchQuery)
+                    .send()
+                    .users();
+
+            if (users.isEmpty()) {
+                throw new UserNotFoundException(
+                        "User with principal %s could not be found".formatted(principal)
+                );
+            }
+
+            return users.getFirst();
+
+        } catch (org.ovirt.engine.sdk4.Error error) {
+            throw new UserNotFoundException(
+                    "User with principal %s could not be found".formatted(principal)
+            );
+        }
+    }
 }
+
