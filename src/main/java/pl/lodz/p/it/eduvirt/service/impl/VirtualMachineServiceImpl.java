@@ -39,4 +39,12 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
 
         virtualMachineRepository.delete(vm);
     }
+
+    @Override
+    @Transactional
+    public void updateVirtualMachine(UUID id, boolean hidden) {
+        VirtualMachine vm = virtualMachineRepository.findById(id).orElseThrow();
+        vm.setHidden(hidden);
+        virtualMachineRepository.save(vm);
+    }
 }

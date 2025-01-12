@@ -1,5 +1,6 @@
 package pl.lodz.p.it.eduvirt.service;
 
+import org.ovirt.engine.sdk4.types.Vm;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 
@@ -15,7 +16,11 @@ public interface ResourceGroupService {
 
     ResourceGroup getResourceGroup(UUID id);
 
-    ResourceGroup createResourceGroup(ResourceGroup resourceGroup);
-
     List<ResourceGroup> getAssignedStatefulResourceGroups();
+
+    List<Vm> findAvailableVms(UUID rgId);
+
+    void deleteResourceGroup(UUID id);
+
+    ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup);
 }
