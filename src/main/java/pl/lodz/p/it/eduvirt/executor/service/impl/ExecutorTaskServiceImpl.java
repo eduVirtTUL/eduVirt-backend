@@ -12,6 +12,7 @@ import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.PermissionTask;
+import pl.lodz.p.it.eduvirt.executor.entity.subtasks.PreconditionsCheckTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VmTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.repository.ExecutorSubtaskRepository;
@@ -78,6 +79,7 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
             case START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM -> new VmTask(task, sanitizedVmId, type);
             case ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE -> new VnicProfileTask(task, sanitizedVmId, type);
             case ASSIGN_PERMISSION, REVOKE_PERMISSION -> new PermissionTask(task, sanitizedVmId, type);
+            case CHECK_VMS_STATUSES -> new PreconditionsCheckTask(task);
         };
 
         return executorSubtaskRepository.saveAndFlush(subtask);

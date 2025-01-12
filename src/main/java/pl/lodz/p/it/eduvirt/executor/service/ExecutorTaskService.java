@@ -14,9 +14,17 @@ public interface ExecutorTaskService {
 
     ExecutorTask registerPodDestroyTask(Reservation reservation);
 
+    default void finalizeTask(UUID taskId, boolean success) {
+        finalizeTask(taskId, success, null);
+    }
+
     void finalizeTask(UUID taskId, boolean success, String comment);
 
     ExecutorSubtask registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type);
+
+    default void finalizeSubTask(UUID subtaskId, boolean success, AdditionalId... additionalIds) {
+        finalizeSubTask(subtaskId, success, null, additionalIds);
+    }
 
     void finalizeSubTask(UUID subtaskId, boolean success, String comment, AdditionalId... additionalIds);
 

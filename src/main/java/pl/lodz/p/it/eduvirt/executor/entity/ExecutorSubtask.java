@@ -36,16 +36,17 @@ public abstract class ExecutorSubtask extends HistoricalData {
     private ExecutorTask executorTask;
 
     public enum SubtaskType {
+        CHECK_VMS_STATUSES,
         ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE,
         START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM,
         ASSIGN_PERMISSION, REVOKE_PERMISSION
     }
 
     /// todo michal maybe change it to VirtualMachine entity -> Foreign Key
-    @Column(name = "vm_id", updatable = false, nullable = false)
+    @Column(name = "vm_id", updatable = false, nullable = true)
     private UUID vmId;
 
-    @Column(name = "type", updatable = false, nullable = false)
+    @Column(name = "type", updatable = false, nullable = true)
     @Enumerated(EnumType.STRING)
     private SubtaskType type;
 
