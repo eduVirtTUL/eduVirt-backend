@@ -55,9 +55,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     @PreAuthorize("isAuthenticated()")
     @Override
-    public void createReservationForStatefulPod(Team team, PodStateful statefulPod, CreateReservationDto createDto) {
-        ResourceGroup resourceGroup = statefulPod.getResourceGroup();
-        Course course = statefulPod.getCourse();
+    public void createReservationForStatefulPod(Team team, PodStateful pod, CreateReservationDto createDto) {
+        ResourceGroup resourceGroup = pod.getResourceGroup();
+        Course course = pod.getCourse();
 
         Cluster courseCluster = clusterService.findClusterById(course.getClusterId());
         List<Host> clusterHosts = clusterService.findAllHostsInCluster(courseCluster);
@@ -177,9 +177,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     @PreAuthorize("isAuthenticated()")
     @Override
-    public void createReservationForStatelessPod(Team team, PodStateless statelessPod, CreateReservationDto createDto) {
-        ResourceGroupPool resourceGroupPool = statelessPod.getResourceGroupPool();
-        Course course = statelessPod.getCourse();
+    public void createReservationForStatelessPod(Team team, PodStateless pod, CreateReservationDto createDto) {
+        ResourceGroupPool resourceGroupPool = pod.getResourceGroupPool();
+        Course course = pod.getCourse();
 
         Cluster courseCluster = clusterService.findClusterById(course.getClusterId());
         List<Host> clusterHosts = clusterService.findAllHostsInCluster(courseCluster);

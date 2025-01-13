@@ -15,8 +15,8 @@ public interface ReservationService {
 
     /* Create methods */
 
-    void createReservationForStatefulPod(Team team, PodStateful podId, CreateReservationDto createDto);
-    void createReservationForStatelessPod(Team team, PodStateless podId, CreateReservationDto createDto);
+    void createReservationForStatefulPod(Team team, PodStateful pod, CreateReservationDto createDto);
+    void createReservationForStatelessPod(Team team, PodStateless pod, CreateReservationDto createDto);
 
     /* Read methods */
 
