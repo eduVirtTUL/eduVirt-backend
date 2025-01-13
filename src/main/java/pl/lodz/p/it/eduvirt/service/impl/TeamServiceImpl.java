@@ -76,7 +76,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public Page<Team> getTeamsByUser(UUID userId, Pageable pageable) {
+    public Page<Team> getTeamsByStudent(UUID userId, Pageable pageable) {
         return teamRepository.findByUsersId(userId, pageable);
     }
 

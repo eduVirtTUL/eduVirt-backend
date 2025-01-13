@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface TeamService {
     Page<Team> getAllTeams(Pageable pageable);
 
-    Page<Team> getTeamsByUser(UUID userId, Pageable pageable);
+    Page<Team> getTeamsByStudent(UUID userId, Pageable pageable);
 
     Page<Team> getTeamsByCourse(UUID courseId, Pageable pageable);
 

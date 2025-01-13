@@ -38,8 +38,8 @@ public class AuthServiceImpl implements AuthService {
             User newUser = new User(userId,
                     oVirtUserId,
                     actualToken.getEmail(),
-                    actualToken.getGivenName(),
                     actualToken.getPreferredUsername(),
+                    actualToken.getGivenName(),
                     actualToken.getFamilyName(),
                     actualToken.getGroups(),
                     null);

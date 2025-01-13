@@ -71,15 +71,16 @@ public class TeamController {
         return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(updatedTeam));
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/student")
     @Transactional
-    public ResponseEntity<PageDto<TeamWithCourseDto>> getTeamsByUser(
-            @PathVariable UUID userId,
+    public ResponseEntity<PageDto<TeamWithCourseDto>> getTeamsByStudent(
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Team> teamsPage = teamService.getTeamsByUser(userId, pageable);
-        
+        UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        Page<Team> teamsPage = teamService.getTeamsByStudent(studentId, pageable);
+
         List<TeamWithCourseDto> teamDtos = teamsPage.getContent().stream()
                 .map(teamMapper::teamToTeamWithCourseDto)
                 .collect(Collectors.toList());
