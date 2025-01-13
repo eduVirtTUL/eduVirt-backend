@@ -13,6 +13,8 @@ import java.util.UUID;
 public interface CourseService {
     Page<Course> getCourses(int page, int size);
 
+    Page<Course> getCourses(int page, int size, String search);
+
     List<Course> getCourses();
 
     List<Course> getCoursesForStudent(UUID studentId, Pageable pageable);

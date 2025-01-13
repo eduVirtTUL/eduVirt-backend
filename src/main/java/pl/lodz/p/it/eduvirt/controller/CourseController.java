@@ -67,7 +67,8 @@ public class CourseController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) Integer page,
-                                                         @RequestParam(name = "size", required = false) Integer size) {
+                                                         @RequestParam(name = "size", required = false) Integer size,
+                                                         @RequestParam(name = "search", required = false) String search) {
 
         if (page == null || size == null) {
             List<Course> courses = courseService.getCourses();
@@ -78,7 +79,14 @@ public class CourseController {
                     .build());
         }
 
-        Page<Course> courses = courseService.getCourses(page, size);
+        Page<Course> courses;
+
+        if (search == null) {
+            courses = courseService.getCourses(page, size);
+        } else {
+            courses = courseService.getCourses(page, size, search);
+        }
+
 
         return ResponseEntity.ok(PageDto.<CourseDto>builder()
                 .items(courseMapper.toCourseDtoList(courses.getContent().stream()))

@@ -1,5 +1,6 @@
 package pl.lodz.p.it.eduvirt.repository;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +23,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     List<Course> findAllCoursesForStudent(@Param("userId") UUID userId, Pageable pageable);
 
     Course findByStateFullResourceGroupsContaining(ResourceGroup resourceGroup);
+
+    Page<Course> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
 }

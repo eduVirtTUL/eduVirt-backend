@@ -40,6 +40,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     private final CourseRepository courseRepository;
 
     @Override
+    @Transactional
     public List<ResourceGroup> getResourceGroups() {
         return resourceGroupRepository.findAll();
     }

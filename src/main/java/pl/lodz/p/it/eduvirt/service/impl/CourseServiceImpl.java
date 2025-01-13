@@ -36,6 +36,11 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public Page<Course> getCourses(int page, int size, String search) {
+        return courseRepository.findAllByNameContainingIgnoreCase(search, PageRequest.of(page, size));
+    }
+
+    @Override
     public List<Course> getCourses() {
         return courseRepository.findAll();
     }
