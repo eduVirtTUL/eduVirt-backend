@@ -3,7 +3,7 @@ package pl.lodz.p.it.eduvirt.mappers;
 import org.mapstruct.Mapper;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
-import pl.lodz.p.it.eduvirt.dto.course.UpdateCourceDto;
+import pl.lodz.p.it.eduvirt.dto.course.UpdateCourseDto;
 import pl.lodz.p.it.eduvirt.entity.Course;
 
 import java.util.List;
@@ -17,5 +17,5 @@ public interface CourseMapper {
 
     Course courseCreateDtoToCourse(CreateCourseDto createCourseDto);
 
-    Course toEntity(UpdateCourceDto updateCourceDto);
+    Course toEntity(UpdateCourseDto updateCourceDto);
 }

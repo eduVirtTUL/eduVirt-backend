@@ -19,7 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
-import pl.lodz.p.it.eduvirt.dto.course.UpdateCourceDto;
+import pl.lodz.p.it.eduvirt.dto.course.UpdateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
@@ -151,7 +151,7 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CourseDto> updateCourse(@PathVariable UUID id, @RequestBody UpdateCourceDto updateCourceDto) {
+    public ResponseEntity<CourseDto> updateCourse(@PathVariable UUID id, @RequestBody @Validated UpdateCourseDto updateCourceDto) {
         Course course = courseMapper.toEntity(updateCourceDto);
         course = courseService.updateCourse(id, course);
         return ResponseEntity.ok(courseMapper.courseToCourseDto(course));

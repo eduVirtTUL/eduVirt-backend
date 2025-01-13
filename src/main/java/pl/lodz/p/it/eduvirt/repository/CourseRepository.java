@@ -25,4 +25,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     Course findByStateFullResourceGroupsContaining(ResourceGroup resourceGroup);
 
     Page<Course> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
+
+    boolean existsByIdNotAndName(UUID id, String name);
 }

@@ -11,6 +11,7 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.course.CourseAlreadyExists;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
@@ -27,7 +28,6 @@ public class CourseServiceImpl implements CourseService {
     private final PodStatefulRepository podStatefulRepository;
     private final PodStatelessRepository podStatelessRepository;
     private final TeamRepository teamRepository;
-    private final ReservationRepository reservationRepository;
 
     @Override
     public Page<Course> getCourses(int page, int size) {
@@ -89,13 +89,13 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public List<User> getTeachersForCourse(UUID courseId) {
-        return courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course not found")).getTeachers();
+        return courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId)).getTeachers();
     }
 
     @Override
     @Transactional
     public void addTeacherToCourse(UUID courseId, String email) {
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course not found"));
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         User teacher = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (teacher.getRoles().contains("/teacher")) {
@@ -136,8 +136,14 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public Course updateCourse(UUID courseId, Course course) {
         Course existingCourse = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        boolean isNameTaken = courseRepository.existsByIdNotAndName(existingCourse.getId(), course.getName());
+        if (isNameTaken) {
+            throw new CourseAlreadyExists(course.getName());
+        }
+
         existingCourse.setName(course.getName());
         existingCourse.setDescription(course.getDescription());
+        existingCourse.setExternalLink(course.getExternalLink());
         return courseRepository.save(existingCourse);
     }
 
