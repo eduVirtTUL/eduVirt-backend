@@ -12,7 +12,10 @@ import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
+import pl.lodz.p.it.eduvirt.repository.PodStatefulRepository;
+import pl.lodz.p.it.eduvirt.repository.PodStatelessRepository;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
+import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
 
 import java.util.List;
@@ -23,6 +26,9 @@ import java.util.UUID;
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final CourseAccessKeyRepository courseAccessKeyRepository;
+    private final PodStatefulRepository podStatefulRepository;
+    private final PodStatelessRepository podStatelessRepository;
 
     @Override
     public Page<Course> getCourses(int page, int size) {
@@ -70,6 +76,9 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public void deleteCourse(UUID courseId) {
+        podStatelessRepository.deleteAllByCourseId(courseId);
+        podStatefulRepository.deleteAllByCourseId(courseId);
+        courseAccessKeyRepository.deleteByCourseId(courseId);
         courseRepository.deleteById(courseId);
     }
 

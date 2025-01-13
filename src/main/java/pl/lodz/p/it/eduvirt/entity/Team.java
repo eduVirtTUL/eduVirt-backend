@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.StatefulPodAssignmentException;
 import pl.lodz.p.it.eduvirt.exceptions.StatelessPodAssignmentException;
 
@@ -11,7 +12,8 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter @Setter
+@Getter
+@Setter
 @Builder
 @ToString
 @Table(
@@ -33,9 +35,9 @@ public class Team extends Updatable {
 
     @ManyToMany
     @JoinTable(
-        name = "team_users",
-        joinColumns = @JoinColumn(name = "team_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
+            name = "team_users",
+            joinColumns = @JoinColumn(name = "team_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     @ToString.Exclude
     private List<User> users = new ArrayList<>();
@@ -44,13 +46,16 @@ public class Team extends Updatable {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @OneToMany(mappedBy = "team")
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<PodStateful> statefulPods = new ArrayList<>();
 
-    @OneToMany(mappedBy = "team")
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<PodStateless> statelessPods = new ArrayList<>();
+
+    @OneToOne(mappedBy = "team", cascade = CascadeType.ALL)
+    private TeamAccessKey teamAccessKey;
 
     /* Constructor */
 

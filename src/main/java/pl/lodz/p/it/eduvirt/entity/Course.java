@@ -25,13 +25,13 @@ public class Course extends AbstractEntity {
     @Column(name = "description", nullable = false, length = 1000)
     private String description;
 
-    @OneToMany(mappedBy = "course")
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<ResourceGroupPool> resourceGroupPools;
 
-    @OneToMany(mappedBy = "course")
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Team> teams = new ArrayList<>();
 
-    @ManyToMany
+    @ManyToMany()
     private List<User> teachers = new ArrayList<>();
 
     @Column(name = "cluster_id", nullable = false)
