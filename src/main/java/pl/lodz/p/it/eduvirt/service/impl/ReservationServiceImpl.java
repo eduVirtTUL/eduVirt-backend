@@ -443,14 +443,42 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public List<Reservation> findReservationsToBegin() {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        System.out.println("currentTime: " + currentTime);
-        return reservationRepository.findAllReservationsToBegin(currentTime);
+        List<Reservation> reservationList = reservationRepository.findAllReservationsToBegin(currentTime);
+
+        reservationList.forEach(ReservationServiceImpl::forceReservationLazyCollections);
+
+        return reservationList;
     }
 
     @Override
     public List<Reservation> findReservationsToStop() {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        return reservationRepository.findAllReservationsToStop(currentTime);
+        List<Reservation> reservationList = reservationRepository.findAllReservationsToStop(currentTime);
+
+        reservationList.forEach(ReservationServiceImpl::forceReservationLazyCollections);
+
+        return reservationList;
+    }
+
+    private static void forceReservationLazyCollections(Reservation reservation) {
+        //TODO michal: add comments XDD
+
+        ResourceGroup resourceGroup = reservation.getResourceGroup();
+
+        List<VirtualMachine> vms = resourceGroup.getVms();
+        vms.forEach(vm -> vm.setNetworkInterfaces(new ArrayList<>(vm.getNetworkInterfaces())));
+
+        List<ResourceGroupNetwork> networks = resourceGroup.getNetworks();
+        networks.forEach(network -> network.setInterfaces(new ArrayList<>(network.getInterfaces())));
+
+        resourceGroup.setVms(new ArrayList<>(vms));
+        resourceGroup.setNetworks(new ArrayList<>(networks));
+
+        Team team = reservation.getTeam();
+        team.setUsers(new ArrayList<>(team.getUsers()));
+
+        reservation.setResourceGroup(resourceGroup);
+        reservation.setTeam(team);
     }
 
     /* Update / delete methods */

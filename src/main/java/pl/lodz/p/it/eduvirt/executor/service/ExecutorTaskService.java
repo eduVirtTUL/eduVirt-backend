@@ -14,6 +14,8 @@ public interface ExecutorTaskService {
 
     ExecutorTask registerPodDestroyTask(Reservation reservation);
 
+    ExecutorTask registerEndReservationTask(Reservation reservation);
+
     default void finalizeTask(UUID taskId, boolean success) {
         finalizeTask(taskId, success, null);
     }
@@ -30,9 +32,13 @@ public interface ExecutorTaskService {
 
     List<ExecutorSubtask> getReservationStartExistingSubTasks(Reservation reservation);
 
+    List<ExecutorSubtask> getStopPodExistingSubTasks(Reservation reservation);
+
     List<ExecutorSubtask> getReservationEndExistingSubTasks(Reservation reservation);
 
     List<ExecutorTask> getReservationsToEndTasks();
 
     List<ExecutorTask> getReservationsInProgressTasks();
+
+    List<ExecutorSubtask> getReservationsInProgressSubTasks();
 }

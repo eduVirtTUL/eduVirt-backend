@@ -25,13 +25,13 @@ public class ExecutorTask extends HistoricalData {
     )
     private Reservation reservation;
 
-    public enum TaskType {POD_INIT, POD_DESTRUCT}
+    public enum TaskType {POD_INIT, POD_DESTRUCT, END_RESERVATION}
 
     @Column(name = "type", updatable = false, nullable = false)
     @Enumerated(EnumType.STRING)
     private TaskType type;
 
-    enum TaskStatus {SUCCESSFUL, FAILED, IN_PROGRESS, AWAITING_TO_END_RESERVATION}
+    enum TaskStatus {SUCCESSFUL, FAILED, IN_PROGRESS}
 
     @Column(name = "status", updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)

@@ -65,3 +65,9 @@ resource:
 
 jws:
   secret: ${JWS_SECRET}
+
+executor:
+  vm:
+    grace-time: 2
+  notification:
+    time-before-end: 15
