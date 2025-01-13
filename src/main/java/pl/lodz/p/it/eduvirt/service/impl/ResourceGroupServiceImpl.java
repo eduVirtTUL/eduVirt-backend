@@ -103,6 +103,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
 
 
     @Override
+    @Transactional
     public ResourceGroup getResourceGroup(UUID id) {
         return resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
     }

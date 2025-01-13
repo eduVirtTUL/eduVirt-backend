@@ -17,5 +17,7 @@ public record CreateCourseDto(
         @NotNull
         CourseType courseType,
         @NotNull
-        UUID clusterId) {
+        UUID clusterId,
+        @Size(max = 1000)
+        String externalLink) {
 }

@@ -25,6 +25,9 @@ public class Course extends AbstractEntity {
     @Column(name = "description", nullable = false, length = 1000)
     private String description;
 
+    @Column(name = "external_link", length = 1000)
+    private String externalLink;
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<ResourceGroupPool> resourceGroupPools;
 
