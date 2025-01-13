@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
@@ -31,8 +32,8 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<Course> getCoursesForStudent(UUID studentId, Pageable pageable) {
-        return courseRepository.findAllCoursesForStudent(studentId, pageable);
+    public List<Course> getCoursesForStudent(User student, Pageable pageable) {
+        return courseRepository.findAllCoursesForStudent(student, pageable);
     }
 
     @Override

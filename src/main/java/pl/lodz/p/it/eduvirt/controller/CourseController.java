@@ -86,7 +86,10 @@ public class CourseController {
     @GetMapping(path = "/member", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<CourseDto>> getCoursesForStudent(Pageable pageable) {
         UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<Course> foundCourses = courseService.getCoursesForStudent(studentId, pageable);
+        User student = userRepository.findById(studentId).orElseThrow(
+                () -> new UserNotFoundException("User with id %s could not be found!".formatted(studentId)));
+
+        List<Course> foundCourses = courseService.getCoursesForStudent(student, pageable);
 
         List<CourseDto> listOfDTOs = foundCourses.stream()
                 .map(courseMapper::courseToCourseDto).toList();

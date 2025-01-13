@@ -1997,105 +1997,505 @@ public class ReservationServiceTest {
     /* FindRgReservations method tests */
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserHasPrivilegesToFetchResourceGroupReservations_When_FindRgReservations_Then_ReturnsListOfFoundReservations() {
+    public void Given_SomeReservationExistForGivenResourceGroup_When_FindRgReservations_Then_ReturnsListOfFoundReservations() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
 
+        reservation1.setResourceGroup(resourceGroup1);
+        reservation3.setResourceGroup(resourceGroup1);
+
+        when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
+                .thenReturn(List.of(reservation1, reservation3));
+
+        List<Reservation> foundReservations = reservationService.findRgReservations(resourceGroup1, course, start, end);
+
+        assertNotNull(foundReservations);
+        assertFalse(foundReservations.isEmpty());
+        assertEquals(2, foundReservations.size());
+
+        Reservation firstReservation = foundReservations.getFirst();
+        assertNotNull(firstReservation);
+        assertEquals(reservation1, firstReservation);
+
+        Reservation secondReservation = foundReservations.getLast();
+        assertNotNull(secondReservation);
+        assertEquals(reservation3, secondReservation);
+
+        verify(reservationRepository, times(1))
+                .findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
     }
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserDoesNotHavePrivilegesToFetchResourceGroupReservations_When_FindRgReservations_Then_ReturnsEmptyReservationList() {
+    public void Given_NoReservationExistForGivenResourceGroup_When_FindRgReservations_Then_ReturnsEmptyReservationList() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
 
+        when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
+                .thenReturn(List.of());
+
+        List<Reservation> foundReservations = reservationService.findRgReservations(resourceGroup1, course, start, end);
+
+        assertNotNull(foundReservations);
+        assertTrue(foundReservations.isEmpty());
+
+        verify(reservationRepository, times(1))
+                .findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
     }
 
     /* FindRgPoolReservations method tests */
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserHasPrivilegesToFetchResourceGroupReservations_When_FindRgPoolReservations_Then_ReturnsListOfFoundReservations() {
+    public void Given_SomeReservationExistForGivenResourceGroupPool_When_FindRgPoolReservations_Then_ReturnsListOfFoundReservations() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
 
+        reservation1.setResourceGroup(resourceGroup3);
+        reservation3.setResourceGroup(resourceGroup3);
+
+        when(reservationRepository.findRgPoolReservations(Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
+                .thenReturn(List.of(reservation1, reservation3));
+
+        List<Reservation> foundReservations = reservationService.findRgPoolReservations(resourceGroupPool1, course, start, end);
+
+        assertNotNull(foundReservations);
+        assertFalse(foundReservations.isEmpty());
+        assertEquals(2, foundReservations.size());
+
+        Reservation firstReservation = foundReservations.getFirst();
+        assertNotNull(firstReservation);
+        assertEquals(reservation1, firstReservation);
+
+        Reservation secondReservation = foundReservations.getLast();
+        assertNotNull(secondReservation);
+        assertEquals(reservation3, secondReservation);
+
+        verify(reservationRepository, times(1))
+                .findRgPoolReservations(Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
     }
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserDoesNotHavePrivilegesToFetchResourceGroupReservations_When_FindRgPoolReservations_Then_ReturnsListOfFoundReservations() {
+    public void Given_NoReservationExistForGivenResourceGroupPool_When_FindRgPoolReservations_Then_ReturnsListOfFoundReservations() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
 
+        when(reservationRepository.findRgPoolReservations(Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
+                .thenReturn(List.of());
+
+        List<Reservation> foundReservations = reservationService.findRgPoolReservations(resourceGroupPool1, course, start, end);
+
+        assertNotNull(foundReservations);
+        assertTrue(foundReservations.isEmpty());
+
+        verify(reservationRepository, times(1))
+                .findRgPoolReservations(Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
     }
 
     /* FindActiveReservations method tests */
 
     @Test
-    public void Given_ExistingTeamIdentifierIsPassedAndCurrentlyAuthenticatedUserHasPrivilegesToFetchActiveReservationForThatTeam_When_FindActiveReservations_Then_ReturnsPageWithFoundReservations() {
+    public void Given_ExistingTeamIdentifierIsPassed_When_FindActiveReservations_Then_ReturnsPageWithFoundReservations() {
+        int pageNumber = 0;
+        int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
+        when(teamRepository.findById(Mockito.eq(team1.getId()))).thenReturn(Optional.of(team1));
+        when(reservationRepository.findAllActiveReservations(Mockito.eq(team1), Mockito.any(), Mockito.eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
+
+        Page<Reservation> reservationPage = reservationService.findActiveReservations(team1.getId(), pageable);
+
+        assertNotNull(reservationPage);
+
+        assertEquals(reservationPage.getNumber(), 0);
+        assertEquals(reservationPage.getNumberOfElements(), 2);
+        assertEquals(reservationPage.getTotalPages(), 1);
+        assertEquals(reservationPage.getTotalElements(), 2);
+
+        List<Reservation> foundReservations = reservationPage.getContent();
+
+        assertNotNull(foundReservations);
+        assertFalse(foundReservations.isEmpty());
+        assertEquals(2, foundReservations.size());
+
+        Reservation firstReservation = foundReservations.getFirst();
+        assertNotNull(firstReservation);
+        assertEquals(reservation1, firstReservation);
+
+        Reservation secondReservation = foundReservations.getLast();
+        assertNotNull(secondReservation);
+        assertEquals(reservation3, secondReservation);
+
+        verify(teamRepository, times(1)).findById(Mockito.eq(team1.getId()));
+        verify(reservationRepository, times(1))
+                .findAllActiveReservations(Mockito.eq(team1), Mockito.any(), Mockito.eq(pageable));
     }
 
     @Test
     public void Given_NonExistentTeamIdentifierIsPassed_When_FindActiveReservations_Then_ThrowsException() {
+        int pageNumber = 0;
+        int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        UUID nonExistentTeamId = UUID.randomUUID();
 
-    }
+        when(teamRepository.findById(Mockito.eq(nonExistentTeamId))).thenReturn(Optional.empty());
 
-    @Test
-    public void Given_ExistingTeamIdentifierIsPassedAndCurrentlyAuthenticatedUserHasNoPrivilegesToFetchActiveReservationForThatTeam_When_FindActiveReservations_Then_ReturnsEmptyReservationPage() {
+        assertThrows(TeamNotFoundException.class,
+                () -> reservationService.findActiveReservations(nonExistentTeamId, pageable));
 
+        verify(teamRepository, times(1)).findById(Mockito.eq(nonExistentTeamId));
     }
 
     /* FindHistoricalReservations method tests */
 
     @Test
-    public void Given_ExistingTeamIdentifierIsPassedAndCurrentlyAuthenticatedUserHasPrivilegesToFetchHistoricalReservationForThatTeam_When_FindHistoricalReservations_Then_ReturnsPageWithFoundReservations() {
+    public void Given_ExistingTeamIdentifierIsPassed_When_FindHistoricalReservations_Then_ReturnsPageWithFoundReservations() {
+        int pageNumber = 0;
+        int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
+        when(teamRepository.findById(Mockito.eq(team1.getId()))).thenReturn(Optional.of(team1));
+        when(reservationRepository.findAllHistoricalReservations(Mockito.eq(team1), Mockito.any(), Mockito.eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
+
+        Page<Reservation> reservationPage = reservationService.findHistoricalReservations(team1.getId(), pageable);
+
+        assertNotNull(reservationPage);
+
+        assertEquals(reservationPage.getNumber(), 0);
+        assertEquals(reservationPage.getNumberOfElements(), 2);
+        assertEquals(reservationPage.getTotalPages(), 1);
+        assertEquals(reservationPage.getTotalElements(), 2);
+
+        List<Reservation> foundReservations = reservationPage.getContent();
+
+        assertNotNull(foundReservations);
+        assertFalse(foundReservations.isEmpty());
+        assertEquals(2, foundReservations.size());
+
+        Reservation firstReservation = foundReservations.getFirst();
+        assertNotNull(firstReservation);
+        assertEquals(reservation1, firstReservation);
+
+        Reservation secondReservation = foundReservations.getLast();
+        assertNotNull(secondReservation);
+        assertEquals(reservation3, secondReservation);
+
+        verify(teamRepository, times(1)).findById(Mockito.eq(team1.getId()));
+        verify(reservationRepository, times(1))
+                .findAllHistoricalReservations(Mockito.eq(team1), Mockito.any(), Mockito.eq(pageable));
     }
 
     @Test
     public void Given_NonExistentTeamIdentifierIsPassed_When_FindHistoricalReservations_Then_ThrowsException() {
+        int pageNumber = 0;
+        int pageSize = 10;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        UUID nonExistentTeamId = UUID.randomUUID();
 
+        when(teamRepository.findById(Mockito.eq(nonExistentTeamId))).thenReturn(Optional.empty());
+
+        assertThrows(TeamNotFoundException.class,
+                () -> reservationService.findHistoricalReservations(nonExistentTeamId, pageable));
+
+        verify(teamRepository, times(1)).findById(Mockito.eq(nonExistentTeamId));
     }
 
-    @Test
-    public void Given_ExistingTeamIdentifierIsPassedAndCurrentlyAuthenticatedUserHasNoPrivilegesToFetchHistoricalReservationForThatTeam_When_FindHistoricalReservations_Then_ReturnsEmptyReservationPage() {
-
-    }
 
     /* CheckResourceGroupAvailability method tests */
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserHasPrivilegesToCheckRgAvailability_When_CheckResourceGroupAvailability_Then_ReturnsResourceGroupAvailability() {
+    public void Given_ExistingClusterIdentifierIsPassedAndThatClusterHasSomeHosts_When_CheckResourceGroupAvailability_Then_ReturnsResourceGroupAvailability() {
+        int windowLength = 30;
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(4);
 
+        Cluster cluster = mock(Cluster.class);
+        Host host1 = mock(Host.class);
+        Host host2 = mock(Host.class);
+        List<Host> hosts = List.of(host1, host2);
+
+        when(clusterService.findClusterById(Mockito.eq(course.getClusterId()))).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenReturn(hosts);
+
+        when(courseMetricRepository.findAllByCourse(Mockito.eq(course))).thenReturn(courseMetrics);
+        when(clusterMetricRepository.findAllByClusterId(Mockito.eq(course.getClusterId())))
+                .thenReturn(clusterMetrics);
+
+        LocalDateTime startTemp = currentTime;
+        var index = 0;
+        while (startTemp.isBefore(end)) {
+            List<Reservation> courseReservations = List.of(reservation1);
+            lenient().when(reservationRepository.findCourseReservations(Mockito.eq(course), Mockito.eq(startTemp),
+                    Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(courseReservations);
+
+            List<Reservation> clusterReservations = List.of(reservation1, reservation3);
+            lenient().when(reservationRepository.findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.eq(startTemp),
+                    Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(clusterReservations);
+
+            if (index % 2 == 0) {
+                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup1),
+                        Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
+
+                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup1),
+                        Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
+
+                lenient().when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(startTemp),
+                        Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(List.of(reservation1));
+            } else {
+                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup1),
+                        Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
+
+                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup1),
+                        Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
+
+                lenient().when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(startTemp),
+                        Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(List.of());
+            }
+
+            startTemp = startTemp.plusMinutes(windowLength);
+            index++;
+        }
+
+        Map<LocalDateTime, Boolean> availability = reservationService
+                .checkResourceGroupAvailability(resourceGroup1, course, windowLength, start, end);
+
+        assertNotNull(availability);
+
+        LocalDateTime secondTimestamp = start.plusMinutes(30);
+        LocalDateTime thirdTimestamp = start.plusHours(1);
+        LocalDateTime forthTimestamp = start.plusHours(1).plusMinutes(30);
+
+        assertFalse(availability.get(start));
+        assertFalse(availability.get(secondTimestamp));
+        assertFalse(availability.get(thirdTimestamp));
+        assertFalse(availability.get(forthTimestamp));
+
+        verify(clusterService, times(1)).findClusterById(Mockito.eq(course.getClusterId()));
+        verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
+
+        verify(courseMetricRepository, times(1)).findAllByCourse(Mockito.eq(course));
+        verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
+
+        verify(reservationRepository, times(4))
+                .findCourseReservations(Mockito.eq(course), Mockito.any(), Mockito.any());
+        verify(reservationRepository, times(4))
+                .findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.any(), Mockito.any());
+
+        verify(reservationRepository, times(4))
+                .findRgReservations(Mockito.eq(resourceGroup1), Mockito.any(), Mockito.any());
     }
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserHasNoPrivilegesToCheckRgAvailability_When_CheckResourceGroupAvailability_Then_ThrowsException() {
+    public void Given_NonExistentClusterIdentifierIsPassed_When_CheckResourceGroupAvailability_Then_ThrowsException() {
+        int windowLength = 30;
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(4);
+        
+        UUID nonExistentClusterId = UUID.randomUUID();
+        course.setClusterId(nonExistentClusterId);
+        
+        when(clusterService.findClusterById(Mockito.eq(nonExistentClusterId)))
+                .thenThrow(ClusterNotFoundException.class);
+        
+        assertThrows(ClusterNotFoundException.class, () -> reservationService
+                .checkResourceGroupAvailability(resourceGroup1, course, windowLength, start, end));
 
+        verify(clusterService, times(1))
+                .findClusterById(Mockito.eq(nonExistentClusterId));
+    }
+
+    @Test
+    public void Given_NonExistentClusterIsPassedToHostFetchingMethod_When_CheckResourceGroupAvailability_Then_ThrowsException() {
+        int windowLength = 30;
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(4);
+
+        Cluster cluster = mock(Cluster.class);
+
+        when(clusterService.findClusterById(Mockito.eq(course.getClusterId()))).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenThrow(
+                new HostNotFoundException("No host could be found for cluster %s".formatted(course.getClusterId())));
+                
+        assertThrows(HostNotFoundException.class, () -> reservationService
+                .checkResourceGroupAvailability(resourceGroup1, course, windowLength, start, end));
+
+        verify(clusterService, times(1)).findClusterById(Mockito.eq(course.getClusterId()));
+        verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
     }
 
     /* CheckResourceGroupPoolAvailability method tests */
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserHasPrivilegesToCheckRgPoolAvailability_When_CheckResourceGroupPoolAvailability_Then_ReturnsResourceGroupPoolAvailability() {
+    public void Given_ExistingClusterIdentifierIsPassedAndClusterHasSomeHosts_When_CheckResourceGroupPoolAvailability_Then_ReturnsResourceGroupPoolAvailability() {
+        int windowLength = 30;
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(4);
 
+        Cluster cluster = mock(Cluster.class);
+        Host host1 = mock(Host.class);
+        Host host2 = mock(Host.class);
+        List<Host> hosts = List.of(host1, host2);
+
+        when(clusterService.findClusterById(Mockito.eq(course.getClusterId()))).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenReturn(hosts);
+
+        when(courseMetricRepository.findAllByCourse(Mockito.eq(course))).thenReturn(courseMetrics);
+        when(clusterMetricRepository.findAllByClusterId(Mockito.eq(course.getClusterId())))
+                .thenReturn(clusterMetrics);
+
+        LocalDateTime startTemp = currentTime;
+        var index = 0;
+        while (startTemp.isBefore(end)) {
+            List<Reservation> courseReservations = List.of(reservation1);
+            lenient().when(reservationRepository.findCourseReservations(Mockito.eq(course), Mockito.eq(startTemp),
+                    Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(courseReservations);
+
+            List<Reservation> clusterReservations = List.of(reservation1, reservation3);
+            lenient().when(reservationRepository.findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.eq(startTemp),
+                    Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(clusterReservations);
+
+            if (index % 2 == 0) {
+                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup3),
+                        Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
+
+                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup3),
+                        Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
+
+                lenient().when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup3), Mockito.eq(startTemp),
+                        Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(List.of(reservation1));
+            } else {
+                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup3),
+                        Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
+
+                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup3),
+                        Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
+
+                lenient().when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup3), Mockito.eq(startTemp),
+                        Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(List.of());
+            }
+
+            startTemp = startTemp.plusMinutes(windowLength);
+            index++;
+        }
+
+        Map<LocalDateTime, Boolean> availability = reservationService
+                .checkResourceGroupPoolAvailability(resourceGroupPool1, course, windowLength, start, end);
+
+        assertNotNull(availability);
+
+        LocalDateTime secondTimestamp = start.plusMinutes(30);
+        LocalDateTime thirdTimestamp = start.plusHours(1);
+        LocalDateTime forthTimestamp = start.plusHours(1).plusMinutes(30);
+
+        assertFalse(availability.get(start));
+        assertTrue(availability.get(secondTimestamp));
+        assertFalse(availability.get(thirdTimestamp));
+        assertTrue(availability.get(forthTimestamp));
+
+        verify(clusterService, times(1)).findClusterById(Mockito.eq(course.getClusterId()));
+        verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
+
+        verify(courseMetricRepository, times(1)).findAllByCourse(Mockito.eq(course));
+        verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
+
+        verify(reservationRepository, times(4))
+                .findCourseReservations(Mockito.eq(course), Mockito.any(), Mockito.any());
+        verify(reservationRepository, times(4))
+                .findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.any(), Mockito.any());
+
+        verify(reservationRepository, times(4))
+                .findRgReservations(Mockito.eq(resourceGroup3), Mockito.any(), Mockito.any());
     }
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserHasNoPrivilegesToCheckRgPoolAvailability_When_CheckResourceGroupPoolAvailability_Then_ThrowsException() {
+    public void Given_NonExistentClusterIdentifierIsPassed_When_CheckResourceGroupPoolAvailability_Then_ThrowsException() {
+        int windowLength = 30;
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(4);
 
+        UUID nonExistentClusterId = UUID.randomUUID();
+        course.setClusterId(nonExistentClusterId);
+
+        when(clusterService.findClusterById(Mockito.eq(nonExistentClusterId)))
+                .thenThrow(ClusterNotFoundException.class);
+
+        assertThrows(ClusterNotFoundException.class, () -> reservationService
+                .checkResourceGroupPoolAvailability(resourceGroupPool1, course, windowLength, start, end));
+
+        verify(clusterService, times(1))
+                .findClusterById(Mockito.eq(nonExistentClusterId));
+    }
+
+    @Test
+    public void Given_NonExistentClusterIsPassedToMethodFetchingHosts_When_CheckResourceGroupPoolAvailability_Then_ThrowsException() {
+        int windowLength = 30;
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(4);
+
+        Cluster cluster = mock(Cluster.class);
+
+        when(clusterService.findClusterById(Mockito.eq(course.getClusterId()))).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenThrow(
+                new HostNotFoundException("No host could be found for cluster %s".formatted(course.getClusterId())));
+
+        assertThrows(HostNotFoundException.class, () -> reservationService
+                .checkResourceGroupPoolAvailability(resourceGroupPool1, course, windowLength, start, end));
+
+        verify(clusterService, times(1)).findClusterById(Mockito.eq(course.getClusterId()));
+        verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
     }
 
     /* FinishReservation method tests */
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserHasNoPrivilegesToGivenReservation_When_FinishReservation_Then_ThrowsException() {
+    public void Given_ReservationHasAlreadyFinished_ReservationAlreadyFinished_When_FinishReservation_Then_ThrowsException() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        reservation1.setStartTime(currentTime.minusHours(8));
+        reservation1.setEndTime(currentTime.minusHours(4));
 
+        assertThrows(ReservationAlreadyFinishedException.class,
+                () -> reservationService.finishReservation(reservation1));
     }
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserHasPrivilegesToGivenReservationAndReservationAlreadyFinished_When_FinishReservation_Then_ThrowsException() {
+    public void Given_ReservationHasAlreadyBegunButNotYetFinished_When_FinishReservation_Then_FinishesReservationEarlier() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        reservation1.setStartTime(currentTime.minusHours(2));
+        reservation1.setEndTime(currentTime.plusHours(4));
 
+        when(reservationRepository.saveAndFlush(Mockito.eq(reservation1)))
+                .thenReturn(reservation1);
+
+        reservationService.finishReservation(reservation1);
+
+        assertNotEquals(currentTime.plusHours(4), reservation1.getEndTime());
+
+        verify(reservationRepository, times(1)).
+                saveAndFlush(Mockito.eq(reservation1));
     }
 
     @Test
-    public void Given_CurrentlyAuthenticatedUserHasPrivilegesToGivenReservation_When_FinishReservation_Then_FinishesReservationEarlier() {
+    public void Given_ReservationHasNotYetBegun_When_FinishReservation_Then_RemovesReservation() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        reservation1.setStartTime(currentTime.plusHours(2));
+        reservation1.setEndTime(currentTime.plusHours(6));
 
-    }
+        doNothing().when(reservationRepository).delete(Mockito.eq(reservation1));
 
-    @Test
-    public void Given_CurrentlyAuthenticatedUserHasPrivilegesToGivenReservation_When_FinishReservation_Then_RemovesReservation() {
+        reservationService.finishReservation(reservation1);
 
+        verify(reservationRepository, times(1))
+                .delete(Mockito.eq(reservation1));
     }
 
     /* StartReservation method tests */

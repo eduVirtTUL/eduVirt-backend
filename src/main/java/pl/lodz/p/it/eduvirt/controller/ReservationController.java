@@ -92,6 +92,7 @@ public class ReservationController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{reservationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<ReservationDetailsDto> getReservationDetails(@PathVariable("reservationId") UUID reservationId) {
         Optional<Reservation> reservationOptional = reservationService.findReservationById(reservationId);
 
