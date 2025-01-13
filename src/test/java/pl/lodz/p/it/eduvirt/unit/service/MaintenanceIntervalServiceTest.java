@@ -143,9 +143,9 @@ public class MaintenanceIntervalServiceTest {
         course.setDescription("Network Database Systems");
         course.setClusterId(existingClusterId);
 
-        userNo1 = new User(UUID.randomUUID(), UUID.randomUUID(), "email1@gmail.com", "UserName1", "FirstName1", "LastName1", List.of());
-        userNo2 = new User(UUID.randomUUID(), UUID.randomUUID(), "email2@gmail.com", "UserName2", "FirstName2", "LastName2", List.of());
-        userNo3 = new User(UUID.randomUUID(), UUID.randomUUID(), "email3@gmail.com", "UserName3", "FirstName3", "LastName3", List.of());
+        userNo1 = new User(UUID.randomUUID(), UUID.randomUUID(), "email1@gmail.com", "UserName1", "FirstName1", "LastName1");
+        userNo2 = new User(UUID.randomUUID(), UUID.randomUUID(), "email2@gmail.com", "UserName2", "FirstName2", "LastName2");
+        userNo3 = new User(UUID.randomUUID(), UUID.randomUUID(), "email3@gmail.com", "UserName3", "FirstName3", "LastName3");
 
         List<User> listOfUsers = List.of(userNo1, userNo2, userNo3);
         team = Team.builder()

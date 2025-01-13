@@ -240,6 +240,8 @@ public class ReservationControllerTest {
         course.setDescription("Network Database Systems");
         course.setClusterId(existingClusterId);
 
+        course.setTeachers(List.of(teacher1));
+
         id.setAccessible(true);
         id.set(course, UUID.randomUUID());
         id.setAccessible(false);
@@ -675,11 +677,11 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", roles = "teacher")
-    public void Given_ExistingReservationIdentifierIsPassedAsTeacher_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
+    public void Given_ExistingReservationIdentifierIsPassedAsTeacherInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
         when(reservationService.findReservationById(Mockito.eq(reservation1.getId())))
                 .thenReturn(Optional.of(reservation1));
 
-        when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher2));
+        when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
 
         MvcResult result = mockMvc.perform(get("/reservations/{reservationId}", reservation1.getId()))
                 .andDo(print())
@@ -710,6 +712,23 @@ public class ReservationControllerTest {
         verify(reservationService, times(1))
                 .findReservationById(Mockito.eq(reservation1.getId()));
         verify(userRepository, times(1)).findById(Mockito.eq(teacherId1));
+    }
+
+    @Test
+    @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", roles = "teacher")
+    public void Given_ExistingReservationIdentifierIsPassedAsTeacherNotInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
+        when(reservationService.findReservationById(Mockito.eq(reservation1.getId())))
+                .thenReturn(Optional.of(reservation1));
+
+        when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
+
+        mockMvc.perform(get("/reservations/{reservationId}", reservation1.getId()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(reservationService, times(1))
+                .findReservationById(Mockito.eq(reservation1.getId()));
+        verify(userRepository, times(1)).findById(Mockito.eq(teacherId2));
     }
 
     @Test
