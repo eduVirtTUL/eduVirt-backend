@@ -9,16 +9,34 @@ import java.util.UUID;
 
 public interface TeamService {
     Page<Team> getAllTeams(Pageable pageable);
-    Page<Team> getTeamsByUser(UUID userId, Pageable pageable);
+
+    Page<Team> getTeamsByStudent(UUID userId, Pageable pageable);
+
     Page<Team> getTeamsByCourse(UUID courseId, Pageable pageable);
+
     Team getTeamById(UUID teamId);
+
     Team getTeamByCourseAndUser(Course course, UUID userId);
+
     Team createTeam(Team team, UUID courseId, String keyValue);
-    void createSoloTeam(UUID courseId, UUID userId);
-    void addUserToTeam(UUID teamId, UUID userId);
-    void addUserToCourse(UUID courseId, UUID userId);
-    void removeUserFromTeam(UUID teamId, UUID userId);
-    void joinUsingKey(String keyValue, UUID userId);
-    void leaveTeam(UUID teamId, UUID userId);
+
     Team updateTeam(Team team, UUID teamId);
+
+    void createSoloTeam(UUID courseId, UUID userId);
+
+    void joinUsingKey(String keyValue, UUID userId);
+
+    void leaveTeam(UUID teamId, UUID userId);
+
+    void addStudentToTeam(UUID teamId, String email);
+
+    void addStudentToCourse(UUID courseId, String email);
+
+    void removeStudentFromTeam(UUID teamId, String email);
+
+    void removeStudentFromCourse(UUID courseId, String email);
+
+
+
+
 }

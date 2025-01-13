@@ -25,11 +25,13 @@ import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
+import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
+import pl.lodz.p.it.eduvirt.mappers.UserMapper;
 import pl.lodz.p.it.eduvirt.service.*;
 
 import java.time.LocalDateTime;
@@ -53,6 +55,7 @@ public class CourseController {
     private final CourseMapper courseMapper;
     private final RGPoolMapper rgPoolMapper;
     private final ResourceGroupMapper resourceGroupMapper;
+    private final UserMapper userMapper;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -183,9 +186,41 @@ public class CourseController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
-    @PostMapping("/{courseId}/{userId}")
-    public ResponseEntity<Void> addUserToCourse(@PathVariable UUID courseId, @PathVariable UUID userId) {
-        teamService.addUserToCourse(courseId, userId);
+    @PostMapping("/{courseId}/add-student")
+    public ResponseEntity<Void> addStudentToCourse(@PathVariable UUID courseId, @RequestParam String email) {
+        teamService.addStudentToCourse(courseId, email);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{courseId}/remove-student")
+    public ResponseEntity<Void> removeStudentFromCourse(@PathVariable UUID courseId, @RequestParam String email) {
+        teamService.removeStudentFromCourse(courseId, email);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{courseId}/add-teacher")
+    public ResponseEntity<Void> addTeacherToCourse(@PathVariable UUID courseId, @RequestParam String email) {
+        courseService.addTeacherToCourse(courseId, email);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{courseId}/remove-teacher")
+    public ResponseEntity<Void> removeTeacherFromCourse(@PathVariable UUID courseId, @RequestParam String email) {
+        courseService.removeTeacherFromCourse(courseId, email);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{courseId}/teachers")
+    public ResponseEntity<List<UserDto>> getTeachersForCourse(@PathVariable UUID courseId) {
+
+        List<User> teachers = courseService.getTeachersForCourse(courseId);
+
+        List<UserDto> userDtos = teachers.stream()
+                .map(userMapper::userToDto)
+                .toList();
+
+        if (userDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(userDtos);
+    }
+
 }

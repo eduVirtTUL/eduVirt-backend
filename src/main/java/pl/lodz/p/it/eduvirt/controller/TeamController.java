@@ -71,15 +71,16 @@ public class TeamController {
         return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(updatedTeam));
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/student")
     @Transactional
-    public ResponseEntity<PageDto<TeamWithCourseDto>> getTeamsByUser(
-            @PathVariable UUID userId,
+    public ResponseEntity<PageDto<TeamWithCourseDto>> getTeamsByStudent(
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Team> teamsPage = teamService.getTeamsByUser(userId, pageable);
-        
+        UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        Page<Team> teamsPage = teamService.getTeamsByStudent(studentId, pageable);
+
         List<TeamWithCourseDto> teamDtos = teamsPage.getContent().stream()
                 .map(teamMapper::teamToTeamWithCourseDto)
                 .collect(Collectors.toList());
@@ -122,19 +123,19 @@ public class TeamController {
     @PostMapping("/leave")
     public ResponseEntity<Void> leaveTeam(@RequestParam UUID teamId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        teamService.removeUserFromTeam(teamId, userId);
+        teamService.leaveTeam(teamId, userId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/add/{teamId}/{userId}")
-    public ResponseEntity<Void> addUserToTeam(@PathVariable UUID teamId, @PathVariable UUID userId) {
-        teamService.addUserToTeam(teamId, userId);
+    @PostMapping("/{teamId}/add-student")
+    public ResponseEntity<Void> addStudentToTeam(@PathVariable UUID teamId, @RequestParam String email) {
+        teamService.addStudentToTeam(teamId, email);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/remove/{teamId}/{userId}")
-    public ResponseEntity<Void> removeUserFromTeam(@PathVariable UUID teamId, @PathVariable UUID userId) {
-        teamService.removeUserFromTeam(teamId, userId);
+    @PostMapping("/{teamId}/remove-student")
+    public ResponseEntity<Void> removeStudentFromTeam(@PathVariable UUID teamId, @RequestParam String email) {
+        teamService.removeStudentFromTeam(teamId, email);
         return ResponseEntity.noContent().build();
     }
 }
