@@ -143,7 +143,7 @@ public class CourseController {
     }
 
     @PostMapping("/{id}/resource-group")
-    public ResponseEntity<Void> createResourceGroup(@PathVariable UUID id, @RequestBody CreateResourceGroupDto createResourceGroupDto) {
+    public ResponseEntity<Void> createResourceGroup(@PathVariable UUID id, @RequestBody @Validated CreateResourceGroupDto createResourceGroupDto) {
         ResourceGroup resourceGroup = resourceGroupMapper.toEntity(createResourceGroupDto);
         courseService.addResourceGroupToCourse(id, resourceGroup);
         return ResponseEntity.ok().build();

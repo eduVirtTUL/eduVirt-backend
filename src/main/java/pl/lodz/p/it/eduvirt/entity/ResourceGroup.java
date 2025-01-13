@@ -21,7 +21,7 @@ public class ResourceGroup extends HistoricalData {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "description", nullable = false, length = 1000)
+    @Column(name = "description", length = 1000)
     private String description;
 
     @Column(name = "stateless", nullable = false)
@@ -38,6 +38,7 @@ public class ResourceGroup extends HistoricalData {
     @OneToMany(mappedBy = "resourceGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResourceGroupNetwork> networks = new ArrayList<>();
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "resourceGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Reservation> reservations = new ArrayList<>();
 

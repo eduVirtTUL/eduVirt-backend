@@ -3,18 +3,16 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.entity.NetworkInterface;
-import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
-import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
-import pl.lodz.p.it.eduvirt.repository.NetworkInterfaceRepository;
-import pl.lodz.p.it.eduvirt.repository.ResourceGroupNetworkRepository;
-import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
-import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
+import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.NoNetworkAvailableException;
+import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupNetworkService;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -25,13 +23,38 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     private final VirtualMachineRepository virtualMachineRepository;
     private final OVirtVmService oVirtVmService;
     private final NetworkInterfaceRepository networkInterfaceRepository;
+    private final CourseRepository courseRepository;
+    private final ResourceGroupPoolRepository resourceGroupPoolRepository;
+    private final CourseMetricRepository courseMetricRepository;
 
     @Override
     @Transactional
     public ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name) {
+        ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
+                .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
+
+        Course course;
+
+        if (resourceGroup.isStateless()) {
+            course = resourceGroupPoolRepository.findByResourceGroupsContaining(resourceGroup).getCourse();
+        } else {
+            course = courseRepository.findByStateFullResourceGroupsContaining(resourceGroup);
+        }
+
+
+        Optional<CourseMetric> metric = courseMetricRepository.findByCourseIdAndMetricName(course.getId(), "network_count");
+        if (metric.isPresent()) {
+            var networkCount = resourceGroup.getNetworks().size();
+            var metricValue = metric.get().getValue();
+
+            if (metricValue != 0 && networkCount >= metricValue) {
+                throw new NoNetworkAvailableException("Resource group has reached the maximum number of networks");
+            }
+        }
+
         ResourceGroupNetwork resourceGroupNetwork = new ResourceGroupNetwork();
         resourceGroupNetwork.setName(name);
-        resourceGroupNetwork.setResourceGroup(resourceGroupRepository.getReferenceById(rgId));
+        resourceGroupNetwork.setResourceGroup(resourceGroup);
         return resourceGroupNetworkRepository.save(resourceGroupNetwork);
     }
 
