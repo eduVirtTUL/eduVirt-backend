@@ -13,4 +13,5 @@ public interface PodStatelessRepository extends JpaRepository<PodStateless, UUID
     List<PodStateless> findByCourseId(UUID courseId);
     List<PodStateless> findByResourceGroupPoolId(UUID resourceGroupPoolId);
     boolean existsByResourceGroupPoolId(UUID resourceGroupPoolId);
+    boolean existsByResourceGroupPoolIdAndTeamId(UUID resourceGroupPoolId, UUID teamId);
 }

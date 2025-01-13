@@ -15,7 +15,7 @@ public interface CourseService {
 
     List<Course> getCourses();
 
-    List<Course> getCoursesForStudent(UUID studentId, Pageable pageable);
+    List<Course> getCoursesForStudent(User student, Pageable pageable);
 
     Course getCourse(UUID id);
 

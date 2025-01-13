@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +28,12 @@ import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
+import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.mappers.UserMapper;
 import pl.lodz.p.it.eduvirt.service.*;
 
@@ -57,11 +60,14 @@ public class CourseController {
     private final ResourceGroupMapper resourceGroupMapper;
     private final UserMapper userMapper;
 
+    /* Repositories */
+
+    private final UserRepository userRepository;
+
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) Integer page,
                                                          @RequestParam(name = "size", required = false) Integer size) {
-
         if (page == null || size == null) {
             List<Course> courses = courseService.getCourses();
 
@@ -83,7 +89,10 @@ public class CourseController {
     @GetMapping(path = "/member", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<CourseDto>> getCoursesForStudent(Pageable pageable) {
         UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<Course> foundCourses = courseService.getCoursesForStudent(studentId, pageable);
+        User student = userRepository.findById(studentId).orElseThrow(
+                () -> new UserNotFoundException("User with id %s could not be found!".formatted(studentId)));
+
+        List<Course> foundCourses = courseService.getCoursesForStudent(student, pageable);
 
         List<CourseDto> listOfDTOs = foundCourses.stream()
                 .map(courseMapper::courseToCourseDto).toList();
@@ -159,8 +168,22 @@ public class CourseController {
             listOfDTOs.add(new ResourcesAvailabilityDto(localDateTime, availability.get(localDateTime)));
         }
 
-        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(listOfDTOs);
+        /* Check authorization */
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        List<User> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                (authorities.contains("teacher") && true) ||
+                (authorities.contains("student") && users.contains(user))) &&
+                !listOfDTOs.isEmpty()) {
+            return ResponseEntity.ok(listOfDTOs);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -182,8 +205,22 @@ public class CourseController {
             listOfDTOs.add(new ResourcesAvailabilityDto(localDateTime, availability.get(localDateTime)));
         }
 
-        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(listOfDTOs);
+        /* Check authorization */
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        List<User> users = course.getTeams().stream().map(Team::getUsers).flatMap(Collection::stream).toList();
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                (authorities.contains("teacher") && true) ||
+                (authorities.contains("student") && users.contains(userId))) &&
+                !listOfDTOs.isEmpty()) {
+            return ResponseEntity.ok(listOfDTOs);
+        }
+
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{courseId}/add-student")
