@@ -34,15 +34,12 @@ import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
-import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.mappers.UserMapper;
+import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.*;
 
 import java.time.LocalDateTime;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/course")
