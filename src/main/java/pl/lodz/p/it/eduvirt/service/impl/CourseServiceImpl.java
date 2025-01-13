@@ -11,10 +11,7 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.CourseRepository;
-import pl.lodz.p.it.eduvirt.repository.PodStatefulRepository;
-import pl.lodz.p.it.eduvirt.repository.PodStatelessRepository;
-import pl.lodz.p.it.eduvirt.repository.UserRepository;
+import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
 
@@ -29,6 +26,8 @@ public class CourseServiceImpl implements CourseService {
     private final CourseAccessKeyRepository courseAccessKeyRepository;
     private final PodStatefulRepository podStatefulRepository;
     private final PodStatelessRepository podStatelessRepository;
+    private final TeamRepository teamRepository;
+    private final ReservationRepository reservationRepository;
 
     @Override
     public Page<Course> getCourses(int page, int size) {
@@ -134,10 +133,19 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Transactional
     public Course updateCourse(UUID courseId, Course course) {
         Course existingCourse = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         existingCourse.setName(course.getName());
         existingCourse.setDescription(course.getDescription());
         return courseRepository.save(existingCourse);
+    }
+
+    @Override
+    @Transactional
+    public void resetCourse(UUID courseId) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        teamRepository.deleteAllByCourseId(course.getId());
     }
 }

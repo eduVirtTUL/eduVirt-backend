@@ -240,4 +240,10 @@ public class CourseController {
         return ResponseEntity.ok(userDtos);
     }
 
+    @PostMapping("/{courseId}/reset")
+    public ResponseEntity<Void> resetCourse(@PathVariable UUID courseId) {
+        courseService.resetCourse(courseId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

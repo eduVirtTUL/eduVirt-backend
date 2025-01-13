@@ -36,4 +36,6 @@ public interface CourseService {
     void removeTeacherFromCourse(UUID courseId, String email);
 
     Course updateCourse(UUID courseId, Course course);
+
+    void resetCourse(UUID courseId);
 }

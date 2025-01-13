@@ -57,6 +57,9 @@ public class Team extends Updatable {
     @OneToOne(mappedBy = "team", cascade = CascadeType.ALL)
     private TeamAccessKey teamAccessKey;
 
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Reservation> reservations = new ArrayList<>();
+
     /* Constructor */
 
     public Team(String name,
