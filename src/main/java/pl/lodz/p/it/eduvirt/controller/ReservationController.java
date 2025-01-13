@@ -108,9 +108,9 @@ public class ReservationController {
             List<String> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                     .stream().map(GrantedAuthority::getAuthority).toList();
 
-            if (authorities.contains("ROLE_administrator") ||
-                    (authorities.contains("ROLE_teacher") && course.getTeachers().contains(user)) ||
-                    (authorities.contains("ROLE_student") && users.contains(user))) {
+            if (authorities.contains("administrator") ||
+                    (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
+                    (authorities.contains("student") && users.contains(user))) {
                 return ResponseEntity.ok(reservationMapper.reservationToDetailsDto(foundReservation));
             }
         }

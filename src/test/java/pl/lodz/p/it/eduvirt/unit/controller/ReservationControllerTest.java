@@ -446,7 +446,7 @@ public class ReservationControllerTest {
     /* CreateNewReservationForPod method tests */
 
     @Test
-    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", roles = "student")
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_AllDataInCreateReservationDtoIsValidAndExistingCourseAndStatefulPodIdentifiersArePassed_When_CreateNewReservationForPod_Then_() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -478,7 +478,7 @@ public class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", roles = "student")
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_AllDataInCreateReservationDtoIsValidAndExistingCourseAndStatelessPodIdentifiersArePassed_When_CreateNewReservationForPod_Then_() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -510,7 +510,7 @@ public class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", roles = "student")
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_NonExistentCourseIdentifierIsPassed_When_CreateNewReservationForPod_Then_Returns404NotFound() throws Exception {
         UUID nonExistentCourseId = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -538,7 +538,7 @@ public class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "608a99f5-7b74-427a-884e-4ccc21b14243", roles = "student")
+    @WithMockUser(username = "608a99f5-7b74-427a-884e-4ccc21b14243", authorities = "student")
     public void Given_TeamCouldNotBeFoundForTheCurrentlyLoggedInUser_When_CreateNewReservationForPod_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -567,7 +567,7 @@ public class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", roles = "student")
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_NonExistentPodForGivenTeamIsPassed_When_CreateNewReservationForPod_Then_Returns404NotFound() throws Exception {
         UUID nonExistentPodId = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -598,7 +598,7 @@ public class ReservationControllerTest {
     /* GetReservationDetails method tests */
 
     @Test
-    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", roles = "student")
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_ExistingReservationIdentifierIsPassedAsStudentInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
         when(reservationService.findReservationById(Mockito.eq(reservation1.getId())))
                 .thenReturn(Optional.of(reservation1));
@@ -637,7 +637,7 @@ public class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", roles = "administrator")
+    @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
     public void Given_ExistingReservationIdentifierIsPassedAsAdmin_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
         when(reservationService.findReservationById(Mockito.eq(reservation1.getId())))
                 .thenReturn(Optional.of(reservation1));
@@ -676,7 +676,7 @@ public class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", roles = "teacher")
+    @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
     public void Given_ExistingReservationIdentifierIsPassedAsTeacherInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
         when(reservationService.findReservationById(Mockito.eq(reservation1.getId())))
                 .thenReturn(Optional.of(reservation1));
@@ -715,7 +715,7 @@ public class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", roles = "teacher")
+    @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
     public void Given_ExistingReservationIdentifierIsPassedAsTeacherNotInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
         when(reservationService.findReservationById(Mockito.eq(reservation1.getId())))
                 .thenReturn(Optional.of(reservation1));
@@ -732,7 +732,7 @@ public class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", roles = "student")
+    @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
     public void Given_ExistingUserIsAuthenticatedButNotInCourse_When_GetReservationDetails_Then_Returns404NotFound() throws Exception {
         when(reservationService.findReservationById(Mockito.eq(reservation1.getId()))).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(Mockito.eq(studentId))).thenReturn(Optional.of(student));
@@ -761,7 +761,7 @@ public class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "608a99f5-7b74-427a-884e-4ccc21b14243", roles = "student")
+    @WithMockUser(username = "608a99f5-7b74-427a-884e-4ccc21b14243", authorities = "student")
     public void Given_NonExistentUserIsAuthenticated_When_GetReservationDetails_Then_Returns404NotFound() throws Exception {
         when(reservationService.findReservationById(Mockito.eq(reservation1.getId()))).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(Mockito.eq(nonExistentUserId1))).thenReturn(Optional.empty());
