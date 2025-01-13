@@ -26,4 +26,10 @@ public interface CourseService {
     List<ResourceGroup> getStateFullResourceGroups(UUID courseId);
 
     void deleteCourse(UUID courseId);
+
+    List<User> getTeachersForCourse(UUID courseId);
+
+    void addTeacherToCourse(UUID courseId, String email);
+
+    void removeTeacherFromCourse(UUID courseId, String email);
 }

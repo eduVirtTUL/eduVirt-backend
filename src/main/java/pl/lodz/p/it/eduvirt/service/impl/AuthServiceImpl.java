@@ -35,22 +35,34 @@ public class AuthServiceImpl implements AuthService {
         if (user.isEmpty()) {
             UUID oVirtUserId = UUID.fromString(oVirtUserService.getUserByPrincipal(actualToken.getPreferredUsername()).id());
 
-            User newUser = new User(userId, oVirtUserId, actualToken.getEmail(), actualToken.getGivenName(), actualToken.getPreferredUsername(), actualToken.getFamilyName(), null);
-            userRepository.save(newUser);
+            User newUser = new User(userId,
+                    oVirtUserId,
+                    actualToken.getEmail(),
+                    actualToken.getPreferredUsername(),
+                    actualToken.getGivenName(),
+                    actualToken.getFamilyName(),
+                    actualToken.getGroups(),
+                    null);
+
+            userRepository.saveAndFlush(newUser);
 
         } else {
             User actualUser = user.get();
             if (!actualUser.getEmail().equals(actualToken.getEmail())) {
                 actualUser.setEmail(actualToken.getEmail());
-                userRepository.save(actualUser);
+                userRepository.saveAndFlush(actualUser);
             }
             if (!actualUser.getFirstName().equals(actualToken.getGivenName())) {
                 actualUser.setFirstName(actualToken.getGivenName());
-                userRepository.save(actualUser);
+                userRepository.saveAndFlush(actualUser);
             }
             if (!actualUser.getLastName().equals(actualToken.getFamilyName())) {
                 actualUser.setLastName(actualToken.getFamilyName());
-                userRepository.save(actualUser);
+                userRepository.saveAndFlush(actualUser);
+            }
+            if (!actualUser.getRoles().equals(actualToken.getGroups())) {
+                actualUser.setRoles(actualToken.getGroups());
+                userRepository.saveAndFlush(actualUser);
             }
         }
     }
