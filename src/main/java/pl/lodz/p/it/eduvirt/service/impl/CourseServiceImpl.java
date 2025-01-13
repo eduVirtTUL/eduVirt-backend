@@ -41,7 +41,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public Course getCourse(UUID id) {
-        return courseRepository.findById(id).orElseThrow(() -> new CourseNotFoundException("Course not found"));
+        return courseRepository.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
     }
 
     @Override
@@ -52,7 +52,7 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     @Override
     public void addResourceGroupToCourse(UUID courseId, ResourceGroup resourceGroup) {
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course not found"));
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         resourceGroup.setStateless(false);
         course.getStateFullResourceGroups().add(resourceGroup);
         courseRepository.save(course);
@@ -85,8 +85,8 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course not found"));
         User teacher = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (teacher.getRoles().contains("/teacher")){
-            if (!course.getTeachers().contains(teacher)){
+        if (teacher.getRoles().contains("/teacher")) {
+            if (!course.getTeachers().contains(teacher)) {
                 course.getTeachers().add(teacher);
                 courseRepository.saveAndFlush(course);
             } else {
@@ -103,9 +103,9 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course not found"));
         User teacher = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (teacher.getRoles().contains("/teacher")){
-            if (course.getTeachers().contains(teacher)){
-                if (course.getTeachers().size() > 1){
+        if (teacher.getRoles().contains("/teacher")) {
+            if (course.getTeachers().contains(teacher)) {
+                if (course.getTeachers().size() > 1) {
                     course.getTeachers().remove(teacher);
                     courseRepository.saveAndFlush(course);
                 } else {
@@ -117,5 +117,13 @@ public class CourseServiceImpl implements CourseService {
         } else {
             throw new IllegalArgumentException("User is not a teacher");
         }
+    }
+
+    @Override
+    public Course updateCourse(UUID courseId, Course course) {
+        Course existingCourse = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        existingCourse.setName(course.getName());
+        existingCourse.setDescription(course.getDescription());
+        return courseRepository.save(existingCourse);
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
+import pl.lodz.p.it.eduvirt.dto.course.UpdateCourceDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
@@ -26,7 +27,10 @@ import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
-import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.entity.Course;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
+import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
@@ -35,7 +39,10 @@ import pl.lodz.p.it.eduvirt.mappers.UserMapper;
 import pl.lodz.p.it.eduvirt.service.*;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/course")
@@ -136,8 +143,10 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateCourse(@PathVariable UUID id, @RequestBody CreateCourseDto createCourseDto) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<CourseDto> updateCourse(@PathVariable UUID id, @RequestBody UpdateCourceDto updateCourceDto) {
+        Course course = courseMapper.toEntity(updateCourceDto);
+        course = courseService.updateCourse(id, course);
+        return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
     }
 
     @PreAuthorize("isAuthenticated()")
