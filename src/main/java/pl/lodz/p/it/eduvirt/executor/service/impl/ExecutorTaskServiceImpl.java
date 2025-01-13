@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
+import pl.lodz.p.it.eduvirt.exceptions.executor.ExecutorBaseException;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
@@ -70,7 +71,7 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
     @Override
     public ExecutorSubtask registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type) {
         ExecutorTask task = executorTaskRepository.findById(taskId)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(EntityNotFoundException::new);
 
         // TODO michal: Ask is better save nulls or mapping nulls to 00000000-0000-0000-0000-000000000000
         UUID sanitizedVmId = Objects.requireNonNullElse(vmId, UUID.fromString("00000000-0000-0000-0000-000000000000"));
@@ -92,7 +93,7 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
 
         subtask.setSuccessful(success);
         subtask.setDescription(
-                Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(200, comment.length())) : null
+                Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(500, comment.length())) : null
         );
 
         Map<AdditionalId, UUID> mapOfAdditionalIds = new HashMap<>();
@@ -108,14 +109,13 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
         }
 
         switch (subtask) {
-            case VmTask vmTask -> {
-            }
+            case VmTask vmTask -> {}
             case VnicProfileTask vnicProfileTask -> {
                 vnicProfileTask.setVnicProfileId(mapOfAdditionalIds.get(AdditionalId.VNIC_PROFILE));
                 vnicProfileTask.setNicId(mapOfAdditionalIds.get(AdditionalId.NIC));
             }
-            case PermissionTask permissionTask -> {
-            }
+            case PermissionTask permissionTask -> {}
+            case PreconditionsCheckTask preconditionsCheckTask -> {}
             default -> throw new IllegalArgumentException("Unexpected subtask type: " + subtask);
         }
 

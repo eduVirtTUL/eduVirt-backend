@@ -118,11 +118,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             """)
     List<Reservation> findAllReservationsToBegin(@Param("probeTime") LocalDateTime probeTime);
 
-
+//TODO michal: on some subtasks failed, reservations stay in PENDING status
+//    @Query("""
+//            SELECT DISTINCT r FROM Reservation r
+//            WHERE :probeTime >= r.endTime
+//            AND r.status = 'IN_PROGRESS'
+//            AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_DESTRUCT' AND et.status != 'FAILED')
+//            """)
     @Query("""
             SELECT DISTINCT r FROM Reservation r
             WHERE :probeTime >= r.endTime
-            AND r.status = 'IN_PROGRESS'
             AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_DESTRUCT' AND et.status != 'FAILED')
             """)
     List<Reservation> findAllReservationsToStop(@Param("probeTime") LocalDateTime probeTime);
