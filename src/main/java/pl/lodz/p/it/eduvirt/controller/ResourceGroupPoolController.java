@@ -68,7 +68,7 @@ public class ResourceGroupPoolController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResourceGroupPoolDto> updateResourceGroupPool(@PathVariable UUID id, @RequestBody UpdateResourceGroupPoolDto updateResourceGroupPoolDto) {
+    public ResponseEntity<ResourceGroupPoolDto> updateResourceGroupPool(@PathVariable UUID id, @RequestBody @Validated UpdateResourceGroupPoolDto updateResourceGroupPoolDto) {
         ResourceGroupPool resourceGroupPool = rgPoolMapper.toRGPool(updateResourceGroupPoolDto);
         return ResponseEntity.ok(rgPoolMapper.toRGPoolDto(resourceGroupPoolService.updateResourceGroupPool(id, resourceGroupPool)));
     }

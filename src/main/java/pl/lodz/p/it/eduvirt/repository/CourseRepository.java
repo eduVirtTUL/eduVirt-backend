@@ -28,4 +28,10 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     Page<Course> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
 
     boolean existsByIdNotAndName(UUID id, String name);
+
+    @Query("SELECT count(n) FROM Course c JOIN c.stateFullResourceGroups r JOIN r.networks n WHERE c.id = :id GROUP BY r.id")
+    List<Integer> getStatefulResourceGroupNetworkCount(UUID id);
+
+    @Query("SELECT count(n) FROM Course c JOIN c.resourceGroupPools p JOIN p.resourceGroups r JOIN r.networks n WHERE c.id = :id GROUP BY r.id")
+    List<Integer> getStatelessResourceGroupNetworkCount(UUID id);
 }
