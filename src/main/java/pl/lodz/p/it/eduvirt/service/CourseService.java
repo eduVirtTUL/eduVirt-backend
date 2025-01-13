@@ -13,6 +13,8 @@ import java.util.UUID;
 public interface CourseService {
     Page<Course> getCourses(int page, int size);
 
+    Page<Course> getCourses(int page, int size, String search);
+
     List<Course> getCourses();
 
     List<Course> getCoursesForStudent(User student, Pageable pageable);
@@ -32,4 +34,8 @@ public interface CourseService {
     void addTeacherToCourse(UUID courseId, String email);
 
     void removeTeacherFromCourse(UUID courseId, String email);
+
+    Course updateCourse(UUID courseId, Course course);
+
+    void resetCourse(UUID courseId);
 }

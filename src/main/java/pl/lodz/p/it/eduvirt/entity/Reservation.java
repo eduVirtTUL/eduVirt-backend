@@ -7,8 +7,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(
@@ -18,7 +20,8 @@ import java.time.LocalDateTime;
                 @Index(name = "reservation_team_id_idx", columnList = "team_id")
         }
 )
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 public class Reservation extends HistoricalData {
 
@@ -69,6 +72,9 @@ public class Reservation extends HistoricalData {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ReservationStatus status = ReservationStatus.PENDING;
+
+    @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ExecutorTask> executorTasks;
 
     /* Constructors */
 

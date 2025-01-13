@@ -20,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
+import pl.lodz.p.it.eduvirt.dto.course.UpdateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
@@ -33,8 +34,8 @@ import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
-import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.mappers.UserMapper;
+import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.*;
 
 import java.time.LocalDateTime;
@@ -67,7 +68,10 @@ public class CourseController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) Integer page,
-                                                         @RequestParam(name = "size", required = false) Integer size) {
+                                                         @RequestParam(name = "size", required = false) Integer size,
+                                                         @RequestParam(name = "search", required = false) String search) {
+
+
         if (page == null || size == null) {
             List<Course> courses = courseService.getCourses();
 
@@ -77,7 +81,14 @@ public class CourseController {
                     .build());
         }
 
-        Page<Course> courses = courseService.getCourses(page, size);
+        Page<Course> courses;
+
+        if (search == null) {
+            courses = courseService.getCourses(page, size);
+        } else {
+            courses = courseService.getCourses(page, size, search);
+        }
+
 
         return ResponseEntity.ok(PageDto.<CourseDto>builder()
                 .items(courseMapper.toCourseDtoList(courses.getContent().stream()))
@@ -145,8 +156,10 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateCourse(@PathVariable UUID id, @RequestBody CreateCourseDto createCourseDto) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<CourseDto> updateCourse(@PathVariable UUID id, @RequestBody @Validated UpdateCourseDto updateCourceDto) {
+        Course course = courseMapper.toEntity(updateCourceDto);
+        course = courseService.updateCourse(id, course);
+        return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -258,6 +271,12 @@ public class CourseController {
 
         if (userDtos.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(userDtos);
+    }
+
+    @PostMapping("/{courseId}/reset")
+    public ResponseEntity<Void> resetCourse(@PathVariable UUID courseId) {
+        courseService.resetCourse(courseId);
+        return ResponseEntity.noContent().build();
     }
 
 }

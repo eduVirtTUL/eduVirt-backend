@@ -1,18 +1,13 @@
 package pl.lodz.p.it.eduvirt.executor.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.lodz.p.it.eduvirt.entity.HistoricalData;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -44,6 +39,9 @@ public class ExecutorTask extends HistoricalData {
 
     @Column(name = "description", updatable = true, nullable = true, length = 200)
     private String description;
+
+    @OneToMany(mappedBy = "executorTask", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ExecutorSubtask> subtasks = new ArrayList<>();
 
     // Constructors
 

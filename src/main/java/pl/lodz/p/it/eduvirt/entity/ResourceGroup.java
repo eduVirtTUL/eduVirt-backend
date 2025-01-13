@@ -38,6 +38,9 @@ public class ResourceGroup extends HistoricalData {
     @OneToMany(mappedBy = "resourceGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResourceGroupNetwork> networks = new ArrayList<>();
 
+    @OneToMany(mappedBy = "resourceGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Reservation> reservations = new ArrayList<>();
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
