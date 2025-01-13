@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.types.User;
 import org.ovirt.engine.sdk4.types.Vm;
+import org.ovirt.engine.sdk4.types.VmStatus;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -51,16 +52,19 @@ import java.util.stream.Collectors;
 //IMPROVEMENTS michal: error handling (in whole module - including vnicProfileService, ovirtVmService, etc..)
 //IMPROVEMENTS michal: LoggerInterceptor on other services
 
+//IMPROVEMENTS michal: block RG cause of previous reservation
+//IMPROVEMENTS michal: send notifications before end reservation
+
+//IMPROVEMENTS michal: findReservationsToBegin(), findReservationsToStop() change endTime to endTime - (graceTime + 2 min)
+
 // Priority 1
 //IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
 
-//IMPROVEMENTS michal: handle flag 'ended' in reservation table
 //IMPROVEMENTS michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems) (probably no limit)
 //IMPROVEMENTS michal: implement different exceptions for different statues of VM (that is not in DOWN status)
 
 // Priority 2
 
-//IMPROVEMENTS michal: maybe include checking VMs statues in subtasks
 //IMPROVEMENTS michal: verifications count/type of registered subtasks
 //IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
 
@@ -88,7 +92,7 @@ public class ExecutorScheduler {
     private final ExecutorTaskService executorTaskService;
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0L)
-    @Transactional(propagation = Propagation.REQUIRES_NEW) //todo michal: this should have Propagation.NEVER (imo)
+    @Transactional(propagation = Propagation.NEVER)
     public void createPods() {
         reservationService.findReservationsToBegin()
                 //.stream().parallel()
@@ -104,7 +108,7 @@ public class ExecutorScheduler {
     }
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0L)
-    @Transactional(propagation = Propagation.REQUIRES_NEW) //todo michal: this should have Propagation.NEVER (imo)
+    @Transactional(propagation = Propagation.NEVER)
     public void destroyPods() {
         reservationService.findReservationsToStop()
                 //.stream().parallel()
@@ -113,36 +117,37 @@ public class ExecutorScheduler {
                             try {
                                 stopPod(reservation);
                             } catch (Throwable e) {
+                                e.printStackTrace(System.err);
+                            }
+                        }
+                );
+    }
+
+    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void endReservations() {
+        executorTaskService.getReservationsToEndTasks()
+                //.stream().parallel()
+                .forEach(
+                        task -> {
+                            try {
+                                finalizePodReservation(task);
+                            } catch (Throwable e) {
                                 e.printStackTrace(System.err); //TODO michal
                             }
                         }
                 );
     }
 
-//    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0)
-//    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-//    public void endReservations() {
-//        executorTaskService.getReservationsToEndTasks()
-//                //.stream().parallel()
-//                .forEach(
-//                        task -> {
-//                            try {
-
-    /// /                                checkPodStatusAndEndReservation(task);
-//                            } catch (Throwable e) {
-//                                e.printStackTrace(System.err); //TODO michal
-//                            }
-//                        }
-//                );
-//    }
-
     //--------------AGGREGATED OPERATIONS METHODS--------------
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    protected void startUpPod(Reservation reservation) {
+    private void startUpPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodInitTask(reservation);
         List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationStartExistingSubTasks(reservation);
 
         try {
+            // Mark reservation as started
+            reservationService.startReservation(reservation);
+
             ResourceGroup resourceGroup = reservation.getResourceGroup();
             Team team = reservation.getTeam();
             List<VirtualMachine> originalVms = new ArrayList<>(resourceGroup.getVms());
@@ -169,8 +174,6 @@ public class ExecutorScheduler {
                         () -> checkIfVmsDownStatus(ovirtVms),
                         executorTask, null, ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES
                 );
-
-                //TODO michal: Verify resources or handle insufficient on VM startup command (probably the first one)
             }
 
             MAP_PRIVATE_SEGMENTS_ZONE:
@@ -288,13 +291,11 @@ public class ExecutorScheduler {
                         .map(pl.lodz.p.it.eduvirt.entity.User::getOVirtId)
                         .toList();
 
-                //todo to_test
-
                 // Filter VMs for which permission have been assigned
                 List<VirtualMachine> filteredVmsToAssignPermission = filterVmsBySubtasks(
                         existingSubtasks,
                         originalVms,
-                        ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE,
+                        ExecutorSubtask.SubtaskType.ASSIGN_PERMISSION,
                         true
                 );
 
@@ -309,10 +310,6 @@ public class ExecutorScheduler {
                         );
             }
 
-            // Mark reservation as started
-            //todo fix
-            reservationService.startReservation(reservation);
-
             executorTaskService.finalizeTask(executorTask.getId(), true);
         } catch (Throwable e) {
             executorTaskService.finalizeTask(executorTask.getId(), false, e.getMessage());
@@ -321,10 +318,9 @@ public class ExecutorScheduler {
     }
 
     //TODO michal: if pod doesnt start should we invoke stopping it??? - now stopping is invoking in any cases
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    protected void stopPod(Reservation reservation) {
+    private void stopPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodDestroyTask(reservation);
-        List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationEndExistingSubTasks(reservation);
+        List<ExecutorSubtask> existingSubtasks = executorTaskService.getStopPodExistingSubTasks(reservation);
 
         try {
             ResourceGroup resourceGroup = reservation.getResourceGroup();
@@ -382,7 +378,7 @@ public class ExecutorScheduler {
                                         return;
                                     }
 
-                                    //todo check remove <EMPTY> vnic profile
+                                    //todo michal: maybe verify if vnic profile is equal to this from startUpPod subtasks??
 
                                     // Remove vnic profile from VMs NICs
                                     Set<UUID> removedVnicProfilesIdsSet = interfaces
@@ -457,26 +453,60 @@ public class ExecutorScheduler {
         }
     }
 
-//    protected void checkPodStatusAndEndReservation(ExecutorTask task) {
-////        try {
-//        List<VirtualMachine> virtualMachines = task.getReservation().getResourceGroup().getVms();
-//        List<Vm> ovirtVms = fetchOvirtVms(virtualMachines);
-//
-//        ovirtVms.stream()
-//                .filter(vm -> !vm.status().equals(VmStatus.DOWN))
-//                .forEach(
-//                        vm -> runAndRegister(() -> oVirtVmService.shutdownVm(vm.id()),
-//                                task, UUID.fromString(vm.id()), ExecutorSubtask.SubtaskType.POWER_OFF
-//                        )
-//                );
-//
-////        reservationService.markReservationAsEnded();
-//
+    //todo test
+    private void finalizePodReservation(ExecutorTask task) {
+        ExecutorTask executorTask = executorTaskService.registerEndReservationTask(task.getReservation());
+        List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationEndExistingSubTasks(task.getReservation());
 
-    /// /         catch (Throwable e) {
-    /// /            e.printStackTrace();
-    /// /        }
-//    }
+        try {
+            List<VirtualMachine> originalVms = task.getReservation().getResourceGroup().getVms();
+            List<Vm> ovirtVms = fetchOvirtVms(originalVms);
+
+            if (originalVms.size() != ovirtVms.size()) {
+                //TODO michal
+                throw new RuntimeException("The number of VMs in eduVirt RG is different from the number of VMs " +
+                        "fetched from oVirt, the reservation cannot be completed automatically"
+                );
+            }
+
+            ovirtVms.removeIf(vm -> vm.status().equals(VmStatus.DOWN));
+
+            if (!ovirtVms.isEmpty()) {
+                // Filter VMs for which an attempt was made to shutdown
+                List<VirtualMachine> filteredVms = filterVmsBySubtasks(
+                        existingSubtasks,
+                        originalVms,
+                        ExecutorSubtask.SubtaskType.POWER_OFF,
+                        true
+                );
+
+                //TODO michal: optimization
+                List<Vm> filteredOvirtVms = filteredVms.stream()
+                        .map(vm ->
+                                ovirtVms.stream()
+                                        .filter(ovirtVm -> ovirtVm.id().equals(vm.getId().toString()))
+                                        .findFirst().orElse(null)
+                        )
+                        .filter(Objects::nonNull)
+                        .toList();
+
+                filteredOvirtVms
+                        .forEach(
+                                vm -> runAndRegister(() -> oVirtVmService.powerOffVm(vm.id()),
+                                        task, UUID.fromString(vm.id()), ExecutorSubtask.SubtaskType.POWER_OFF
+                                )
+                        );
+            }
+
+            // Mark reservation as completed
+            reservationService.endReservation(task.getReservation());
+
+            executorTaskService.finalizeTask(executorTask.getId(), true);
+        } catch (Throwable e) {
+            executorTaskService.finalizeTask(executorTask.getId(), false, e.getMessage());
+            throw e;
+        }
+    }
 
     //--------------PRIVATE METHODS--------------
     private List<Vm> fetchOvirtVms(List<VirtualMachine> virtualMachines) {
@@ -593,9 +623,12 @@ public class ExecutorScheduler {
     @PostConstruct
     private void init() {
         // Fetch all IN_PROGRESS and set FAILED due to system restart
-        // (solution for tasks that are stuck in IN_PROGRESS status )
+        // (solution for tasks and subtasks that are stuck in IN_PROGRESS status )
         executorTaskService.getReservationsInProgressTasks()
                 .forEach(task -> executorTaskService.finalizeTask(task.getId(), false, "Failed due to system restart"));
+        //TODO michal: maybe search by List<ExecutorTask.id>
+        executorTaskService.getReservationsInProgressSubTasks()
+                .forEach(subtask -> executorTaskService.finalizeSubTask(subtask.getId(), false, "Failed due to system restart"));
     }
 
     //--------------UTILS--------------

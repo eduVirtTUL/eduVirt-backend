@@ -8,6 +8,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,7 +47,7 @@ public class HistoricalData extends Updatable {
         String performerId = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
                 .map(Principal::getName).orElse("00000000-0000-0000-0000-000000000000");
         this.createdBy = UUID.fromString(performerId);
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
     }
 
     @PreUpdate
@@ -53,6 +55,6 @@ public class HistoricalData extends Updatable {
         String performerId = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
                 .map(Principal::getName).orElse("00000000-0000-0000-0000-000000000000");
         this.updatedBy = UUID.fromString(performerId);
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
     }
 }

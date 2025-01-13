@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import pl.lodz.p.it.eduvirt.entity.HistoricalData;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Entity
@@ -53,7 +54,7 @@ public abstract class ExecutorSubtask extends HistoricalData {
     @Column(name = "successful", updatable = true, nullable = true)
     private Boolean successful;
 
-    @Column(name = "description", updatable = true, nullable = true, length = 500)
+    @Column(name = "description", updatable = true, nullable = true, length = 200)
     private String description;
 
     // Constructors
@@ -66,6 +67,13 @@ public abstract class ExecutorSubtask extends HistoricalData {
         this.vmId = vmId;
         this.type = type;
     }
+
+    // Custom Getters
+
+    public Boolean getSuccessful() {
+        return Optional.ofNullable(successful).orElse(false);
+    }
+
 
     // Other methods
 
