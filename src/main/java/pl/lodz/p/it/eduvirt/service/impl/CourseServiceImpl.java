@@ -45,8 +45,8 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<Course> getCoursesForStudent(UUID studentId, Pageable pageable) {
-        return courseRepository.findAllCoursesForStudent(studentId, pageable);
+    public List<Course> getCoursesForStudent(User student, Pageable pageable) {
+        return courseRepository.findAllCoursesForStudent(student, pageable);
     }
 
     @Override

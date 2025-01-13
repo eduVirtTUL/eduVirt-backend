@@ -18,4 +18,7 @@ public interface PodStatelessRepository extends JpaRepository<PodStateless, UUID
     boolean existsByResourceGroupPoolId(UUID resourceGroupPoolId);
 
     void deleteAllByCourseId(UUID courseId);
+
+    boolean existsByResourceGroupPoolIdAndTeamId(UUID resourceGroupPoolId, UUID teamId);
+
 }

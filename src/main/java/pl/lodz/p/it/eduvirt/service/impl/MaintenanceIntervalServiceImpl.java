@@ -101,6 +101,9 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
             throw new MaintenanceIntervalInvalidTimeWindowException(
                     I18n.MAINTENANCE_INTERVAL_BEGIN_AT_PAST);
 
+        if (ChronoUnit.HOURS.between(beginAt, endAt) > 24)
+            throw new MaintenanceIntervalTooLongException("Maintenance interval length cannot exceed 24 hours");
+
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
                 .findAllIntervalsInGivenTimePeriod(beginAt, endAt, MaintenanceInterval.IntervalType.SYSTEM, null);
         if (!foundIntervals.isEmpty()) throw new MaintenanceIntervalConflictException(
