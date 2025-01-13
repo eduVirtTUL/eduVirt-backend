@@ -38,6 +38,11 @@ public class User {
     @Column(name = "last_name")
     private String lastName;
 
+    @ElementCollection
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private List<String> roles = new ArrayList<>();
+
     @ManyToMany(mappedBy = "users")
     @ToString.Exclude
     private List<Team> teams = new ArrayList<>();

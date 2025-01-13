@@ -31,6 +31,9 @@ public class Course extends AbstractEntity {
     @OneToMany(mappedBy = "course")
     private List<Team> teams = new ArrayList<>();
 
+    @ManyToMany
+    private List<User> teachers = new ArrayList<>();
+
     @Column(name = "cluster_id", nullable = false)
     private UUID clusterId;
 
