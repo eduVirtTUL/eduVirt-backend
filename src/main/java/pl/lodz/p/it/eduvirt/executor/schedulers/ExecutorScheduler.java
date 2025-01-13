@@ -17,6 +17,7 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
+import pl.lodz.p.it.eduvirt.exceptions.executor.NoAvailableVnicProfileException;
 import pl.lodz.p.it.eduvirt.exceptions.executor.VmInvalidStatusException;
 import pl.lodz.p.it.eduvirt.exceptions.executor.VmTransitionalStatusException;
 import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
@@ -47,6 +48,8 @@ import java.util.stream.Collectors;
 //IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
 //IMPROVEMENTS michal: improvements for transactions
 //IMPROVEMENTS michal: change some // /* */
+//IMPROVEMENTS michal: error handling (in whole module - including vnicProfileService, ovirtVmService, etc..)
+//IMPROVEMENTS michal: LoggerInterceptor on other services
 
 // Priority 1
 //IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
@@ -146,7 +149,6 @@ public class ExecutorScheduler {
 
             CHECK_CONDITION_ZONE:
             {
-                //todo to_test
                 Predicate<ExecutorSubtask> predicate = st ->
                         st.getType().equals(ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES) && st.getSuccessful();
                 if (existingSubtasks.stream().anyMatch(predicate)) {
@@ -166,7 +168,7 @@ public class ExecutorScheduler {
                 runAndRegister(
                         () -> checkIfVmsDownStatus(ovirtVms),
                         executorTask, null, ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES
-                );;
+                );
 
                 //TODO michal: Verify resources or handle insufficient on VM startup command (probably the first one)
             }
@@ -214,7 +216,7 @@ public class ExecutorScheduler {
                                                 .stream()
                                                 .filter(vnicProfile -> !vnicProfile.getInUse())
                                                 .findFirst()
-                                                .orElseThrow(() -> new RuntimeException("No available vnic profile found in pool"))
+                                                .orElseThrow(NoAvailableVnicProfileException::new)
                                                 .getId();
 
                                         // Set vnic profile's property "inUse" to true
@@ -248,8 +250,6 @@ public class ExecutorScheduler {
             {
                 // Start-up VMs
                 if (reservation.getAutomaticStartup()) {
-                    //todo to_test
-
                     // Filter VMs for which an attempt was made to launch
                     List<VirtualMachine> filteredVmsToStart = filterVmsBySubtasks(
                             existingSubtasks,
@@ -310,6 +310,7 @@ public class ExecutorScheduler {
             }
 
             // Mark reservation as started
+            //todo fix
             reservationService.startReservation(reservation);
 
             executorTaskService.finalizeTask(executorTask.getId(), true);
@@ -613,5 +614,4 @@ public class ExecutorScheduler {
 
         return filteredVms;
     }
-
 }

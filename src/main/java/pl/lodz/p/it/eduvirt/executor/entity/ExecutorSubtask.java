@@ -53,7 +53,7 @@ public abstract class ExecutorSubtask extends HistoricalData {
     @Column(name = "successful", updatable = true, nullable = true)
     private Boolean successful;
 
-    @Column(name = "description", updatable = true, nullable = true, length = 200)
+    @Column(name = "description", updatable = true, nullable = true, length = 500)
     private String description;
 
     // Constructors
