@@ -4,7 +4,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -44,6 +46,15 @@ import java.util.*;
 @RequestMapping("/course")
 @RequiredArgsConstructor
 public class CourseController {
+
+    @Value("${window.length}")
+    private int windowLength;
+
+    @PostConstruct
+    public void validateProperty() {
+        if (windowLength < 10) windowLength = 10;
+        if (windowLength > 60) windowLength = 60;
+    }
 
     /* Services */
 
@@ -154,7 +165,6 @@ public class CourseController {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findResourcesAvailabilityForResourceGroup(
             @PathVariable("id") UUID courseId, @PathVariable("rgId") UUID rgId,
-            @RequestParam("window") int windowLength,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         Course course = courseService.getCourse(courseId);
@@ -191,7 +201,6 @@ public class CourseController {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findResourcesAvailabilityForResourceGroupPool(
             @PathVariable("id") UUID courseId, @PathVariable("rgPoolId") UUID rgPoolId,
-            @RequestParam("window") int windowLength,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         Course course = courseService.getCourse(courseId);

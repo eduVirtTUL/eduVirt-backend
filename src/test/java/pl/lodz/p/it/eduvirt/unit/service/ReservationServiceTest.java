@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.*;
@@ -154,6 +155,7 @@ public class ReservationServiceTest {
 
     @BeforeEach
     public void setUp() throws Exception {
+        ReflectionTestUtils.setField(reservationService, "windowLength", 15);
         Field id = AbstractEntity.class.getDeclaredField("id");
         Field version = Updatable.class.getDeclaredField("version");
 
@@ -392,7 +394,7 @@ public class ReservationServiceTest {
         /* Metrics */
 
         cpuCountMetric = new Metric(cpuCount, Metric.MetricCategory.COUNTABLE);
-        memorySizeMetric = new Metric(memorySize, Metric.MetricCategory.VOLATILE_MEMORY);
+        memorySizeMetric = new Metric(memorySize, Metric.MetricCategory.MEMORY);
         networkCountMetric = new Metric(networkCount, Metric.MetricCategory.COUNTABLE);
 
         id.setAccessible(true);
@@ -721,7 +723,7 @@ public class ReservationServiceTest {
 
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         CreateReservationDto newCreateDto = new CreateReservationDto(
-                currentTime.plusHours(2), currentTime.plusHours(2).plusMinutes(30),
+                currentTime.plusHours(2), currentTime.plusHours(2).plusMinutes(30).minusSeconds(1),
                 reservation1.getAutomaticStartup(),
                 reservation1.getNotificationTime()
         );
@@ -1316,7 +1318,7 @@ public class ReservationServiceTest {
 
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         CreateReservationDto newCreateDto = new CreateReservationDto(
-                currentTime.plusHours(2), currentTime.plusHours(3).minusSeconds(1),
+                currentTime.plusHours(2), currentTime.plusHours(2).plusMinutes(30).minusSeconds(1),
                 reservation1.getAutomaticStartup(),
                 reservation1.getNotificationTime()
         );

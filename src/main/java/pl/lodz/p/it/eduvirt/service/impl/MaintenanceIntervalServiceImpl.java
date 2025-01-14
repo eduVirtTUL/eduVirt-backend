@@ -80,7 +80,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
             /* Send e-mail notification*/
             // TODO: Handle i18
             userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
-                    user.getEmail(), reservation, "CET", "pl"
+                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, "CET", "pl"
             )));
 
             /* Delete reservation */
@@ -124,7 +124,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
             /* Send e-mail notification*/
             // TODO: Handle i18
             userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
-                    user.getEmail(), reservation, "CET", "pl"
+                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, "CET", "pl"
             )));
 
             /* Delete reservation */

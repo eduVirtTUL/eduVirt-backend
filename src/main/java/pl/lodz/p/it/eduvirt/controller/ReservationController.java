@@ -3,7 +3,9 @@ package pl.lodz.p.it.eduvirt.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +43,15 @@ import java.util.UUID;
 @RequestMapping(path = "/reservations")
 @Transactional(propagation = Propagation.NEVER)
 public class ReservationController {
+
+    @Value("${window.length}")
+    private int windowLength;
+
+    @PostConstruct
+    public void validateProperty() {
+        if (windowLength < 10) windowLength = 10;
+        if (windowLength > 60) windowLength = 60;
+    }
 
     /* Services */
 
@@ -91,6 +102,12 @@ public class ReservationController {
     /* Read methods */
 
     @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/window-length")
+    ResponseEntity<Integer> getWindowLength() {
+        return ResponseEntity.ok(windowLength);
+    }
+
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{reservationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<ReservationDetailsDto> getReservationDetails(@PathVariable("reservationId") UUID reservationId) {
@@ -128,11 +145,11 @@ public class ReservationController {
 
         Page<Reservation> reservations;
         if (team.getStatelessPods().stream().anyMatch(statelessPod -> statelessPod.getId().equals(podId)))
-            reservations = reservationService.findReservationsForStatefulPod(
-                    team.getStatefulPod(podId), team, pageable);
-        else if (team.getStatelessPods().stream().anyMatch(statelessPod -> statelessPod.getId().equals(podId)))
             reservations = reservationService.findReservationsForStatelessPod(
                     team.getStatelessPod(podId), team, pageable);
+        else if (team.getStatefulPods().stream().anyMatch(statefulPod -> statefulPod.getId().equals(podId)))
+            reservations = reservationService.findReservationsForStatefulPod(
+                    team.getStatefulPod(podId), team, pageable);
         else throw new PodNotFoundException("POD %s for team %s in course %s could not be found"
                     .formatted(podId, team.getId(), course.getId()));
 
@@ -200,8 +217,8 @@ public class ReservationController {
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         if ((authorities.contains("administrator") ||
-                !(authorities.contains("teacher") && course.getTeachers().contains(user)) ||
-                !(authorities.contains("student") && users.contains(user))) && !reservations.isEmpty()) {
+                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
+                (authorities.contains("student") && users.contains(user))) && !reservations.isEmpty()) {
             return ResponseEntity.ok(listOfDtos);
         }
 
@@ -216,7 +233,6 @@ public class ReservationController {
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         Course course = courseService.getCourse(courseId);
@@ -231,19 +247,8 @@ public class ReservationController {
                 new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
                         reservationPage.getTotalPages(), reservationPage.getTotalElements()));
 
-        /* Check authorization */
-
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
-                (authorities.contains("student") && team.getUsers().contains(user))) &&
-                !listOfDTOs.isEmpty()) {
-            return ResponseEntity.ok(outputDto);
-        }
-
-        return ResponseEntity.noContent().build();
+        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(outputDto);
     }
 
     @PreAuthorize("hasRole('student')")
@@ -254,7 +259,6 @@ public class ReservationController {
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         Course course = courseService.getCourse(courseId);
@@ -269,19 +273,8 @@ public class ReservationController {
                 new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
                         reservationPage.getTotalPages(), reservationPage.getTotalElements()));
 
-        /* Check authorization */
-
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
-                (authorities.contains("student") && team.getUsers().contains(user))) &&
-                !listOfDTOs.isEmpty()) {
-            return ResponseEntity.ok(outputDto);
-        }
-
-        return ResponseEntity.noContent().build();
+        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(outputDto);
     }
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")

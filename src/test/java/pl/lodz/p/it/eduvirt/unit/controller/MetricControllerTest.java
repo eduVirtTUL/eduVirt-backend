@@ -74,9 +74,9 @@ public class MetricControllerTest {
         String metricName1 = "metric_name_no1";
         metric1 = new Metric(metricName1, Metric.MetricCategory.COUNTABLE);
         String metricName2 = "metric_name_no2";
-        metric2 = new Metric(metricName2, Metric.MetricCategory.VOLATILE_MEMORY);
+        metric2 = new Metric(metricName2, Metric.MetricCategory.MEMORY);
         String metricName3 = "metric_name_no3";
-        metric3 = new Metric(metricName3, Metric.MetricCategory.NON_VOLATILE_MEMORY);
+        metric3 = new Metric(metricName3, Metric.MetricCategory.MEMORY);
 
         id.setAccessible(true);
         id.set(metric1, UUID.randomUUID());
@@ -119,8 +119,8 @@ public class MetricControllerTest {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         MetricDto dtoNo1 = new MetricDto(metric1.getId(), metric1.getName(), Metric.MetricCategory.COUNTABLE);
-        MetricDto dtoNo2 = new MetricDto(metric2.getId(), metric2.getName(), Metric.MetricCategory.VOLATILE_MEMORY);
-        MetricDto dtoNo3 = new MetricDto(metric3.getId(), metric3.getName(), Metric.MetricCategory.NON_VOLATILE_MEMORY);
+        MetricDto dtoNo2 = new MetricDto(metric2.getId(), metric2.getName(), Metric.MetricCategory.MEMORY);
+        MetricDto dtoNo3 = new MetricDto(metric3.getId(), metric3.getName(), Metric.MetricCategory.MEMORY);
 
         when(metricService.findAllMetrics(Mockito.eq(pageNumber), Mockito.eq(pageSize)))
                 .thenReturn(new PageImpl<>(List.of(metric1, metric2, metric3), pageable, 3));

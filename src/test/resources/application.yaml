@@ -4,3 +4,6 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: test
+
+window:
+  length: 15

@@ -28,12 +28,17 @@ public class MailProvider {
     /* Mail sending methods */
 
     @PreAuthorize("permitAll()")
-    public void sendHtmlTestMessage(String emailTo, String timeZone, String language) {
+    public void sendHtmlTestMessage(String firstName,
+                                    String lastName,
+                                    String emailTo,
+                                    String timeZone,
+                                    String language) {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneId.of(timeZone)).toLocalDateTime();
         String timestamp = currentTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         Map<String, Object> templateModel = Map.of(
-                "name", emailTo,
+                "firstName", firstName,
+                "lastNameName", lastName,
                 "currentTime", timestamp
         );
 
@@ -42,7 +47,9 @@ public class MailProvider {
     }
 
     @PreAuthorize("permitAll()")
-    public void sendReservationRemovalEmail(String emailTo,
+    public void sendReservationRemovalEmail(String firstName,
+                                            String lastName,
+                                            String emailTo,
                                             Reservation reservation,
                                             String timeZone,
                                             String language) {
@@ -55,7 +62,8 @@ public class MailProvider {
         String end = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         Map<String, Object> templateModel = Map.of(
-                "name", emailTo,
+                "firstName", firstName,
+                "lastName", lastName,
                 "teamName", reservation.getTeam().getName(),
                 "resourceGroupName", reservation.getResourceGroup().getName(),
                 "startTime", start,

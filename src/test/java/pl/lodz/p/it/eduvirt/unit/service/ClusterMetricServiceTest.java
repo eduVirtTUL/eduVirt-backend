@@ -66,8 +66,8 @@ public class ClusterMetricServiceTest {
         Field id = AbstractEntity.class.getDeclaredField("id");
 
         metric1 = new Metric(metricName1, Metric.MetricCategory.COUNTABLE);
-        metric2 = new Metric(metricName2, Metric.MetricCategory.VOLATILE_MEMORY);
-        metric3 = new Metric(metricName3, Metric.MetricCategory.NON_VOLATILE_MEMORY);
+        metric2 = new Metric(metricName2, Metric.MetricCategory.MEMORY);
+        metric3 = new Metric(metricName3, Metric.MetricCategory.MEMORY);
 
         id.setAccessible(true);
         id.set(metric1, UUID.randomUUID());

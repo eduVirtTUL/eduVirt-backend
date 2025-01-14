@@ -1,8 +1,10 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.ovirt.engine.sdk4.types.Host;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +35,15 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.REQUIRED)
 public class ReservationServiceImpl implements ReservationService {
+
+    @Value("${window.length}")
+    private int windowLength;
+
+    @PostConstruct
+    public void validateProperty() {
+        if (windowLength < 10) windowLength = 10;
+        if (windowLength > 60) windowLength = 60;
+    }
 
     /* Services */
 
@@ -85,18 +96,16 @@ public class ReservationServiceImpl implements ReservationService {
 
         /* Condition no. 1: Minimum reservation length */
 
-        if ((int) ChronoUnit.HOURS.between(start, end) < 1)
-            throw new ReservationTooShortException(
-                    "Minimum length of the reservation in eduVirt system is exactly 1 hour.");
+        long reservationLength = ChronoUnit.SECONDS.between(start, end);
+        if (reservationLength < (2L * 60 * windowLength))
+            throw new ReservationTooShortException("Minimum length of the reservation in eduVirt system is exactly 1 hour.");
 
         /* Condition no. 2: Maximum reservation length */
 
-        long maxRentHours = TimeUnit.HOURS.toSeconds(resourceGroup.getMaxRentTime());
-        long reservationLengthHours = ChronoUnit.SECONDS.between(start, end);
-
-        if (maxRentHours != 0 && reservationLengthHours > maxRentHours)
+        long maxRentTime = TimeUnit.HOURS.toSeconds(resourceGroup.getMaxRentTime());
+        if (maxRentTime != 0 && reservationLength > maxRentTime)
             throw new ReservationMaxLengthExceededException("Reservation for resource group: %s could not be longer than: %d"
-                    .formatted(resourceGroup.getId(), maxRentHours));
+                    .formatted(resourceGroup.getId(), maxRentTime));
 
         /* Condition no. 3: Maximum number of reservations for given resource group */
 
@@ -208,17 +217,15 @@ public class ReservationServiceImpl implements ReservationService {
         /* Condition no. 1: Minimum reservation length */
 
         long reservationLength = ChronoUnit.SECONDS.between(start, end);
-        if (reservationLength < 3600)
-            throw new ReservationTooShortException(
-                    "Minimum length of the reservation in eduVirt system is exactly 1 hour.");
+        if (reservationLength < (2L * 60 * windowLength))
+            throw new ReservationTooShortException("Minimum length of the reservation in eduVirt system is exactly 1 hour.");
 
         /* Condition no. 2: Maximum reservation length */
 
-        long maxRentHours = TimeUnit.HOURS.toSeconds(resourceGroupPool.getMaxRentTime());
-
-        if (maxRentHours != 0 && reservationLength > maxRentHours)
+        long maxRentTime = TimeUnit.HOURS.toSeconds(resourceGroupPool.getMaxRentTime());
+        if (maxRentTime != 0 && reservationLength > maxRentTime)
             throw new ReservationMaxLengthExceededException("Reservation for resource group pool: %s could not be longer than: %d"
-                    .formatted(resourceGroupPool.getId(), maxRentHours));
+                    .formatted(resourceGroupPool.getId(), maxRentTime));
 
         /* Condition no. 3: Maximum number of reservations for given resource group */
 

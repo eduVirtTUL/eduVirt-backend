@@ -1,6 +1,6 @@
 INSERT INTO public.metric (id, name, category)
 VALUES ('2865efff-f8e5-4960-a0ce-fc05e98828ba', 'cpu_count', 'COUNTABLE'),
-       ('63490da4-d0f1-4e7a-88fc-3342633accc0', 'memory_size', 'VOLATILE_MEMORY'),
+       ('63490da4-d0f1-4e7a-88fc-3342633accc0', 'memory_size', 'MEMORY'),
        ('1929c2b2-ba03-4180-ae90-79bd2335f2a8', 'network_count', 'COUNTABLE');
 
 INSERT INTO public.metric_cluster (id, cluster_id, metric_id, metric_value)
@@ -102,7 +102,7 @@ VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'b96844a7-7cb6-48f1-b4e6-1291988
        ('1decd050-1328-4eca-b2de-84793a8474c2', '87b11363-bb7e-4d54-8f57-ed5a52146210');
 
 INSERT INTO public.users (user_id, ovirt_id, email, first_name, last_name, user_name)
-VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', gen_random_uuid(), 'example01@email.com', 'FirstName01', 'LastName01', 'UserName01'),
+VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', gen_random_uuid(), '242447@edu.p.lodz.pl', 'FirstName01', 'LastName01', 'UserName01'),
        ('c7ceee90-734d-4e6c-8756-2cd9a44ff668', gen_random_uuid(), 'example02@email.com', 'FirstName02', 'LastName02', 'UserName02'),
        ('f00de025-d801-4276-9b53-9d5ab8f89ac8', gen_random_uuid(), 'example03@email.com', 'FirstName03', 'LastName03', 'UserName03'),
        ('44b21e72-50d2-42c0-a449-4791177251aa', gen_random_uuid(), 'example04@email.com', 'FirstName04', 'LastName04', 'UserName04'),
