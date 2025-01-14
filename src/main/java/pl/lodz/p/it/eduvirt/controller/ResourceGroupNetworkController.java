@@ -38,4 +38,12 @@ public class ResourceGroupNetworkController {
                 )
         );
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteNetwork(@PathVariable UUID id,
+                                              @PathVariable UUID rgId,
+                                              @RequestHeader(HttpHeaders.IF_MATCH) String etag) {
+        resourceGroupNetworkService.deleteNetwork(id, rgId, etag);
+        return ResponseEntity.ok().build();
+    }
 }

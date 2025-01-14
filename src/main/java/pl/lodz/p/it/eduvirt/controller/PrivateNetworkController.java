@@ -1,7 +1,6 @@
 package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group_network.NetworkVmConnectionDto;
@@ -24,13 +23,6 @@ public class PrivateNetworkController {
     @PostMapping("/detach")
     public ResponseEntity<Void> detachNicFromNetwork(@RequestBody NetworkVmConnectionDto dto) {
         resourceGroupNetworkService.detachNicFromNetwork(dto.vmId(), dto.nicId());
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteNetwork(@PathVariable UUID id,
-                                              @RequestHeader(HttpHeaders.IF_MATCH) String etag) {
-        resourceGroupNetworkService.deleteNetwork(id, etag);
         return ResponseEntity.ok().build();
     }
 }
