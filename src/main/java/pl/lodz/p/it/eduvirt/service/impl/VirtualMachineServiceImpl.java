@@ -13,6 +13,7 @@ import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineClusterMismatchException;
+import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineConflictException;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
@@ -87,8 +88,13 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
 
     @Override
     @Transactional
-    public void updateVirtualMachine(UUID id, boolean hidden) {
+    public void updateVirtualMachine(UUID id, boolean hidden, String etag) {
         VirtualMachine vm = virtualMachineRepository.findById(id).orElseThrow();
+
+        if (!eTagHelper.validateEtag(etag, vm.getId(), vm.getVersion())) {
+            throw new VirtualMachineConflictException();
+        }
+
         vm.setHidden(hidden);
         virtualMachineRepository.save(vm);
     }

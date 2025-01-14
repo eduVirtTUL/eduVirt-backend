@@ -9,6 +9,7 @@ import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.NoNetworkAvailableException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineConflictException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupNetworkService;
@@ -79,12 +80,17 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
 
     @Override
     @Transactional
-    public void attachNicToNetwork(UUID networkId, UUID vmId, UUID nicId) {
+    public void attachNicToNetwork(UUID networkId, UUID vmId, UUID nicId, String etag) {
         ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository
                 .findById(networkId)
                 .orElseThrow();
 
         VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
+
+        if (!eTagHelper.validateEtag(etag, virtualMachine.getId(), virtualMachine.getVersion())) {
+            throw new VirtualMachineConflictException();
+        }
+
         if (resourceGroupNetwork.getResourceGroup().getId() != virtualMachine.getResourceGroup().getId()) {
             throw new IllegalArgumentException("VM and network are not in the same resource group");
         }
@@ -101,19 +107,26 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
                     .build();
             resourceGroupNetwork.getInterfaces().add(networkInterface);
             resourceGroupNetworkRepository.save(resourceGroupNetwork);
+            entityManager.lock(virtualMachine, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         }
     }
 
     @Override
     @Transactional
-    public void detachNicFromNetwork(UUID vmId, UUID nicId) {
+    public void detachNicFromNetwork(UUID vmId, UUID nicId, String etag) {
         NetworkInterface networkInterface = networkInterfaceRepository.findById(nicId).orElseThrow();
 
         if (!networkInterface.getVirtualMachine().getId().equals(vmId)) {
             throw new IllegalArgumentException("Nic does not belong to the VM");
         }
 
+        VirtualMachine virtualMachine = networkInterface.getVirtualMachine();
+        if (!eTagHelper.validateEtag(etag, virtualMachine.getId(), virtualMachine.getVersion())) {
+            throw new VirtualMachineConflictException();
+        }
+        
         networkInterfaceRepository.deleteByIdAndVirtualMachine_Id(nicId, vmId);
+        entityManager.lock(virtualMachine, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
     }
 
     @Override

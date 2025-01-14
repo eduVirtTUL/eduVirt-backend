@@ -7,5 +7,5 @@ public interface VirtualMachineService {
 
     void deleteVirtualMachine(UUID id, UUID rgId, String etag);
 
-    void updateVirtualMachine(UUID id, boolean hidden);
+    void updateVirtualMachine(UUID id, boolean hidden, String etag);
 }

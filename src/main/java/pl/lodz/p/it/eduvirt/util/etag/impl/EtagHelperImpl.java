@@ -15,6 +15,7 @@ import pl.lodz.p.it.eduvirt.util.etag.EtagPayload;
 
 import java.text.ParseException;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class EtagHelperImpl implements ETagHelper {
@@ -25,6 +26,28 @@ public class EtagHelperImpl implements ETagHelper {
     @Override
     public String generateEtag(Updatable entity) {
         EtagPayload payload = new EtagPayload(entity);
+        return generateEtag(payload);
+    }
+
+    @Override
+    public String generateEtag(UUID id, long version) {
+        EtagPayload payload = new EtagPayload(id, version);
+        return generateEtag(payload);
+    }
+
+    @Override
+    public boolean validateEtag(String etag, Updatable entity) {
+        EtagPayload payload = new EtagPayload(entity);
+        return validateEtag(etag, payload);
+    }
+
+    @Override
+    public boolean validateEtag(String etag, UUID id, long version) {
+        EtagPayload payload = new EtagPayload(id, version);
+        return validateEtag(etag, payload);
+    }
+
+    private String generateEtag(EtagPayload payload) {
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String, Object> map = objectMapper.convertValue(payload, new TypeReference<>() {
         });
@@ -39,9 +62,7 @@ public class EtagHelperImpl implements ETagHelper {
         }
     }
 
-    @Override
-    public boolean validateEtag(String etag, Updatable entity) {
-        EtagPayload payload = new EtagPayload(entity);
+    private boolean validateEtag(String etag, EtagPayload payload) {
         try {
             JWSObject jwsObject = JWSObject.parse(etag);
             JWSVerifier verifier = new MACVerifier(secret);
