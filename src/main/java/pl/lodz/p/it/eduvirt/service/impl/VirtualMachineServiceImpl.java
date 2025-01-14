@@ -3,16 +3,24 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
+import org.ovirt.engine.sdk4.types.Vm;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
+import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.general.ConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineAlreadyExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineClusterMismatchException;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
+import pl.lodz.p.it.eduvirt.service.CourseService;
+import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -20,14 +28,32 @@ import java.util.UUID;
 public class VirtualMachineServiceImpl implements VirtualMachineService {
     private final VirtualMachineRepository virtualMachineRepository;
     private final ResourceGroupRepository resourceGroupRepository;
+    private final OVirtVmService oVirtVmService;
 
     private final EntityManager entityManager;
     private final ETagHelper eTagHelper;
+    private final CourseService courseService;
 
     @Override
-    public void createVirtualMachine(UUID id, boolean hidden, ResourceGroup resourceGroup, String etag) {
+    @Transactional
+    public void createVirtualMachine(UUID rgId, UUID id, boolean hidden, String etag) {
+        ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
+                .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
+
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
             throw new ConflictException("Resource group has been modified", "etag");
+        }
+
+        if (virtualMachineRepository.existsById(id)) {
+            throw new VirtualMachineAlreadyExistsException(id);
+        }
+
+        Course course = courseService.getCourseByResourceGroup(resourceGroup);
+
+        Vm oVirtVm = oVirtVmService.findVmById(id.toString());
+
+        if (!Objects.equals(oVirtVm.cluster().id(), course.getClusterId().toString())) {
+            throw new VirtualMachineClusterMismatchException(id);
         }
 
         VirtualMachine vm = VirtualMachine.builder()

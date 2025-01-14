@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group.AddVmDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.EditVmDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
-import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
@@ -40,13 +39,10 @@ public class ResourceGroupVmController {
     }
 
     @PostMapping
-    @Transactional
     public ResponseEntity<Void> addVm(@PathVariable UUID rgId,
                                       @RequestBody AddVmDto addVmDto,
                                       @RequestHeader(HttpHeaders.IF_MATCH) String etag) {
-        ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
-
-        virtualMachineService.createVirtualMachine(addVmDto.id(), addVmDto.hidden(), resourceGroup, etag);
+        virtualMachineService.createVirtualMachine(rgId, addVmDto.id(), addVmDto.hidden(), etag);
         return ResponseEntity.ok().build();
     }
 
