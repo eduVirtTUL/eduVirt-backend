@@ -19,19 +19,22 @@ import java.util.UUID;
 @Entity
 public class Course extends AbstractEntity {
 
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
 
-    @Column(name = "description", nullable = false, length = 1000)
+    @Column(name = "description", length = 1000)
     private String description;
 
-    @OneToMany(mappedBy = "course")
+    @Column(name = "external_link", length = 1000)
+    private String externalLink;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<ResourceGroupPool> resourceGroupPools;
 
-    @OneToMany(mappedBy = "course")
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Team> teams = new ArrayList<>();
 
-    @ManyToMany
+    @ManyToMany()
     private List<User> teachers = new ArrayList<>();
 
     @Column(name = "cluster_id", nullable = false)

@@ -10,8 +10,15 @@ import java.util.UUID;
 @Repository
 public interface PodStatelessRepository extends JpaRepository<PodStateless, UUID> {
     List<PodStateless> findByTeamId(UUID teamId);
+
     List<PodStateless> findByCourseId(UUID courseId);
+
     List<PodStateless> findByResourceGroupPoolId(UUID resourceGroupPoolId);
+
     boolean existsByResourceGroupPoolId(UUID resourceGroupPoolId);
+
+    void deleteAllByCourseId(UUID courseId);
+
     boolean existsByResourceGroupPoolIdAndTeamId(UUID resourceGroupPoolId, UUID teamId);
+
 }

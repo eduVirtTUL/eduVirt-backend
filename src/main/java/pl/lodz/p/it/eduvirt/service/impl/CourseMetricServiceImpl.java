@@ -10,6 +10,7 @@ import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.exceptions.CourseMetricExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.CourseMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.course.CourseMetricNetworksNotSufficientException;
 import pl.lodz.p.it.eduvirt.repository.CourseMetricRepository;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
@@ -36,6 +37,11 @@ public class CourseMetricServiceImpl implements CourseMetricService {
         if (courseMetricRepository.existsById(new CourseMetricKey(course, metric))) {
             throw new CourseMetricExistsException(courseId, metricId);
         }
+
+        if (metric.getName().equals("network_count")) {
+            checkNetworkCount(course, value);
+        }
+
 
         CourseMetric courseMetric = CourseMetric.builder()
                 .course(course)
@@ -80,7 +86,23 @@ public class CourseMetricServiceImpl implements CourseMetricService {
 
         CourseMetric courseMetric = courseMetricRepository.findById(new CourseMetricKey(course, metric))
                 .orElseThrow(() -> new CourseMetricNotFoundException(courseId, metricId));
+
+        if (metric.getName().equals("network_count")) {
+            checkNetworkCount(course, value);
+        }
+
         courseMetric.setValue(value);
         courseMetricRepository.save(courseMetric);
+    }
+
+    private void checkNetworkCount(Course course, double networkCount) {
+        List<Integer> count = courseRepository.getStatefulResourceGroupNetworkCount(course.getId());
+        count.addAll(courseRepository.getStatelessResourceGroupNetworkCount(course.getId()));
+
+        int biggest = count.stream().max(Integer::compareTo).orElse(0);
+
+        if (biggest > networkCount) {
+            throw new CourseMetricNetworksNotSufficientException(course.getId(), (int) networkCount);
+        }
     }
 }
