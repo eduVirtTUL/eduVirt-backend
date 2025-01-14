@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.entity.User;
+import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.AuthService;
 import pl.lodz.p.it.eduvirt.service.OVirtUserService;
 import pl.lodz.p.it.eduvirt.util.jwt.AccessToken;
 import pl.lodz.p.it.eduvirt.util.jwt.JwtHelper;
 
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,7 +31,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         AccessToken actualToken = accessToken.get();
-        UUID userId = UUID.fromString(accessToken.get().getSub());
+        UUID userId = UUID.fromString(actualToken.getSub());
         Optional<User> user = userRepository.findById(userId);
 
         if (user.isEmpty()) {
@@ -45,23 +47,34 @@ public class AuthServiceImpl implements AuthService {
                     null);
 
             userRepository.saveAndFlush(newUser);
-
         } else {
-            User actualUser = user.get();
-            if (!actualUser.getEmail().equals(actualToken.getEmail())) {
+            User actualUser = userRepository.findByIdWithRoles(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+            boolean needsUpdate = false;
+
+            if (actualToken.getEmail() != null && !actualToken.getEmail().equals(actualUser.getEmail())) {
                 actualUser.setEmail(actualToken.getEmail());
-                userRepository.saveAndFlush(actualUser);
+                needsUpdate = true;
             }
-            if (!actualUser.getFirstName().equals(actualToken.getGivenName())) {
+            if (actualToken.getEmail() != null && !actualToken.getEmail().equals(actualUser.getEmail())) {
+                actualUser.setEmail(actualToken.getEmail());
+                needsUpdate = true;
+            }
+            if (actualToken.getGivenName() != null && !actualToken.getGivenName().equals(actualUser.getFirstName())) {
                 actualUser.setFirstName(actualToken.getGivenName());
-                userRepository.saveAndFlush(actualUser);
+                needsUpdate = true;
             }
-            if (!actualUser.getLastName().equals(actualToken.getFamilyName())) {
+            if (actualToken.getFamilyName() != null && !actualToken.getFamilyName().equals(actualUser.getLastName())) {
                 actualUser.setLastName(actualToken.getFamilyName());
-                userRepository.saveAndFlush(actualUser);
+                needsUpdate = true;
             }
-            if (!actualUser.getRoles().equals(actualToken.getGroups())) {
-                actualUser.setRoles(actualToken.getGroups());
+            if (actualToken.getGroups() != null) {
+                actualUser.setRoles(new ArrayList<>(actualToken.getGroups()));
+                needsUpdate = true;
+            }
+
+            if (needsUpdate) {
                 userRepository.saveAndFlush(actualUser);
             }
         }
