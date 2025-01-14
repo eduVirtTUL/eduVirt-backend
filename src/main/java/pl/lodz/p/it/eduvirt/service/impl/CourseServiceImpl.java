@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -12,13 +13,17 @@ import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseAlreadyExists;
+import pl.lodz.p.it.eduvirt.exceptions.course.CourseConflictException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
+import pl.lodz.p.it.eduvirt.util.etag.EtagPayload;
 
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class CourseServiceImpl implements CourseService {
@@ -28,6 +33,7 @@ public class CourseServiceImpl implements CourseService {
     private final PodStatefulRepository podStatefulRepository;
     private final PodStatelessRepository podStatelessRepository;
     private final TeamRepository teamRepository;
+    private final ETagHelper eTagHelper;
 
     @Override
     public Page<Course> getCourses(int page, int size) {
@@ -134,8 +140,13 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public Course updateCourse(UUID courseId, Course course) {
+    public Course updateCourse(UUID courseId, Course course, String etag) {
         Course existingCourse = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        if (!eTagHelper.validateEtag(etag, new EtagPayload(course))) {
+            throw new CourseConflictException();
+        }
+
         boolean isNameTaken = courseRepository.existsByIdNotAndName(existingCourse.getId(), course.getName());
         if (isNameTaken) {
             throw new CourseAlreadyExists(course.getName());
