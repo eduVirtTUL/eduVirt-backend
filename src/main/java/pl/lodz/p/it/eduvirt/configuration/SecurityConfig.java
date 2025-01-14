@@ -83,6 +83,9 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("*");
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
+        configuration.addAllowedHeader("If-Match");
+
+        configuration.setExposedHeaders(List.of("ETag"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
