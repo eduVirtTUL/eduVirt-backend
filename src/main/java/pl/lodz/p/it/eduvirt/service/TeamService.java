@@ -2,9 +2,12 @@ package pl.lodz.p.it.eduvirt.service;
 
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Team;
+import pl.lodz.p.it.eduvirt.entity.User;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface TeamService {
@@ -36,7 +39,8 @@ public interface TeamService {
 
     void removeStudentFromCourse(UUID courseId, String email);
 
+    List<User> getStudentsInSoloCourse(UUID courseId);
 
-
+    void deleteTeam(UUID teamId);
 
 }
