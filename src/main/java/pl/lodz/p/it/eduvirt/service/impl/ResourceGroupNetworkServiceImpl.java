@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.NoNetworkAvailableException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupNetworkService;
@@ -40,7 +41,7 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
 
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
-            throw new IllegalArgumentException("Resource group has been modified");
+            throw new ResourceGroupConflictException();
         }
 
         Course course;
@@ -79,7 +80,9 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     @Override
     @Transactional
     public void attachNicToNetwork(UUID networkId, UUID vmId, UUID nicId) {
-        ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository.findById(networkId).orElseThrow();
+        ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository
+                .findById(networkId)
+                .orElseThrow();
 
         VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
         if (resourceGroupNetwork.getResourceGroup().getId() != virtualMachine.getResourceGroup().getId()) {
@@ -104,7 +107,6 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     @Override
     @Transactional
     public void detachNicFromNetwork(UUID vmId, UUID nicId) {
-
         NetworkInterface networkInterface = networkInterfaceRepository.findById(nicId).orElseThrow();
 
         if (!networkInterface.getVirtualMachine().getId().equals(vmId)) {
@@ -121,7 +123,7 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
 
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
-            throw new IllegalArgumentException("Resource group has been modified");
+            throw new ResourceGroupConflictException();
         }
 
         resourceGroupNetworkRepository.deleteById(networkId);

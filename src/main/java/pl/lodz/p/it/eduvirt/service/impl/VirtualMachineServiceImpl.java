@@ -10,7 +10,7 @@ import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.general.ConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineClusterMismatchException;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
@@ -41,7 +41,7 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
 
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
-            throw new ConflictException("Resource group has been modified", "etag");
+            throw new ResourceGroupConflictException();
         }
 
         if (virtualMachineRepository.existsById(id)) {
@@ -72,7 +72,7 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId).orElseThrow();
 
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
-            throw new ConflictException("Resource group has been modified", "etag");
+            throw new ResourceGroupConflictException();
         }
 
 
