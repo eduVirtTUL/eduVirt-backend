@@ -187,7 +187,7 @@ public class CourseController {
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && true) ||
+                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
                 (authorities.contains("student") && users.contains(user))) &&
                 !listOfDTOs.isEmpty()) {
             return ResponseEntity.ok(listOfDTOs);
@@ -223,8 +223,8 @@ public class CourseController {
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && true) ||
-                (authorities.contains("student") && users.contains(userId))) &&
+                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
+                (authorities.contains("student") && users.contains(user))) &&
                 !listOfDTOs.isEmpty()) {
             return ResponseEntity.ok(listOfDTOs);
         }
