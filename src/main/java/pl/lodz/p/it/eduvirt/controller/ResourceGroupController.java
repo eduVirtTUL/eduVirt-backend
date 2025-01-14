@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,7 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +26,7 @@ public class ResourceGroupController {
 
     private final ResourceGroupService resourceGroupService;
     private final ResourceGroupMapper resourceGroupMapper;
+    private final ETagHelper eTagHelper;
 
     @GetMapping
     public ResponseEntity<List<ResourceGroupDto>> getResourceGroups() {
@@ -32,7 +35,9 @@ public class ResourceGroupController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ResourceGroupDto> getResourceGroup(@PathVariable UUID id) {
-        return ResponseEntity.ok(resourceGroupMapper.toDto(resourceGroupService.getResourceGroup(id)));
+        ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(id);
+        String etag = eTagHelper.generateEtag(resourceGroup);
+        return ResponseEntity.ok().eTag(etag).body(resourceGroupMapper.toDto(resourceGroup));
     }
 
     @GetMapping("/assigned")
@@ -53,10 +58,12 @@ public class ResourceGroupController {
     @PutMapping("/{id}")
     @ApiResponse(responseCode = "200", description = "Resource group updated successfully")
     @ApiResponse(responseCode = "400", description = "Invalid resource group data", content = {@Content(schema = @Schema(implementation = ExceptionResponse.class))})
-    public ResponseEntity<ResourceGroupDto> updateResourceGroup(@PathVariable UUID id, @RequestBody @Validated UpdateResourceGroupDto resourceGroupDto) {
+    public ResponseEntity<ResourceGroupDto> updateResourceGroup(@PathVariable UUID id,
+                                                                @RequestBody @Validated UpdateResourceGroupDto resourceGroupDto,
+                                                                @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
         ResourceGroup resourceGroup = resourceGroupMapper.toEntity(resourceGroupDto);
         return ResponseEntity.ok(
-                resourceGroupMapper.toDto(resourceGroupService.updateResourceGroup(id, resourceGroup))
+                resourceGroupMapper.toDto(resourceGroupService.updateResourceGroup(id, resourceGroup, ifMatch))
         );
     }
 }

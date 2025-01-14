@@ -18,7 +18,6 @@ import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
-import pl.lodz.p.it.eduvirt.util.etag.EtagPayload;
 
 import java.util.List;
 import java.util.UUID;
@@ -143,7 +142,7 @@ public class CourseServiceImpl implements CourseService {
     public Course updateCourse(UUID courseId, Course course, String etag) {
         Course existingCourse = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
 
-        if (!eTagHelper.validateEtag(etag, new EtagPayload(course))) {
+        if (!eTagHelper.validateEtag(etag, course)) {
             throw new CourseConflictException();
         }
 

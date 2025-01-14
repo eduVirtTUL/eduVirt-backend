@@ -1,7 +1,9 @@
 package pl.lodz.p.it.eduvirt.util.etag;
 
-public interface ETagHelper {
-    String generateEtag(EtagPayload payload);
+import pl.lodz.p.it.eduvirt.entity.Updatable;
 
-    boolean validateEtag(String etag, EtagPayload payload);
+public interface ETagHelper {
+    String generateEtag(Updatable entity);
+
+    boolean validateEtag(String etag, Updatable entity);
 }

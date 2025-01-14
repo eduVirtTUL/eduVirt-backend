@@ -7,6 +7,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import pl.lodz.p.it.eduvirt.entity.Updatable;
 import pl.lodz.p.it.eduvirt.exceptions.general.InternalServerException;
 import pl.lodz.p.it.eduvirt.exceptions.general.PreconditionFailed;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
@@ -22,7 +23,8 @@ public class EtagHelperImpl implements ETagHelper {
     private String secret;
 
     @Override
-    public String generateEtag(EtagPayload payload) {
+    public String generateEtag(Updatable entity) {
+        EtagPayload payload = new EtagPayload(entity);
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String, Object> map = objectMapper.convertValue(payload, new TypeReference<>() {
         });
@@ -38,7 +40,8 @@ public class EtagHelperImpl implements ETagHelper {
     }
 
     @Override
-    public boolean validateEtag(String etag, EtagPayload payload) {
+    public boolean validateEtag(String etag, Updatable entity) {
+        EtagPayload payload = new EtagPayload(entity);
         try {
             JWSObject jwsObject = JWSObject.parse(etag);
             JWSVerifier verifier = new MACVerifier(secret);
