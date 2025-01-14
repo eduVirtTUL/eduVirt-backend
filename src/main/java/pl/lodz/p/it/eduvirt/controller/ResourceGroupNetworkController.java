@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group_network.CreateResourceGroupNetworkDto;
@@ -19,11 +20,12 @@ public class ResourceGroupNetworkController {
     private final ResourceGroupNetworkService resourceGroupNetworkService;
 
     @PostMapping
-    public ResponseEntity<ResourceGroupNetworkDto> addResourceGroupNetwork(
-            CreateResourceGroupNetworkDto resourceGroupNetworkDto, @PathVariable UUID rgId) {
+    public ResponseEntity<ResourceGroupNetworkDto> addResourceGroupNetwork(@PathVariable UUID rgId,
+                                                                           @RequestBody CreateResourceGroupNetworkDto resourceGroupNetworkDto,
+                                                                           @RequestHeader(HttpHeaders.IF_MATCH) String etag) {
         return ResponseEntity.ok(
                 resourceGroupNetworkMapper.toResourceGroupNetworkDto(
-                        resourceGroupNetworkService.addResourceGroupNetwork(rgId, resourceGroupNetworkDto.name())
+                        resourceGroupNetworkService.addResourceGroupNetwork(rgId, resourceGroupNetworkDto.name(), etag)
                 )
         );
     }

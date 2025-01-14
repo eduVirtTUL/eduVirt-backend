@@ -1,5 +1,7 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +11,7 @@ import pl.lodz.p.it.eduvirt.exceptions.resource_group.NoNetworkAvailableExceptio
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupNetworkService;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
 import java.util.Objects;
@@ -27,11 +30,18 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
     private final CourseMetricRepository courseMetricRepository;
 
+    private final EntityManager entityManager;
+    private final ETagHelper eTagHelper;
+
     @Override
     @Transactional
-    public ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name) {
+    public ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name, String etag) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
+
+        if (!eTagHelper.validateEtag(etag, resourceGroup)) {
+            throw new IllegalArgumentException("Resource group has been modified");
+        }
 
         Course course;
 
@@ -55,7 +65,10 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
         ResourceGroupNetwork resourceGroupNetwork = new ResourceGroupNetwork();
         resourceGroupNetwork.setName(name);
         resourceGroupNetwork.setResourceGroup(resourceGroup);
-        return resourceGroupNetworkRepository.save(resourceGroupNetwork);
+
+        ResourceGroupNetwork save = resourceGroupNetworkRepository.save(resourceGroupNetwork);
+        entityManager.lock(resourceGroup, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        return save;
     }
 
     @Override
@@ -102,7 +115,12 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     }
 
     @Override
-    public void deleteNetwork(UUID networkId) {
+    @Transactional
+    public void deleteNetwork(UUID networkId, String etag) {
+        ResourceGroupNetwork network = resourceGroupNetworkRepository.findById(networkId).orElseThrow();
+        ResourceGroup rg = network.getResourceGroup();
+
         resourceGroupNetworkRepository.deleteById(networkId);
+        entityManager.lock(rg, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
     }
 }

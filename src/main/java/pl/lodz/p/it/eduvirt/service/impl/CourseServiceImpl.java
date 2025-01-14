@@ -142,7 +142,7 @@ public class CourseServiceImpl implements CourseService {
     public Course updateCourse(UUID courseId, Course course, String etag) {
         Course existingCourse = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
 
-        if (!eTagHelper.validateEtag(etag, course)) {
+        if (!eTagHelper.validateEtag(etag, existingCourse)) {
             throw new CourseConflictException();
         }
 

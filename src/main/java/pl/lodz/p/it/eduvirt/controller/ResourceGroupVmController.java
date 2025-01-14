@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.controller;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -10,10 +11,7 @@ import pl.lodz.p.it.eduvirt.dto.resource_group.AddVmDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.EditVmDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
-import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
-import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
 
@@ -26,10 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ResourceGroupVmController {
     private final ResourceGroupService resourceGroupService;
-    private final OVirtVmService oVirtVmService;
     private final VirtualMachineService virtualMachineService;
-    private final OVirtVnicProfileService oVirtVnicProfileService;
-    private final ResourceGroupMapper resourceGroupMapper;
     private final VmMapper vmMapper;
 
     @GetMapping
@@ -46,16 +41,20 @@ public class ResourceGroupVmController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<Void> addVm(@PathVariable UUID rgId, @RequestBody AddVmDto addVmDto) {
+    public ResponseEntity<Void> addVm(@PathVariable UUID rgId,
+                                      @RequestBody AddVmDto addVmDto,
+                                      @RequestHeader(HttpHeaders.IF_MATCH) String etag) {
         ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
 
-        virtualMachineService.createVirtualMachine(addVmDto.id(), addVmDto.hidden(), resourceGroup);
+        virtualMachineService.createVirtualMachine(addVmDto.id(), addVmDto.hidden(), resourceGroup, etag);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> deleteVm(@PathVariable UUID rgId, @PathVariable UUID id) {
-        virtualMachineService.deleteVirtualMachine(id, rgId);
+    public ResponseEntity<Void> deleteVm(@PathVariable UUID rgId,
+                                         @PathVariable UUID id,
+                                         @RequestHeader(HttpHeaders.IF_MATCH) String etag) {
+        virtualMachineService.deleteVirtualMachine(id, rgId, etag);
         return ResponseEntity.ok().build();
     }
 
