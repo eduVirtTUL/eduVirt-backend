@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ResourceGroupNetworkService {
-    ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name);
+    ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name, String etag);
 
     List<ResourceGroupNetwork> getResourceGroupNetworks(UUID rgId);
 
-    void attachNicToNetwork(UUID networkId, UUID vmId, UUID nicId);
+    void attachNicToNetwork(UUID networkId, UUID vmId, UUID nicId, String etag);
 
-    void detachNicFromNetwork(UUID vmId, UUID nicId);
+    void detachNicFromNetwork(UUID vmId, UUID nicId, String etag);
 
-    void deleteNetwork(UUID networkId);
+    void deleteNetwork(UUID networkId, UUID rgId, String etag);
 }

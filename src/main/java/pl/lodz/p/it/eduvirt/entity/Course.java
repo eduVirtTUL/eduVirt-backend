@@ -17,7 +17,7 @@ import java.util.UUID;
 @Getter
 @Table(name = "course")
 @Entity
-public class Course extends AbstractEntity {
+public class Course extends Updatable {
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;

@@ -1,13 +1,11 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
-
 import java.util.UUID;
 
 public interface VirtualMachineService {
-    void createVirtualMachine(UUID id, boolean hidden, ResourceGroup resourceGroup);
+    void createVirtualMachine(UUID rgId, UUID id, boolean hidden, String etag);
 
-    void deleteVirtualMachine(UUID id, UUID rgId);
+    void deleteVirtualMachine(UUID id, UUID rgId, String etag);
 
-    void updateVirtualMachine(UUID id, boolean hidden);
+    void updateVirtualMachine(UUID id, boolean hidden, String etag);
 }

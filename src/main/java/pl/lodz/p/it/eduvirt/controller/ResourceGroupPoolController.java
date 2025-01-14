@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.controller;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +20,7 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupPoolService;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.UUID;
 
@@ -29,6 +31,7 @@ public class ResourceGroupPoolController {
     private final ResourceGroupPoolService resourceGroupPoolService;
     private final RGPoolMapper rgPoolMapper;
     private final ResourceGroupMapper resourceGroupMapper;
+    private final ETagHelper eTagHelper;
 
     @PostMapping
     public ResponseEntity<ResourceGroupPoolDto> createResourceGroupPool(@RequestBody @Validated CreateRGPoolDto createRGPoolDto) {
@@ -40,7 +43,11 @@ public class ResourceGroupPoolController {
     @GetMapping("/{id}")
     @Transactional
     public ResponseEntity<DetailedResourceGroupPoolDto> getResourceGroupPool(@PathVariable UUID id) {
-        return ResponseEntity.ok(rgPoolMapper.toDetailedRGPoolDto(resourceGroupPoolService.getResourceGroupPool(id)));
+        ResourceGroupPool pool = resourceGroupPoolService.getResourceGroupPool(id);
+
+        String etag = eTagHelper.generateEtag(pool);
+
+        return ResponseEntity.ok().eTag(etag).body(rgPoolMapper.toDetailedRGPoolDto(pool));
     }
 
     @GetMapping
@@ -68,9 +75,11 @@ public class ResourceGroupPoolController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResourceGroupPoolDto> updateResourceGroupPool(@PathVariable UUID id, @RequestBody @Validated UpdateResourceGroupPoolDto updateResourceGroupPoolDto) {
+    public ResponseEntity<ResourceGroupPoolDto> updateResourceGroupPool(@PathVariable UUID id,
+                                                                        @RequestBody @Validated UpdateResourceGroupPoolDto updateResourceGroupPoolDto,
+                                                                        @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
         ResourceGroupPool resourceGroupPool = rgPoolMapper.toRGPool(updateResourceGroupPoolDto);
-        return ResponseEntity.ok(rgPoolMapper.toRGPoolDto(resourceGroupPoolService.updateResourceGroupPool(id, resourceGroupPool)));
+        return ResponseEntity.ok(rgPoolMapper.toRGPoolDto(resourceGroupPoolService.updateResourceGroupPool(id, resourceGroupPool, ifMatch)));
     }
 
     @DeleteMapping("/{id}")

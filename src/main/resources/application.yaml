@@ -50,3 +50,5 @@ auth:
 
 window:
   length: 10
+jws:
+  secret: ${JWS_SECRET}
