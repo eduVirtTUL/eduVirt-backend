@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ResourceGroupNetworkService {
-    ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name);
+    ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name, String etag);
 
     List<ResourceGroupNetwork> getResourceGroupNetworks(UUID rgId);
 
@@ -14,5 +14,5 @@ public interface ResourceGroupNetworkService {
 
     void detachNicFromNetwork(UUID vmId, UUID nicId);
 
-    void deleteNetwork(UUID networkId);
+    void deleteNetwork(UUID networkId, String etag);
 }

@@ -92,6 +92,7 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
                     resourceGroup.setMaxRentTime(resourceGroupPool.getMaxRentTime());
                 });
 
+        pool.setName(resourceGroupPool.getName());
         pool.setDescription(resourceGroupPool.getDescription());
         pool.setMaxRentTime(resourceGroupPool.getMaxRentTime());
         pool.setGracePeriod(resourceGroupPool.getGracePeriod());

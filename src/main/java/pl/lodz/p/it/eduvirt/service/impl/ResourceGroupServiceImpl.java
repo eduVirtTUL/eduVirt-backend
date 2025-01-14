@@ -152,7 +152,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
             throw new ResourceGroupConflictException();
         }
 
-        existingResourceGroup.setName(resourceGroup.getName());
+
         boolean isNameTaken;
         if (existingResourceGroup.isStateless()) {
             ResourceGroupPool pool = resourceGroupPoolRepository.findByResourceGroupsContaining(existingResourceGroup);
@@ -168,6 +168,8 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
         if (isNameTaken) {
             throw new ResourceGroupAlreadyExists();
         }
+
+        existingResourceGroup.setName(resourceGroup.getName());
 
         return resourceGroupRepository.save(existingResourceGroup);
     }
