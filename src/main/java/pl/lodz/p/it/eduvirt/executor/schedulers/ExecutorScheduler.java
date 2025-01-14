@@ -57,6 +57,8 @@ import java.util.stream.Collectors;
 
 //IMPROVEMENTS michal: findReservationsToBegin(), findReservationsToStop() change endTime to endTime - (graceTime + 2 min)
 
+//IMPROVEMENTS michal: Send mail on reservation start up (with hyperlink to reservation cancellation)
+
 // Priority 1
 //IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
 

@@ -53,6 +53,4 @@ jws:
 
 executor:
   vm:
-    grace-time: 2
-  notification:
-    time-before-end: 15
+    grace-time: ${EXECUTOR_VM_SHUTDOWN_GRACE_TIME}
