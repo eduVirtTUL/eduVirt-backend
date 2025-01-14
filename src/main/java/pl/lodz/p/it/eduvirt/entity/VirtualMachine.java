@@ -18,6 +18,9 @@ public class VirtualMachine {
     @Id
     private UUID id;
 
+    @Version
+    private long version;
+
     private boolean hidden;
 
     @ManyToOne()

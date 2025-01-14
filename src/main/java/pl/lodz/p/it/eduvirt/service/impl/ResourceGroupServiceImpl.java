@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
+import pl.lodz.p.it.eduvirt.dto.vm.VmDtoWthEtag;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
@@ -69,39 +70,43 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     }
 
     @Override
-    public VmDto getVm(UUID id) {
+    public VmDtoWthEtag getVm(UUID id) {
         Vm vm = oVirtVmService.findVmById(id.toString());
         VirtualMachine vmEntity = virtualMachineRepository.findById(id).orElseThrow();
+
+        String etag = eTagHelper.generateEtag(vmEntity.getId(), vmEntity.getVersion());
+
         return
-                VmDto.builder()
-                        .id(vm.id())
-                        .name(vm.name())
-                        .cpuCount(vm.cpu().topology().socketsAsInteger())
-                        .memory(vm.memory().divide(BigInteger.valueOf(1024L * 1024L)).longValue())
-                        .hidden(vmEntity.isHidden())
-                        .nics(
-                                vm.nics().parallelStream().map(nic -> {
-                                    NicDto.NicDtoBuilder nicDtoBuilder = NicDto.builder()
-                                            .id(nic.id())
-                                            .name(nic.name())
-                                            .macAddress(nic.mac().address());
+                new VmDtoWthEtag(
+                        VmDto.builder()
+                                .id(vm.id())
+                                .name(vm.name())
+                                .cpuCount(vm.cpu().topology().socketsAsInteger())
+                                .memory(vm.memory().divide(BigInteger.valueOf(1024L * 1024L)).longValue())
+                                .hidden(vmEntity.isHidden())
+                                .nics(
+                                        vm.nics().parallelStream().map(nic -> {
+                                            NicDto.NicDtoBuilder nicDtoBuilder = NicDto.builder()
+                                                    .id(nic.id())
+                                                    .name(nic.name())
+                                                    .macAddress(nic.mac().address());
 
-                                    if (nic.vnicProfilePresent()) {
-                                        VnicProfile profile = oVirtVnicProfileService.getVnicProfileById(nic.vnicProfile().id());
-                                        nicDtoBuilder
-                                                .profileName(profile.name());
-                                    }
+                                            if (nic.vnicProfilePresent()) {
+                                                VnicProfile profile = oVirtVnicProfileService.getVnicProfileById(nic.vnicProfile().id());
+                                                nicDtoBuilder
+                                                        .profileName(profile.name());
+                                            }
 
-                                    networkInterfaceRepository.findById(UUID.fromString(nic.id()))
-                                            .ifPresent(networkInterface
-                                                    -> nicDtoBuilder.segmentName(networkInterface.getResourceGroupNetwork().getName()));
+                                            networkInterfaceRepository.findById(UUID.fromString(nic.id()))
+                                                    .ifPresent(networkInterface
+                                                            -> nicDtoBuilder.segmentName(networkInterface.getResourceGroupNetwork().getName()));
 
-                                    return nicDtoBuilder
-                                            .build();
+                                            return nicDtoBuilder
+                                                    .build();
 
-                                }).toList()
-                        )
-                        .build();
+                                        }).toList()
+                                )
+                                .build(), etag);
     }
 
 

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group.AddVmDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.EditVmDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
+import pl.lodz.p.it.eduvirt.dto.vm.VmDtoWthEtag;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
@@ -35,7 +36,8 @@ public class ResourceGroupVmController {
     @GetMapping("{id}")
     @Transactional
     public ResponseEntity<VmDto> getVm(@PathVariable UUID rgId, @PathVariable UUID id) {
-        return ResponseEntity.ok(resourceGroupService.getVm(id));
+        VmDtoWthEtag vm = resourceGroupService.getVm(id);
+        return ResponseEntity.ok().eTag(vm.etag()).body(vm.vmDto());
     }
 
     @PostMapping
@@ -55,8 +57,11 @@ public class ResourceGroupVmController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<Void> updateVm(@PathVariable UUID rgId, @PathVariable UUID id, @RequestBody @Validated EditVmDto editVm) {
-        virtualMachineService.updateVirtualMachine(id, editVm.hidden());
+    public ResponseEntity<Void> updateVm(@PathVariable UUID rgId,
+                                         @PathVariable UUID id,
+                                         @RequestBody @Validated EditVmDto editVm,
+                                         @RequestHeader(HttpHeaders.IF_MATCH) String etag) {
+        virtualMachineService.updateVirtualMachine(id, editVm.hidden(), etag);
         return ResponseEntity.ok().build();
     }
 

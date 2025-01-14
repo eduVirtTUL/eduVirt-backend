@@ -255,13 +255,13 @@ VALUES ('1b0912df-c4c0-4907-9dd4-b09573a3ef44', 0, 'ISRP-RG01', '', false, 6),
        ('0454b258-1457-4719-99b6-a9cc9576de2d', 0, 'ISRP-RG03', '', false, 6),
        ('a1529025-aae8-4f33-b5cf-295353d77c48', 0, 'ISRP-RG04', '', false, 6);
 
-INSERT INTO public.virtual_machine (hidden, id, resource_group_id)
-VALUES (false, '5d1606b4-5263-4c78-a89b-57a2a26510cc', '1b0912df-c4c0-4907-9dd4-b09573a3ef44'),
-       (false, '40861333-18c9-48b3-9956-a2168060cbca', 'dfe85896-7c82-41c6-ba31-f9401d10c4f2'),
-       (false, 'c136faca-c487-4be6-8eff-90e2617ffdad', 'dfe85896-7c82-41c6-ba31-f9401d10c4f2'),
-       (false, '4181e5f8-7cc6-4021-a653-b7c59f5ef16e', '0454b258-1457-4719-99b6-a9cc9576de2d'),
-       (false, 'ef44305e-adc6-4329-97ba-78ebaa30eb98', '0454b258-1457-4719-99b6-a9cc9576de2d'),
-       (false, '943584ee-66fb-406e-86f2-648156d78138', 'a1529025-aae8-4f33-b5cf-295353d77c48');
+INSERT INTO public.virtual_machine (hidden, id, resource_group_id, version)
+VALUES (false, '5d1606b4-5263-4c78-a89b-57a2a26510cc', '1b0912df-c4c0-4907-9dd4-b09573a3ef44', 0),
+       (false, '40861333-18c9-48b3-9956-a2168060cbca', 'dfe85896-7c82-41c6-ba31-f9401d10c4f2', 0),
+       (false, 'c136faca-c487-4be6-8eff-90e2617ffdad', 'dfe85896-7c82-41c6-ba31-f9401d10c4f2', 0),
+       (false, '4181e5f8-7cc6-4021-a653-b7c59f5ef16e', '0454b258-1457-4719-99b6-a9cc9576de2d', 0),
+       (false, 'ef44305e-adc6-4329-97ba-78ebaa30eb98', '0454b258-1457-4719-99b6-a9cc9576de2d', 0),
+       (false, '943584ee-66fb-406e-86f2-648156d78138', 'a1529025-aae8-4f33-b5cf-295353d77c48', 0);
 
 --- Stateful pods ---
 
@@ -360,8 +360,8 @@ VALUES ('692bde41-c8ca-4873-bbaf-edb789ae7c87', 0, 'SSBD-RG01', '', false, 6),
        ('f13f85d1-14bf-4930-bc2a-b044f3feebe2', 0, 'SSBD-RG02', '', false, 6),
        ('50c319f6-d29d-4193-bfef-5e33b4e26353', 0, 'SSBD-RG03', '', false, 6);
 
-INSERT INTO public.virtual_machine (hidden, id, resource_group_id)
-VALUES (false, 'e3bfbebc-2497-45d3-b298-604039640a75', '692bde41-c8ca-4873-bbaf-edb789ae7c87');
+INSERT INTO public.virtual_machine (hidden, id, resource_group_id, version)
+VALUES (false, 'e3bfbebc-2497-45d3-b298-604039640a75', '692bde41-c8ca-4873-bbaf-edb789ae7c87', 0);
 
 --- Stateful pods ---
 
