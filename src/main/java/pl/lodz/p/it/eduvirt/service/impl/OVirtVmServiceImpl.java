@@ -57,7 +57,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
     @Override
     public Map<String, Object> findVmResources(Vm vm, Qos qos, Host host, Cluster cluster) {
         int cpuCount;
-        if (qos != null) {
+        if (qos != null && host != null && cluster != null) {
             int hostCpuCount = StatisticsUtil.getNumberOfCpus(host, cluster).intValue();
             double cpuLimit = qos.cpuLimit().intValue() / 100.0;
             cpuCount = (int) Math.ceil(cpuLimit * hostCpuCount);

@@ -72,22 +72,20 @@ public class VmController {
 
     @GetMapping(path = "/{id}/required-resources", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResourcesDto> findVmRequiredResources(@PathVariable("id") UUID vmId) {
-        Vm oVirtVM = oVirtVmService.findVmById(vmId.toString());
-        Qos vmCpuQos = oVirtVmService.findQosForVmCpu(oVirtVM);
-        Cluster foundCluster = oVirtClusterService.findClusterById(UUID.fromString(oVirtVM.cluster().id()));
-        List<Host> clusterHosts = oVirtClusterService.findAllHostsInCluster(foundCluster);
+        Vm oVirtVM = oVirtVmService.findVmWithCpuProfileById(vmId.toString());
 
-        Map<String, Object> requiredResources = oVirtVmService.findVmResources(
-                oVirtVM,
-                vmCpuQos,
-                clusterHosts.getFirst(),
-                foundCluster
-        );
+        Map<String, Object> requiredResources;
+        if (oVirtVM.cpuProfile().qos() != null) {
+            Qos vmCpuQos = oVirtVmService.findQosForVmCpu(oVirtVM);
+            Cluster foundCluster = oVirtClusterService.findClusterById(UUID.fromString(oVirtVM.cluster().id()));
+            List<Host> clusterHosts = oVirtClusterService.findAllHostsInCluster(foundCluster);
+            requiredResources = oVirtVmService.findVmResources(oVirtVM, vmCpuQos, clusterHosts.getFirst(), foundCluster);
+        } else {
+            requiredResources = oVirtVmService.findVmResources(oVirtVM, null, null, null);
+        }
 
         ResourcesDto resources = new ResourcesDto(
-                (int) requiredResources.get("cpu"),
-                (long) requiredResources.get("memory")
-        );
+                (int) requiredResources.get("cpu"), (long) requiredResources.get("memory"));
 
         return ResponseEntity.ok(resources);
     }
@@ -96,7 +94,9 @@ public class VmController {
     public ResponseEntity<List<VmDto>> findVmsForCluster(@PathVariable("clusterId") UUID clusterId) {
         Cluster foundCluster = oVirtClusterService.findClusterById(clusterId);
         List<Vm> foundVms = oVirtVmService.findVmsForCluster(foundCluster);
+
         List<VmDto> listOfDTOs = foundVms.stream().map(vmMapper::ovirtVmToDto).toList();
+
         if (foundVms.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDTOs);
     }

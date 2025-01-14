@@ -12,7 +12,7 @@ public interface EventMapper {
 
     @Mapping(target = "id", expression = "java(event.id())")
     @Mapping(target = "message", expression = "java(event.description())")
-    @Mapping(target = "severity", expression = "java(event.severity().value())")
+    @Mapping(target = "severity", expression = "java(event.severity().name())")
     @Mapping(target = "registeredAt", expression = "java(event.time().toInstant().atZone(ZoneId.of(\"UTC\")).toLocalDateTime())")
     EventGeneralDto ovirtEventToGeneralDTO(Event event);
 }

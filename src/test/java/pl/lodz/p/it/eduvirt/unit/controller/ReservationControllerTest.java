@@ -172,6 +172,8 @@ public class ReservationControllerTest {
     @BeforeEach
     public void setUp() throws Exception {
         mapper.findAndRegisterModules();
+
+
         Field id = AbstractEntity.class.getDeclaredField("id");
         Field version = Updatable.class.getDeclaredField("version");
 
