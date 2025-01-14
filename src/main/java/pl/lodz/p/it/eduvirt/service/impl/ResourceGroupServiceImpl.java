@@ -14,11 +14,13 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupAlreadyExists;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
 import pl.lodz.p.it.eduvirt.mappers.NicMapper;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -38,6 +40,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
     private final PodStatefulRepository podStatefulRepository;
     private final CourseRepository courseRepository;
+    private final ETagHelper eTagHelper;
 
     @Override
     @Transactional
@@ -142,8 +145,13 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
 
     @Transactional
     @Override
-    public ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup) {
+    public ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup, String etag) {
         ResourceGroup existingResourceGroup = resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
+
+        if (!eTagHelper.validateEtag(etag, existingResourceGroup)) {
+            throw new ResourceGroupConflictException();
+        }
+
         existingResourceGroup.setName(resourceGroup.getName());
         boolean isNameTaken;
         if (existingResourceGroup.isStateless()) {

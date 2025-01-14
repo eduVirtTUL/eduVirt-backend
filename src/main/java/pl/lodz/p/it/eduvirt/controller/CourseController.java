@@ -41,7 +41,6 @@ import pl.lodz.p.it.eduvirt.mappers.UserMapper;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.*;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
-import pl.lodz.p.it.eduvirt.util.etag.EtagPayload;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -130,7 +129,7 @@ public class CourseController {
     public ResponseEntity<CourseDto> getCourse(@PathVariable UUID id) {
         Course course = courseService.getCourse(id);
 
-        String etag = etagHelper.generateEtag(new EtagPayload(course));
+        String etag = etagHelper.generateEtag(course);
 
         return ResponseEntity.ok().eTag(etag).body(courseMapper.courseToCourseDto(course));
     }
