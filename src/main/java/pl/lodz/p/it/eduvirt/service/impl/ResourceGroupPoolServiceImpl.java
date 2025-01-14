@@ -11,9 +11,11 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupPoolNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group_pool.ResourceGroupPoolAlreadyExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group_pool.ResourceGroupPoolConflictException;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupPoolService;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +26,7 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
 
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
     private final CourseRepository courseRepository;
+    private final ETagHelper eTagHelper;
 
     @Override
     @Transactional
@@ -74,10 +77,14 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
 
     @Override
     @Transactional
-    public ResourceGroupPool updateResourceGroupPool(UUID id, ResourceGroupPool resourceGroupPool) {
+    public ResourceGroupPool updateResourceGroupPool(UUID id, ResourceGroupPool resourceGroupPool, String ifMatch) {
         ResourceGroupPool pool = resourceGroupPoolRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceGroupPoolNotFoundException(resourceGroupPool.getId()));
+
+        if (!eTagHelper.validateEtag(ifMatch, pool)) {
+            throw new ResourceGroupPoolConflictException();
+        }
 
         pool.getResourceGroups()
                 .forEach(resourceGroup -> {
@@ -85,6 +92,7 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
                     resourceGroup.setMaxRentTime(resourceGroupPool.getMaxRentTime());
                 });
 
+        pool.setName(resourceGroupPool.getName());
         pool.setDescription(resourceGroupPool.getDescription());
         pool.setMaxRentTime(resourceGroupPool.getMaxRentTime());
         pool.setGracePeriod(resourceGroupPool.getGracePeriod());

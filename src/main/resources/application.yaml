@@ -41,10 +41,12 @@ ovirt:
       password: ${JKS_PASSWORD}
 
 auth:
-
   keycloack:
     tokenUri: ${KEYCLOAK_TOKEN_URI}
     url: ${KEYCLOAK_URL}
     clientId: ${KEYCLOAK_CLIENT_ID}
     clientSecret: ${KEYCLOAK_CLIENT_SECRET}
     redirectUri: ${KEYCLOAK_REDIRECT_URI}
+
+jws:
+  secret: ${JWS_SECRET}

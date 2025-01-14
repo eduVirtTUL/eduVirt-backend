@@ -1,13 +1,16 @@
 package pl.lodz.p.it.eduvirt.controller;
 
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,10 +40,12 @@ import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.mappers.UserMapper;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.*;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/course")
 @RequiredArgsConstructor
@@ -64,6 +69,8 @@ public class CourseController {
     /* Repositories */
 
     private final UserRepository userRepository;
+
+    private final ETagHelper etagHelper;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -114,12 +121,17 @@ public class CourseController {
 
     @GetMapping("/{id}")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = CourseDto.class))}),
+            @ApiResponse(responseCode = "200",
+                    headers = @Header(name = "Etag", description = "Etag value", schema = @Schema(implementation = String.class)),
+                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = CourseDto.class))}
+            ),
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})})
     public ResponseEntity<CourseDto> getCourse(@PathVariable UUID id) {
-        var course = courseService.getCourse(id);
+        Course course = courseService.getCourse(id);
 
-        return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
+        String etag = etagHelper.generateEtag(course);
+
+        return ResponseEntity.ok().eTag(etag).body(courseMapper.courseToCourseDto(course));
     }
 
     @PostMapping
@@ -156,9 +168,11 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CourseDto> updateCourse(@PathVariable UUID id, @RequestBody @Validated UpdateCourseDto updateCourceDto) {
+    public ResponseEntity<CourseDto> updateCourse(@PathVariable UUID id,
+                                                  @RequestBody @Validated UpdateCourseDto updateCourceDto,
+                                                  @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
         Course course = courseMapper.toEntity(updateCourceDto);
-        course = courseService.updateCourse(id, course);
+        course = courseService.updateCourse(id, course, ifMatch);
         return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
     }
 

@@ -20,5 +20,5 @@ public interface ResourceGroupPoolService {
 
     void deleteResourceGroupPool(UUID id);
 
-    ResourceGroupPool updateResourceGroupPool(UUID id, ResourceGroupPool resourceGroupPool);
+    ResourceGroupPool updateResourceGroupPool(UUID id, ResourceGroupPool resourceGroupPool, String ifMatch);
 }

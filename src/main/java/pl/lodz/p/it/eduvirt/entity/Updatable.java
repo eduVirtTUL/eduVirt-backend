@@ -13,7 +13,7 @@ public class Updatable extends AbstractEntity {
 
     @Version
     @Column(name = "version", nullable = false)
-    private Long version;
+    private long version;
 
     // Constructors
 

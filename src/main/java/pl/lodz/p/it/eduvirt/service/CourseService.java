@@ -35,7 +35,9 @@ public interface CourseService {
 
     void removeTeacherFromCourse(UUID courseId, String email);
 
-    Course updateCourse(UUID courseId, Course course);
+    Course updateCourse(UUID courseId, Course course, String etag);
 
     void resetCourse(UUID courseId);
+
+    Course getCourseByResourceGroup(ResourceGroup resourceGroup);
 }

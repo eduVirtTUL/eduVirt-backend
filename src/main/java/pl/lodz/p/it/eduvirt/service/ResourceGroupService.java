@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.service;
 
 import org.ovirt.engine.sdk4.types.Vm;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
+import pl.lodz.p.it.eduvirt.dto.vm.VmDtoWthEtag;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 
 import java.util.List;
@@ -12,7 +13,7 @@ public interface ResourceGroupService {
 
     List<VmDto> getVms(UUID id);
 
-    VmDto getVm(UUID id);
+    VmDtoWthEtag getVm(UUID id);
 
     ResourceGroup getResourceGroup(UUID id);
 
@@ -22,5 +23,5 @@ public interface ResourceGroupService {
 
     void deleteResourceGroup(UUID id);
 
-    ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup);
+    ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup, String etag);
 }
