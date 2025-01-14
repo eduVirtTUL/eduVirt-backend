@@ -11,8 +11,9 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.CourseRepository;
-import pl.lodz.p.it.eduvirt.repository.UserRepository;
+import pl.lodz.p.it.eduvirt.exceptions.course.CourseAlreadyExists;
+import pl.lodz.p.it.eduvirt.repository.*;
+import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
 
 import java.util.List;
@@ -23,10 +24,19 @@ import java.util.UUID;
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final CourseAccessKeyRepository courseAccessKeyRepository;
+    private final PodStatefulRepository podStatefulRepository;
+    private final PodStatelessRepository podStatelessRepository;
+    private final TeamRepository teamRepository;
 
     @Override
     public Page<Course> getCourses(int page, int size) {
         return courseRepository.findAll(PageRequest.of(page, size));
+    }
+
+    @Override
+    public Page<Course> getCourses(int page, int size, String search) {
+        return courseRepository.findAllByNameContainingIgnoreCase(search, PageRequest.of(page, size));
     }
 
     @Override
@@ -35,13 +45,13 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<Course> getCoursesForStudent(UUID studentId, Pageable pageable) {
-        return courseRepository.findAllCoursesForStudent(studentId, pageable);
+    public List<Course> getCoursesForStudent(User student, Pageable pageable) {
+        return courseRepository.findAllCoursesForStudent(student, pageable);
     }
 
     @Override
     public Course getCourse(UUID id) {
-        return courseRepository.findById(id).orElseThrow(() -> new CourseNotFoundException("Course not found"));
+        return courseRepository.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
     }
 
     @Override
@@ -52,7 +62,7 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     @Override
     public void addResourceGroupToCourse(UUID courseId, ResourceGroup resourceGroup) {
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course not found"));
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         resourceGroup.setStateless(false);
         course.getStateFullResourceGroups().add(resourceGroup);
         courseRepository.save(course);
@@ -70,23 +80,26 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public void deleteCourse(UUID courseId) {
+        podStatelessRepository.deleteAllByCourseId(courseId);
+        podStatefulRepository.deleteAllByCourseId(courseId);
+        courseAccessKeyRepository.deleteByCourseId(courseId);
         courseRepository.deleteById(courseId);
     }
 
     @Override
     @Transactional
     public List<User> getTeachersForCourse(UUID courseId) {
-        return courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course not found")).getTeachers();
+        return courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId)).getTeachers();
     }
 
     @Override
     @Transactional
     public void addTeacherToCourse(UUID courseId, String email) {
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course not found"));
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
         User teacher = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (teacher.getRoles().contains("/teacher")){
-            if (!course.getTeachers().contains(teacher)){
+        if (teacher.getRoles().contains("/teacher")) {
+            if (!course.getTeachers().contains(teacher)) {
                 course.getTeachers().add(teacher);
                 courseRepository.saveAndFlush(course);
             } else {
@@ -103,9 +116,9 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course not found"));
         User teacher = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (teacher.getRoles().contains("/teacher")){
-            if (course.getTeachers().contains(teacher)){
-                if (course.getTeachers().size() > 1){
+        if (teacher.getRoles().contains("/teacher")) {
+            if (course.getTeachers().contains(teacher)) {
+                if (course.getTeachers().size() > 1) {
                     course.getTeachers().remove(teacher);
                     courseRepository.saveAndFlush(course);
                 } else {
@@ -117,5 +130,28 @@ public class CourseServiceImpl implements CourseService {
         } else {
             throw new IllegalArgumentException("User is not a teacher");
         }
+    }
+
+    @Override
+    @Transactional
+    public Course updateCourse(UUID courseId, Course course) {
+        Course existingCourse = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        boolean isNameTaken = courseRepository.existsByIdNotAndName(existingCourse.getId(), course.getName());
+        if (isNameTaken) {
+            throw new CourseAlreadyExists(course.getName());
+        }
+
+        existingCourse.setName(course.getName());
+        existingCourse.setDescription(course.getDescription());
+        existingCourse.setExternalLink(course.getExternalLink());
+        return courseRepository.save(existingCourse);
+    }
+
+    @Override
+    @Transactional
+    public void resetCourse(UUID courseId) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        teamRepository.deleteAllByCourseId(course.getId());
     }
 }

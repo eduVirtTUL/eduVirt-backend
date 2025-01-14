@@ -60,4 +60,12 @@ public class GeneralControllerExceptionResolver {
                 .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
     }
 
+    @ExceptionHandler({ApplicationBaseException.class})
+    ResponseEntity<ExceptionResponse> handleApplicationBaseException(
+            ApplicationBaseException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
+    }
+
 }

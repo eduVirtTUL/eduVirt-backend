@@ -46,4 +46,20 @@ public class User {
     @ManyToMany(mappedBy = "users")
     @ToString.Exclude
     private List<Team> teams = new ArrayList<>();
+
+    /* Constructor */
+
+    public User(UUID id,
+                UUID oVirtId,
+                String email,
+                String userName,
+                String firstName,
+                String lastName) {
+        this.id = id;
+        this.oVirtId = oVirtId;
+        this.email = email;
+        this.userName = userName;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
 }

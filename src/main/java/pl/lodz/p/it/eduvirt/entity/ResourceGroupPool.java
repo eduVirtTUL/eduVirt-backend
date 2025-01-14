@@ -28,7 +28,7 @@ public class ResourceGroupPool extends HistoricalData {
     @Column(name = "grace_period", nullable = false)
     private int gracePeriod;
 
-    @Column(name = "description", nullable = false, length = 1000)
+    @Column(name = "description", length = 1000)
     private String description;
 
     @Column(name = "max_rent_time", nullable = false)

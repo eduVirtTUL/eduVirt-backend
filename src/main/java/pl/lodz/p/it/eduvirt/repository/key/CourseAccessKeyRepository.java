@@ -8,7 +8,12 @@ import java.util.UUID;
 
 public interface CourseAccessKeyRepository extends JpaRepository<CourseAccessKey, UUID> {
     Optional<CourseAccessKey> findByKeyValue(String keyValue);
+
     Optional<CourseAccessKey> findByCourseId(UUID courseId);
+
     boolean existsByCourseId(UUID courseId);
+
     boolean existsByKeyValue(String keyValue);
+
+    void deleteByCourseId(UUID courseId);
 }
