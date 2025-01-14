@@ -33,6 +33,7 @@ public class CourseServiceImpl implements CourseService {
     private final PodStatelessRepository podStatelessRepository;
     private final TeamRepository teamRepository;
     private final ETagHelper eTagHelper;
+    private final ResourceGroupPoolRepository resourceGroupPoolRepository;
 
     @Override
     public Page<Course> getCourses(int page, int size) {
@@ -163,5 +164,18 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
 
         teamRepository.deleteAllByCourseId(course.getId());
+    }
+
+    @Override
+    @Transactional
+    public Course getCourseByResourceGroup(ResourceGroup resourceGroup) {
+        Course course;
+        if (resourceGroup.isStateless()) {
+            course = resourceGroupPoolRepository.findByResourceGroupsContaining(resourceGroup).getCourse();
+        } else {
+            course = courseRepository.findByStateFullResourceGroupsContaining(resourceGroup);
+        }
+
+        return course;
     }
 }

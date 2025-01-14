@@ -38,4 +38,6 @@ public interface CourseService {
     Course updateCourse(UUID courseId, Course course, String etag);
 
     void resetCourse(UUID courseId);
+
+    Course getCourseByResourceGroup(ResourceGroup resourceGroup);
 }
