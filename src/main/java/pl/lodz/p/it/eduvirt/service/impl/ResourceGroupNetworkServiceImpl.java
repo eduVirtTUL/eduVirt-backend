@@ -116,11 +116,15 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
 
     @Override
     @Transactional
-    public void deleteNetwork(UUID networkId, String etag) {
-        ResourceGroupNetwork network = resourceGroupNetworkRepository.findById(networkId).orElseThrow();
-        ResourceGroup rg = network.getResourceGroup();
+    public void deleteNetwork(UUID networkId, UUID rgId, String etag) {
+        ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
+                .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
+
+        if (!eTagHelper.validateEtag(etag, resourceGroup)) {
+            throw new IllegalArgumentException("Resource group has been modified");
+        }
 
         resourceGroupNetworkRepository.deleteById(networkId);
-        entityManager.lock(rg, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        entityManager.lock(resourceGroup, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
     }
 }

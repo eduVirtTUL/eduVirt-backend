@@ -14,5 +14,5 @@ public interface ResourceGroupNetworkService {
 
     void detachNicFromNetwork(UUID vmId, UUID nicId);
 
-    void deleteNetwork(UUID networkId, String etag);
+    void deleteNetwork(UUID networkId, UUID rgId, String etag);
 }
