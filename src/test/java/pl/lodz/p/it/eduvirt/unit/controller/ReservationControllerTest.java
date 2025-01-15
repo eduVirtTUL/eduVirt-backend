@@ -367,8 +367,10 @@ public class ReservationControllerTest {
 
         /* PODS */
 
-        podStateful1 = new PodStateful(resourceGroup1, team1, course);
-        podStateful2 = new PodStateful(resourceGroup2, team2, course);
+        Integer maxRentTime = 12;
+
+        podStateful1 = new PodStateful(resourceGroup1, team1, course, maxRentTime);
+        podStateful2 = new PodStateful(resourceGroup2, team2, course, maxRentTime);
 
         podStateless1 = new PodStateless(resourceGroupPool1, team1, course);
         podStateless2 = new PodStateless(resourceGroupPool2, team2, course);

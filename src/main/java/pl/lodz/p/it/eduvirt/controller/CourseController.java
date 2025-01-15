@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.UpdateCourseDto;
@@ -49,6 +51,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/course")
 @RequiredArgsConstructor
+@LoggerInterceptor
 public class CourseController {
 
     /* Services */
@@ -135,11 +138,13 @@ public class CourseController {
     }
 
     @PostMapping
-    public ResponseEntity<CourseDto> addCourse(@RequestBody @Validated CreateCourseDto createCourseDto) {
-        Course course = courseService.addCourse(courseMapper.courseCreateDtoToCourse(createCourseDto));
-
-        return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
-    }
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<CourseDto> createCourse(@Valid @RequestBody CreateCourseDto createCourseDto) {
+        Course course = courseMapper.courseCreateDtoToCourse(createCourseDto);
+        Course savedCourse = courseService.addCourse(course, createCourseDto.teacherEmail());
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(courseMapper.courseToCourseDto(savedCourse));
+}
 
     @GetMapping("/{id}/stateful")
     @Transactional
@@ -284,6 +289,20 @@ public class CourseController {
                 .toList();
 
         if (userDtos.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(userDtos);
+    }
+
+    @GetMapping("/{courseId}/students")
+//    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<List<UserDto>> getStudentsInSoloCourse(@PathVariable UUID courseId) {
+        List<User> users = teamService.getStudentsInSoloCourse(courseId);
+        List<UserDto> userDtos = users.stream()
+                .map(userMapper::userToDto)
+                .toList();
+
+        if (userDtos.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.ok(userDtos);
     }
 
