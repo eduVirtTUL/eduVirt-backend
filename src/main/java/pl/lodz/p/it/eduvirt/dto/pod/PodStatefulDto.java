@@ -6,5 +6,6 @@ public record PodStatefulDto(
     UUID id,
     UUID teamId,
     UUID courseId,
-    UUID resourceGroupId
+    UUID resourceGroupId,
+    Integer maxRent
 ) {}

@@ -10,6 +10,7 @@ public record PodStatefulDetailsDto(
         UUID id,
         ResourceGroupDto resourceGroup,
         CourseBasicDto course,
-        TeamDto team
+        TeamDto team,
+        Integer maxRent
 ) {
 }

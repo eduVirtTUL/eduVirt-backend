@@ -265,15 +265,15 @@ VALUES (false, '5d1606b4-5263-4c78-a89b-57a2a26510cc', '1b0912df-c4c0-4907-9dd4-
 
 --- Stateful pods ---
 
-INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id)
+INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, max_rent)
 VALUES ('0e542d51-ba4f-4dd5-bef8-eae5b7477103', 'a7556146-23a6-4936-903c-c337c794a8c7',
-        '1b0912df-c4c0-4907-9dd4-b09573a3ef44', 'f15e7fe3-60a6-4d2c-a124-ad763f6869e2'),
+        '1b0912df-c4c0-4907-9dd4-b09573a3ef44', 'f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 3),
        ('61807f79-334e-4fdd-985b-6aaa95c0bf8d', 'a7556146-23a6-4936-903c-c337c794a8c7',
-        'dfe85896-7c82-41c6-ba31-f9401d10c4f2', '5ef19d54-c429-499d-9654-ac052d83f3e7'),
+        'dfe85896-7c82-41c6-ba31-f9401d10c4f2', '5ef19d54-c429-499d-9654-ac052d83f3e7', 3),
        ('c5cec07a-f8c1-41ca-a439-397a7aae63df', 'a7556146-23a6-4936-903c-c337c794a8c7',
-        '0454b258-1457-4719-99b6-a9cc9576de2d', '64da3d79-52be-4936-97e3-b88597bac8b9'),
+        '0454b258-1457-4719-99b6-a9cc9576de2d', '64da3d79-52be-4936-97e3-b88597bac8b9', 3),
        ('e016831f-96e4-4c96-a14d-54c167fdd5d0', 'a7556146-23a6-4936-903c-c337c794a8c7',
-        'a1529025-aae8-4f33-b5cf-295353d77c48', '60deabdf-ba7d-482a-b6a5-26e440850496');
+        'a1529025-aae8-4f33-b5cf-295353d77c48', '60deabdf-ba7d-482a-b6a5-26e440850496', 3);
 
 --- Resource group pools ---
 
@@ -365,13 +365,13 @@ VALUES (false, 'e3bfbebc-2497-45d3-b298-604039640a75', '692bde41-c8ca-4873-bbaf-
 
 --- Stateful pods ---
 
-INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id)
+INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, max_rent)
 VALUES ('a57e55b8-471d-4754-acf0-15c57b877e99', 'e485ded6-c166-45f6-a924-13ce44666f7a',
-        '692bde41-c8ca-4873-bbaf-edb789ae7c87', 'f3896c36-2133-4497-965e-0951e1f5aebf'),
+        '692bde41-c8ca-4873-bbaf-edb789ae7c87', 'f3896c36-2133-4497-965e-0951e1f5aebf', 3),
        ('849f00e3-199d-4e81-9892-5b5c2a3b5b7d', 'e485ded6-c166-45f6-a924-13ce44666f7a',
-        'f13f85d1-14bf-4930-bc2a-b044f3feebe2', '78908655-ee18-4863-9eef-e67519940a0b'),
+        'f13f85d1-14bf-4930-bc2a-b044f3feebe2', '78908655-ee18-4863-9eef-e67519940a0b', 3),
        ('a5681e23-bcec-4353-9e4d-f0c60f2efb26', 'e485ded6-c166-45f6-a924-13ce44666f7a',
-        '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd');
+        '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', 3);
 
 --- Resource group pools ---
 
@@ -440,13 +440,13 @@ VALUES ('a7919551-3807-4b35-88e3-fc3a868ba014', 0, 'TUA-RG01', '', false, 6),
 
 --- Stateful pods ---
 
-INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id)
+INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, max_rent)
 VALUES ('c971b368-92c8-4a01-86d2-dd783b5360a8', '1decd050-1328-4eca-b2de-84793a8474c2',
-        'a7919551-3807-4b35-88e3-fc3a868ba014', 'd46387ee-7397-4184-91eb-d01d5f301c0e'),
+        'a7919551-3807-4b35-88e3-fc3a868ba014', 'd46387ee-7397-4184-91eb-d01d5f301c0e', 3),
        ('161f4a45-f87d-40b5-9ad6-1ec056485e01', '1decd050-1328-4eca-b2de-84793a8474c2',
-        'e51132d3-8ac3-4232-85e0-849c8afa6abc', 'e608c9d0-e871-4374-a052-f27ced4a9cec'),
+        'e51132d3-8ac3-4232-85e0-849c8afa6abc', 'e608c9d0-e871-4374-a052-f27ced4a9cec', 3),
        ('c3db873c-cfeb-4ec2-b87b-342af78f869a', '1decd050-1328-4eca-b2de-84793a8474c2',
-        '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '18750e93-22a7-4a23-8f8b-e0cabde8f793');
+        '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '18750e93-22a7-4a23-8f8b-e0cabde8f793', 3);
 
 --- Resource group pools ---
 
