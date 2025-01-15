@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,7 @@ public class ResourceGroupPoolController {
     private final ETagHelper eTagHelper;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<ResourceGroupPoolDto> createResourceGroupPool(@RequestBody @Validated CreateRGPoolDto createRGPoolDto) {
         ResourceGroupPool resourceGroupPool = rgPoolMapper.toRGPool(createRGPoolDto);
         resourceGroupPoolService.addResourceGroupPool(resourceGroupPool, createRGPoolDto.courseId());
@@ -42,6 +44,7 @@ public class ResourceGroupPoolController {
 
     @GetMapping("/{id}")
     @Transactional
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public ResponseEntity<DetailedResourceGroupPoolDto> getResourceGroupPool(@PathVariable UUID id) {
         ResourceGroupPool pool = resourceGroupPoolService.getResourceGroupPool(id);
 
@@ -53,6 +56,7 @@ public class ResourceGroupPoolController {
     @GetMapping
     @Transactional
     @ApiResponse(responseCode = "200", description = "Returns list of resource group pools")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public ResponseEntity<PageDto<DetailedResourceGroupPoolDto>> getResourceGroupPools(
             @RequestParam(name = "page", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(name = "size", defaultValue = "10", required = false) int pageSize
@@ -68,6 +72,7 @@ public class ResourceGroupPoolController {
     }
 
     @PostMapping("/{id}/resourceGroup")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> addResourceGroupToPool(@PathVariable UUID id, @RequestBody CreateResourceGroupDto createResourceGroupDto) {
         ResourceGroup resourceGroup = resourceGroupMapper.toEntity(createResourceGroupDto);
         resourceGroupPoolService.addResourceGroupToPool(id, resourceGroup);
@@ -75,6 +80,7 @@ public class ResourceGroupPoolController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<ResourceGroupPoolDto> updateResourceGroupPool(@PathVariable UUID id,
                                                                         @RequestBody @Validated UpdateResourceGroupPoolDto updateResourceGroupPoolDto,
                                                                         @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
@@ -83,6 +89,7 @@ public class ResourceGroupPoolController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> deleteResourceGroupPool(@PathVariable UUID id) {
         resourceGroupPoolService.deleteResourceGroupPool(id);
         return ResponseEntity.ok().build();

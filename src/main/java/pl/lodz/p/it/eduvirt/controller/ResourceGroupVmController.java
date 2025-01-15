@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group.AddVmDto;
@@ -29,18 +30,21 @@ public class ResourceGroupVmController {
 
     @GetMapping
     @Transactional
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public ResponseEntity<List<VmDto>> getVms(@PathVariable UUID rgId) {
         return ResponseEntity.ok(resourceGroupService.getVms(rgId));
     }
 
     @GetMapping("{id}")
     @Transactional
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public ResponseEntity<VmDto> getVm(@PathVariable UUID rgId, @PathVariable UUID id) {
         VmDtoWthEtag vm = resourceGroupService.getVm(id);
         return ResponseEntity.ok().eTag(vm.etag()).body(vm.vmDto());
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> addVm(@PathVariable UUID rgId,
                                       @RequestBody AddVmDto addVmDto,
                                       @RequestHeader(HttpHeaders.IF_MATCH) String etag) {
@@ -49,6 +53,7 @@ public class ResourceGroupVmController {
     }
 
     @DeleteMapping("{id}")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> deleteVm(@PathVariable UUID rgId,
                                          @PathVariable UUID id,
                                          @RequestHeader(HttpHeaders.IF_MATCH) String etag) {
@@ -57,6 +62,7 @@ public class ResourceGroupVmController {
     }
 
     @PutMapping("{id}")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> updateVm(@PathVariable UUID rgId,
                                          @PathVariable UUID id,
                                          @RequestBody @Validated EditVmDto editVm,
@@ -66,6 +72,7 @@ public class ResourceGroupVmController {
     }
 
     @GetMapping("/available")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<List<VmDto>> getAvailableVms(@PathVariable UUID rgId) {
         return ResponseEntity.ok(
                 vmMapper.ovirtVmsToDtos(resourceGroupService.findAvailableVms(rgId).stream())

@@ -46,8 +46,19 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<Course> getCourses() {
-        return courseRepository.findAll();
+    @Transactional
+    public Page<Course> getCoursesForTeacher(UUID userId, int page, int size, String search) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        if (search != null) {
+            return courseRepository.findAllByTeachersContainingAndNameContainingIgnoreCase(user, search, PageRequest.of(page, size));
+        }
+        return courseRepository.findAllByTeachersContaining(user, PageRequest.of(page, size));
+    }
+
+    @Override
+    public List<Course> getCourses(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        return courseRepository.findAllByTeachersContaining(user);
     }
 
     @Override
@@ -63,21 +74,21 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public Course addCourse(Course course, String teacherEmail) {
-    User teacher = userRepository.findByEmailIgnoreCase(teacherEmail)
-            .orElseThrow(() -> new UserNotFoundException("Teacher not found"));
+        User teacher = userRepository.findByEmailIgnoreCase(teacherEmail)
+                .orElseThrow(() -> new UserNotFoundException("Teacher not found"));
 
-    if (!teacher.getRoles().contains("/teacher")) {
-        throw new IllegalArgumentException("User is not a teacher");
+        if (!teacher.getRoles().contains("/teacher")) {
+            throw new IllegalArgumentException("User is not a teacher");
+        }
+
+        if (course.getTeachers() == null) {
+            course.setTeachers(List.of(teacher));
+        } else {
+            course.getTeachers().add(teacher);
+        }
+
+        return courseRepository.saveAndFlush(course);
     }
-
-    if (course.getTeachers() == null) {
-        course.setTeachers(List.of(teacher));
-    } else {
-        course.getTeachers().add(teacher);
-    }
-
-    return courseRepository.saveAndFlush(course);
-}
 
     @Transactional
     @Override

@@ -12,9 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
-import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
-import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
@@ -23,7 +20,9 @@ import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.I18n;
 import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
-import java.time.*;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -312,14 +311,14 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findById(reservationId);
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @Override
     public Page<Reservation> findReservationsForStatelessPod(PodStateless statelessPod, Team team, Pageable pageable) {
         return reservationRepository.findAllRgPoolReservationsForGivenTeam(
                 statelessPod.getResourceGroupPool(), team, pageable);
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @Override
     public Page<Reservation> findReservationsForStatefulPod(PodStateful statefulPod, Team team, Pageable pageable) {
         return reservationRepository.findAllRgReservationsForGivenTeam(
@@ -340,7 +339,7 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findRgPoolReservations(resourceGroupPool, start, end);
     }
 
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Override
     public Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable) {
         Team foundTeam = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
@@ -348,7 +347,7 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findAllActiveReservations(foundTeam, currentTime, pageable);
     }
 
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Override
     public Page<Reservation> findHistoricalReservations(UUID teamId, Pageable pageable) {
         Team foundTeam = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));

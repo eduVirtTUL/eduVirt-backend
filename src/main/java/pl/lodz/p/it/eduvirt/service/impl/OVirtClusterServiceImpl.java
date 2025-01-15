@@ -2,8 +2,8 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
-import org.ovirt.engine.sdk4.types.*;
 import org.ovirt.engine.sdk4.services.*;
+import org.ovirt.engine.sdk4.types.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
-import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 import pl.lodz.p.it.eduvirt.util.PaginationUtil;
+import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,7 +31,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
 
     /* Read methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Cluster findClusterById(UUID clusterId) {
         try {
@@ -44,7 +44,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public List<Cluster> findClusters(Pageable pageable) {
         try {
@@ -64,7 +64,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public List<Host> findHostsInCluster(Cluster cluster, Pageable pageable) {
         try {
@@ -119,7 +119,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public List<Network> findNetworksInCluster(Cluster cluster, int pageNumber, int pageSize) {
         try {
@@ -133,11 +133,11 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public List<Event> findEventsInCluster(Cluster cluster, Pageable pageable) {
         try {
-            Connection connection =  connectionFactory.getConnection();
+            Connection connection = connectionFactory.getConnection();
             SystemService systemService = connection.systemService();
 
             String sortBy = "";
@@ -154,7 +154,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public int findHostCountInCluster(Cluster cluster) {
         try {
@@ -170,7 +170,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public int findVmCountInCluster(Cluster cluster) {
         try {

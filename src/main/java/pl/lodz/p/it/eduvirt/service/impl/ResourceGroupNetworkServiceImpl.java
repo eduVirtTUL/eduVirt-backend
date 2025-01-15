@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.*;
@@ -37,6 +38,7 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
 
     @Override
     @Transactional
+    @PreAuthorize("hasAuthority('teacher')")
     public ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name, String etag) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
@@ -74,12 +76,15 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     }
 
     @Override
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public List<ResourceGroupNetwork> getResourceGroupNetworks(UUID rgId) {
         return resourceGroupNetworkRepository.getAllByResourceGroupId(rgId);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasAuthority('teacher')")
     public void attachNicToNetwork(UUID networkId, UUID vmId, UUID nicId, String etag) {
         ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository
                 .findById(networkId)
@@ -113,6 +118,7 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
 
     @Override
     @Transactional
+    @PreAuthorize("hasAuthority('teacher')")
     public void detachNicFromNetwork(UUID vmId, UUID nicId, String etag) {
         NetworkInterface networkInterface = networkInterfaceRepository.findById(nicId).orElseThrow();
 
@@ -131,6 +137,7 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
 
     @Override
     @Transactional
+    @PreAuthorize("hasAuthority('teacher')")
     public void deleteNetwork(UUID networkId, UUID rgId, String etag) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
