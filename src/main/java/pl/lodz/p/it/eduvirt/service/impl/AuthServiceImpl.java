@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
@@ -12,6 +13,7 @@ import pl.lodz.p.it.eduvirt.util.jwt.AccessToken;
 import pl.lodz.p.it.eduvirt.util.jwt.JwtHelper;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (user.isEmpty()) {
             UUID oVirtUserId = UUID.fromString(oVirtUserService.getUserByPrincipal(actualToken.getPreferredUsername()).id());
+            List<Team> emptyTeams = new ArrayList<>();
 
             User newUser = new User(userId,
                     oVirtUserId,
@@ -44,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
                     actualToken.getGivenName(),
                     actualToken.getFamilyName(),
                     actualToken.getGroups(),
-                    null);
+                    emptyTeams);
 
             userRepository.saveAndFlush(newUser);
         } else {
@@ -57,8 +60,8 @@ public class AuthServiceImpl implements AuthService {
                 actualUser.setEmail(actualToken.getEmail());
                 needsUpdate = true;
             }
-            if (actualToken.getEmail() != null && !actualToken.getEmail().equals(actualUser.getEmail())) {
-                actualUser.setEmail(actualToken.getEmail());
+            if (actualToken.getPreferredUsername() != null && !actualToken.getPreferredUsername().equals(actualUser.getUserName())) {
+                actualUser.setUserName(actualToken.getPreferredUsername());
                 needsUpdate = true;
             }
             if (actualToken.getGivenName() != null && !actualToken.getGivenName().equals(actualUser.getFirstName())) {

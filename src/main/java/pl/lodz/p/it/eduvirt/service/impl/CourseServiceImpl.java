@@ -61,9 +61,23 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Course addCourse(Course course) {
-        return courseRepository.save(course);
+    @Transactional
+    public Course addCourse(Course course, String teacherEmail) {
+    User teacher = userRepository.findByEmailIgnoreCase(teacherEmail)
+            .orElseThrow(() -> new UserNotFoundException("Teacher not found"));
+
+    if (!teacher.getRoles().contains("/teacher")) {
+        throw new IllegalArgumentException("User is not a teacher");
     }
+
+    if (course.getTeachers() == null) {
+        course.setTeachers(List.of(teacher));
+    } else {
+        course.getTeachers().add(teacher);
+    }
+
+    return courseRepository.saveAndFlush(course);
+}
 
     @Transactional
     @Override
@@ -95,7 +109,9 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public List<User> getTeachersForCourse(UUID courseId) {
-        return courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId)).getTeachers();
+        return courseRepository.findByIdWithTeachers(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId))
+                .getTeachers();
     }
 
     @Override

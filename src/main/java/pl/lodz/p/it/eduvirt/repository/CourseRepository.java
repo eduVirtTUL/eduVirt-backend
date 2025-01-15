@@ -34,4 +34,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     @Query("SELECT count(n) FROM Course c JOIN c.resourceGroupPools p JOIN p.resourceGroups r JOIN r.networks n WHERE c.id = :id GROUP BY r.id")
     List<Integer> getStatelessResourceGroupNetworkCount(UUID id);
+
+    @Query("SELECT c FROM Course c LEFT JOIN FETCH c.teachers WHERE c.id = :id")
+    Optional<Course> findByIdWithTeachers(@Param("id") UUID id);
 }
