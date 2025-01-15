@@ -73,7 +73,14 @@ public class AuthServiceImpl implements AuthService {
                 needsUpdate = true;
             }
             if (actualToken.getGroups() != null) {
-                actualUser.setRoles(new ArrayList<>(actualToken.getGroups()));
+                var roles = actualToken.getGroups().stream().map(group -> switch (group) {
+                            case "/teacher" -> "teacher";
+                            case "/student" -> "student";
+                            case "/ovirt-administrator" -> "administrator";
+                            default -> "user";
+                        }).filter(role -> !role.equals("user"))
+                        .toList();
+                actualUser.setRoles(roles.isEmpty() ? List.of("student") : roles);
                 needsUpdate = true;
             }
 

@@ -147,7 +147,8 @@ public class CourseController {
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})})
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public ResponseEntity<CourseDto> getCourse(@PathVariable UUID id) {
-        Course course = courseService.getCourse(id);
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        Course course = courseService.getCourse(id, userId);
 
         String etag = etagHelper.generateEtag(course);
 

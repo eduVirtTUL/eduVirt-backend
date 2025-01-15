@@ -23,6 +23,8 @@ public interface CourseService {
 
     Course getCourse(UUID id);
 
+    Course getCourse(UUID id, UUID userId);
+
     Course addCourse(Course course, String teacherEmail);
 
     void addResourceGroupToCourse(UUID courseId, ResourceGroup resourceGroup);
