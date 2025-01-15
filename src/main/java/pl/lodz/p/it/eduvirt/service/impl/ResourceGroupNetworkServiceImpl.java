@@ -83,6 +83,10 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     @Transactional
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public List<ResourceGroupNetwork> getResourceGroupNetworks(UUID rgId) {
+        ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
+                .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
+        resourceGroupService.validateResourceGroupOwnershipOrAdmin(resourceGroup);
+
         return resourceGroupNetworkRepository.getAllByResourceGroupId(rgId);
     }
 

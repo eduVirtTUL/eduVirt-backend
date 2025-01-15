@@ -172,6 +172,8 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/resource-group-pools")
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public ResponseEntity<List<ResourceGroupPoolDto>> getCourseResourceGroupPools(@PathVariable UUID id) {
         List<ResourceGroupPool> resourceGroupPools = resourceGroupPoolService.getResourceGroupPoolsByCourse(id);
         return ResponseEntity.ok(rgPoolMapper.toRGPoolDtoList(resourceGroupPools.stream()));

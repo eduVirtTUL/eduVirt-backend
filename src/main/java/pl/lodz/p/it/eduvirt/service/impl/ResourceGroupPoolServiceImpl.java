@@ -56,13 +56,19 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
     }
 
     @Override
+    @Transactional
     public List<ResourceGroupPool> getResourceGroupPoolsByCourse(UUID courseId) {
-        return resourceGroupPoolRepository.getByCourseId(courseId);
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        checkTeacherOrAdministratorInCourse(courseId);
+        return course.getResourceGroupPools();
     }
 
     @Override
+    @Transactional
     public ResourceGroupPool getResourceGroupPool(UUID id) {
-        return resourceGroupPoolRepository.findById(id).orElseThrow(() -> new ResourceGroupPoolNotFoundException(id));
+        ResourceGroupPool pool = resourceGroupPoolRepository.findById(id).orElseThrow(() -> new ResourceGroupPoolNotFoundException(id));
+        checkTeacherOrAdministratorInCourse(pool.getCourse().getId());
+        return pool;
     }
 
     @Override
@@ -118,6 +124,18 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
         boolean exists = courseRepository.existsCourseForTeacher(courseId, userId);
         if (!exists) {
             throw new CourseNotFoundException(courseId);
+        }
+    }
+
+    private void checkTeacherOrAdministratorInCourse(UUID courseId) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        boolean isAdmin = user.getRoles().contains("administrator");
+        if (!isAdmin) {
+            boolean exists = courseRepository.existsCourseForTeacher(courseId, userId);
+            if (!exists) {
+                throw new CourseNotFoundException(courseId);
+            }
         }
     }
 }
