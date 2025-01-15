@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.NoNetworkAvailableException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineConflictException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -124,7 +124,7 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
         if (!eTagHelper.validateEtag(etag, virtualMachine.getId(), virtualMachine.getVersion())) {
             throw new VirtualMachineConflictException();
         }
-        
+
         networkInterfaceRepository.deleteByIdAndVirtualMachine_Id(nicId, vmId);
         entityManager.lock(virtualMachine, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
     }

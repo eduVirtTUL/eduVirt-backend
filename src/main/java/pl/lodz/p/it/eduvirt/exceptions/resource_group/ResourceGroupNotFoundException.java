@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.exceptions;
+package pl.lodz.p.it.eduvirt.exceptions.resource_group;
 
 import pl.lodz.p.it.eduvirt.exceptions.general.NotFoundException;
 import pl.lodz.p.it.eduvirt.util.I18n;
