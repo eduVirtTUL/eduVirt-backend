@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity()
 @Configuration
 @EnableMethodSecurity()
 public class SecurityConfig {

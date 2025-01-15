@@ -53,7 +53,7 @@ public class GeneralControllerExceptionResolver {
                 .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
     }
 
-    @ExceptionHandler({OperationNotImplementedException.class, OpeningConnectionException.class})
+    @ExceptionHandler({OperationNotImplementedException.class, OpeningConnectionException.class, InternalServerException.class})
     ResponseEntity<ExceptionResponse> handleServerErrors(ApplicationBaseException exception) {
         return ResponseEntity.internalServerError()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -67,5 +67,4 @@ public class GeneralControllerExceptionResolver {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
     }
-
 }
