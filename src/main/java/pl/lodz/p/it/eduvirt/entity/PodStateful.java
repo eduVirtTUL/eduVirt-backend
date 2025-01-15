@@ -39,4 +39,7 @@ public class PodStateful extends AbstractEntity {
     )
     private Course course;
 
+    @Column(name = "max_rent", nullable = false)
+    private Integer maxRent;
+
 }

@@ -55,7 +55,8 @@ public interface PodStatefulMapper {
                                 user.getFirstName(),
                                 user.getLastName()
                         )).toList()
-                )
+                ),
+                pod.getMaxRent()
         );
     }
 }
