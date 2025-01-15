@@ -5,7 +5,7 @@ VALUES ('2865efff-f8e5-4960-a0ce-fc05e98828ba', 'cpu_count', 'COUNTABLE'),
 
 INSERT INTO public.metric_cluster (id, cluster_id, metric_id, metric_value)
 
-VALUES (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '2865efff-f8e5-4960-a0ce-fc05e98828ba', 100),
+VALUES (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '2865efff-f8e5-4960-a0ce-fc05e98828ba', 1),
        (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '63490da4-d0f1-4e7a-88fc-3342633accc0', 10737418240),
        (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '1929c2b2-ba03-4180-ae90-79bd2335f2a8', 10);
 
@@ -112,46 +112,31 @@ VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'b96844a7-7cb6-48f1-b4e6-1291988
        ('1decd050-1328-4eca-b2de-84793a8474c2', '87b11363-bb7e-4d54-8f57-ed5a52146210');
 
 INSERT INTO public.users (user_id, ovirt_id, email, first_name, last_name, user_name)
-VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', gen_random_uuid(), 'example01@email.com', 'FirstName01', 'LastName01',
-        'UserName01'),
-       ('c7ceee90-734d-4e6c-8756-2cd9a44ff668', gen_random_uuid(), 'example02@email.com', 'FirstName02', 'LastName02',
-        'UserName02'),
-       ('f00de025-d801-4276-9b53-9d5ab8f89ac8', gen_random_uuid(), 'example03@email.com', 'FirstName03', 'LastName03',
-        'UserName03'),
-       ('44b21e72-50d2-42c0-a449-4791177251aa', gen_random_uuid(), 'example04@email.com', 'FirstName04', 'LastName04',
-        'UserName04'),
-       ('99403b0e-c184-4d18-95b6-384cb322b449', gen_random_uuid(), 'example05@email.com', 'FirstName05', 'LastName05',
-        'UserName05'),
-       ('b9d89a2a-75ff-4ca4-a9b4-068aab962524', gen_random_uuid(), 'example06@email.com', 'FirstName06', 'LastName06',
-        'UserName06'),
-       ('8551a9c9-0877-4831-b520-bcc8a137cf7c', gen_random_uuid(), 'example07@email.com', 'FirstName07', 'LastName07',
-        'UserName07'),
-       ('5ed87f00-bebc-41ab-aebb-66c587335065', gen_random_uuid(), 'example08@email.com', 'FirstName08', 'LastName08',
-        'UserName08'),
-       ('348213e4-7895-4a06-809c-35fe174eee5a', gen_random_uuid(), 'example09@email.com', 'FirstName09', 'LastName09',
-        'UserName09'),
-       ('08304074-48c3-48b8-8693-342c9add70a6', gen_random_uuid(), 'example10@email.com', 'FirstName10', 'LastName10',
-        'UserName10'),
-       ('e29eadad-0fea-4c08-afe1-15c8b931de3c', gen_random_uuid(), 'example11@email.com', 'FirstName11', 'LastName11',
-        'UserName11'),
-       ('7be81ff0-f42f-4bdf-8002-792b10a2181d', gen_random_uuid(), 'example12@email.com', 'FirstName12', 'LastName12',
-        'UserName12'),
-       ('79b84d69-9761-4c2e-b9d6-223cd55cd917', gen_random_uuid(), 'example13@email.com', 'FirstName13', 'LastName13',
-        'UserName13'),
-       ('9b2db558-1ee7-47e1-9fd2-6626ec95d230', gen_random_uuid(), 'example14@email.com', 'FirstName14', 'LastName14',
-        'UserName14'),
-       ('582d50de-6eab-4343-a2d2-0157c8a6c14d', gen_random_uuid(), 'example15@email.com', 'FirstName15', 'LastName15',
-        'UserName15'),
-       ('6b599d28-d631-41e5-ab76-f66369bccb14', gen_random_uuid(), 'example16@email.com', 'FirstName16', 'LastName16',
-        'UserName16'),
-       ('04adeaa1-c232-46bc-aa0c-caab2e0efacd', gen_random_uuid(), 'example17@email.com', 'FirstName17', 'LastName17',
-        'UserName17'),
-       ('5d2842e9-a219-4afa-bbb9-28cfce5082e8', gen_random_uuid(), 'example18@email.com', 'FirstName18', 'LastName18',
-        'UserName18'),
-       ('a053ddfa-4308-4064-bf16-a07d830bd9fa', gen_random_uuid(), 'example19@email.com', 'FirstName19', 'LastName19',
-        'UserName19'),
-       ('a666ee8c-4b1a-413a-8e89-c45a688f5d1a', gen_random_uuid(), 'example20@email.com', 'FirstName20', 'LastName20',
-        'UserName20');
+VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', gen_random_uuid(), '242447@edu.p.lodz.pl', 'FirstName01', 'LastName01','UserName01'),
+       ('c7ceee90-734d-4e6c-8756-2cd9a44ff668', gen_random_uuid(), 'example02@email.com', 'FirstName02', 'LastName02','UserName02'),
+       ('f00de025-d801-4276-9b53-9d5ab8f89ac8', gen_random_uuid(), 'example03@email.com', 'FirstName03', 'LastName03','UserName03'),
+       ('44b21e72-50d2-42c0-a449-4791177251aa', gen_random_uuid(), 'example04@email.com', 'FirstName04', 'LastName04','UserName04'),
+       ('99403b0e-c184-4d18-95b6-384cb322b449', gen_random_uuid(), 'example05@email.com', 'FirstName05', 'LastName05','UserName05'),
+       ('b9d89a2a-75ff-4ca4-a9b4-068aab962524', gen_random_uuid(), 'example06@email.com', 'FirstName06', 'LastName06','UserName06'),
+       ('8551a9c9-0877-4831-b520-bcc8a137cf7c', gen_random_uuid(), 'example07@email.com', 'FirstName07', 'LastName07','UserName07'),
+       ('5ed87f00-bebc-41ab-aebb-66c587335065', gen_random_uuid(), 'example08@email.com', 'FirstName08', 'LastName08','UserName08'),
+       ('348213e4-7895-4a06-809c-35fe174eee5a', gen_random_uuid(), 'example09@email.com', 'FirstName09', 'LastName09','UserName09'),
+       ('08304074-48c3-48b8-8693-342c9add70a6', gen_random_uuid(), 'example10@email.com', 'FirstName10', 'LastName10','UserName10'),
+       ('e29eadad-0fea-4c08-afe1-15c8b931de3c', gen_random_uuid(), 'example11@email.com', 'FirstName11', 'LastName11','UserName11'),
+       ('7be81ff0-f42f-4bdf-8002-792b10a2181d', gen_random_uuid(), 'example12@email.com', 'FirstName12', 'LastName12','UserName12'),
+       ('79b84d69-9761-4c2e-b9d6-223cd55cd917', gen_random_uuid(), 'example13@email.com', 'FirstName13', 'LastName13','UserName13'),
+       ('9b2db558-1ee7-47e1-9fd2-6626ec95d230', gen_random_uuid(), 'example14@email.com', 'FirstName14', 'LastName14','UserName14'),
+       ('582d50de-6eab-4343-a2d2-0157c8a6c14d', gen_random_uuid(), 'example15@email.com', 'FirstName15', 'LastName15','UserName15'),
+       ('6b599d28-d631-41e5-ab76-f66369bccb14', gen_random_uuid(), 'example16@email.com', 'FirstName16', 'LastName16','UserName16'),
+       ('04adeaa1-c232-46bc-aa0c-caab2e0efacd', gen_random_uuid(), 'example17@email.com', 'FirstName17', 'LastName17','UserName17'),
+       ('5d2842e9-a219-4afa-bbb9-28cfce5082e8', gen_random_uuid(), 'example18@email.com', 'FirstName18', 'LastName18','UserName18'),
+       ('a053ddfa-4308-4064-bf16-a07d830bd9fa', gen_random_uuid(), 'example19@email.com', 'FirstName19', 'LastName19','UserName19'),
+       ('a666ee8c-4b1a-413a-8e89-c45a688f5d1a', gen_random_uuid(), 'example20@email.com', 'FirstName20', 'LastName20','UserName20');
+
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', 'administrator'),
+       ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', 'student'),
+       ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', 'teacher');
 
 --------------------------
 --- Systemy operacyjne ---

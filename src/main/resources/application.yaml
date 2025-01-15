@@ -49,6 +49,11 @@ auth:
     redirectUri: ${KEYCLOAK_REDIRECT_URI}
 
 window:
-  length: 10
+  length: ${RESERVATION_WINDOW_LENGTH}
+
+resource:
+  warning:
+    mail: ${RESOURCE_WARNING_MAILS_ENABLED}
+
 jws:
   secret: ${JWS_SECRET}

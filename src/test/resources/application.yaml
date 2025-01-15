@@ -7,3 +7,6 @@ spring:
 
 window:
   length: 15
+resource:
+  warning:
+    mail: true
