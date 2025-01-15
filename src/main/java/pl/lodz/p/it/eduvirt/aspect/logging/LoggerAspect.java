@@ -106,7 +106,7 @@ public class LoggerAspect {
             stringBuilder.append(" Method did not return any value.");
         }
 
-//        log.info(stringBuilder.toString());
+        log.info(stringBuilder.toString());
 
         return result;
     }

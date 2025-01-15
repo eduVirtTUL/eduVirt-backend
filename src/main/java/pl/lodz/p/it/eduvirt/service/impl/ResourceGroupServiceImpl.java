@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Vm;
 import org.ovirt.engine.sdk4.types.VnicProfile;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
@@ -129,6 +130,8 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     public List<Vm> findAvailableVms(UUID rgId) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId).orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
 
+        validateOwnership(resourceGroup);
+
         UUID clusterId;
 
         if (resourceGroup.isStateless()) {
@@ -145,6 +148,9 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     @Transactional
     @Override
     public void deleteResourceGroup(UUID id) {
+        ResourceGroup resourceGroup = resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
+        validateOwnership(resourceGroup);
+
         resourceGroupRepository.deleteById(id);
     }
 
@@ -152,6 +158,8 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     @Override
     public ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup, String etag) {
         ResourceGroup existingResourceGroup = resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
+
+        validateOwnership(existingResourceGroup);
 
         if (!eTagHelper.validateEtag(etag, existingResourceGroup)) {
             throw new ResourceGroupConflictException();
@@ -177,5 +185,27 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
         existingResourceGroup.setName(resourceGroup.getName());
 
         return resourceGroupRepository.save(existingResourceGroup);
+    }
+
+    @Override
+    @Transactional
+    public void validateResourceGroupOwnership(ResourceGroup resourceGroup) {
+        validateOwnership(resourceGroup);
+    }
+
+    private void validateOwnership(ResourceGroup resourceGroup) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        boolean isOwner;
+        if (resourceGroup.isStateless()) {
+            ResourceGroupPool pool = resourceGroupPoolRepository.findByResourceGroupsContaining(resourceGroup);
+            isOwner = courseRepository.existsCourseForTeacher(pool.getCourse().getId(), userId);
+        } else {
+            Course course = courseRepository.findByStateFullResourceGroupsContaining(resourceGroup);
+            isOwner = courseRepository.existsCourseForTeacher(course.getId(), userId);
+        }
+
+        if (!isOwner) {
+            throw new ResourceGroupNotFoundException(resourceGroup.getId());
+        }
     }
 }

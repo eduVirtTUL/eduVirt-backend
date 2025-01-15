@@ -24,5 +24,7 @@ public interface ResourceGroupService {
     void deleteResourceGroup(UUID id);
 
     ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup, String etag);
+
+    void validateResourceGroupOwnership(ResourceGroup resourceGroup);
 }
 
