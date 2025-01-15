@@ -39,6 +39,8 @@ public class TeamServiceImpl implements TeamService {
     private final CourseAccessKeyRepository courseKeyRepository;
     private final AccessKeyService accessKeyService;
     private final UserRepository userRepository;
+    private final PodStatefulRepository statefulPodRepository;
+    private final PodStatelessRepository statelessPodRepository;
 
     private void validateUserNotInCourse(UUID userId, UUID courseId) {
         if (teamRepository.existsByUserIdAndCourseId(userId, courseId)) {
@@ -280,7 +282,7 @@ public class TeamServiceImpl implements TeamService {
                         "Team for user %s could not be found in course %s.".formatted(user.getId(), course.getId())));
 
         team.getUsers().remove(user);
-        teamRepository.saveAndFlush(team);
+        teamRepository.delete(team);
     }
 
     @Override
@@ -308,5 +310,54 @@ public class TeamServiceImpl implements TeamService {
                 .build();
 
         teamRepository.saveAndFlush(team);
+    }
+
+    @Override
+    // @PreAuthorize("hasRole('TEACHER')")
+    public List<User> getStudentsInSoloCourse(UUID courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        if (course.getCourseType() != CourseType.SOLO) {
+            throw new IncorrectTeamTypeException();
+        }
+
+        List<Team> teams = teamRepository.findByCourseId(courseId);
+        return teams.stream()
+                .flatMap(team -> team.getUsers().stream())
+                .toList();
+    }
+
+    @Override
+// @PreAuthorize("hasRole('TEACHER')")
+    @Transactional
+    public void deleteTeam(UUID teamId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException(teamId.toString()));
+
+        if (team.getCourse().getCourseType() != CourseType.TEAM_BASED) {
+            throw new IncorrectTeamTypeException();
+        }
+
+        teamKeyRepository.deleteByTeamId(teamId);
+
+        team.getStatefulPods().forEach(pod -> {
+            pod.setTeam(null);
+            pod.setCourse(null);
+            statefulPodRepository.delete(pod);
+        });
+
+        team.getStatelessPods().forEach(pod -> {
+            pod.setTeam(null);
+            pod.setCourse(null);
+            statelessPodRepository.delete(pod);
+        });
+
+        team.getStatefulPods().clear();
+        team.getStatelessPods().clear();
+        team.getUsers().clear();
+
+        teamRepository.delete(team);
+        teamRepository.flush();
     }
 }

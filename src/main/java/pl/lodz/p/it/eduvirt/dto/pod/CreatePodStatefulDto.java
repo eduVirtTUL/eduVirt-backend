@@ -4,5 +4,6 @@ import java.util.UUID;
 
 public record CreatePodStatefulDto(
         UUID teamId,
-        UUID resourceGroupId
+        UUID resourceGroupId,
+        Integer maxRent
 ) {}

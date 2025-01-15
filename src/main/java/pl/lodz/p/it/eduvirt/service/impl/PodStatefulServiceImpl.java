@@ -11,6 +11,7 @@ import pl.lodz.p.it.eduvirt.entity.PodStateful;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
@@ -40,7 +41,7 @@ public class PodStatefulServiceImpl implements PodStatefulService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
-        Course course = courseRepository.findById(team.getCourse().getId())
+        courseRepository.findById(team.getCourse().getId())
                 .orElseThrow(() -> new CourseNotFoundException(team.getCourse().getId()));
 
         ResourceGroup resourceGroup = resourceGroupRepository.findById(resourceGroupId)

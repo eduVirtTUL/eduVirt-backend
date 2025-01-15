@@ -1,5 +1,6 @@
 package pl.lodz.p.it.eduvirt.dto.course;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -18,5 +19,8 @@ public record CreateCourseDto(
         @NotNull
         UUID clusterId,
         @Size(max = 1000)
-        String externalLink) {
+        String externalLink,
+        @NotBlank
+        @Email
+        String teacherEmail) {
 }

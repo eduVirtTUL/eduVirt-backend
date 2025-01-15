@@ -8,7 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-@Table(name="pod_stateless")
+@Table(name = "pod_stateless")
 @Entity
 public class PodStateless extends AbstractEntity{
 

@@ -5,6 +5,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.ovirt.engine.sdk4.types.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Team;
 
@@ -51,4 +54,10 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
     Page<Team> findAllWithUsers(Pageable pageable);
 
     void deleteAllByCourseId(UUID courseId);
+
+    @Query("SELECT DISTINCT u FROM Team t " +
+           "JOIN t.users u " +
+           "WHERE t.course.id = :courseId " +
+           "AND t.course.courseType = 'SOLO'")
+    List<User> findUsersInSoloCourse(@Param("courseId") UUID courseId);
 }
