@@ -25,3 +25,4 @@ public interface ResourceGroupService {
 
     ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup, String etag);
 }
+

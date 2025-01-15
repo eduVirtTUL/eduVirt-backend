@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.exceptions;
+package pl.lodz.p.it.eduvirt.exceptions.course;
 
 import pl.lodz.p.it.eduvirt.exceptions.general.AlreadyExistsException;
 import pl.lodz.p.it.eduvirt.util.I18n;
