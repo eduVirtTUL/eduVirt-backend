@@ -66,7 +66,7 @@ public class ReservationController {
             @ApiResponse(responseCode = "400", description = "New reservation, for given resource group and team, that the current user is a part of was created successfully."),
             @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.")
     })
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @PostMapping(path = "/course/{courseId}/pod/{podId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Void> createNewReservationForPod(@PathVariable("courseId") UUID courseId,
@@ -82,7 +82,8 @@ public class ReservationController {
             reservationService.createReservationForStatelessPod(team, team.getStatelessPod(podId), createDto);
         else if (team.getStatefulPods().stream().anyMatch(statefulPod -> statefulPod.getId().equals(podId)))
             reservationService.createReservationForStatefulPod(team, team.getStatefulPod(podId), createDto);
-        else throw new PodNotFoundException("POD %s could not be found for the team %s, which the current user belongs to for course %s"
+        else
+            throw new PodNotFoundException("POD %s could not be found for the team %s, which the current user belongs to for course %s"
                     .formatted(podId, team.getId(), course.getId()));
 
         return ResponseEntity.noContent().build();
@@ -118,7 +119,7 @@ public class ReservationController {
         throw new ReservationNotFoundException(reservationId);
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/course/{courseId}/pods/{podId}/previous", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PageDto<ReservationDto>> getPreviousReservations(
             Pageable pageable, @PathVariable("courseId") UUID courseId, @PathVariable("podId") UUID podId) {
@@ -208,7 +209,7 @@ public class ReservationController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/active/courses/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getActiveReservations(
@@ -246,7 +247,7 @@ public class ReservationController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/historic/courses/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getHistoricReservations(
@@ -284,7 +285,7 @@ public class ReservationController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @GetMapping(path = "/active/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PageDto<ReservationDto>> getActiveReservationsForTeam(
             @PathVariable("teamId") UUID teamId,
@@ -320,7 +321,7 @@ public class ReservationController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @GetMapping(path = "/historic/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PageDto<ReservationDto>> getHistoricReservationsForTeam(
             @PathVariable("teamId") UUID teamId,

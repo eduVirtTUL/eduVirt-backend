@@ -311,7 +311,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    // @PreAuthorize("hasRole('TEACHER')")
+    // @PreAuthorize("hasAuthority('TEACHER')")
     public List<User> getStudentsInSoloCourse(UUID courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
@@ -327,7 +327,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-// @PreAuthorize("hasRole('TEACHER')")
+// @PreAuthorize("hasAuthority('TEACHER')")
     @Transactional
     public void deleteTeam(UUID teamId) {
         Team team = teamRepository.findById(teamId)

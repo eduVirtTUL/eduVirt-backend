@@ -15,11 +15,15 @@ public interface CourseService {
 
     Page<Course> getCourses(int page, int size, String search);
 
-    List<Course> getCourses();
+    Page<Course> getCoursesForTeacher(UUID userId, int page, int size, String search);
+
+    List<Course> getCourses(UUID userId);
 
     List<Course> getCoursesForStudent(User student, Pageable pageable);
 
     Course getCourse(UUID id);
+
+    Course getCourse(UUID id, UUID userId);
 
     Course addCourse(Course course, String teacherEmail);
 

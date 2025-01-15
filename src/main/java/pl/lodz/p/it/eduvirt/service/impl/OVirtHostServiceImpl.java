@@ -23,7 +23,7 @@ public class OVirtHostServiceImpl implements OVirtHostService {
 
     private final ConnectionFactory connectionFactory;
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Host findHostById(UUID hostId) {
         try {

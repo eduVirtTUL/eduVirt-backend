@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -46,7 +45,7 @@ public class TeamController {
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<Team> teamsPage = teamService.getAllTeams(pageable);
-        
+
         List<TeamWithCourseDto> teamDtos = teamsPage.getContent().stream()
                 .map(teamMapper::teamToTeamWithCourseDto)
                 .collect(Collectors.toList());
@@ -101,7 +100,7 @@ public class TeamController {
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<Team> teamsPage = teamService.getTeamsByCourse(courseId, pageable);
-        
+
         List<TeamDto> teamDtos = teamsPage.getContent().stream()
                 .map(teamMapper::teamToTeamDto)
                 .toList();
@@ -141,10 +140,10 @@ public class TeamController {
     }
 
     @DeleteMapping("/{teamId}")
-    // @PreAuthorize("hasRole('TEACHER')")
+    // @PreAuthorize("hasAuthority('TEACHER')")
     public ResponseEntity<Void> deleteTeam(@PathVariable UUID teamId) {
         teamService.deleteTeam(teamId);
         return ResponseEntity.noContent().build();
-}
+    }
 
 }

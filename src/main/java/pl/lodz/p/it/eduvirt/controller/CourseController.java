@@ -72,25 +72,14 @@ public class CourseController {
     /* Repositories */
 
     private final UserRepository userRepository;
-
     private final ETagHelper etagHelper;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) Integer page,
-                                                         @RequestParam(name = "size", required = false) Integer size,
+    @PreAuthorize("hasAuthority('administrator')")
+    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                                         @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
                                                          @RequestParam(name = "search", required = false) String search) {
-
-
-        if (page == null || size == null) {
-            List<Course> courses = courseService.getCourses();
-
-            return ResponseEntity.ok(PageDto.<CourseDto>builder()
-                    .items(courseMapper.toCourseDtoList(courses.stream()))
-                    .page(new PageInfoDto(0, courses.size(), 1, courses.size()))
-                    .build());
-        }
-
         Page<Course> courses;
 
         if (search == null) {
@@ -106,7 +95,34 @@ public class CourseController {
                 .build());
     }
 
-    // @PreAuthorize("hasRole('student')")
+    @GetMapping(path = "/teacher", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('teacher')")
+    public ResponseEntity<PageDto<CourseDto>> getCoursesForTeacher(@RequestParam(name = "page", required = false) Integer page,
+                                                                   @RequestParam(name = "size", required = false) Integer size,
+                                                                   @RequestParam(name = "search", required = false) String search) {
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (page == null || size == null) {
+            List<Course> courses = courseService.getCourses(userId);
+
+            return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                    .items(courseMapper.toCourseDtoList(courses.stream()))
+                    .page(new PageInfoDto(0, courses.size(), 1, courses.size()))
+                    .build());
+        }
+
+        Page<Course> courses = courseService.getCoursesForTeacher(userId, page, size, search);
+
+        return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                .items(courseMapper.toCourseDtoList(courses.getContent().stream()))
+                .page(new PageInfoDto(courses.getNumber(), courses.getNumberOfElements(), courses.getTotalPages(), courses.getTotalElements()))
+                .build());
+    }
+
+    // @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/member", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<CourseDto>> getCoursesForStudent(Pageable pageable) {
         UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -129,8 +145,10 @@ public class CourseController {
                     content = {@Content(mediaType = "application/json", schema = @Schema(implementation = CourseDto.class))}
             ),
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})})
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public ResponseEntity<CourseDto> getCourse(@PathVariable UUID id) {
-        Course course = courseService.getCourse(id);
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        Course course = courseService.getCourse(id, userId);
 
         String etag = etagHelper.generateEtag(course);
 
@@ -138,13 +156,13 @@ public class CourseController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAuthority('administrator')")
     public ResponseEntity<CourseDto> createCourse(@Valid @RequestBody CreateCourseDto createCourseDto) {
         Course course = courseMapper.courseCreateDtoToCourse(createCourseDto);
         Course savedCourse = courseService.addCourse(course, createCourseDto.teacherEmail());
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(courseMapper.courseToCourseDto(savedCourse));
-}
+    }
 
     @GetMapping("/{id}/stateful")
     @Transactional
@@ -160,6 +178,7 @@ public class CourseController {
     }
 
     @PostMapping("/{id}/resource-group")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> createResourceGroup(@PathVariable UUID id, @RequestBody @Validated CreateResourceGroupDto createResourceGroupDto) {
         ResourceGroup resourceGroup = resourceGroupMapper.toEntity(createResourceGroupDto);
         courseService.addResourceGroupToCourse(id, resourceGroup);
@@ -167,12 +186,14 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('administrator')")
     public ResponseEntity<Void> deleteCourse(@PathVariable UUID id) {
         courseService.deleteCourse(id);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public ResponseEntity<CourseDto> updateCourse(@PathVariable UUID id,
                                                   @RequestBody @Validated UpdateCourseDto updateCourceDto,
                                                   @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
@@ -293,7 +314,7 @@ public class CourseController {
     }
 
     @GetMapping("/{courseId}/students")
-//    @PreAuthorize("hasRole('TEACHER')")
+//    @PreAuthorize("hasAuthority('TEACHER')")
     public ResponseEntity<List<UserDto>> getStudentsInSoloCourse(@PathVariable UUID courseId) {
         List<User> users = teamService.getStudentsInSoloCourse(courseId);
         List<UserDto> userDtos = users.stream()
@@ -307,6 +328,7 @@ public class CourseController {
     }
 
     @PostMapping("/{courseId}/reset")
+    @PreAuthorize("hasAuthority('administrator')")
     public ResponseEntity<Void> resetCourse(@PathVariable UUID courseId) {
         courseService.resetCourse(courseId);
         return ResponseEntity.noContent().build();
