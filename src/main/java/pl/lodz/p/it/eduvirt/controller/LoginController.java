@@ -65,7 +65,7 @@ public class LoginController {
 
         authService.loginWithExternalToken(result.getBody().getAccessToken());
 
-        httpServletResponse.setHeader("Location", "http://localhost:5173/");
+        httpServletResponse.setHeader("Location", "http://localhost:5173/auth/callback");
         Cookie cookie = new Cookie("access_token", result.getBody().getAccessToken());
         cookie.setPath("/");
         httpServletResponse.addCookie(cookie);
