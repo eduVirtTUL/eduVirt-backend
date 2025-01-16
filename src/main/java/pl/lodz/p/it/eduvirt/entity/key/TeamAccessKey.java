@@ -2,7 +2,6 @@ package pl.lodz.p.it.eduvirt.entity.key;
 
 import jakarta.persistence.*;
 import lombok.*;
-import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Team;
 
 @Entity

@@ -84,7 +84,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     @Override
     @PreAuthorize("isAuthenticated()")
     @Transactional
-    public TeamAccessKey createTeamKey(UUID teamId, String teamKey) {
+    public void createTeamKey(UUID teamId, String teamKey) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
@@ -99,7 +99,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
         newTeamAccessKey.setKeyValue(keyValue);
         newTeamAccessKey.setTeam(team);
 
-        return teamAccessKeyRepository.saveAndFlush(newTeamAccessKey);
+        teamAccessKeyRepository.saveAndFlush(newTeamAccessKey);
     }
 
     @Override

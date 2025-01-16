@@ -7,7 +7,10 @@ import java.util.UUID;
 
 public interface AccessKeyService {
     CourseAccessKey createCourseKey(UUID courseId, String courseKey);
-    TeamAccessKey createTeamKey(UUID teamId, String teamKey);
+
+    void createTeamKey(UUID teamId, String teamKey);
+
     CourseAccessKey getKeyForCourse(UUID courseId);
+
     TeamAccessKey getKeyForTeam(UUID teamId);
 }

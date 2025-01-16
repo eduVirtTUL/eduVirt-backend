@@ -92,9 +92,6 @@ public class PodStatefulServiceImpl implements PodStatefulService {
     @PreAuthorize("isAuthenticated()")
     public void deleteStatefulPod(UUID podId) {
 
-        PodStateful pod = podStatefulRepository.findById(podId)
-                .orElseThrow(() -> new PodNotFoundException("POD %s could not be found!".formatted(podId)));
-
 
         podStatefulRepository.deleteById(podId);
     }
