@@ -794,9 +794,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_ExistingCourseAndStatefulPodIdentifiersArePassed_When_GetPreviousReservations_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
@@ -807,8 +807,8 @@ public class ReservationControllerTest {
 
         MvcResult result = mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous",
                         course.getId(), podStateful1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -866,9 +866,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_ExistingCourseAndStatelessPodIdentifiersArePassed_When_GetPreviousReservations_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
@@ -879,8 +879,8 @@ public class ReservationControllerTest {
 
         MvcResult result = mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous",
                         course.getId(), podStateless1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -938,8 +938,8 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_NonPodIdentifiersIsPassed_When_GetPreviousReservations_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
         UUID nonExistentPodIdentifier = UUID.randomUUID();
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
@@ -947,8 +947,8 @@ public class ReservationControllerTest {
 
         mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous",
                         course.getId(), nonExistentPodIdentifier)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -959,8 +959,8 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_NonExistentCourseIdentifierIsPassed_When_GetPreviousReservations_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
 
         when(courseService.getCourse(Mockito.eq(nonExistentCourseIdentifier)))
@@ -968,8 +968,8 @@ public class ReservationControllerTest {
 
         mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous",
                         nonExistentCourseIdentifier, podStateful1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -980,8 +980,8 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
     public void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetPreviousReservations_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(studentId)))
@@ -989,8 +989,8 @@ public class ReservationControllerTest {
 
         mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous",
                         course.getId(), podStateful1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -1002,9 +1002,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_EmptyListOfReservations_When_GetPreviousReservations_Then_Returns204NoContent() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
@@ -1015,8 +1015,8 @@ public class ReservationControllerTest {
 
         mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous",
                         course.getId(), podStateless1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -1775,9 +1775,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndSomeActiveReservationsExist_When_GetActiveReservations_Then_ReturnsListOfActiveReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
@@ -1786,8 +1786,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
 
         MvcResult result = mockMvc.perform(get("/reservations/active/courses/{courseId}", course.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -1846,9 +1846,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndNoActiveReservationsExist_When_GetActiveReservations_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
@@ -1857,8 +1857,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/reservations/active/courses/{courseId}", course.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -1872,16 +1872,16 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_NonExistentCourseIdentifierIsPassed_When_GetActiveReservations_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
 
         when(courseService.getCourse(Mockito.eq(nonExistentCourseIdentifier)))
                 .thenThrow(CourseNotFoundException.class);
 
         mockMvc.perform(get("/reservations/active/courses/{courseId}", nonExistentCourseIdentifier)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -1891,16 +1891,16 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetActiveReservations_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1)))
                 .thenThrow(TeamNotFoundException.class);
 
         mockMvc.perform(get("/reservations/active/courses/{courseId}", course.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -1913,9 +1913,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndSomeHistoricReservationsExist_When_GetHistoricReservations_Then_ReturnsListOfHistoricalReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
@@ -1924,8 +1924,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
 
         MvcResult result = mockMvc.perform(get("/reservations/historic/courses/{courseId}", course.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -1984,9 +1984,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndNoHistoricReservationsExist_When_GetHistoricReservations_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
@@ -1995,8 +1995,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/reservations/historic/courses/{courseId}", course.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -2010,15 +2010,15 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_NonExistentCourseIdentifierIsPassed_When_GetHistoricReservations_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
 
         when(courseService.getCourse(Mockito.eq(nonExistentCourseIdentifier))).thenThrow(CourseNotFoundException.class);
 
         mockMvc.perform(get("/reservations/historic/courses/{courseId}", nonExistentCourseIdentifier)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -2028,9 +2028,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
     public void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetHistoricReservations_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1)))
@@ -2040,8 +2040,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/reservations/historic/courses/{courseId}", course.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -2054,9 +2054,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
     public void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExist_When_GetActiveReservationsForTeam_Then_ReturnsListOfActiveReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2064,8 +2064,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
 
         MvcResult result = mockMvc.perform(get("/reservations/active/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -2122,9 +2122,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
     public void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExist_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2132,8 +2132,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/reservations/active/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -2145,14 +2145,14 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "teacher")
     public void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_GetActiveReservationsForTeam_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(userRepository.findById(Mockito.eq(studentId))).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/reservations/active/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -2162,16 +2162,16 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
     public void Given_NonExistentTeamIdentifierIsPassed_When_GetActiveReservationsForTeam_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
         UUID nonExistentTeamIdentifier = UUID.randomUUID();
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
         when(teamService.getTeamById(Mockito.eq(nonExistentTeamIdentifier))).thenThrow(TeamNotFoundException.class);
 
         mockMvc.perform(get("/reservations/active/teams/{teamId}", nonExistentTeamIdentifier)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -2182,9 +2182,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
     public void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExistAsAdministrator_When_GetActiveReservationsForTeam_Then_ReturnsListOfActiveReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(adminId))).thenReturn(Optional.of(admin));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2192,8 +2192,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
 
         MvcResult result = mockMvc.perform(get("/reservations/active/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -2250,9 +2250,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
     public void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExistAsAdministrator_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(adminId))).thenReturn(Optional.of(admin));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2260,8 +2260,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/reservations/active/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -2273,9 +2273,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
     public void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExistAsTeacherInCourse_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2283,8 +2283,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 2));
 
         mockMvc.perform(get("/reservations/active/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -2296,9 +2296,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
     public void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExistAsTeacherNotInCourse_When_GetActiveReservationsForTeam_Then_ReturnsListOfActiveReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2306,8 +2306,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
 
         mockMvc.perform(get("/reservations/active/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -2319,9 +2319,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
     public void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExistAsTeacherNotInCourse_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2329,8 +2329,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 2));
 
         mockMvc.perform(get("/reservations/active/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -2344,9 +2344,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
     public void Given_ExistingTeamIdentifierIsPassedAndSomeHistoricReservationsExist_When_GetHistoricReservationsForTeam_Then_ReturnsListOfHistoricReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2354,8 +2354,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
 
         MvcResult result = mockMvc.perform(get("/reservations/historic/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -2412,9 +2412,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "student")
     public void Given_ExistingTeamIdentifierIsPassedAndNoHistoricReservationsExist_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2422,8 +2422,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/reservations/historic/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -2435,14 +2435,14 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "student")
     public void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_GetHistoricReservationsForTeam_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.empty());
         mockMvc.perform(get("/reservations/historic/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -2452,16 +2452,16 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "student")
     public void Given_NonExistentTeamIdentifierIsPassed_When_GetHistoricReservationsForTeam_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
         UUID nonExistentTeamIdentifier = UUID.randomUUID();
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
         when(teamService.getTeamById(Mockito.eq(nonExistentTeamIdentifier))).thenThrow(TeamNotFoundException.class);
 
         mockMvc.perform(get("/reservations/historic/teams/{teamId}", nonExistentTeamIdentifier)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -2472,9 +2472,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
     public void Given_ExistingTeamIdentifierIsPassedAndSomeHistoricReservationsExistAsAdministrator_When_GetHistoricReservationsForTeam_Then_ReturnsListOfHistoricReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(adminId))).thenReturn(Optional.of(admin));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2482,8 +2482,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
 
         MvcResult result = mockMvc.perform(get("/reservations/historic/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -2540,9 +2540,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
     public void Given_ExistingTeamIdentifierIsPassedAndNoHistoricReservationsExistAsTeacherInCourse_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2550,8 +2550,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/reservations/historic/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -2563,9 +2563,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
     public void Given_ExistingTeamIdentifierIsPassedAndSomeHistoricReservationsExistAsTeacherNotInCourse_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2573,8 +2573,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
 
         mockMvc.perform(get("/reservations/historic/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -2586,9 +2586,9 @@ public class ReservationControllerTest {
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
     public void Given_ExistingTeamIdentifierIsPassedAndNoHistoricReservationsExistAsTeacherNotInCourse_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
         when(teamService.getTeamById(Mockito.eq(team1.getId()))).thenReturn(team1);
@@ -2596,8 +2596,8 @@ public class ReservationControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/reservations/historic/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 

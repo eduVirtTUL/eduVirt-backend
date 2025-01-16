@@ -227,9 +227,9 @@ public class ClusterMetricControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeMetricValuesAreDefinedForGivenCluster_When_GetAllMetricValues_Then_ReturnsAllFoundMetricValuesForGivenCluster() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         Cluster cluster = mock(Cluster.class);
 
@@ -247,8 +247,8 @@ public class ClusterMetricControllerTest {
                 .thenReturn(metricValueDto1, metricValueDto2, metricValueDto3);
 
         MvcResult result = mockMvc.perform(get("/clusters/{clusterId}/metrics", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -306,15 +306,15 @@ public class ClusterMetricControllerTest {
     @WithMockUser
     @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_GetAllMetricValues_Then_Returns400BadRequest() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(nonExistentClusterId)))
                 .thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(get("/clusters/{clusterId}/metrics", nonExistentClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -325,16 +325,16 @@ public class ClusterMetricControllerTest {
     @WithMockUser
     @Test
     public void Given_IncorrectPaginationParametersArePassed_When_GetAllMetricValues_Then_ReturnsEmptyClusterMetricValueList() throws Exception {
-        int pageNumber = -1;
-        int pageSize = 10;
+        int page = -1;
+        int size = 10;
 
         Cluster cluster = mock(Cluster.class);
         when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId)))
                 .thenReturn(cluster);
 
         mockMvc.perform(get("/clusters/{clusterId}/metrics", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -345,9 +345,9 @@ public class ClusterMetricControllerTest {
     @WithMockUser
     @Test
     public void Given_NoMetricValuesAreDefinedForGivenCluster_When_GetAllMetricValues_Then_ReturnsEmptyClusterMetricValueList() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         Cluster cluster = mock(Cluster.class);
 
@@ -358,8 +358,8 @@ public class ClusterMetricControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/clusters/{clusterId}/metrics", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 

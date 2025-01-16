@@ -231,10 +231,10 @@ public class ReservationController {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getActiveReservations(
             @PathVariable("courseId") UUID courseId,
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Pageable pageable = PageRequest.of(page, size);
 
         Course course = courseService.getCourse(courseId);
         Team team = teamService.getTeamByCourseAndUser(course, userId);
@@ -257,10 +257,10 @@ public class ReservationController {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getHistoricReservations(
             @PathVariable("courseId") UUID courseId,
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Pageable pageable = PageRequest.of(page, size);
 
         Course course = courseService.getCourse(courseId);
         Team team = teamService.getTeamByCourseAndUser(course, userId);
@@ -282,9 +282,9 @@ public class ReservationController {
     @GetMapping(path = "/active/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PageDto<ReservationDto>> getActiveReservationsForTeam(
             @PathVariable("teamId") UUID teamId,
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size) {
+        Pageable pageable = PageRequest.of(page, size);
 
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
@@ -318,9 +318,9 @@ public class ReservationController {
     @GetMapping(path = "/historic/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PageDto<ReservationDto>> getHistoricReservationsForTeam(
             @PathVariable("teamId") UUID teamId,
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size) {
+        Pageable pageable = PageRequest.of(page, size);
 
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));

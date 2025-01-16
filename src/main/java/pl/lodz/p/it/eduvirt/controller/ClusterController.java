@@ -83,11 +83,11 @@ public class ClusterController {
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/vms", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<VmGeneralDto>> findVirtualMachinesByClusterId(
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(value = "size", defaultValue = "10", required = false) int size,
             @PathVariable("id") UUID clusterId) {
         Cluster cluster = clusterService.findClusterById(clusterId);
-        List<Vm> vms = clusterService.findVmsInCluster(cluster, pageNumber, pageSize);
+        List<Vm> vms = clusterService.findVmsInCluster(cluster, page, size);
 
         List<VmGeneralDto> listOfDTOs = vms.stream().map(vm -> {
             List<Statistic> statisticList = vmService.findStatisticsByVm(vm);
@@ -112,11 +112,11 @@ public class ClusterController {
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/networks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<NetworkDto>> findNetworksByClusterId(
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(value = "size", defaultValue = "10", required = false) int size,
             @PathVariable("id") UUID clusterId) {
         Cluster cluster = clusterService.findClusterById(clusterId);
-        List<Network> networks = clusterService.findNetworksInCluster(cluster, pageNumber, pageSize);
+        List<Network> networks = clusterService.findNetworksInCluster(cluster, page, size);
 
         List<NetworkDto> listOfDTOs = networks.stream().map(networkMapper::ovirtNetworkToDto).toList();
 

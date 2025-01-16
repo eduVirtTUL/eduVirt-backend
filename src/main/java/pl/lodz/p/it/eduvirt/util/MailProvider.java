@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.util;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,12 @@ import java.util.Map;
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class MailProvider {
 
+    @Value("${mail.default.language}")
+    private String defaultLanguage;
+
+    @Value("${mail.default.timezone}")
+    private String defaultTimezone;
+
     private final MailHelper mailHelper;
     private final ResourceBundleMessageSource messageSource;
 
@@ -31,6 +38,9 @@ public class MailProvider {
     @PreAuthorize("permitAll()")
     public void sendHtmlTestMessage(String firstName, String lastName,
                                     String emailTo, String timeZone, String language) {
+        timeZone = timeZone != null ? timeZone : defaultTimezone;
+        language = language != null ? language : defaultLanguage;
+
         LocalDateTime currentTime = OffsetDateTime.now(ZoneId.of(timeZone)).toLocalDateTime();
         String timestamp = currentTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
@@ -48,6 +58,9 @@ public class MailProvider {
     public void sendReservationRemovalEmail(String firstName, String lastName,
                                             String emailTo, Reservation reservation,
                                             String timeZone, String language) {
+        timeZone = timeZone != null ? timeZone : defaultTimezone;
+        language = language != null ? language : defaultLanguage;
+
         LocalDateTime startTime = OffsetDateTime.of(reservation.getStartTime(), ZoneOffset.UTC)
                 .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
         LocalDateTime endTime = OffsetDateTime.of(reservation.getEndTime(), ZoneOffset.UTC)
@@ -74,6 +87,9 @@ public class MailProvider {
                                                             String emailTo, Course course, String resourceName,
                                                             boolean isRg, LocalDateTime start, LocalDateTime end,
                                                             String timeZone, String language) {
+        timeZone = timeZone != null ? timeZone : defaultTimezone;
+        language = language != null ? language : defaultLanguage;
+
         LocalDateTime startTime = OffsetDateTime.of(start, ZoneOffset.UTC)
                 .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
         LocalDateTime endTime = OffsetDateTime.of(end, ZoneOffset.UTC)

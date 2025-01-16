@@ -234,17 +234,17 @@ public class CourseControllerTest {
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
     public void Given_CurrentlyAuthenticatedUserCanBeFoundAndInSomeCourses_When_GetCoursesForStudent_Then_ReturnsListOfFoundCourses() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.of(student1));
         when(courseService.getCoursesForStudent(Mockito.eq(student1), Mockito.eq(pageable)))
                 .thenReturn(List.of(course1, course2));
 
         MvcResult result = mockMvc.perform(get("/course/member")
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -282,17 +282,17 @@ public class CourseControllerTest {
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
     public void Given_CurrentlyAuthenticatedUserCanBeFoundAndInNoCourses_When_GetCoursesForStudent_Then_ReturnsEmptyListOfCourses() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.of(student1));
         when(courseService.getCoursesForStudent(Mockito.eq(student1), Mockito.eq(pageable)))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/course/member")
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -304,14 +304,14 @@ public class CourseControllerTest {
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
     public void Given_CurrentlyAuthenticatedUserCouldNotBeFoundAndInNoCourses_When_GetCoursesForStudent_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/course/member")
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 

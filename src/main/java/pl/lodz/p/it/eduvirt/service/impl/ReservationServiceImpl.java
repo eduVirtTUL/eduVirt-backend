@@ -386,7 +386,7 @@ public class ReservationServiceImpl implements ReservationService {
 
             addressees.forEach(addressee -> mailProvider.sendTemporaryCourseResourcesExhaustionEmail(
                     addressee.getFirstName(), addressee.getLastName(), addressee.getEmail(),
-                    course, resourceGroup.getName(), true, start, end, "CET", "PL"
+                    course, resourceGroup.getName(), true, start, end, addressee.getTimeZone(), addressee.getLanguage()
             ));
         }
 
@@ -426,7 +426,7 @@ public class ReservationServiceImpl implements ReservationService {
 
             addressees.forEach(addressee -> mailProvider.sendTemporaryCourseResourcesExhaustionEmail(
                     addressee.getFirstName(), addressee.getLastName(), addressee.getEmail(),
-                    course, resourceGroupPool.getName(), false, start, end, "CET", "PL"
+                    course, resourceGroupPool.getName(), false, start, end, addressee.getTimeZone(), addressee.getLanguage()
             ));
         }
 

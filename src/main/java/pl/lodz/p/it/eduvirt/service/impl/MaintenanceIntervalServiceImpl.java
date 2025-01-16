@@ -78,9 +78,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         foundReservations.forEach(reservation -> {
             List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
             /* Send e-mail notification*/
-            // TODO: Handle i18
             userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
-                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, "CET", "pl"
+                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, user.getTimeZone(), user.getLanguage()
             )));
 
             /* Delete reservation */
@@ -122,9 +121,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
             List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
 
             /* Send e-mail notification*/
-            // TODO: Handle i18
             userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
-                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, "CET", "pl"
+                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, user.getTimeZone(), user.getLanguage()
             )));
 
             /* Delete reservation */

@@ -114,21 +114,21 @@ public class MetricControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeMetricsExistInTheEduVirtDB_When_GetAllMetrics_Then_ReturnsAllFoundMetrics() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         MetricDto dtoNo1 = new MetricDto(metric1.getId(), metric1.getName(), Metric.MetricCategory.COUNTABLE);
         MetricDto dtoNo2 = new MetricDto(metric2.getId(), metric2.getName(), Metric.MetricCategory.MEMORY);
         MetricDto dtoNo3 = new MetricDto(metric3.getId(), metric3.getName(), Metric.MetricCategory.MEMORY);
 
-        when(metricService.findAllMetrics(Mockito.eq(pageNumber), Mockito.eq(pageSize)))
+        when(metricService.findAllMetrics(Mockito.eq(page), Mockito.eq(size)))
                 .thenReturn(new PageImpl<>(List.of(metric1, metric2, metric3), pageable, 3));
         when(metricMapper.metricToDto(Mockito.any(Metric.class))).thenReturn(dtoNo1, dtoNo2, dtoNo3);
 
         MvcResult result = mockMvc.perform(get("/metrics")
-                        .param("pageNumber", "0")
-                        .param("pageSize", "10"))
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -172,27 +172,27 @@ public class MetricControllerTest {
         assertEquals(thirdMetric.name(), metric3.getName());
         assertEquals(thirdMetric.category(), metric3.getCategory());
 
-        verify(metricService, times(1)).findAllMetrics(Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(metricService, times(1)).findAllMetrics(Mockito.eq(page), Mockito.eq(size));
         verify(metricMapper, times(3)).metricToDto(Mockito.any(Metric.class));
     }
 
     @WithMockUser
     @Test
     public void Given_NoMetricsExistInTheEduVirtDB_When_GetAllMetrics_Then_ReturnsEmptyListOfMetrics() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
-        when(metricService.findAllMetrics(Mockito.eq(pageNumber), Mockito.eq(pageSize)))
+        when(metricService.findAllMetrics(Mockito.eq(page), Mockito.eq(size)))
                 .thenReturn(new PageImpl<>(List.of(), pageable, 3));
 
         mockMvc.perform(get("/metrics")
-                        .param("pageNumber", "0")
-                        .param("pageSize", "10"))
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(metricService, times(1)).findAllMetrics(Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(metricService, times(1)).findAllMetrics(Mockito.eq(page), Mockito.eq(size));
     }
 
     /* DeleteMetric method tests */

@@ -289,9 +289,9 @@ public class VmControllerTest {
     @Test
     @WithMockUser
     public void Given_ExistingVmIdentifierIsPassedAndSomeEventsWereForVm_When_FindEventsForVm_Then_ReturnsListOfFoundEvents() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
 
         Vm vm = mock(Vm.class);
@@ -320,8 +320,8 @@ public class VmControllerTest {
         when(oVirtVmService.findEventsByVmId(Mockito.eq(vm), Mockito.eq(pageable))).thenReturn(events);
 
         MvcResult result = mockMvc.perform(get("/resource/vm/{vmId}/events", existingVmIdentifier)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -361,9 +361,9 @@ public class VmControllerTest {
     @Test
     @WithMockUser
     public void Given_ExistingVmIdentifierIsPassedAndNoEventsWereForVm_When_FindEventsForVm_Then_ReturnsEmptyListOfEvents() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         Vm vm = mock(Vm.class);
 
@@ -371,8 +371,8 @@ public class VmControllerTest {
         when(oVirtVmService.findEventsByVmId(Mockito.eq(vm), Mockito.eq(pageable))).thenReturn(List.of());
 
         mockMvc.perform(get("/resource/vm/{vmId}/events", existingVmIdentifier)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -383,15 +383,15 @@ public class VmControllerTest {
     @Test
     @WithMockUser
     public void Given_NonExistentVmIdentifierIsPassed_When_FindEventsForVm_Then_Returns404NotFound() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(oVirtVmService.findVmById(Mockito.eq(nonExistentVmIdentifier.toString())))
                 .thenThrow(VmNotFoundException.class);
 
         mockMvc.perform(get("/resource/vm/{vmId}/events", nonExistentVmIdentifier)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 

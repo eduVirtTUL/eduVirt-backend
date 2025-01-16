@@ -369,9 +369,9 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeClustersExistInTheOVirtDB_When_FindAllClusters_Then_ReturnsAllFoundClusters() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         int hostCount1 = (int) (Math.random() * 99 + 1);
         int hostCount2 = (int) (Math.random() * 99 + 1);
@@ -424,8 +424,8 @@ public class ClusterControllerTest {
                 .thenReturn(clusterDto1, clusterDto2, clusterDto3);
 
         MvcResult result = mockMvc.perform(get("/clusters")
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -508,16 +508,16 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_NoClustersExistInTheOVirtDB_When_FindAllClusters_Then_ReturnsEmptyClusterList() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         List<Cluster> clusterList = List.of();
         when(clusterService.findClusters(pageable)).thenReturn(clusterList);
 
         mockMvc.perform(get("/clusters")
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent())
                 .andReturn();
@@ -530,9 +530,9 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeHostsAreDefinedForTheGivenCluster_When_FindHostInfoByClusterId_Then_ReturnsAllFoundHostsForGivenCluster() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         Cluster cluster = mock(Cluster.class);
 
@@ -578,8 +578,8 @@ public class ClusterControllerTest {
         when(hostMapper.ovirtHostToDto(Mockito.any(Host.class), Mockito.any(Cluster.class))).thenReturn(hostDto1, hostDto2, hostDto3);
 
         MvcResult result = mockMvc.perform(get("/clusters/{clusterId}/hosts", existingClusterId)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -650,14 +650,14 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_FindHostInfoByClusterId_Then_Returns400BadRequest() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(clusterService.findClusterById(Mockito.eq(nonExistentClusterId))).thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(get("/clusters/{clusterId}/hosts", nonExistentClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andReturn();
@@ -668,9 +668,9 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_NoHostsAreDefinedForTheGivenCluster_When_FindHostInfoByClusterId_Then_ReturnsEmptyHostList() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         Cluster cluster = mock(Cluster.class);
 
@@ -679,8 +679,8 @@ public class ClusterControllerTest {
         when(clusterService.findHostsInCluster(Mockito.eq(cluster), Mockito.eq(pageable))).thenReturn(hostList);
 
         mockMvc.perform(get("/clusters/{clusterId}/hosts", existingClusterId)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent())
                 .andReturn();
@@ -694,8 +694,8 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeVmsAreDefinedForTheGivenCluster_When_FindVirtualMachinesByClusterId_Then_ReturnsAllFoundVmsForGivenCluster() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         Cluster cluster = mock(Cluster.class);
 
@@ -776,7 +776,7 @@ public class ClusterControllerTest {
         when(value4.datum()).thenReturn(BigDecimal.valueOf(networkUsage1), BigDecimal.valueOf(networkUsage2), BigDecimal.valueOf(networkUsage3));
 
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterService.findVmsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize))).thenReturn(vmList);
+        when(clusterService.findVmsInCluster(Mockito.eq(cluster), Mockito.eq(page), Mockito.eq(size))).thenReturn(vmList);
 
         when(vmService.findStatisticsByVm(Mockito.any(Vm.class)))
                 .thenReturn(List.of(statistic1, statistic2, statistic3, statistic4));
@@ -790,8 +790,8 @@ public class ClusterControllerTest {
         ).thenReturn(vmGeneralDto1, vmGeneralDto2, vmGeneralDto3);
 
         MvcResult result = mockMvc.perform(get("/clusters/{clusterId}/vms", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -861,7 +861,7 @@ public class ClusterControllerTest {
         assertEquals(vmGeneralDto3.networkUsagePercentage(), thirdVm.networkUsagePercentage());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterService, times(1)).findVmsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(clusterService, times(1)).findVmsInCluster(Mockito.eq(cluster), Mockito.eq(page), Mockito.eq(size));
 
         verify(vmService, times(3)).findStatisticsByVm(Mockito.any(Vm.class));
 
@@ -878,14 +878,14 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_FindVirtualMachinesByClusterId_Then_Returns400BadRequest() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(clusterService.findClusterById(Mockito.eq(nonExistentClusterId))).thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(get("/clusters/{clusterId}/vms", nonExistentClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -895,23 +895,23 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_NoVmsAreDefinedForTheGivenCluster_When_FindVirtualMachinesByClusterId_Then_ReturnsEmptyVmList() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         Cluster cluster = mock(Cluster.class);
 
         List<Vm> vmList = List.of();
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterService.findVmsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize))).thenReturn(vmList);
+        when(clusterService.findVmsInCluster(Mockito.eq(cluster), Mockito.eq(page), Mockito.eq(size))).thenReturn(vmList);
 
         mockMvc.perform(get("/clusters/{clusterId}/vms", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterService, times(1)).findVmsInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(clusterService, times(1)).findVmsInCluster(Mockito.eq(cluster), Mockito.eq(page), Mockito.eq(size));
     }
 
     /* FindNetworksByClusterId method tests */
@@ -919,8 +919,8 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeNetworksAreDefinedForTheGivenCluster_When_FindNetworksByClusterId_Then_ReturnsAllFoundNetworksForGivenCluster() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         Cluster cluster = mock(Cluster.class);
 
@@ -954,12 +954,12 @@ public class ClusterControllerTest {
         );
 
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterService.findNetworksInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize))).thenReturn(networkList);
+        when(clusterService.findNetworksInCluster(Mockito.eq(cluster), Mockito.eq(page), Mockito.eq(size))).thenReturn(networkList);
         when(networkMapper.ovirtNetworkToDto(Mockito.any(Network.class))).thenReturn(networkDto1, networkDto2, networkDto3);
 
         MvcResult result = mockMvc.perform(get("/clusters/{clusterId}/networks", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -1017,21 +1017,21 @@ public class ClusterControllerTest {
         assertEquals(networkDto3.description(), thirdNetwork.description());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterService, times(1)).findNetworksInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(clusterService, times(1)).findNetworksInCluster(Mockito.eq(cluster), Mockito.eq(page), Mockito.eq(size));
         verify(networkMapper, times(3)).ovirtNetworkToDto(Mockito.any(Network.class));
     }
 
     @WithMockUser
     @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_FindNetworksByClusterId_Then_Returns400BadRequest() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(clusterService.findClusterById(Mockito.eq(nonExistentClusterId))).thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(get("/clusters/{clusterId}/networks", nonExistentClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -1041,23 +1041,23 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_NoNetworksAreDefinedForTheGivenCluster_When_FindNetworksByClusterId_Then_ReturnsEmptyNetworkList() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         Cluster cluster = mock(Cluster.class);
 
         List<Network> networkList = List.of();
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
-        when(clusterService.findNetworksInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize))).thenReturn(networkList);
+        when(clusterService.findNetworksInCluster(Mockito.eq(cluster), Mockito.eq(page), Mockito.eq(size))).thenReturn(networkList);
 
         mockMvc.perform(get("/clusters/{clusterId}/networks", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
-        verify(clusterService, times(1)).findNetworksInCluster(Mockito.eq(cluster), Mockito.eq(pageNumber), Mockito.eq(pageSize));
+        verify(clusterService, times(1)).findNetworksInCluster(Mockito.eq(cluster), Mockito.eq(page), Mockito.eq(size));
     }
 
     /* FindEventsByClusterId method tests */
@@ -1065,9 +1065,9 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeEventsAreDefinedForTheGivenCluster_When_FindEventsByClusterId_Then_ReturnsAllFoundEventsForGivenCluster() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         Cluster cluster = mock(Cluster.class);
 
@@ -1096,8 +1096,6 @@ public class ClusterControllerTest {
                 "EVENT_SEVERITY_3",
                 LocalDateTime.now().minusHours(9)
         );
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy");
 
         LogSeverity severityNo1 = mock(LogSeverity.class);
         LogSeverity severityNo2 = mock(LogSeverity.class);
@@ -1129,8 +1127,8 @@ public class ClusterControllerTest {
         when(clusterService.findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageable))).thenReturn(eventList);
 
         MvcResult result = mockMvc.perform(get("/clusters/{clusterId}/events", existingClusterId)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -1189,14 +1187,14 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_FindEventsByClusterId_Then_Returns400BadRequest() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(clusterService.findClusterById(Mockito.eq(nonExistentClusterId))).thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(get("/clusters/{clusterId}/events", nonExistentClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -1206,9 +1204,9 @@ public class ClusterControllerTest {
     @WithMockUser
     @Test
     public void Given_NoEventsAreDefinedForTheGivenCluster_When_FindEventsByClusterId_Then_ReturnsEmptyEventList() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         Cluster cluster = mock(Cluster.class);
 
@@ -1217,8 +1215,8 @@ public class ClusterControllerTest {
         when(clusterService.findEventsInCluster(Mockito.eq(cluster), Mockito.eq(pageable))).thenReturn(eventList);
 
         mockMvc.perform(get("/clusters/{clusterId}/events", existingClusterId)
-                        .param("page", String.valueOf(pageNumber))
-                        .param("size", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
