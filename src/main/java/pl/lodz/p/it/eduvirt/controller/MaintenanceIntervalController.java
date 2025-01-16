@@ -46,7 +46,7 @@ public class MaintenanceIntervalController {
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @PostMapping(path = "/cluster/{clusterId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createNewClusterMaintenanceInterval(
             @PathVariable("clusterId") UUID clusterId,
@@ -61,7 +61,7 @@ public class MaintenanceIntervalController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @PostMapping(path = "/system", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createNewSystemMaintenanceInterval(
             @RequestBody @Validated CreateMaintenanceIntervalDto createDto) {
@@ -133,7 +133,7 @@ public class MaintenanceIntervalController {
 
     /* Delete methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @DeleteMapping(path = "/{intervalId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> finishMaintenanceInterval(@PathVariable("intervalId") UUID intervalId) {
         maintenanceIntervalService.finishMaintenanceInterval(intervalId);

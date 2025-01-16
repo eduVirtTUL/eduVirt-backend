@@ -102,7 +102,7 @@ public class ReservationServiceImpl implements ReservationService {
         /* Limit reservation length to the multiplicity of window length */
 
         long numOfIntervals = (ChronoUnit.SECONDS.between(start, end) / TimeUnit.MINUTES.toSeconds(windowLength));
-        end = end.plusMinutes(numOfIntervals * windowLength);
+        end = start.plusMinutes(numOfIntervals * windowLength);
 
         /* Condition no. 1: Minimum reservation length */
 
@@ -209,7 +209,7 @@ public class ReservationServiceImpl implements ReservationService {
         /* Limit reservation length to the multiplicity of window length */
 
         long numOfIntervals = (ChronoUnit.SECONDS.between(start, end) / TimeUnit.MINUTES.toSeconds(windowLength));
-        end = end.plusMinutes(numOfIntervals * windowLength);
+        end = start.plusMinutes(numOfIntervals * windowLength);
 
         /* Condition no. 1: Minimum reservation length */
 
@@ -316,14 +316,14 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findById(reservationId);
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @Override
     public Page<Reservation> findReservationsForStatelessPod(PodStateless statelessPod, Team team, Pageable pageable) {
         return reservationRepository.findAllRgPoolReservationsForGivenTeam(
                 statelessPod.getResourceGroupPool(), team, pageable);
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @Override
     public Page<Reservation> findReservationsForStatefulPod(PodStateful statefulPod, Team team, Pageable pageable) {
         return reservationRepository.findAllRgReservationsForGivenTeam(
@@ -344,7 +344,7 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findRgPoolReservations(resourceGroupPool, start, end);
     }
 
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Override
     public Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable) {
         Team foundTeam = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
@@ -352,7 +352,7 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findAllActiveReservations(foundTeam, currentTime, pageable);
     }
 
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Override
     public Page<Reservation> findHistoricalReservations(UUID teamId, Pageable pageable) {
         Team foundTeam = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
@@ -381,7 +381,7 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         boolean isOverWeek = (ChronoUnit.SECONDS.between(start, end) >= TimeUnit.DAYS.toSeconds(7)) && resourcesWarningMails;
-        if (checkIfWarningMailRequired(start, end, availability) && isOverWeek) {
+        if (isOverWeek && checkIfWarningMailRequired(start, end, availability)) {
             List<User> addressees = userRepository.findUsersWithRole("administrator");
             addressees.addAll(course.getTeachers());
 
@@ -421,7 +421,7 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         boolean isOverWeek = (ChronoUnit.SECONDS.between(start, end) >= TimeUnit.DAYS.toSeconds(7)) && resourcesWarningMails;
-        if (checkIfWarningMailRequired(start, end, availability) && isOverWeek) {
+        if (isOverWeek && checkIfWarningMailRequired(start, end, availability)) {
             List<User> addressees = userRepository.findUsersWithRole("administrator");
             addressees.addAll(course.getTeachers());
 

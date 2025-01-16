@@ -42,7 +42,7 @@ public class ClusterMetricController {
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createMetricValue(@PathVariable("clusterId") UUID clusterId,
                                                   @RequestBody @Validated CreateMetricValueDto createDto) {
@@ -53,7 +53,7 @@ public class ClusterMetricController {
 
     /* Read methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MetricValueDto>> getAllMetricValues(
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -79,7 +79,7 @@ public class ClusterMetricController {
 
     /* Update methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @PatchMapping(path = "/{metricId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MetricValueDto> updateMetricValue(@PathVariable("clusterId") UUID clusterId,
                                                             @PathVariable("metricId") UUID metricId,
@@ -92,7 +92,7 @@ public class ClusterMetricController {
 
     /* Delete methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @DeleteMapping(path = "/{metricId}")
     public ResponseEntity<Void> deleteMetric(@PathVariable("clusterId") UUID clusterId,
                                              @PathVariable("metricId") UUID metricId) {

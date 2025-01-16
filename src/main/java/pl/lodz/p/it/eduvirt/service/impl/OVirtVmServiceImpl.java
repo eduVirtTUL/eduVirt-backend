@@ -21,6 +21,7 @@ import org.ovirt.engine.sdk4.services.VmsService;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
@@ -48,12 +49,14 @@ public class OVirtVmServiceImpl implements OVirtVmService {
     private final ConnectionFactory connectionFactory;
     private final VirtualMachineRepository virtualMachineRepository;
 
+    @PreAuthorize("isAuthenticated()")
     @Override
     public List<Statistic> findStatisticsByVm(Vm vm) {
         Connection connection = connectionFactory.getConnection();
         return connection.followLink(vm.statistics());
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Override
     public Map<String, Object> findVmResources(Vm vm, Qos qos, Host host, Cluster cluster) {
         int cpuCount;
@@ -72,6 +75,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
         return resources;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Cacheable(value = "vms", key = "#id")
     @Override
     public Vm findVmWithCpuProfileById(String id) {
@@ -90,6 +94,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Cacheable(value = "qos", key = "#vm.id()")
     @Override
     public Qos findQosForVmCpu(Vm vm) {

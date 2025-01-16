@@ -34,7 +34,7 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void createNewValueForMetric(Cluster cluster, UUID metricId, double value) {
         UUID clusterId = UUID.fromString(cluster.id());
@@ -52,7 +52,7 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     /* Read methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Page<ClusterMetric> findAllMetricValuesForCluster(Cluster cluster, Pageable pageable) {
         UUID clusterId = UUID.fromString(cluster.id());
@@ -68,7 +68,7 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     /* Update methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public ClusterMetric updateMetricValue(Cluster cluster, UUID metricId, double newValue) {
         UUID clusterId = UUID.fromString(cluster.id());
@@ -85,7 +85,7 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     /* Delete methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void deleteMetricValue(Cluster cluster, UUID metricId) {
         UUID clusterId = UUID.fromString(cluster.id());

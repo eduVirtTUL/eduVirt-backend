@@ -6,6 +6,7 @@ import org.ovirt.engine.sdk4.types.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
@@ -70,6 +71,7 @@ public class VmController {
         return ResponseEntity.ok(vmDto);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/required-resources", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResourcesDto> findVmRequiredResources(@PathVariable("id") UUID vmId) {
         Vm oVirtVM = oVirtVmService.findVmWithCpuProfileById(vmId.toString());
@@ -90,6 +92,7 @@ public class VmController {
         return ResponseEntity.ok(resources);
     }
 
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/clusters/{clusterId}")
     public ResponseEntity<List<VmDto>> findVmsForCluster(@PathVariable("clusterId") UUID clusterId) {
         Cluster foundCluster = oVirtClusterService.findClusterById(clusterId);
@@ -101,6 +104,7 @@ public class VmController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EventGeneralDto>> findEventsForVm(
             @PathVariable("id") UUID vmId, Pageable pageable) {

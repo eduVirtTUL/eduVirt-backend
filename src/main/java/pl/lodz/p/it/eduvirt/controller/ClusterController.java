@@ -56,14 +56,14 @@ public class ClusterController {
 
     /* Read methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ClusterDetailsDto> findClusterById(@PathVariable("id") UUID clusterId) {
         Cluster foundCluster = clusterService.findClusterById(clusterId);
         return ResponseEntity.ok(clusterMapper.ovirtClusterToDetailsDto(foundCluster));
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ClusterGeneralDto>> findAllClusters(Pageable pageable) {
         List<Cluster> clusters = clusterService.findClusters(pageable);
@@ -77,7 +77,7 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<HostDto>> findHostInfoByClusterId(
             Pageable pageable, @PathVariable("id") UUID clusterId) {
@@ -90,7 +90,7 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/vms", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<VmGeneralDto>> findVirtualMachinesByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -119,7 +119,7 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/networks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<NetworkDto>> findNetworksByClusterId(
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -134,7 +134,7 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EventGeneralDto>> findEventsByClusterId(
             Pageable pageable, @PathVariable("id") UUID clusterId) {

@@ -77,7 +77,7 @@ public class ReservationController {
             @ApiResponse(responseCode = "400", description = "New reservation, for given resource group and team, that the current user is a part of was created successfully."),
             @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.")
     })
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @PostMapping(path = "/course/{courseId}/pod/{podId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<Void> createNewReservationForPod(@PathVariable("courseId") UUID courseId,
@@ -135,7 +135,7 @@ public class ReservationController {
         throw new ReservationNotFoundException(reservationId);
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/course/{courseId}/pods/{podId}/previous", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PageDto<ReservationDto>> getPreviousReservations(
             Pageable pageable, @PathVariable("courseId") UUID courseId, @PathVariable("podId") UUID podId) {
@@ -225,7 +225,7 @@ public class ReservationController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/active/courses/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getActiveReservations(
@@ -251,7 +251,7 @@ public class ReservationController {
         return ResponseEntity.ok(outputDto);
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/historic/courses/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getHistoricReservations(
@@ -278,6 +278,40 @@ public class ReservationController {
     }
 
     @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @GetMapping(path = "/historic/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<PageDto<ReservationDto>> getHistoricReservationsForTeam(
+            @PathVariable("teamId") UUID teamId,
+            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Team team = teamService.getTeamById(teamId);
+        Course course = team.getCourse();
+
+        Page<Reservation> reservationPage = reservationService.findHistoricalReservations(teamId, pageable);
+
+        List<ReservationDto> listOfDTOs = reservationPage.getContent().stream()
+                .map(reservationMapper::reservationToDto).toList();
+
+        PageDto<ReservationDto> outputDto = new PageDto<>(listOfDTOs,
+                new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
+                        reservationPage.getTotalPages(), reservationPage.getTotalElements()));
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        if ((authorities.contains("administrator") ||
+                (authorities.contains("teacher") && course.getTeachers().contains(user))) &&
+                !listOfDTOs.isEmpty()) {
+            return ResponseEntity.ok(outputDto);
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @GetMapping(path = "/active/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<PageDto<ReservationDto>> getActiveReservationsForTeam(
             @PathVariable("teamId") UUID teamId,
@@ -300,40 +334,6 @@ public class ReservationController {
                         reservationPage.getTotalPages(), reservationPage.getTotalElements()));
 
         /* Check authorization */
-
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-
-        if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && course.getTeachers().contains(user))) &&
-                !listOfDTOs.isEmpty()) {
-            return ResponseEntity.ok(outputDto);
-        }
-
-        return ResponseEntity.noContent().build();
-    }
-
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
-    @GetMapping(path = "/historic/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<PageDto<ReservationDto>> getHistoricReservationsForTeam(
-            @PathVariable("teamId") UUID teamId,
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
-        Team team = teamService.getTeamById(teamId);
-        Course course = team.getCourse();
-
-        Page<Reservation> reservationPage = reservationService.findHistoricalReservations(teamId, pageable);
-
-        List<ReservationDto> listOfDTOs = reservationPage.getContent().stream()
-                .map(reservationMapper::reservationToDto).toList();
-
-        PageDto<ReservationDto> outputDto = new PageDto<>(listOfDTOs,
-                new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
-                        reservationPage.getTotalPages(), reservationPage.getTotalElements()));
 
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();

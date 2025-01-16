@@ -26,12 +26,13 @@ import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.ReservationNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.ResourceGroupNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.TeamNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.*;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -83,6 +84,9 @@ public class ReservationControllerTest {
 
     @MockitoBean
     private UserRepository userRepository;
+
+    @MockitoBean
+    private ETagHelper etagHelper;
 
     /* Mappers */
 

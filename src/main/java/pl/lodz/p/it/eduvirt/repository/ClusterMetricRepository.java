@@ -20,10 +20,10 @@ import java.util.UUID;
 @Transactional(propagation = Propagation.MANDATORY)
 public interface ClusterMetricRepository extends JpaRepository<ClusterMetric, UUID> {
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     Optional<ClusterMetric> findByClusterIdAndMetric(UUID clusterId, Metric metric);
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     Page<ClusterMetric> findAllByClusterId(UUID clusterId, Pageable pageable);
 
     @PreAuthorize("isAuthenticated()")

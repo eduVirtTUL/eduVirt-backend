@@ -30,7 +30,7 @@ public class MetricServiceImpl implements MetricService {
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void createNewMetric(String metricName, Metric.MetricCategory category) {
         Metric newMetric = new Metric(metricName, category);
@@ -39,14 +39,14 @@ public class MetricServiceImpl implements MetricService {
 
     /* Read methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Metric findById(UUID id) {
         return metricRepository.findById(id)
                 .orElseThrow(() -> new MetricNotFoundException(id));
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Page<Metric> findAllMetrics(int pageNumber, int pageSize) {
         try {
@@ -59,7 +59,7 @@ public class MetricServiceImpl implements MetricService {
 
     /* Update methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void deleteMetric(UUID metricId) {
         Metric metric = metricRepository.findById(metricId)

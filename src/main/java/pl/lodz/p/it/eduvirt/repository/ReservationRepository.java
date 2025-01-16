@@ -48,7 +48,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                                              @Param("start") LocalDateTime start,
                                              @Param("end") LocalDateTime end);
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Query("SELECT r FROM Reservation r WHERE r.team.course.clusterId = :clusterId " +
             "AND NOT ((r.startTime <= :start AND r.endTime <= :start) " +
             "OR (r.startTime >= :end AND r.endTime >= :end))")
@@ -56,7 +56,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                                               @Param("start") LocalDateTime start,
                                               @Param("end") LocalDateTime end);
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Query("SELECT r FROM Reservation r WHERE NOT((r.startTime <= :start AND r.endTime <= :start) " +
             "OR (r.startTime >= :end AND r.endTime >= :end))")
     List<Reservation> findSystemReservations(@Param("start") LocalDateTime start,

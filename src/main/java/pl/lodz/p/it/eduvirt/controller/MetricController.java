@@ -35,7 +35,7 @@ public class MetricController {
 
     /* Create methods  */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createNewMetric(@RequestBody @Validated CreateMetricDto createDto) {
         metricService.createNewMetric(createDto.name(), createDto.category());
@@ -44,7 +44,7 @@ public class MetricController {
 
     /* Read methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MetricDto>> getAllMetrics(
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -62,7 +62,7 @@ public class MetricController {
 
     /* Delete methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @DeleteMapping(path = "/{metricId}")
     public ResponseEntity<Void> deleteMetric(@PathVariable UUID metricId) {

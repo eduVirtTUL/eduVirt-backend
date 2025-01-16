@@ -31,7 +31,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
 
     /* Read methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Cluster findClusterById(UUID clusterId) {
         try {
@@ -44,7 +44,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public List<Cluster> findClusters(Pageable pageable) {
         try {
@@ -64,7 +64,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public List<Host> findHostsInCluster(Cluster cluster, Pageable pageable) {
         try {
@@ -119,7 +119,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public List<Network> findNetworksInCluster(Cluster cluster, int pageNumber, int pageSize) {
         try {
@@ -133,7 +133,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public List<Event> findEventsInCluster(Cluster cluster, Pageable pageable) {
         try {
@@ -154,7 +154,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public int findHostCountInCluster(Cluster cluster) {
         try {
@@ -170,7 +170,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
         }
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public int findVmCountInCluster(Cluster cluster) {
         try {
