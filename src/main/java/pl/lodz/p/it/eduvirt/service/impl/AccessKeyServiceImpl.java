@@ -12,7 +12,10 @@ import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyLengthException;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.access_key.InvalidAccessKeyTypeException;
+import pl.lodz.p.it.eduvirt.exceptions.access_key.DuplicateKeyValueException;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.course.InvalidCourseTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.TeamRepository;
@@ -33,6 +36,9 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     private final TeamAccessKeyRepository teamAccessKeyRepository;
     private final CourseAccessKeyRepository courseAccessKeyRepository;
 
+    private static final String KEY_FORMAT_REGEX = "^[a-zA-Z0-9-_]{5,50}$";
+
+
     private String generateKeyValue(String baseName) {
         String baseKey = baseName.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
         String randomPart = UUID.randomUUID().toString().substring(0, 4);
@@ -42,8 +48,11 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     private String validateAndGetKeyValue(String providedKey, String name,
                                           Predicate<String> existsCheck) {
         if (providedKey != null && !providedKey.isEmpty()) {
-            if (providedKey.length() < 5 || providedKey.length() > 50) {
+            if (!providedKey.matches(KEY_FORMAT_REGEX)) {
                 throw new AccessKeyLengthException();
+            }
+            if (existsCheck.test(providedKey)) {
+                throw new DuplicateKeyValueException(providedKey);
             }
             return providedKey;
         }
@@ -64,7 +73,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
         if (course.getCourseType() == CourseType.TEAM_BASED) {
-            throw new RuntimeException("Cannot create access key for a team based course");
+            throw new InvalidCourseTypeException("Cannot create access key for a team based course");
         }
 
         if (courseAccessKeyRepository.existsByCourseId(courseId)) {
@@ -109,8 +118,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
         if (course.getCourseType() == CourseType.TEAM_BASED) {
-            throw new IllegalStateException("Cannot get access key for a team based course"); //TODO:
-            // change to custom exception
+            throw new InvalidCourseTypeException("Cannot get access key for a team based course");
         } else {
             return courseAccessKeyRepository.findByCourseId(courseId)
                     .orElseThrow(AccessKeyNotFoundException::new);
@@ -125,8 +133,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
         Course course = team.getCourse();
 
         if (course.getCourseType() == CourseType.SOLO) {
-            throw new IllegalStateException("Cannot get access key to a team in a solo course"); //TODO:
-            // change to custom exception
+            throw new InvalidCourseTypeException("Cannot get access key to a team in a solo course");
         } else {
             return teamAccessKeyRepository.findByTeamId(teamId)
                     .orElseThrow(AccessKeyNotFoundException::new);

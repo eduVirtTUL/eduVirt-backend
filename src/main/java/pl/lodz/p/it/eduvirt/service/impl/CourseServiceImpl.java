@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.User;
-import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseAlreadyExists;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;

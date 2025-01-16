@@ -6,12 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.PodStateful;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.Team;
-import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.*;
+import pl.lodz.p.it.eduvirt.exceptions.course.*;
+import pl.lodz.p.it.eduvirt.exceptions.pod.InvalidPodTypeException;
+import pl.lodz.p.it.eduvirt.exceptions.pod.PodAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
@@ -48,11 +48,11 @@ public class PodStatefulServiceImpl implements PodStatefulService {
                 .orElseThrow(() -> new ResourceGroupNotFoundException(resourceGroupId));
 
         if (resourceGroup.isStateless()) {
-            throw new RuntimeException("Cannot create stateful pod for stateless resource group");
+            throw new InvalidPodTypeException("Cannot create stateful pod for stateless resource group");
         }
 
         if (podStatefulRepository.existsByResourceGroupId(resourceGroup.getId())) {
-            throw new RuntimeException("Resource group already has a pod assigned to it");
+            throw new PodAlreadyExistsException("Resource group already has a pod assigned to it");
         }
 
         pod.setResourceGroup(resourceGroup);

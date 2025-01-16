@@ -34,7 +34,7 @@ import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
@@ -138,7 +138,7 @@ public class CourseController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasRole('teacher')")
     public ResponseEntity<CourseDto> createCourse(@Valid @RequestBody CreateCourseDto createCourseDto) {
         Course course = courseMapper.courseCreateDtoToCourse(createCourseDto);
         Course savedCourse = courseService.addCourse(course, createCourseDto.teacherEmail());

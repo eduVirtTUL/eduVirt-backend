@@ -1,5 +1,6 @@
-package pl.lodz.p.it.eduvirt.exceptions.team;
+package pl.lodz.p.it.eduvirt.exceptions.user;
 
+import pl.lodz.p.it.eduvirt.exceptions.team.TeamBaseException;
 import pl.lodz.p.it.eduvirt.util.I18n;
 
 public class UserAlreadyInTeamException extends TeamBaseException {

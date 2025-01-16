@@ -1,20 +1,10 @@
 package pl.lodz.p.it.eduvirt.exceptions.access_key;
 
-public class AccessKeyAlreadyExistsException extends AccessKeyBaseException {
+import pl.lodz.p.it.eduvirt.exceptions.general.ConflictException;
+import pl.lodz.p.it.eduvirt.util.I18n;
 
+public class AccessKeyAlreadyExistsException extends ConflictException {
     public AccessKeyAlreadyExistsException() {
-        super("Access key already exists.");
-    }
-
-    public AccessKeyAlreadyExistsException(String message) {
-        super(message);
-    }
-
-    public AccessKeyAlreadyExistsException(Throwable cause) {
-        super("Access key already exists.", cause);
-    }
-
-    public AccessKeyAlreadyExistsException(String message, Throwable cause) {
-        super(message, cause);
+        super("Access key already exists", I18n.ACCESS_KEY_ALREADY_EXISTS);
     }
 }

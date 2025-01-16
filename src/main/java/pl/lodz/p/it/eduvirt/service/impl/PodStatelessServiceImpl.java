@@ -6,14 +6,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.PodStateless;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.pod.InvalidPodTypeException;
+import pl.lodz.p.it.eduvirt.exceptions.pod.PodAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.PodStatelessRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.repository.TeamRepository;
@@ -31,7 +31,6 @@ public class PodStatelessServiceImpl implements PodStatelessService {
     private final PodStatelessRepository podStatelessRepository;
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
     private final TeamRepository teamRepository;
-    private final CourseRepository courseRepository;
 
     @PreAuthorize("isAuthenticated()")
     @Override
@@ -39,18 +38,15 @@ public class PodStatelessServiceImpl implements PodStatelessService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
-        Course course = courseRepository.findById(team.getCourse().getId())
-                .orElseThrow(() -> new CourseNotFoundException(team.getCourse().getId()));
-
         ResourceGroupPool resourceGroupPool = resourceGroupPoolRepository.findById(resourceGroupPoolId)
                 .orElseThrow(() -> new CourseNotFoundException(resourceGroupPoolId));
 
         if (resourceGroupPool.getCourse() != team.getCourse()) {
-            throw new RuntimeException("Resource group pool does not belong to the course the team is in");
+            throw new InvalidPodTypeException("Resource group pool does not belong to the course the team is in");
         }
 
         if (podStatelessRepository.existsByResourceGroupPoolIdAndTeamId(resourceGroupPoolId, teamId)) {
-            throw new RuntimeException("This user already has a stateless pod for this resource group pool");
+            throw new PodAlreadyExistsException("This user already has a stateless pod for this resource group pool");
         }
 
         pod.setResourceGroupPool(resourceGroupPool);
@@ -63,7 +59,7 @@ public class PodStatelessServiceImpl implements PodStatelessService {
     @Override
     public void deleteStatelessPod(UUID podId) {
         if (!podStatelessRepository.existsById(podId)) {
-            throw new PodNotFoundException("POD %s could not be found!".formatted(podId));
+            throw new PodNotFoundException("POD %s could not be found".formatted(podId));
         }
         podStatelessRepository.deleteById(podId);
     }
