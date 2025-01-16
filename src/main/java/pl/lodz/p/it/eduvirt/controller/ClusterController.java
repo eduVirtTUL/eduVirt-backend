@@ -3,7 +3,6 @@ package pl.lodz.p.it.eduvirt.controller;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.*;
 import org.springframework.data.domain.Pageable;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,22 +14,13 @@ import pl.lodz.p.it.eduvirt.dto.NetworkDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
-import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
-import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
-import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.mappers.*;
-import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
-import pl.lodz.p.it.eduvirt.service.ReservationService;
-import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
-import pl.lodz.p.it.eduvirt.util.MetricUtil;
 import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,8 +53,8 @@ public class ClusterController {
         return ResponseEntity.ok(clusterMapper.ovirtClusterToDetailsDto(foundCluster));
     }
 
-    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('administrator')")
     public ResponseEntity<List<ClusterGeneralDto>> findAllClusters(Pageable pageable) {
         List<Cluster> clusters = clusterService.findClusters(pageable);
         List<ClusterGeneralDto> listOfDTOs = clusters.stream().map(cluster -> {

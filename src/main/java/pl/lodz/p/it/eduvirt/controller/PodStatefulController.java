@@ -6,12 +6,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.dto.pod.*;
+import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatefulDto;
+import pl.lodz.p.it.eduvirt.dto.pod.PodStatefulDetailsDto;
+import pl.lodz.p.it.eduvirt.dto.pod.PodStatefulDto;
 import pl.lodz.p.it.eduvirt.entity.PodStateful;
 import pl.lodz.p.it.eduvirt.mappers.PodStatefulMapper;
 import pl.lodz.p.it.eduvirt.service.PodStatefulService;
@@ -28,7 +29,7 @@ public class PodStatefulController {
     private final PodStatefulMapper podStatefulMapper;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-//    @PreAuthorize("hasRole('student')")
+//    @PreAuthorize("hasAuthority('student')")
     @Operation(summary = "Create new stateful pod", description = "Creates a new stateful pod for the specified team and resource group")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pod created successfully"),
@@ -59,7 +60,7 @@ public class PodStatefulController {
     }
 
     @GetMapping(path = "/team/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
-//    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+//    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Operation(summary = "Get team pods", description = "Retrieves all stateful pods for a specific team")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pods retrieved successfully"),
@@ -71,13 +72,13 @@ public class PodStatefulController {
         List<PodStatefulDetailsDto> pods = podStatefulService.getStatefulPodsByTeam(teamId).stream()
                 .map(podStatefulMapper::podStatefulToDetailsDto)
                 .toList();
-        
+
         if (pods.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(pods);
     }
 
     @GetMapping(path = "/course/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
-//    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+//    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Operation(summary = "Get course pods", description = "Retrieves all stateful pods for a specific course")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pods retrieved successfully"),
@@ -88,13 +89,13 @@ public class PodStatefulController {
         List<PodStatefulDto> pods = podStatefulService.getStatefulPodsByCourse(courseId).stream()
                 .map(podStatefulMapper::podStatefulToDto)
                 .toList();
-        
+
         if (pods.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(pods);
     }
 
     @GetMapping(path = "/resource-group/{resourceGroupId}", produces = MediaType.APPLICATION_JSON_VALUE)
-//    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+//    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Operation(summary = "Get resource group pods", description = "Retrieves all stateful pods for a specific resource group")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pods retrieved successfully"),
@@ -105,13 +106,13 @@ public class PodStatefulController {
         List<PodStatefulDto> pods = podStatefulService.getStatefulPodsByResourceGroup(resourceGroupId).stream()
                 .map(podStatefulMapper::podStatefulToDto)
                 .toList();
-        
+
         if (pods.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(pods);
     }
 
     @DeleteMapping("/{podId}")
-//    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+//    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Operation(summary = "Delete pod", description = "Deletes a specific stateful pod")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Pod deleted successfully"),

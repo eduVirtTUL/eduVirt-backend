@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 @EnableWebSecurity()
 @Configuration
+@EnableMethodSecurity()
 public class SecurityConfig {
 
     interface AuthoritiesConverter extends Converter<Map<String, Object>, Collection<GrantedAuthority>> {
@@ -37,11 +39,11 @@ public class SecurityConfig {
                 authorities.add(new SimpleGrantedAuthority("administrator"));
             }
 
-            if (groups.contains("/teachers")) {
+            if (groups.contains("/teacher")) {
                 authorities.add(new SimpleGrantedAuthority("teacher"));
             }
 
-            if (groups.contains("/students")) {
+            if (groups.contains("/student")) {
                 authorities.add(new SimpleGrantedAuthority("student"));
             }
 

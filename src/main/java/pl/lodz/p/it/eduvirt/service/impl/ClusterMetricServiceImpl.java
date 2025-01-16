@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
-import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
+import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.ClusterMetricRepository;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
@@ -43,8 +43,8 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
         clusterMetricRepository.findByClusterIdAndMetric(clusterId, metric)
                 .ifPresent(metricValue -> {
-            throw new ClusterMetricExistsException(clusterId, metricId);
-        });
+                    throw new ClusterMetricExistsException(clusterId, metricId);
+                });
 
         ClusterMetric newMetricValue = new ClusterMetric(clusterId, metric, value);
         clusterMetricRepository.saveAndFlush(newMetricValue);

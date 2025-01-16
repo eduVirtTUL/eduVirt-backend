@@ -97,13 +97,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
 
     /* Other */
 
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Query("SELECT r FROM Reservation r WHERE r.endTime > :probeTime AND r.team = :team")
     Page<Reservation> findAllActiveReservations(@Param("team") Team team,
                                                 @Param("probeTime") LocalDateTime probeTime,
                                                 Pageable pageable);
 
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Query("SELECT r FROM Reservation r WHERE r.endTime <= :probeTime AND r.team = :team")
     Page<Reservation> findAllHistoricalReservations(@Param("team") Team team,
                                                     @Param("probeTime") LocalDateTime probeTime,
