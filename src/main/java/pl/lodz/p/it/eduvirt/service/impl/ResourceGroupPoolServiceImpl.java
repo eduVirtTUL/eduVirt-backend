@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,8 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
 
     @Override
     public Page<ResourceGroupPool> getResourceGroupPools(Specification<ResourceGroupPool> spec, int page, int size) {
-        return resourceGroupPoolRepository.findAll(spec, PageRequest.of(page, size));
+        return resourceGroupPoolRepository.findAll(spec, PageRequest.of(page, size, Sort.by("course.name").ascending()
+                .and(Sort.by("name").ascending())));
     }
 
     @Override

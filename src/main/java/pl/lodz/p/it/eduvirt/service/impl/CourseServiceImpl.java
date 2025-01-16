@@ -65,6 +65,12 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Transactional
+    public List<Course> getCourses() {
+        return courseRepository.findAll();
+    }
+
+    @Override
     public List<Course> getCourses(UUID userId) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         return courseRepository.findAllByTeachersContaining(user);

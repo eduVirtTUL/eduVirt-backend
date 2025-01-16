@@ -15,6 +15,8 @@ public interface CourseService {
 
     Page<Course> getCoursesForTeacher(UUID userId, int page, int size, String search);
 
+    List<Course> getCourses();
+
     List<Course> getCourses(UUID userId);
 
     List<Course> getCoursesForStudent(User student, Pageable pageable);

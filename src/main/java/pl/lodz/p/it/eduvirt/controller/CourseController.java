@@ -8,8 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -88,14 +88,24 @@ public class CourseController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('administrator')")
-    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false, defaultValue = "0") final Integer page,
-                                                         @RequestParam(name = "size", required = false, defaultValue = "10") final Integer size,
+    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) final Integer page,
+                                                         @RequestParam(name = "size", required = false) final Integer size,
                                                          @RequestParam(name = "search", required = false) final String search,
                                                          @RequestParam(name = "sort", required = false, defaultValue = "ASC") String sortOrder) {
 
         if (!(sortOrder.equals("ASC") || sortOrder.equals("DESC"))) {
             sortOrder = "ASC";
         }
+
+        if (page == null || size == null) {
+            List<Course> courses = courseService.getCourses();
+
+            return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                    .items(courseMapper.toCourseDtoList(courses.stream()))
+                    .page(new PageInfoDto(0, courses.size(), 1, courses.size()))
+                    .build());
+        }
+
 
         Page<Course> courses = courseService.getCourses(page, size, search, sortOrder);
 
@@ -113,7 +123,6 @@ public class CourseController {
                                                                    @RequestParam(name = "search", required = false) String search) {
 
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        var auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (page == null || size == null) {
             List<Course> courses = courseService.getCourses(userId);
