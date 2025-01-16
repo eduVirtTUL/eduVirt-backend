@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.dto.resource_group_network;
 
+import java.util.List;
 import java.util.UUID;
 
-public record ResourceGroupNetworkDto(UUID id, String name) {
+public record ResourceGroupNetworkDto(UUID id, String name, List<NetworkInterfaceDto> interfaces) {
 }

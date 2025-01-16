@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +17,17 @@ import pl.lodz.p.it.eduvirt.dto.resource_group_pool.CreateRGPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.DetailedResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.UpdateResourceGroupPoolDto;
+import pl.lodz.p.it.eduvirt.dto.search.SearchDto;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupPoolService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
+import pl.lodz.p.it.eduvirt.util.search.RgPoolSpecificationBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -53,22 +58,69 @@ public class ResourceGroupPoolController {
         return ResponseEntity.ok().eTag(etag).body(rgPoolMapper.toDetailedRGPoolDto(pool));
     }
 
+    private void addDefaultSearchDtos(List<SearchDto> searchDtos, String name, UUID courseId, RgPoolSpecificationBuilder builder) {
+        if (name != null) {
+            searchDtos.add(new SearchDto("name", "cn", name));
+        }
+
+        if (courseId != null) {
+            searchDtos.add(new SearchDto("courseId", "eq", courseId));
+        }
+
+        searchDtos.forEach(search ->
+        {
+            search.setDataOption("all");
+            builder.with(search);
+        });
+    }
+
     @GetMapping
     @Transactional
     @ApiResponse(responseCode = "200", description = "Returns list of resource group pools")
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     public ResponseEntity<PageDto<DetailedResourceGroupPoolDto>> getResourceGroupPools(
-            @RequestParam(name = "page", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "size", defaultValue = "10", required = false) int pageSize
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "10") int size,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "courseId", required = false) UUID courseId
     ) {
-        Page<ResourceGroupPool> resourceGroupPools = resourceGroupPoolService.getResourceGroupPools(pageNumber, pageSize);
+        RgPoolSpecificationBuilder builder = new RgPoolSpecificationBuilder();
+        List<SearchDto> searchDtos = new ArrayList<>();
+
+        addDefaultSearchDtos(searchDtos, name, courseId, builder);
+
+        Page<ResourceGroupPool> resourceGroupPools = resourceGroupPoolService.getResourceGroupPools(builder.build(), page, size);
 
         return ResponseEntity.ok(PageDto.<DetailedResourceGroupPoolDto>builder()
                 .items(rgPoolMapper.toDetailedRGPoolDtoList(resourceGroupPools.getContent().stream()))
                 .page(new PageInfoDto(resourceGroupPools.getNumber(), resourceGroupPools.getNumberOfElements(), resourceGroupPools.getTotalPages(), resourceGroupPools.getTotalElements()))
                 .build());
+    }
 
+    @GetMapping("/teacher")
+    @Transactional
+    @ApiResponse(responseCode = "200", description = "Returns list of resource group pools")
+    @PreAuthorize("hasAuthority('teacher')")
+    public ResponseEntity<PageDto<DetailedResourceGroupPoolDto>> getResourceGroupPoolsForTeacher(
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "10") int size,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "courseId", required = false) UUID courseId
+    ) {
+        RgPoolSpecificationBuilder builder = new RgPoolSpecificationBuilder();
+        List<SearchDto> searchDtos = new ArrayList<>();
 
+        UUID teacherId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        searchDtos.add(new SearchDto("teachers", "eq", teacherId));
+
+        addDefaultSearchDtos(searchDtos, name, courseId, builder);
+
+        Page<ResourceGroupPool> resourceGroupPools = resourceGroupPoolService.getResourceGroupPools(builder.build(), page, size);
+
+        return ResponseEntity.ok(PageDto.<DetailedResourceGroupPoolDto>builder()
+                .items(rgPoolMapper.toDetailedRGPoolDtoList(resourceGroupPools.getContent().stream()))
+                .page(new PageInfoDto(resourceGroupPools.getNumber(), resourceGroupPools.getNumberOfElements(), resourceGroupPools.getTotalPages(), resourceGroupPools.getTotalElements()))
+                .build());
     }
 
     @PostMapping("/{id}/resourceGroup")

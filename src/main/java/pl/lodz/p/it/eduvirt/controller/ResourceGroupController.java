@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
@@ -29,11 +30,19 @@ public class ResourceGroupController {
     private final ETagHelper eTagHelper;
 
     @GetMapping
-    public ResponseEntity<List<ResourceGroupDto>> getResourceGroups() {
+    @PreAuthorize("hasAuthority('administrator')")
+    public ResponseEntity<List<ResourceGroupDto>> getResourceGroups(
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            @RequestParam(name = "search", required = false) String search
+    ) {
+
+
         return ResponseEntity.ok(resourceGroupMapper.toDtos(resourceGroupService.getResourceGroups().stream()));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public ResponseEntity<ResourceGroupDto> getResourceGroup(@PathVariable UUID id) {
         ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(id);
         String etag = eTagHelper.generateEtag(resourceGroup);
@@ -50,6 +59,7 @@ public class ResourceGroupController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> deleteResourceGroup(@PathVariable UUID id) {
         resourceGroupService.deleteResourceGroup(id);
         return ResponseEntity.noContent().build();
@@ -58,6 +68,7 @@ public class ResourceGroupController {
     @PutMapping("/{id}")
     @ApiResponse(responseCode = "200", description = "Resource group updated successfully")
     @ApiResponse(responseCode = "400", description = "Invalid resource group data", content = {@Content(schema = @Schema(implementation = ExceptionResponse.class))})
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<ResourceGroupDto> updateResourceGroup(@PathVariable UUID id,
                                                                 @RequestBody @Validated UpdateResourceGroupDto resourceGroupDto,
                                                                 @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
