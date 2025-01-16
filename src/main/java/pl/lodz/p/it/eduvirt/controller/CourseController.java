@@ -88,17 +88,16 @@ public class CourseController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('administrator')")
-    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
-                                                         @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
-                                                         @RequestParam(name = "search", required = false) String search) {
-        Page<Course> courses;
+    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false, defaultValue = "0") final Integer page,
+                                                         @RequestParam(name = "size", required = false, defaultValue = "10") final Integer size,
+                                                         @RequestParam(name = "search", required = false) final String search,
+                                                         @RequestParam(name = "sort", required = false, defaultValue = "ASC") String sortOrder) {
 
-        if (search == null) {
-            courses = courseService.getCourses(page, size);
-        } else {
-            courses = courseService.getCourses(page, size, search);
+        if (!(sortOrder.equals("ASC") || sortOrder.equals("DESC"))) {
+            sortOrder = "ASC";
         }
 
+        Page<Course> courses = courseService.getCourses(page, size, search, sortOrder);
 
         return ResponseEntity.ok(PageDto.<CourseDto>builder()
                 .items(courseMapper.toCourseDtoList(courses.getContent().stream()))

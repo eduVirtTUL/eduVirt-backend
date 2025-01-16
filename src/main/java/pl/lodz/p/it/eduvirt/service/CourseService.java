@@ -11,9 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CourseService {
-    Page<Course> getCourses(int page, int size);
-
-    Page<Course> getCourses(int page, int size, String search);
+    Page<Course> getCourses(int page, int size, String search, String sortOrder);
 
     Page<Course> getCoursesForTeacher(UUID userId, int page, int size, String search);
 
