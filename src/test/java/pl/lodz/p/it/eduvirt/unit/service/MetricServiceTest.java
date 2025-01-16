@@ -47,8 +47,8 @@ public class MetricServiceTest {
 
     @BeforeEach
     public void prepareTestData() {
-        metric1 = new Metric(metricName1, Metric.MetricCategory.VOLATILE_MEMORY);
-        metric2 = new Metric(metricName2, Metric.MetricCategory.NON_VOLATILE_MEMORY);
+        metric1 = new Metric(metricName1, Metric.MetricCategory.MEMORY);
+        metric2 = new Metric(metricName2, Metric.MetricCategory.MEMORY);
     }
 
     /* Tests */

@@ -56,12 +56,12 @@ public class ClusterMetricController {
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MetricValueDto>> getAllMetricValues(
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
             @PathVariable("clusterId") UUID clusterId) {
         try {
             Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
-            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+            Pageable pageable = PageRequest.of(page, size);
             Page<ClusterMetric> clusterMetricPage = clusterMetricService.findAllMetricValuesForCluster(cluster, pageable);
 
             PageDto<MetricValueDto> listOfDTOs = new PageDto<>(

@@ -6,6 +6,7 @@ import org.ovirt.engine.sdk4.types.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
@@ -70,37 +71,40 @@ public class VmController {
         return ResponseEntity.ok(vmDto);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/required-resources", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResourcesDto> findVmRequiredResources(@PathVariable("id") UUID vmId) {
-        Vm oVirtVM = oVirtVmService.findVmById(vmId.toString());
-        Qos vmCpuQos = oVirtVmService.findQosForVmCpu(oVirtVM);
-        Cluster foundCluster = oVirtClusterService.findClusterById(UUID.fromString(oVirtVM.cluster().id()));
-        List<Host> clusterHosts = oVirtClusterService.findAllHostsInCluster(foundCluster);
+        Vm oVirtVM = oVirtVmService.findVmWithCpuProfileById(vmId.toString());
 
-        Map<String, Object> requiredResources = oVirtVmService.findVmResources(
-                oVirtVM,
-                vmCpuQos,
-                clusterHosts.getFirst(),
-                foundCluster
-        );
+        Map<String, Object> requiredResources;
+        if (oVirtVM.cpuProfile().qos() != null) {
+            Qos vmCpuQos = oVirtVmService.findQosForVmCpu(oVirtVM);
+            Cluster foundCluster = oVirtClusterService.findClusterById(UUID.fromString(oVirtVM.cluster().id()));
+            List<Host> clusterHosts = oVirtClusterService.findAllHostsInCluster(foundCluster);
+            requiredResources = oVirtVmService.findVmResources(oVirtVM, vmCpuQos, clusterHosts.getFirst(), foundCluster);
+        } else {
+            requiredResources = oVirtVmService.findVmResources(oVirtVM, null, null, null);
+        }
 
         ResourcesDto resources = new ResourcesDto(
-                (int) requiredResources.get("cpu"),
-                (long) requiredResources.get("memory")
-        );
+                (int) requiredResources.get("cpu"), (long) requiredResources.get("memory"));
 
         return ResponseEntity.ok(resources);
     }
 
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/clusters/{clusterId}")
     public ResponseEntity<List<VmDto>> findVmsForCluster(@PathVariable("clusterId") UUID clusterId) {
         Cluster foundCluster = oVirtClusterService.findClusterById(clusterId);
         List<Vm> foundVms = oVirtVmService.findVmsForCluster(foundCluster);
+
         List<VmDto> listOfDTOs = foundVms.stream().map(vmMapper::ovirtVmToDto).toList();
+
         if (foundVms.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EventGeneralDto>> findEventsForVm(
             @PathVariable("id") UUID vmId, Pageable pageable) {

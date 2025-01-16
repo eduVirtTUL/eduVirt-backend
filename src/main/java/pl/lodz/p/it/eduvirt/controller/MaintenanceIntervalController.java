@@ -77,13 +77,13 @@ public class MaintenanceIntervalController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MaintenanceIntervalDto>> getAllMaintenanceIntervals(
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
             @RequestParam(name = "clusterId", required = false) UUID clusterId,
             @RequestParam(name = "active", required = false, defaultValue = "true") boolean active) {
         try {
             Page<MaintenanceInterval> maintenanceIntervalPage = maintenanceIntervalService
-                    .findAllMaintenanceIntervals(clusterId, active, PageRequest.of(pageNumber, pageSize));
+                    .findAllMaintenanceIntervals(clusterId, active, PageRequest.of(page, size));
 
             PageDto<MaintenanceIntervalDto> listOfDtos = new PageDto<>(
                     maintenanceIntervalPage.getContent().stream().map(maintenanceIntervalMapper::maintenanceIntervalToDto).toList(),

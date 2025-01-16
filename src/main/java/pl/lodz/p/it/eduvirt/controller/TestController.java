@@ -40,8 +40,11 @@ public class TestController {
 
     @PostMapping(path = "/send-html-mail/{mail-to}")
     public ResponseEntity<Void> sendHtmlMail(@PathVariable("mail-to") String mailTo) {
+        String firstName = "FirstName";
+        String lastName = "LastName";
+
         mailProvider.sendHtmlTestMessage(
-                mailTo, "CET","en"
+                firstName, lastName, mailTo, "CET","en"
         );
 
         return ResponseEntity.ok().build();

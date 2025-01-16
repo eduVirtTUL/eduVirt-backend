@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.*;
@@ -152,8 +153,11 @@ public class ReservationServiceTest {
     private final List<CourseMetric> courseMetrics = new LinkedList<>();
     private final Map<String, Object> courseMetricMap = new HashMap<>();
 
+    private final int windowLength = 15;
+
     @BeforeEach
     public void setUp() throws Exception {
+        ReflectionTestUtils.setField(reservationService, "windowLength", 15);
         Field id = AbstractEntity.class.getDeclaredField("id");
         Field version = Updatable.class.getDeclaredField("version");
 
@@ -394,7 +398,7 @@ public class ReservationServiceTest {
         /* Metrics */
 
         cpuCountMetric = new Metric(cpuCount, Metric.MetricCategory.COUNTABLE);
-        memorySizeMetric = new Metric(memorySize, Metric.MetricCategory.VOLATILE_MEMORY);
+        memorySizeMetric = new Metric(memorySize, Metric.MetricCategory.MEMORY);
         networkCountMetric = new Metric(networkCount, Metric.MetricCategory.COUNTABLE);
 
         id.setAccessible(true);
@@ -489,11 +493,15 @@ public class ReservationServiceTest {
 
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
         when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenReturn(hosts);
+
+        when(reservationRepository.findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1)))
+                .thenReturn(List.of());
         /*
          * TODO:
          *      Add missing checks for max reservation count and grace time (which could not be)
          *      check as of now (that is 2025-01-12T16:41:00).
          */
+
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(List.of());
@@ -523,6 +531,9 @@ public class ReservationServiceTest {
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
         verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
+
+        verify(reservationRepository, times(1))
+                .findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1));
         /*
          * TODO:
          *      Add missing checks for max reservation count and grace time (which could not be)
@@ -576,11 +587,10 @@ public class ReservationServiceTest {
 
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
         when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenReturn(hosts);
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
+        when(reservationRepository.findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1)))
+                .thenReturn(List.of());
+
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(List.of());
@@ -610,11 +620,10 @@ public class ReservationServiceTest {
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
         verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
+        verify(reservationRepository, times(1))
+                .findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1));
+
         verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
         verify(reservationRepository, times(1)).findRgReservations(
@@ -715,7 +724,7 @@ public class ReservationServiceTest {
     }
 
     @Test
-    public void Given_ReservationLengthIsShorterThan1Hour_When_CreateReservationForStatefulPod_Then_ThrowsException() {
+    public void Given_ReservationLengthIsShorterThan2WindowLengths_When_CreateReservationForStatefulPod_Then_ThrowsException() {
         Cluster cluster = mock(Cluster.class);
         Host host1 = mock(Host.class);
         Host host2 = mock(Host.class);
@@ -723,7 +732,7 @@ public class ReservationServiceTest {
 
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         CreateReservationDto newCreateDto = new CreateReservationDto(
-                currentTime.plusHours(2), currentTime.plusHours(2).plusMinutes(30),
+                currentTime.plusHours(2), currentTime.plusHours(2).plusMinutes(2 * windowLength).minusSeconds(1),
                 reservation1.getAutomaticStartup(),
                 reservation1.getNotificationTime()
         );
@@ -748,7 +757,7 @@ public class ReservationServiceTest {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         CreateReservationDto newCreateDto = new CreateReservationDto(
                 currentTime.plusHours(2),
-                currentTime.plusHours(2 + podStateful1.getResourceGroup().getMaxRentTime()).plusSeconds(1),
+                currentTime.plusHours(2 + podStateful1.getResourceGroup().getMaxRentTime()).plusMinutes(windowLength).plusSeconds(1),
                 reservation1.getAutomaticStartup(),
                 reservation1.getNotificationTime()
         );
@@ -765,17 +774,35 @@ public class ReservationServiceTest {
 
     @Test
     public void Given_ReservationCountIsGreaterThanResourceGroupMaxRentCount_When_CreateReservationForStatefulPod_Then_ThrowsException() {
-        // TODO: To be added after resource groups has the MaxRent count added
-    }
+        Cluster cluster = mock(Cluster.class);
+        Host host1 = mock(Host.class);
+        Host host2 = mock(Host.class);
+        List<Host> hosts = List.of(host1, host2);
 
-    @Test
-    public void Given_ReservationGracePeriodDidNotFinishSinceTheLastReservation_When_CreateReservationForStatefulPod_Then_ThrowsException() {
-        // TODO: To be added after resource groups has the GraceTime count added
-    }
+        resourceGroup1.setMaxRentTime(0);
+        podStateful1.setMaxRent(1);
 
-    @Test
-    public void Given_ReservationGracePeriodCouldNotFinishBeforeTheNextReservation_When_CreateReservationForStatefulPod_Then_ThrowsException() {
-        // TODO: To be added after resource groups has the GraceTime count added
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        CreateReservationDto newCreateDto = new CreateReservationDto(
+                currentTime.plusHours(2), currentTime.plusHours(8),
+                reservation1.getAutomaticStartup(),
+                reservation1.getNotificationTime()
+        );
+
+        when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenReturn(hosts);
+
+        when(reservationRepository.findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1)))
+                .thenReturn(List.of(reservation1, reservation3));
+
+        assertThrows(ResourceGroupReservationCountExceededException.class,
+                () -> reservationService.createReservationForStatefulPod(team1, podStateful1, newCreateDto));
+
+        verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
+        verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
+
+        verify(reservationRepository, times(1))
+                .findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1));
     }
 
     @Test
@@ -794,11 +821,10 @@ public class ReservationServiceTest {
 
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
         when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenReturn(hosts);
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
+        when(reservationRepository.findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1)))
+                .thenReturn(List.of());
+
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(List.of(maintenanceInterval1, maintenanceInterval2));
@@ -808,11 +834,10 @@ public class ReservationServiceTest {
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
         verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
+        verify(reservationRepository, times(1))
+                .findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1));
+
         verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
     }
@@ -833,11 +858,10 @@ public class ReservationServiceTest {
 
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
         when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenReturn(hosts);
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
+        when(reservationRepository.findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1)))
+                .thenReturn(List.of());
+
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(List.of());
@@ -850,11 +874,10 @@ public class ReservationServiceTest {
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
         verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
+        verify(reservationRepository, times(1))
+                .findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1));
+
         verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
         verify(reservationRepository, times(1)).findRgReservations(
@@ -877,11 +900,10 @@ public class ReservationServiceTest {
 
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
         when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenReturn(hosts);
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
+        when(reservationRepository.findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1)))
+                .thenReturn(List.of());
+
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(List.of());
@@ -902,11 +924,10 @@ public class ReservationServiceTest {
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
         verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
+        verify(reservationRepository, times(1))
+                .findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1));
+
         verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
         verify(reservationRepository, times(1)).findRgReservations(
@@ -938,11 +959,10 @@ public class ReservationServiceTest {
 
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
         when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenReturn(hosts);
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
+        when(reservationRepository.findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1)))
+                .thenReturn(List.of());
+
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(List.of());
@@ -971,11 +991,10 @@ public class ReservationServiceTest {
 
         verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
         verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
+        verify(reservationRepository, times(1))
+                .findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1));
+
         verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
         verify(reservationRepository, times(1)).findRgReservations(
@@ -1310,7 +1329,7 @@ public class ReservationServiceTest {
     }
 
     @Test
-    public void Given_ReservationLengthIsShorterThan1Hour_When_CreateReservationForStatelessPod_Then_ThrowsException() {
+    public void Given_ReservationLengthIsShorterThan2WindowLengths_When_CreateReservationForStatelessPod_Then_ThrowsException() {
         Cluster cluster = mock(Cluster.class);
         Host host1 = mock(Host.class);
         Host host2 = mock(Host.class);
@@ -1318,7 +1337,7 @@ public class ReservationServiceTest {
 
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         CreateReservationDto newCreateDto = new CreateReservationDto(
-                currentTime.plusHours(2), currentTime.plusHours(3).minusSeconds(1),
+                currentTime.plusHours(2), currentTime.plusHours(2).plusMinutes(2 * windowLength).minusSeconds(1),
                 reservation1.getAutomaticStartup(),
                 reservation1.getNotificationTime()
         );
@@ -1343,7 +1362,7 @@ public class ReservationServiceTest {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         CreateReservationDto newCreateDto = new CreateReservationDto(
                 currentTime.plusHours(2),
-                currentTime.plusHours(2 + podStateless1.getResourceGroupPool().getMaxRentTime()).plusSeconds(1),
+                currentTime.plusHours(2 + podStateless1.getResourceGroupPool().getMaxRentTime()).plusMinutes(windowLength).plusSeconds(1),
                 reservation1.getAutomaticStartup(),
                 reservation1.getNotificationTime()
         );

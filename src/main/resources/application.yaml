@@ -48,5 +48,17 @@ auth:
     clientSecret: ${KEYCLOAK_CLIENT_SECRET}
     redirectUri: ${KEYCLOAK_REDIRECT_URI}
 
+mail:
+  default:
+    timezone: CET
+    language: pl
+
+window:
+  length: ${RESERVATION_WINDOW_LENGTH}
+
+resource:
+  warning:
+    mail: ${RESOURCE_WARNING_MAILS_ENABLED}
+
 jws:
   secret: ${JWS_SECRET}

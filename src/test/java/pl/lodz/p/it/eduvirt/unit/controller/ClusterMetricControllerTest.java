@@ -93,8 +93,8 @@ public class ClusterMetricControllerTest {
         Field id = AbstractEntity.class.getDeclaredField("id");
 
         metric1 = new Metric(metricName1, Metric.MetricCategory.COUNTABLE);
-        metric2 = new Metric(metricName2, Metric.MetricCategory.VOLATILE_MEMORY);
-        metric3 = new Metric(metricName3, Metric.MetricCategory.NON_VOLATILE_MEMORY);
+        metric2 = new Metric(metricName2, Metric.MetricCategory.MEMORY);
+        metric3 = new Metric(metricName3, Metric.MetricCategory.MEMORY);
 
         clusterMetric1 = new ClusterMetric(existingClusterId, metric1, 99.9999);
         clusterMetric2 = new ClusterMetric(existingClusterId, metric2, 999.999);
@@ -227,15 +227,15 @@ public class ClusterMetricControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeMetricValuesAreDefinedForGivenCluster_When_GetAllMetricValues_Then_ReturnsAllFoundMetricValuesForGivenCluster() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         Cluster cluster = mock(Cluster.class);
 
         MetricValueDto metricValueDto1 = new MetricValueDto(metric1.getId(), metric1.getName(), Metric.MetricCategory.COUNTABLE, clusterMetric1.getValue());
-        MetricValueDto metricValueDto2 = new MetricValueDto(metric2.getId(), metric2.getName(), Metric.MetricCategory.VOLATILE_MEMORY, clusterMetric2.getValue());
-        MetricValueDto metricValueDto3 = new MetricValueDto(metric3.getId(), metric3.getName(), Metric.MetricCategory.NON_VOLATILE_MEMORY, clusterMetric3.getValue());
+        MetricValueDto metricValueDto2 = new MetricValueDto(metric2.getId(), metric2.getName(), Metric.MetricCategory.MEMORY, clusterMetric2.getValue());
+        MetricValueDto metricValueDto3 = new MetricValueDto(metric3.getId(), metric3.getName(), Metric.MetricCategory.MEMORY, clusterMetric3.getValue());
 
         when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId)))
                 .thenReturn(cluster);
@@ -247,8 +247,8 @@ public class ClusterMetricControllerTest {
                 .thenReturn(metricValueDto1, metricValueDto2, metricValueDto3);
 
         MvcResult result = mockMvc.perform(get("/clusters/{clusterId}/metrics", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -306,15 +306,15 @@ public class ClusterMetricControllerTest {
     @WithMockUser
     @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_GetAllMetricValues_Then_Returns400BadRequest() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(nonExistentClusterId)))
                 .thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(get("/clusters/{clusterId}/metrics", nonExistentClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -325,16 +325,16 @@ public class ClusterMetricControllerTest {
     @WithMockUser
     @Test
     public void Given_IncorrectPaginationParametersArePassed_When_GetAllMetricValues_Then_ReturnsEmptyClusterMetricValueList() throws Exception {
-        int pageNumber = -1;
-        int pageSize = 10;
+        int page = -1;
+        int size = 10;
 
         Cluster cluster = mock(Cluster.class);
         when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId)))
                 .thenReturn(cluster);
 
         mockMvc.perform(get("/clusters/{clusterId}/metrics", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
@@ -345,9 +345,9 @@ public class ClusterMetricControllerTest {
     @WithMockUser
     @Test
     public void Given_NoMetricValuesAreDefinedForGivenCluster_When_GetAllMetricValues_Then_ReturnsEmptyClusterMetricValueList() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
 
         Cluster cluster = mock(Cluster.class);
 
@@ -358,8 +358,8 @@ public class ClusterMetricControllerTest {
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/clusters/{clusterId}/metrics", existingClusterId)
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize)))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 

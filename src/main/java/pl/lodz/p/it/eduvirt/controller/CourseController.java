@@ -5,8 +5,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -53,6 +55,15 @@ import java.util.*;
 @RequiredArgsConstructor
 @LoggerInterceptor
 public class CourseController {
+
+    @Value("${window.length}")
+    private int windowLength;
+
+    @PostConstruct
+    public void validateProperty() {
+        if (windowLength < 10) windowLength = 10;
+        if (windowLength > 60) windowLength = 60;
+    }
 
     /* Services */
 
@@ -209,7 +220,6 @@ public class CourseController {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findResourcesAvailabilityForResourceGroup(
             @PathVariable("id") UUID courseId, @PathVariable("rgId") UUID rgId,
-            @RequestParam("window") int windowLength,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         Course course = courseService.getCourse(courseId);
@@ -232,7 +242,7 @@ public class CourseController {
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && true) ||
+                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
                 (authorities.contains("student") && users.contains(user))) &&
                 !listOfDTOs.isEmpty()) {
             return ResponseEntity.ok(listOfDTOs);
@@ -246,7 +256,6 @@ public class CourseController {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findResourcesAvailabilityForResourceGroupPool(
             @PathVariable("id") UUID courseId, @PathVariable("rgPoolId") UUID rgPoolId,
-            @RequestParam("window") int windowLength,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         Course course = courseService.getCourse(courseId);
@@ -269,8 +278,8 @@ public class CourseController {
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && true) ||
-                (authorities.contains("student") && users.contains(userId))) &&
+                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
+                (authorities.contains("student") && users.contains(user))) &&
                 !listOfDTOs.isEmpty()) {
             return ResponseEntity.ok(listOfDTOs);
         }

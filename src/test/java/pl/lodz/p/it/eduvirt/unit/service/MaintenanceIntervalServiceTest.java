@@ -270,8 +270,8 @@ public class MaintenanceIntervalServiceTest {
         when(userRepository.findById(Mockito.eq(userNo3.getId()))).thenReturn(Optional.of(userNo3));
 
         doNothing().when(mailProvider).sendReservationRemovalEmail(
-                Mockito.any(String.class), Mockito.any(Reservation.class), Mockito.any(String.class), Mockito.any(String.class)
-        );
+                Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class),
+                Mockito.any(Reservation.class), Mockito.any(), Mockito.any());
 
         doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo1));
         doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo2));
@@ -286,8 +286,9 @@ public class MaintenanceIntervalServiceTest {
                 Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(6)).findById(Mockito.any(UUID.class));
-        verify(mailProvider, times(6))
-                .sendReservationRemovalEmail(Mockito.any(String.class), Mockito.any(Reservation.class), Mockito.any(String.class), Mockito.any(String.class));
+        verify(mailProvider, times(6)).sendReservationRemovalEmail(
+                Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class),
+                Mockito.any(Reservation.class), Mockito.any(), Mockito.any());
         verify(reservationRepository, times(2)).delete(Mockito.any(Reservation.class));
     }
 
@@ -402,7 +403,8 @@ public class MaintenanceIntervalServiceTest {
         when(userRepository.findById(Mockito.eq(userNo3.getId()))).thenReturn(Optional.of(userNo3));
 
         doNothing().when(mailProvider).sendReservationRemovalEmail(
-                Mockito.any(String.class), Mockito.any(Reservation.class), Mockito.any(String.class), Mockito.any(String.class));
+                Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class),
+                Mockito.any(Reservation.class), Mockito.any(), Mockito.any());
 
         doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo1));
         doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo2));
@@ -420,7 +422,8 @@ public class MaintenanceIntervalServiceTest {
 
         verify(userRepository, times(6)).findById(Mockito.any(UUID.class));
         verify(mailProvider, times(6)).sendReservationRemovalEmail(
-                Mockito.any(String.class), Mockito.any(Reservation.class), Mockito.any(String.class), Mockito.any(String.class));
+                Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class),
+                Mockito.any(Reservation.class), Mockito.any(), Mockito.any());
         verify(reservationRepository, times(2)).delete(Mockito.any(Reservation.class));
     }
 

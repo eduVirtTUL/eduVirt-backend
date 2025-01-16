@@ -431,13 +431,13 @@ public class MaintenanceIntervalControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeActiveClusterMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         UUID clusterId = existingClusterId;
         boolean active = true;
 
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Pageable pageable = PageRequest.of(page, size);
 
         MaintenanceIntervalDto dtoNo1 = new MaintenanceIntervalDto(
                 maintenanceInterval1.getId(),
@@ -466,8 +466,8 @@ public class MaintenanceIntervalControllerTest {
                 .thenReturn(dtoNo1, dtoNo2);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
                         .param("clusterId", clusterId.toString())
                         .param("active", String.valueOf(active)))
                 .andDo(print())
@@ -523,12 +523,12 @@ public class MaintenanceIntervalControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeActiveSystemMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         boolean active = true;
 
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Pageable pageable = PageRequest.of(page, size);
 
         MaintenanceIntervalDto dtoNo1 = new MaintenanceIntervalDto(
                 maintenanceInterval2.getId(),
@@ -557,8 +557,8 @@ public class MaintenanceIntervalControllerTest {
                 .thenReturn(dtoNo1, dtoNo2);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
                         .param("active", String.valueOf(active)))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -613,13 +613,13 @@ public class MaintenanceIntervalControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeInactiveClusterMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         UUID clusterId = existingClusterId;
         boolean active = false;
 
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Pageable pageable = PageRequest.of(page, size);
 
         MaintenanceIntervalDto dtoNo1 = new MaintenanceIntervalDto(
                 maintenanceInterval5.getId(),
@@ -648,8 +648,8 @@ public class MaintenanceIntervalControllerTest {
                 .thenReturn(dtoNo1, dtoNo2);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
                         .param("clusterId", clusterId.toString())
                         .param("active", String.valueOf(active)))
                 .andDo(print())
@@ -705,12 +705,12 @@ public class MaintenanceIntervalControllerTest {
     @WithMockUser
     @Test
     public void Given_SomeInactiveSystemMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         boolean active = true;
 
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Pageable pageable = PageRequest.of(page, size);
 
         MaintenanceIntervalDto dtoNo1 = new MaintenanceIntervalDto(
                 maintenanceInterval6.getId(),
@@ -739,8 +739,8 @@ public class MaintenanceIntervalControllerTest {
                 .thenReturn(dtoNo1, dtoNo2);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
                         .param("active", String.valueOf(active)))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -795,20 +795,20 @@ public class MaintenanceIntervalControllerTest {
     @WithMockUser
     @Test
     public void Given_NoMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsEmptyMaintenanceIntervalList() throws Exception {
-        int pageNumber = 0;
-        int pageSize = 10;
+        int page = 0;
+        int size = 10;
 
         UUID clusterId = existingClusterId;
         boolean active = false;
 
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Pageable pageable = PageRequest.of(page, size);
 
         when(maintenanceIntervalService.findAllMaintenanceIntervals(Mockito.eq(clusterId), Mockito.eq(active), Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/maintenance-intervals")
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
                         .param("clusterId", clusterId.toString())
                         .param("active", String.valueOf(active)))
                 .andDo(print())
@@ -821,13 +821,13 @@ public class MaintenanceIntervalControllerTest {
     @WithMockUser
     @Test
     public void Given_InvalidPaginationParametersArePassed_When_GetAllMaintenanceIntervals_Then_ReturnsEmptyMaintenanceIntervalList() throws Exception {
-        int pageNumber = -1;
-        int pageSize = 10;
+        int page = -1;
+        int size = 10;
         boolean active = false;
 
         mockMvc.perform(get("/maintenance-intervals")
-                        .param("pageNumber", String.valueOf(pageNumber))
-                        .param("pageSize", String.valueOf(pageSize))
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size))
                         .param("clusterId", existingClusterId.toString())
                         .param("active", String.valueOf(active)))
                 .andDo(print())
