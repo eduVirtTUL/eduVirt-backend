@@ -25,4 +25,6 @@ public interface ResourceGroupPoolRepository extends JpaRepository<ResourceGroup
     Page<ResourceGroupPool> findAllByCourseTeachersContaining(User user, Specification<ResourceGroupPool> specification, Pageable pageable);
 
     Page<ResourceGroupPool> findAllByCourseTeachersContaining(User user, Pageable pageable);
+
+    boolean existsByCourseIdAndNameAndIdNot(UUID courseId, String name, UUID rgPoolId);
 }

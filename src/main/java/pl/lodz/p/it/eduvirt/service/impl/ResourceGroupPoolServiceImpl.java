@@ -106,6 +106,15 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
             throw new ResourceGroupPoolConflictException();
         }
 
+        boolean isNameTaken = resourceGroupPoolRepository.existsByCourseIdAndNameAndIdNot(pool.getCourse().getId(),
+                resourceGroupPool.getName(),
+                pool.getId()
+        );
+
+        if (isNameTaken) {
+            throw new ResourceGroupPoolAlreadyExistsException(resourceGroupPool.getName());
+        }
+
         pool.getResourceGroups()
                 .forEach(resourceGroup -> {
                     resourceGroup.setDescription(resourceGroupPool.getDescription());

@@ -8,7 +8,7 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import java.util.List;
 import java.util.stream.Stream;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {NetworkInterfaceMapper.class})
 public interface ResourceGroupNetworkMapper {
     ResourceGroupNetworkDto toResourceGroupNetworkDto(ResourceGroupNetwork resourceGroupNetwork);
 
