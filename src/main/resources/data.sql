@@ -437,3 +437,10 @@ INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, max_rent)
 VALUES ('c971b368-92c8-4a01-86d2-dd783b5360a8', '1decd050-1328-4eca-b2de-84793a8474c2','a7919551-3807-4b35-88e3-fc3a868ba014', 'd46387ee-7397-4184-91eb-d01d5f301c0e', 3),
        ('161f4a45-f87d-40b5-9ad6-1ec056485e01', '1decd050-1328-4eca-b2de-84793a8474c2','e51132d3-8ac3-4232-85e0-849c8afa6abc', 'e608c9d0-e871-4374-a052-f27ced4a9cec', 3),
        ('c3db873c-cfeb-4ec2-b87b-342af78f869a', '1decd050-1328-4eca-b2de-84793a8474c2','7c7ed665-831c-4e24-b6fe-1947a16fcadb', '18750e93-22a7-4a23-8f8b-e0cabde8f793', 3);
+
+INSERT INTO public.users(ovirt_id, user_id, email, first_name, last_name, user_name)
+VALUES ('c505a843-777b-46c7-baed-c3961c90eb63', '2cadb69b-6618-4a6b-8a00-8b44ecd0071a', 'teacher1@example.com',
+        'Teacher', 'Cool', 'teacher1');
+
+INSERT INTO public.user_roles(user_id, role)
+VALUES ('2cadb69b-6618-4a6b-8a00-8b44ecd0071a', 'teacher');

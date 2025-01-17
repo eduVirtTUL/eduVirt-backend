@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +19,11 @@ import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
+import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -37,13 +40,18 @@ public class CourseServiceImpl implements CourseService {
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
 
     @Override
-    public Page<Course> getCourses(int page, int size) {
-        return courseRepository.findAll(PageRequest.of(page, size));
-    }
+    public Page<Course> getCourses(int page, int size, String search, String sortOrder) {
+        Sort sort = null;
+        if (Objects.equals(sortOrder, "ASC")) {
+            sort = Sort.by("name").ascending();
+        } else if ("DESC".equals(sortOrder)) {
+            sort = Sort.by("name").descending();
+        }
+        if (Objects.equals(search, "")) {
+            return courseRepository.findAll(PageRequest.of(page, size, sort));
+        }
 
-    @Override
-    public Page<Course> getCourses(int page, int size, String search) {
-        return courseRepository.findAllByNameContainingIgnoreCase(search, PageRequest.of(page, size));
+        return courseRepository.findAllByNameContainingIgnoreCase(search, PageRequest.of(page, size, sort));
     }
 
     @Override
@@ -54,6 +62,12 @@ public class CourseServiceImpl implements CourseService {
             return courseRepository.findAllByTeachersContainingAndNameContainingIgnoreCase(user, search, PageRequest.of(page, size));
         }
         return courseRepository.findAllByTeachersContaining(user, PageRequest.of(page, size));
+    }
+
+    @Override
+    @Transactional
+    public List<Course> getCourses() {
+        return courseRepository.findAll();
     }
 
     @Override
@@ -88,7 +102,7 @@ public class CourseServiceImpl implements CourseService {
         User teacher = userRepository.findByEmailIgnoreCase(teacherEmail)
                 .orElseThrow(() -> new UserNotFoundException("Teacher not found"));
 
-        if (!teacher.getRoles().contains("/teacher")) {
+        if (!teacher.getRoles().contains(RoleConstants.TEACHER)) {
             throw new IllegalArgumentException("User is not a teacher");
         }
 

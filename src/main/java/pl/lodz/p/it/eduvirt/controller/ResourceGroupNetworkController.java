@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.resource_group_network.CreateResourceGroupNetworkDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_network.ResourceGroupNetworkDto;
@@ -34,6 +35,7 @@ public class ResourceGroupNetworkController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @Transactional
     public ResponseEntity<List<ResourceGroupNetworkDto>> get(@PathVariable UUID rgId) {
         return ResponseEntity.ok(
                 resourceGroupNetworkMapper.toResourceGroupNetworkDtos(

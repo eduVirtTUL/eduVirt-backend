@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.NetworkAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.NoNetworkAvailableException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
@@ -49,6 +50,10 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
 
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
             throw new ResourceGroupConflictException();
+        }
+
+        if (resourceGroupNetworkRepository.existsByResourceGroupAndName(resourceGroup, name)) {
+            throw new NetworkAlreadyExistsException();
         }
 
         Course course;

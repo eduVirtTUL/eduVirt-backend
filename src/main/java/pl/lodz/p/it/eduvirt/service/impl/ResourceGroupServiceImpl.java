@@ -157,7 +157,14 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
         validateOwnership(resourceGroup);
 
-        resourceGroupRepository.deleteById(id);
+        if (!resourceGroup.isStateless()) {
+            Course course = courseRepository.findByStateFullResourceGroupsContaining(resourceGroup);
+            course.getStateFullResourceGroups().remove(resourceGroup);
+            courseRepository.save(course);
+        } else {
+            resourceGroupRepository.deleteById(id);
+        }
+
     }
 
     @Transactional
@@ -175,13 +182,17 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
         boolean isNameTaken;
         if (existingResourceGroup.isStateless()) {
             ResourceGroupPool pool = resourceGroupPoolRepository.findByResourceGroupsContaining(existingResourceGroup);
-            isNameTaken = pool.getResourceGroups().stream().anyMatch(rg -> Objects.equals(rg.getName(), resourceGroup.getName()));
+            isNameTaken = pool.getResourceGroups().stream().anyMatch(rg ->
+                    Objects.equals(rg.getName(), resourceGroup.getName()) &&
+                            !Objects.equals(rg.getId(), existingResourceGroup.getId()));
         } else {
             existingResourceGroup.setDescription(resourceGroup.getDescription());
             existingResourceGroup.setMaxRentTime(resourceGroup.getMaxRentTime());
 
             Course course = courseRepository.findByStateFullResourceGroupsContaining(existingResourceGroup);
-            isNameTaken = course.getStateFullResourceGroups().stream().anyMatch(rg -> Objects.equals(rg.getName(), resourceGroup.getName()));
+            isNameTaken = course.getStateFullResourceGroups().stream().anyMatch(rg ->
+                    Objects.equals(rg.getName(), resourceGroup.getName())
+                            && !Objects.equals(rg.getId(), existingResourceGroup.getId()));
         }
 
         if (isNameTaken) {
