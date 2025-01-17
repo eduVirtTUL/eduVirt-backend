@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
-import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
+import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.ClusterMetricRepository;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
@@ -34,7 +34,7 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void createNewValueForMetric(Cluster cluster, UUID metricId, double value) {
         UUID clusterId = UUID.fromString(cluster.id());
@@ -43,8 +43,8 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
         clusterMetricRepository.findByClusterIdAndMetric(clusterId, metric)
                 .ifPresent(metricValue -> {
-            throw new ClusterMetricExistsException(clusterId, metricId);
-        });
+                    throw new ClusterMetricExistsException(clusterId, metricId);
+                });
 
         ClusterMetric newMetricValue = new ClusterMetric(clusterId, metric, value);
         clusterMetricRepository.saveAndFlush(newMetricValue);
@@ -52,7 +52,7 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     /* Read methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Page<ClusterMetric> findAllMetricValuesForCluster(Cluster cluster, Pageable pageable) {
         UUID clusterId = UUID.fromString(cluster.id());
@@ -68,7 +68,7 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     /* Update methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public ClusterMetric updateMetricValue(Cluster cluster, UUID metricId, double newValue) {
         UUID clusterId = UUID.fromString(cluster.id());
@@ -85,7 +85,7 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     /* Delete methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void deleteMetricValue(Cluster cluster, UUID metricId) {
         UUID clusterId = UUID.fromString(cluster.id());

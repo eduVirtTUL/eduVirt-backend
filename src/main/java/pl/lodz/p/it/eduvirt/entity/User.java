@@ -38,6 +38,12 @@ public class User {
     @Column(name = "last_name")
     private String lastName;
 
+    @Column(name = "language")
+    private String language;
+
+    @Column(name = "time_zone")
+    private String timeZone;
+
     @ElementCollection
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
@@ -61,5 +67,23 @@ public class User {
         this.userName = userName;
         this.firstName = firstName;
         this.lastName = lastName;
+    }
+
+    public User(UUID id,
+                UUID oVirtId,
+                String email,
+                String userName,
+                String firstName,
+                String lastName,
+                List<String> roles,
+                List<Team> teams) {
+        this.id = id;
+        this.oVirtId = oVirtId;
+        this.email = email;
+        this.userName = userName;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.roles = roles;
+        this.teams = teams;
     }
 }

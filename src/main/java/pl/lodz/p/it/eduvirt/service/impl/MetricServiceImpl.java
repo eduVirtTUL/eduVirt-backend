@@ -1,7 +1,10 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -30,7 +33,7 @@ public class MetricServiceImpl implements MetricService {
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void createNewMetric(String metricName, Metric.MetricCategory category) {
         Metric newMetric = new Metric(metricName, category);
@@ -39,14 +42,14 @@ public class MetricServiceImpl implements MetricService {
 
     /* Read methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Metric findById(UUID id) {
         return metricRepository.findById(id)
                 .orElseThrow(() -> new MetricNotFoundException(id));
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Page<Metric> findAllMetrics(int pageNumber, int pageSize) {
         try {
@@ -59,7 +62,7 @@ public class MetricServiceImpl implements MetricService {
 
     /* Update methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void deleteMetric(UUID metricId) {
         Metric metric = metricRepository.findById(metricId)

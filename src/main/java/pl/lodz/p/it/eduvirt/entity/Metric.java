@@ -14,8 +14,7 @@ import lombok.Setter;
 public class Metric extends AbstractEntity {
 
     public enum MetricCategory {
-        VOLATILE_MEMORY,
-        NON_VOLATILE_MEMORY,
+        MEMORY,
         COUNTABLE,
     }
 

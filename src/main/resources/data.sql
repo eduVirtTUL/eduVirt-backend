@@ -1,6 +1,6 @@
 INSERT INTO public.metric (id, name, category)
 VALUES ('2865efff-f8e5-4960-a0ce-fc05e98828ba', 'cpu_count', 'COUNTABLE'),
-       ('63490da4-d0f1-4e7a-88fc-3342633accc0', 'memory_size', 'VOLATILE_MEMORY'),
+       ('63490da4-d0f1-4e7a-88fc-3342633accc0', 'memory_size', 'MEMORY'),
        ('1929c2b2-ba03-4180-ae90-79bd2335f2a8', 'network_count', 'COUNTABLE');
 
 INSERT INTO public.metric_cluster (id, cluster_id, metric_id, metric_value)
@@ -112,7 +112,7 @@ VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'b96844a7-7cb6-48f1-b4e6-1291988
        ('1decd050-1328-4eca-b2de-84793a8474c2', '87b11363-bb7e-4d54-8f57-ed5a52146210');
 
 INSERT INTO public.users (user_id, ovirt_id, email, first_name, last_name, user_name)
-VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', gen_random_uuid(), 'example01@email.com', 'FirstName01', 'LastName01',
+VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', gen_random_uuid(), '242447@edu.p.lodz.pl', 'FirstName01', 'LastName01',
         'UserName01'),
        ('c7ceee90-734d-4e6c-8756-2cd9a44ff668', gen_random_uuid(), 'example02@email.com', 'FirstName02', 'LastName02',
         'UserName02'),
@@ -152,6 +152,11 @@ VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', gen_random_uuid(), 'example01@em
         'UserName19'),
        ('a666ee8c-4b1a-413a-8e89-c45a688f5d1a', gen_random_uuid(), 'example20@email.com', 'FirstName20', 'LastName20',
         'UserName20');
+
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', 'administrator'),
+       ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', 'student'),
+       ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', 'teacher');
 
 --------------------------
 --- Systemy operacyjne ---
@@ -464,3 +469,11 @@ INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, 
 VALUES ('33ad145f-10a6-4d4f-a06c-a1a869aa9d43', 'a7919551-3807-4b35-88e3-fc3a868ba014'),
        ('ad1b03b6-7c19-4f92-b647-9670013ce1fc', 'e51132d3-8ac3-4232-85e0-849c8afa6abc'),
        ('86e4d3cd-5764-426e-bff1-49eb21696187', '7c7ed665-831c-4e24-b6fe-1947a16fcadb');
+
+
+INSERT INTO public.users(ovirt_id, user_id, email, first_name, last_name, user_name)
+VALUES ('c505a843-777b-46c7-baed-c3961c90eb63', '2cadb69b-6618-4a6b-8a00-8b44ecd0071a', 'teacher1@example.com',
+        'Teacher', 'Cool', 'teacher1');
+
+INSERT INTO public.user_roles(user_id, role)
+VALUES ('2cadb69b-6618-4a6b-8a00-8b44ecd0071a', 'teacher');

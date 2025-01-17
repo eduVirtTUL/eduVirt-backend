@@ -46,7 +46,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void createClusterMaintenanceInterval(Cluster cluster, String cause, String description, LocalDateTime beginAt, LocalDateTime endAt) {
         if (beginAt.isAfter(endAt))
@@ -78,9 +78,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         foundReservations.forEach(reservation -> {
             List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
             /* Send e-mail notification*/
-            // TODO: Handle i18
             userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
-                    user.getEmail(), reservation, "CET", "pl"
+                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, user.getTimeZone(), user.getLanguage()
             )));
 
             /* Delete reservation */
@@ -90,7 +89,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         maintenanceIntervalRepository.saveAndFlush(maintenanceInterval);
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void createSystemMaintenanceInterval(String cause, String description, LocalDateTime beginAt, LocalDateTime endAt) {
         if (beginAt.isAfter(endAt))
@@ -122,9 +121,8 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
             List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
 
             /* Send e-mail notification*/
-            // TODO: Handle i18
             userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
-                    user.getEmail(), reservation, "CET", "pl"
+                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, user.getTimeZone(), user.getLanguage()
             )));
 
             /* Delete reservation */
@@ -142,7 +140,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         return maintenanceIntervalRepository.findById(intervalId);
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Page<MaintenanceInterval> findAllMaintenanceIntervals(UUID clusterId, boolean active, Pageable pageable) {
         if (active) {
@@ -163,7 +161,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
 
     /* Update / delete methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     public void finishMaintenanceInterval(UUID intervalId) {
         MaintenanceInterval foundInterval = maintenanceIntervalRepository.findById(intervalId)

@@ -21,21 +21,21 @@ import java.util.UUID;
 @Transactional(propagation = Propagation.MANDATORY)
 public interface MaintenanceIntervalRepository extends JpaRepository<MaintenanceInterval, UUID> {
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt > current_timestamp " +
             "AND ((mi.type = 'CLUSTER' AND mi.clusterId = :clusterId) OR mi.type = 'SYSTEM') ORDER BY mi.endAt ASC")
     Page<MaintenanceInterval> findAllActiveIntervalsForGivenCluster(@Param("clusterId") UUID clusterId, Pageable pageable);
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt > current_timestamp ORDER BY mi.endAt ASC")
     Page<MaintenanceInterval> findAllActiveIntervals(Pageable pageable);
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt < current_timestamp " +
             "AND ((mi.type = 'CLUSTER' AND mi.clusterId = :clusterId) OR mi.type = 'SYSTEM') ORDER BY mi.endAt DESC")
     Page<MaintenanceInterval> findAllHistoricalIntervalsForGivenCluster(@Param("clusterId") UUID clusterId, Pageable pageable);
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt < current_timestamp ORDER BY mi.endAt DESC")
     Page<MaintenanceInterval> findAllHistoricalIntervals(Pageable pageable);
 

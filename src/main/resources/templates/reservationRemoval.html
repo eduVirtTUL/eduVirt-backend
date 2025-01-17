@@ -6,7 +6,7 @@
     </head>
 
     <body>
-        <h3 th:text="#{hello} + ' ' + ${name} + '!'"></h3>
+        <h3 th:text="#{hello} + ' ' + ${firstName} + ' ' + ${lastName} + '!'"></h3>
 
         <br/>
 
@@ -19,6 +19,6 @@
 
         <br/><br/>
 
-        <p th:text="#{emailNote}"></p>
+        <p><strong th:text="#{note}"></strong>: <span th:text="#{emailNote}"></span></p>
     </body>
 </html>

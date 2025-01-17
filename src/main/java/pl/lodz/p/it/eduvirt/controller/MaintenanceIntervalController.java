@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.maintenance_interval.CreateMaintenanceIntervalDto;
 import pl.lodz.p.it.eduvirt.dto.maintenance_interval.MaintenanceIntervalDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.maintenance_interval.MaintenanceIntervalDto;
@@ -46,7 +45,7 @@ public class MaintenanceIntervalController {
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @PostMapping(path = "/cluster/{clusterId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createNewClusterMaintenanceInterval(
             @PathVariable("clusterId") UUID clusterId,
@@ -61,7 +60,7 @@ public class MaintenanceIntervalController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @PostMapping(path = "/system", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createNewSystemMaintenanceInterval(
             @RequestBody @Validated CreateMaintenanceIntervalDto createDto) {
@@ -78,13 +77,13 @@ public class MaintenanceIntervalController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MaintenanceIntervalDto>> getAllMaintenanceIntervals(
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
             @RequestParam(name = "clusterId", required = false) UUID clusterId,
             @RequestParam(name = "active", required = false, defaultValue = "true") boolean active) {
         try {
             Page<MaintenanceInterval> maintenanceIntervalPage = maintenanceIntervalService
-                    .findAllMaintenanceIntervals(clusterId, active, PageRequest.of(pageNumber, pageSize));
+                    .findAllMaintenanceIntervals(clusterId, active, PageRequest.of(page, size));
 
             PageDto<MaintenanceIntervalDto> listOfDtos = new PageDto<>(
                     maintenanceIntervalPage.getContent().stream().map(maintenanceIntervalMapper::maintenanceIntervalToDto).toList(),
@@ -133,7 +132,7 @@ public class MaintenanceIntervalController {
 
     /* Delete methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @DeleteMapping(path = "/{intervalId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> finishMaintenanceInterval(@PathVariable("intervalId") UUID intervalId) {
         maintenanceIntervalService.finishMaintenanceInterval(intervalId);

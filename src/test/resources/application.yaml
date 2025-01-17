@@ -4,3 +4,9 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: test
+
+window:
+  length: 15
+resource:
+  warning:
+    mail: true

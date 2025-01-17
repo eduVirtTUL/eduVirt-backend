@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
                     actualToken.getPreferredUsername(),
                     actualToken.getGivenName(),
                     actualToken.getFamilyName(),
-                    actualToken.getGroups(),
+                    parseGroups(actualToken.getGroups()),
                     emptyTeams);
 
             userRepository.saveAndFlush(newUser);
@@ -73,7 +73,7 @@ public class AuthServiceImpl implements AuthService {
                 needsUpdate = true;
             }
             if (actualToken.getGroups() != null) {
-                actualUser.setRoles(new ArrayList<>(actualToken.getGroups()));
+                actualUser.setRoles(parseGroups(actualToken.getGroups()));
                 needsUpdate = true;
             }
 
@@ -81,5 +81,21 @@ public class AuthServiceImpl implements AuthService {
                 userRepository.saveAndFlush(actualUser);
             }
         }
+    }
+
+    private List<String> parseGroups(List<String> groups) {
+        var roles = groups.stream().map(group -> switch (group) {
+                    case "/teacher" -> "teacher";
+                    case "/student" -> "student";
+                    case "/ovirt-administrator" -> "administrator";
+                    default -> "user";
+                }).filter(role -> !role.equals("user"))
+                .toList();
+
+        if (roles.isEmpty()) {
+            return List.of("student");
+        }
+
+        return roles;
     }
 }

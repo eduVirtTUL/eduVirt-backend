@@ -1,8 +1,10 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.ovirt.engine.sdk4.types.Host;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,9 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
-import pl.lodz.p.it.eduvirt.entity.MaintenanceInterval;
-import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.*;
@@ -22,9 +21,12 @@ import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.I18n;
+import pl.lodz.p.it.eduvirt.util.MailProvider;
 import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
-import java.time.*;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +36,18 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.REQUIRED)
 public class ReservationServiceImpl implements ReservationService {
+
+    @Value("${resource.warning.mail}")
+    private boolean resourcesWarningMails;
+
+    @Value("${window.length}")
+    private int windowLength;
+
+    @PostConstruct
+    public void validateProperty() {
+        if (windowLength < 10) windowLength = 10;
+        if (windowLength > 60) windowLength = 60;
+    }
 
     /* Services */
 
@@ -46,11 +60,13 @@ public class ReservationServiceImpl implements ReservationService {
     private final CourseMetricRepository courseMetricRepository;
     private final ClusterMetricRepository clusterMetricRepository;
     private final MaintenanceIntervalRepository maintenanceIntervalRepository;
+    private final UserRepository userRepository;
 
     /* Util */
 
     private final MetricUtil metricUtil;
     private final BankerAlgorithm bankerAlgorithm;
+    private final MailProvider mailProvider;
 
     /* Create methods */
 
@@ -65,10 +81,9 @@ public class ReservationServiceImpl implements ReservationService {
 
         // TODO: Uncomment after the stateless pod is done
         /* TODO: Check all the required conditions
-         *        [V] Minimum reservation length (that is 1 hour)
+         *        [V] Minimum reservation length (that is 2 * window length)
          *        [V] Maximum reservation length
          *        [V] Maximum number of reservations for given resource group
-         *        [V] Grace period for next reservation of the same resource group
          *        [V] Maintenance interval exists during selected time period
          *        [V] Resource group availability
          *        [V] Required resource availability for course
@@ -84,52 +99,36 @@ public class ReservationServiceImpl implements ReservationService {
         if (start.isBefore(currentTime)) throw new ReservationStartInPastException();
         if (end.isBefore(start)) throw new ReservationEndBeforeStartException();
 
+        /* Limit reservation length to the multiplicity of window length */
+
+        long numOfIntervals = (ChronoUnit.SECONDS.between(start, end) / TimeUnit.MINUTES.toSeconds(windowLength));
+        end = start.plusMinutes(numOfIntervals * windowLength);
+
         /* Condition no. 1: Minimum reservation length */
 
-        if ((int) ChronoUnit.HOURS.between(start, end) < 1)
-            throw new ReservationTooShortException(
-                    "Minimum length of the reservation in eduVirt system is exactly 1 hour.");
+        long reservationLength = ChronoUnit.SECONDS.between(start, end);
+        if (reservationLength < (2L * TimeUnit.MINUTES.toSeconds(windowLength)))
+            throw new ReservationTooShortException("Minimum length of the reservation in eduVirt system is exactly twice as long as assumed window length.");
 
         /* Condition no. 2: Maximum reservation length */
 
-        long maxRentHours = TimeUnit.HOURS.toSeconds(resourceGroup.getMaxRentTime());
-        long reservationLengthHours = ChronoUnit.SECONDS.between(start, end);
-
-        if (maxRentHours != 0 && reservationLengthHours > maxRentHours)
+        long maxRentTime = TimeUnit.HOURS.toSeconds(resourceGroup.getMaxRentTime());
+        if (maxRentTime != 0 && reservationLength > maxRentTime)
             throw new ReservationMaxLengthExceededException("Reservation for resource group: %s could not be longer than: %d"
-                    .formatted(resourceGroup.getId(), maxRentHours));
+                    .formatted(resourceGroup.getId(), maxRentTime));
 
         /* Condition no. 3: Maximum number of reservations for given resource group */
 
-//        int reservationLimit = resourceGroup.getMaxRent();
-//        List<Reservation> rgTeamReservations = reservationRepository
-//                .findAllRgReservationsForGivenTeam(resourceGroup, team);
-//
-//        if (reservationLimit != 0 && rgTeamReservations.size() >= reservationLimit)
-//            throw new ResourceGroupReservationCountExceededException(
-//                    "Team %s has already made all available reservations for resource group: %s"
-//                            .formatted(team.getId(), resourceGroup.getId()));
+        int reservationLimit = pod.getMaxRent();
+        List<Reservation> rgTeamReservations = reservationRepository
+                .findAllRgReservationsForGivenTeam(resourceGroup, team);
 
-        /* Condition no. 4: Grace period for previous reservation */
+        if (reservationLimit != 0 && rgTeamReservations.size() >= reservationLimit)
+            throw new ResourceGroupReservationCountExceededException(
+                    "Team %s has already made all available reservations for resource group: %s"
+                            .formatted(team.getId(), resourceGroup.getId()));
 
-//        int gracePeriodInHours = resourceGroup.getGracePeriod();
-//        List<Reservation> reservationsBefore = reservationRepository.findRgReservationsForGivenTeam(
-//                resourceGroup, team, start.minusHours(gracePeriodInHours), start);
-//
-//        List<Reservation> reservationsAfter = reservationRepository.findRgReservationsForGivenTeam(
-//                resourceGroup, team, end, end.plusHours(gracePeriodInHours));
-//
-//        if (gracePeriodInHours != 0 && !reservationsBefore.isEmpty())
-//            throw new ReservationGracePeriodNotFinishedException(
-//                    "Reservation grace period, which is %d hours, will not be finished before scheduled reservation."
-//                            .formatted(gracePeriodInHours));
-//
-//        if (gracePeriodInHours != 0 && !reservationsAfter.isEmpty())
-//            throw new ReservationGracePeriodCouldNotFinishException(
-//                    "Reservation grace period, which is %d hours, will not be finished before next reservation."
-//                            .formatted(gracePeriodInHours));
-
-        /* Condition no. 5: Maintenance intervals */
+        /* Condition no. 4: Maintenance intervals */
 
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
                 .findAllIntervalsInGivenTimePeriod(course.getClusterId(), start, end);
@@ -137,7 +136,7 @@ public class ReservationServiceImpl implements ReservationService {
         if (!foundIntervals.isEmpty())
             throw new ReservationCreationException(I18n.RESERVATION_MAINTENANCE_INTERVAL_CONFLICT);
 
-        /* Condition no. 6: Resource group availability */
+        /* Condition no. 5: Resource group availability */
 
         List<Reservation> foundReservations = reservationRepository
                 .findRgReservations(resourceGroup, start, end);
@@ -145,7 +144,7 @@ public class ReservationServiceImpl implements ReservationService {
             throw new ResourceGroupAlreadyReservedException("Reservation for resource group: %s is already made"
                     .formatted(resourceGroup.getId()));
 
-        /* Condition no. 7: Resources availability for given course */
+        /* Condition no. 6: Resources availability for given course */
 
         List<CourseMetric> foundCourseMetrics = courseMetricRepository.findAllByCourse(course);
         List<Reservation> foundCourseReservations = reservationRepository
@@ -155,7 +154,7 @@ public class ReservationServiceImpl implements ReservationService {
                 foundCourseReservations, resourceGroup, courseCluster, clusterHosts))
             throw new CourseInsufficientResourcesException(course.getId());
 
-        /* Condition no. 8: Resources availability for given cluster */
+        /* Condition no. 7: Resources availability for given cluster */
 
         List<ClusterMetric> foundClusterMetrics = clusterMetricRepository.findAllByClusterId(course.getClusterId());
         List<Reservation> foundClusterReservations = reservationRepository
@@ -187,7 +186,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         // TODO: Finish implementing when stateless pod is done
         /* TODO: Check all the required conditions
-         *        [V] Minimum reservation length (that is 1 hour)
+         *        [V] Minimum reservation length (that is 2 * window length)
          *        [V] Maximum reservation length
          *        [V] Maximum number of reservations for given resource group
          *        [V] Grace period for next reservation of the same resource group
@@ -201,25 +200,29 @@ public class ReservationServiceImpl implements ReservationService {
 
         LocalDateTime start = createDto.start();
         LocalDateTime end = createDto.end();
+
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
 
         if (start.isBefore(currentTime)) throw new ReservationStartInPastException();
         if (end.isBefore(start)) throw new ReservationEndBeforeStartException();
 
+        /* Limit reservation length to the multiplicity of window length */
+
+        long numOfIntervals = (ChronoUnit.SECONDS.between(start, end) / TimeUnit.MINUTES.toSeconds(windowLength));
+        end = start.plusMinutes(numOfIntervals * windowLength);
+
         /* Condition no. 1: Minimum reservation length */
 
         long reservationLength = ChronoUnit.SECONDS.between(start, end);
-        if (reservationLength < 3600)
-            throw new ReservationTooShortException(
-                    "Minimum length of the reservation in eduVirt system is exactly 1 hour.");
+        if (reservationLength < (2L * TimeUnit.MINUTES.toSeconds(windowLength)))
+            throw new ReservationTooShortException("Minimum length of the reservation in eduVirt system is exactly twice as long as assumed window length.");
 
         /* Condition no. 2: Maximum reservation length */
 
-        long maxRentHours = TimeUnit.HOURS.toSeconds(resourceGroupPool.getMaxRentTime());
-
-        if (maxRentHours != 0 && reservationLength > maxRentHours)
+        long maxRentTime = TimeUnit.HOURS.toSeconds(resourceGroupPool.getMaxRentTime());
+        if (maxRentTime != 0 && reservationLength > maxRentTime)
             throw new ReservationMaxLengthExceededException("Reservation for resource group pool: %s could not be longer than: %d"
-                    .formatted(resourceGroupPool.getId(), maxRentHours));
+                    .formatted(resourceGroupPool.getId(), maxRentTime));
 
         /* Condition no. 3: Maximum number of reservations for given resource group */
 
@@ -313,14 +316,14 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findById(reservationId);
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @Override
     public Page<Reservation> findReservationsForStatelessPod(PodStateless statelessPod, Team team, Pageable pageable) {
         return reservationRepository.findAllRgPoolReservationsForGivenTeam(
                 statelessPod.getResourceGroupPool(), team, pageable);
     }
 
-    @PreAuthorize("hasRole('student')")
+    @PreAuthorize("hasAuthority('student')")
     @Override
     public Page<Reservation> findReservationsForStatefulPod(PodStateful statefulPod, Team team, Pageable pageable) {
         return reservationRepository.findAllRgReservationsForGivenTeam(
@@ -341,7 +344,7 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findRgPoolReservations(resourceGroupPool, start, end);
     }
 
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Override
     public Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable) {
         Team foundTeam = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
@@ -349,7 +352,7 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findAllActiveReservations(foundTeam, currentTime, pageable);
     }
 
-    @PreAuthorize("hasAnyRole('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Override
     public Page<Reservation> findHistoricalReservations(UUID teamId, Pageable pageable) {
         Team foundTeam = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
@@ -375,6 +378,17 @@ public class ReservationServiceImpl implements ReservationService {
                     courseMetrics, clusterMetrics, currentTime, currentTime.plusMinutes(windowLength)));
 
             currentTime = currentTime.plusMinutes(windowLength);
+        }
+
+        boolean isOverWeek = (ChronoUnit.SECONDS.between(start, end) >= TimeUnit.DAYS.toSeconds(7)) && resourcesWarningMails;
+        if (isOverWeek && checkIfWarningMailRequired(start, end, availability)) {
+            List<User> addressees = userRepository.findUsersWithRole("administrator");
+            addressees.addAll(course.getTeachers());
+
+            addressees.forEach(addressee -> mailProvider.sendTemporaryCourseResourcesExhaustionEmail(
+                    addressee.getFirstName(), addressee.getLastName(), addressee.getEmail(),
+                    course, resourceGroup.getName(), true, start, end, addressee.getTimeZone(), addressee.getLanguage()
+            ));
         }
 
         return availability;
@@ -404,6 +418,17 @@ public class ReservationServiceImpl implements ReservationService {
 
             availability.put(currentTime, available);
             currentTime = currentTime.plusMinutes(windowLength);
+        }
+
+        boolean isOverWeek = (ChronoUnit.SECONDS.between(start, end) >= TimeUnit.DAYS.toSeconds(7)) && resourcesWarningMails;
+        if (isOverWeek && checkIfWarningMailRequired(start, end, availability)) {
+            List<User> addressees = userRepository.findUsersWithRole("administrator");
+            addressees.addAll(course.getTeachers());
+
+            addressees.forEach(addressee -> mailProvider.sendTemporaryCourseResourcesExhaustionEmail(
+                    addressee.getFirstName(), addressee.getLastName(), addressee.getEmail(),
+                    course, resourceGroupPool.getName(), false, start, end, addressee.getTimeZone(), addressee.getLanguage()
+            ));
         }
 
         return availability;
@@ -460,6 +485,24 @@ public class ReservationServiceImpl implements ReservationService {
     /* Other methods */
 
     @PreAuthorize("isAuthenticated()")
+    private boolean checkIfWarningMailRequired(LocalDateTime start, LocalDateTime end, Map<LocalDateTime, Boolean> availability) {
+        LocalDateTime startTemp = start;
+
+        Stack<Boolean> availabilityStack = new Stack<>();
+        while (startTemp.isBefore(end)) {
+            if (availability.get(startTemp)) {
+                availabilityStack.push(true);
+                if (availabilityStack.size() >= 2) return false;
+            }
+            else availabilityStack.clear();
+
+            startTemp = startTemp.plusMinutes(windowLength);
+        }
+
+        return true;
+    }
+
+    @PreAuthorize("isAuthenticated()")
     private boolean establishResourceGroupAvailability(Course course, ResourceGroup resourceGroup, Cluster cluster, List<Host> hosts,
                                                        List<CourseMetric> courseMetrics, List<ClusterMetric> clusterMetrics,
                                                        LocalDateTime start, LocalDateTime end) {
@@ -469,14 +512,19 @@ public class ReservationServiceImpl implements ReservationService {
         List<Reservation> currentClusterReservations = reservationRepository
                 .findClusterReservations(course.getClusterId(), start, end);
 
+        /* Fetching "effective" maintenance intervals for the cluster given course is located in
+         * "Effective" -> maintenance intervals for cluster or system (which makes the cluster unavailable) */
+        List<MaintenanceInterval> effectiveMaintenanceIntervals = maintenanceIntervalRepository
+                .findAllIntervalsInGivenTimePeriod(course.getClusterId(), start, end);
+
         boolean available = bankerAlgorithm.process(() -> metricUtil.extractCourseMetricValues(courseMetrics),
                 currentCourseReservations, resourceGroup, cluster, hosts) &&
                 bankerAlgorithm.process(() -> metricUtil.extractClusterMetricValues(clusterMetrics),
                         currentClusterReservations, resourceGroup, cluster, hosts);
 
-        boolean reserved = !reservationRepository
-                .findRgReservations(resourceGroup, start, end).isEmpty();
+        boolean reserved = !reservationRepository.findRgReservations(resourceGroup, start, end).isEmpty();
+        boolean requiredByAdmin = !effectiveMaintenanceIntervals.isEmpty();
 
-        return available && !reserved;
+        return available && !reserved && !requiredByAdmin;
     }
 }

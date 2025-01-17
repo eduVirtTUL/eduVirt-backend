@@ -264,6 +264,13 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <includes>
+                        <include>pl/lodz/p/it/eduvirt/controller/**</include>
+                        <include>pl/lodz/p/it/eduvirt/service/**</include>
+                        <include>pl/lodz/p/it/eduvirt/util/**</include>
+                    </includes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

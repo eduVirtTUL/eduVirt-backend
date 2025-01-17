@@ -11,15 +11,19 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CourseService {
-    Page<Course> getCourses(int page, int size);
+    Page<Course> getCourses(int page, int size, String search, String sortOrder);
 
-    Page<Course> getCourses(int page, int size, String search);
+    Page<Course> getCoursesForTeacher(UUID userId, int page, int size, String search);
 
     List<Course> getCourses();
+
+    List<Course> getCourses(UUID userId);
 
     List<Course> getCoursesForStudent(User student, Pageable pageable);
 
     Course getCourse(UUID id);
+
+    Course getCourse(UUID id, UUID userId);
 
     Course addCourse(Course course, String teacherEmail);
 

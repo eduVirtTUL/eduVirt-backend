@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.Course;
@@ -17,9 +19,11 @@ import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
+import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -36,18 +40,40 @@ public class CourseServiceImpl implements CourseService {
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
 
     @Override
-    public Page<Course> getCourses(int page, int size) {
-        return courseRepository.findAll(PageRequest.of(page, size));
+    public Page<Course> getCourses(int page, int size, String search, String sortOrder) {
+        Sort sort = null;
+        if (Objects.equals(sortOrder, "ASC")) {
+            sort = Sort.by("name").ascending();
+        } else if ("DESC".equals(sortOrder)) {
+            sort = Sort.by("name").descending();
+        }
+        if (Objects.equals(search, "")) {
+            return courseRepository.findAll(PageRequest.of(page, size, sort));
+        }
+
+        return courseRepository.findAllByNameContainingIgnoreCase(search, PageRequest.of(page, size, sort));
     }
 
     @Override
-    public Page<Course> getCourses(int page, int size, String search) {
-        return courseRepository.findAllByNameContainingIgnoreCase(search, PageRequest.of(page, size));
+    @Transactional
+    public Page<Course> getCoursesForTeacher(UUID userId, int page, int size, String search) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        if (search != null) {
+            return courseRepository.findAllByTeachersContainingAndNameContainingIgnoreCase(user, search, PageRequest.of(page, size));
+        }
+        return courseRepository.findAllByTeachersContaining(user, PageRequest.of(page, size));
     }
 
     @Override
+    @Transactional
     public List<Course> getCourses() {
         return courseRepository.findAll();
+    }
+
+    @Override
+    public List<Course> getCourses(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        return courseRepository.findAllByTeachersContaining(user);
     }
 
     @Override
@@ -62,27 +88,39 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
+    public Course getCourse(UUID id, UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        if (user.getRoles().contains("administrator")) {
+            return courseRepository.findById(id).orElseThrow(() -> new CourseNotFoundException(id));
+        }
+        return courseRepository.findByIdAndTeachersContaining(id, user).orElseThrow(() -> new CourseNotFoundException(id));
+    }
+
+    @Override
+    @Transactional
     public Course addCourse(Course course, String teacherEmail) {
-    User teacher = userRepository.findByEmailIgnoreCase(teacherEmail)
-            .orElseThrow(() -> new UserNotFoundException("Teacher not found"));
+        User teacher = userRepository.findByEmailIgnoreCase(teacherEmail)
+                .orElseThrow(() -> new UserNotFoundException("Teacher not found"));
 
-    if (!teacher.getRoles().contains("/teacher")) {
-        throw new IllegalArgumentException("User is not a teacher");
+        if (!teacher.getRoles().contains(RoleConstants.TEACHER)) {
+            throw new IllegalArgumentException("User is not a teacher");
+        }
+
+        if (course.getTeachers() == null) {
+            course.setTeachers(List.of(teacher));
+        } else {
+            course.getTeachers().add(teacher);
+        }
+
+        return courseRepository.saveAndFlush(course);
     }
-
-    if (course.getTeachers() == null) {
-        course.setTeachers(List.of(teacher));
-    } else {
-        course.getTeachers().add(teacher);
-    }
-
-    return courseRepository.saveAndFlush(course);
-}
 
     @Transactional
     @Override
     public void addResourceGroupToCourse(UUID courseId, ResourceGroup resourceGroup) {
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Course course = courseRepository.findByIdAndTeachersContaining(courseId, user).orElseThrow(() -> new CourseNotFoundException(courseId));
         resourceGroup.setStateless(false);
         course.getStateFullResourceGroups().add(resourceGroup);
         courseRepository.save(course);
@@ -91,19 +129,30 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     @Override
     public List<ResourceGroup> getStateFullResourceGroups(UUID courseId) {
-        return courseRepository
-                .findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId))
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Course course;
+        if (user.getRoles().contains("administrator")) {
+            course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        } else {
+            course = courseRepository.findByIdAndTeachersContaining(courseId, user).orElseThrow(() -> new CourseNotFoundException(courseId));
+        }
+
+        return course
                 .getStateFullResourceGroups();
     }
 
     @Override
     @Transactional
     public void deleteCourse(UUID courseId) {
-        podStatelessRepository.deleteAllByCourseId(courseId);
-        podStatefulRepository.deleteAllByCourseId(courseId);
-        courseAccessKeyRepository.deleteByCourseId(courseId);
-        courseRepository.deleteById(courseId);
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Course course = courseRepository.findByIdAndTeachersContaining(courseId, user)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+        podStatelessRepository.deleteAllByCourseId(course.getId());
+        podStatefulRepository.deleteAllByCourseId(course.getId());
+        courseAccessKeyRepository.deleteByCourseId(course.getId());
+        courseRepository.deleteById(course.getId());
     }
 
     @Override
@@ -157,7 +206,15 @@ public class CourseServiceImpl implements CourseService {
     @Override
     @Transactional
     public Course updateCourse(UUID courseId, Course course, String etag) {
-        Course existingCourse = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        Course existingCourse;
+        if (user.getRoles().contains("administrator")) {
+            existingCourse = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
+        } else {
+            existingCourse = courseRepository.findByIdAndTeachersContaining(courseId, user)
+                    .orElseThrow(() -> new CourseNotFoundException(courseId));
+        }
 
         if (!eTagHelper.validateEtag(etag, existingCourse)) {
             throw new CourseConflictException();

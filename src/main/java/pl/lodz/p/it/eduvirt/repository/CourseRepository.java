@@ -37,4 +37,15 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     @Query("SELECT c FROM Course c LEFT JOIN FETCH c.teachers WHERE c.id = :id")
     Optional<Course> findByIdWithTeachers(@Param("id") UUID id);
+
+    Page<Course> findAllByTeachersContaining(User user, Pageable of);
+
+    List<Course> findAllByTeachersContaining(User user);
+
+    Page<Course> findAllByTeachersContainingAndNameContainingIgnoreCase(User attr0, String name, Pageable of);
+
+    Optional<Course> findByIdAndTeachersContaining(UUID id, User user);
+
+    @Query("SELECT COUNT(c)>0 FROM Course c JOIN c.teachers t WHERE c.id =:courseId AND t.id =:userId")
+    boolean existsCourseForTeacher(UUID courseId, UUID userId);
 }

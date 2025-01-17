@@ -34,7 +34,7 @@ import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
@@ -54,6 +54,15 @@ import java.util.*;
 @LoggerInterceptor
 public class CourseController {
 
+    @Value("${window.length}")
+    private int windowLength;
+
+    @PostConstruct
+    public void validateProperty() {
+        if (windowLength < 10) windowLength = 10;
+        if (windowLength > 60) windowLength = 60;
+    }
+
     /* Services */
 
     private final ReservationService reservationService;
@@ -72,15 +81,19 @@ public class CourseController {
     /* Repositories */
 
     private final UserRepository userRepository;
-
     private final ETagHelper etagHelper;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) Integer page,
-                                                         @RequestParam(name = "size", required = false) Integer size,
-                                                         @RequestParam(name = "search", required = false) String search) {
+    @PreAuthorize("hasAuthority('administrator')")
+    public ResponseEntity<PageDto<CourseDto>> getCourses(@RequestParam(name = "page", required = false) final Integer page,
+                                                         @RequestParam(name = "size", required = false) final Integer size,
+                                                         @RequestParam(name = "search", required = false) final String search,
+                                                         @RequestParam(name = "sort", required = false, defaultValue = "ASC") String sortOrder) {
 
+        if (!(sortOrder.equals("ASC") || sortOrder.equals("DESC"))) {
+            sortOrder = "ASC";
+        }
 
         if (page == null || size == null) {
             List<Course> courses = courseService.getCourses();
@@ -91,14 +104,8 @@ public class CourseController {
                     .build());
         }
 
-        Page<Course> courses;
 
-        if (search == null) {
-            courses = courseService.getCourses(page, size);
-        } else {
-            courses = courseService.getCourses(page, size, search);
-        }
-
+        Page<Course> courses = courseService.getCourses(page, size, search, sortOrder);
 
         return ResponseEntity.ok(PageDto.<CourseDto>builder()
                 .items(courseMapper.toCourseDtoList(courses.getContent().stream()))
@@ -106,7 +113,33 @@ public class CourseController {
                 .build());
     }
 
-    // @PreAuthorize("hasRole('student')")
+    @GetMapping(path = "/teacher", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('teacher')")
+    public ResponseEntity<PageDto<CourseDto>> getCoursesForTeacher(@RequestParam(name = "page", required = false) Integer page,
+                                                                   @RequestParam(name = "size", required = false) Integer size,
+                                                                   @RequestParam(name = "search", required = false) String search) {
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        if (page == null || size == null) {
+            List<Course> courses = courseService.getCourses(userId);
+
+            return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                    .items(courseMapper.toCourseDtoList(courses.stream()))
+                    .page(new PageInfoDto(0, courses.size(), 1, courses.size()))
+                    .build());
+        }
+
+        Page<Course> courses = courseService.getCoursesForTeacher(userId, page, size, search);
+
+        return ResponseEntity.ok(PageDto.<CourseDto>builder()
+                .items(courseMapper.toCourseDtoList(courses.getContent().stream()))
+                .page(new PageInfoDto(courses.getNumber(), courses.getNumberOfElements(), courses.getTotalPages(), courses.getTotalElements()))
+                .build());
+    }
+
+    // @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/member", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<CourseDto>> getCoursesForStudent(Pageable pageable) {
         UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -129,6 +162,7 @@ public class CourseController {
                     content = {@Content(mediaType = "application/json", schema = @Schema(implementation = CourseDto.class))}
             ),
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})})
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public ResponseEntity<CourseDto> getCourse(@PathVariable UUID id) {
         Course course = courseService.getCourse(id);
 
@@ -138,13 +172,13 @@ public class CourseController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('teacher')")
+    @PreAuthorize("hasAuthority('administrator')")
     public ResponseEntity<CourseDto> createCourse(@Valid @RequestBody CreateCourseDto createCourseDto) {
         Course course = courseMapper.courseCreateDtoToCourse(createCourseDto);
         Course savedCourse = courseService.addCourse(course, createCourseDto.teacherEmail());
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(courseMapper.courseToCourseDto(savedCourse));
-}
+    }
 
     @GetMapping("/{id}/stateful")
     @Transactional
@@ -154,12 +188,15 @@ public class CourseController {
     }
 
     @GetMapping("/{id}/resource-group-pools")
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public ResponseEntity<List<ResourceGroupPoolDto>> getCourseResourceGroupPools(@PathVariable UUID id) {
         List<ResourceGroupPool> resourceGroupPools = resourceGroupPoolService.getResourceGroupPoolsByCourse(id);
         return ResponseEntity.ok(rgPoolMapper.toRGPoolDtoList(resourceGroupPools.stream()));
     }
 
     @PostMapping("/{id}/resource-group")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> createResourceGroup(@PathVariable UUID id, @RequestBody @Validated CreateResourceGroupDto createResourceGroupDto) {
         ResourceGroup resourceGroup = resourceGroupMapper.toEntity(createResourceGroupDto);
         courseService.addResourceGroupToCourse(id, resourceGroup);
@@ -167,12 +204,14 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('administrator')")
     public ResponseEntity<Void> deleteCourse(@PathVariable UUID id) {
         courseService.deleteCourse(id);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public ResponseEntity<CourseDto> updateCourse(@PathVariable UUID id,
                                                   @RequestBody @Validated UpdateCourseDto updateCourceDto,
                                                   @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
@@ -186,7 +225,6 @@ public class CourseController {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findResourcesAvailabilityForResourceGroup(
             @PathVariable("id") UUID courseId, @PathVariable("rgId") UUID rgId,
-            @RequestParam("window") int windowLength,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         Course course = courseService.getCourse(courseId);
@@ -209,7 +247,7 @@ public class CourseController {
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && true) ||
+                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
                 (authorities.contains("student") && users.contains(user))) &&
                 !listOfDTOs.isEmpty()) {
             return ResponseEntity.ok(listOfDTOs);
@@ -223,7 +261,6 @@ public class CourseController {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<ResourcesAvailabilityDto>> findResourcesAvailabilityForResourceGroupPool(
             @PathVariable("id") UUID courseId, @PathVariable("rgPoolId") UUID rgPoolId,
-            @RequestParam("window") int windowLength,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         Course course = courseService.getCourse(courseId);
@@ -246,8 +283,8 @@ public class CourseController {
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
         if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && true) ||
-                (authorities.contains("student") && users.contains(userId))) &&
+                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
+                (authorities.contains("student") && users.contains(user))) &&
                 !listOfDTOs.isEmpty()) {
             return ResponseEntity.ok(listOfDTOs);
         }
@@ -293,7 +330,7 @@ public class CourseController {
     }
 
     @GetMapping("/{courseId}/students")
-//    @PreAuthorize("hasRole('TEACHER')")
+//    @PreAuthorize("hasAuthority('TEACHER')")
     public ResponseEntity<List<UserDto>> getStudentsInSoloCourse(@PathVariable UUID courseId) {
         List<User> users = teamService.getStudentsInSoloCourse(courseId);
         List<UserDto> userDtos = users.stream()
@@ -307,6 +344,7 @@ public class CourseController {
     }
 
     @PostMapping("/{courseId}/reset")
+    @PreAuthorize("hasAuthority('administrator')")
     public ResponseEntity<Void> resetCourse(@PathVariable UUID courseId) {
         courseService.resetCourse(courseId);
         return ResponseEntity.noContent().build();

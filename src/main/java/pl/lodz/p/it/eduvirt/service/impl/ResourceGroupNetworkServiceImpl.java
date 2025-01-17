@@ -3,9 +3,11 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.NetworkAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.NoNetworkAvailableException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
@@ -13,6 +15,7 @@ import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineConflictExc
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupNetworkService;
+import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
@@ -34,15 +37,23 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
 
     private final EntityManager entityManager;
     private final ETagHelper eTagHelper;
+    private final ResourceGroupService resourceGroupService;
 
     @Override
     @Transactional
+    @PreAuthorize("hasAuthority('teacher')")
     public ResourceGroupNetwork addResourceGroupNetwork(UUID rgId, String name, String etag) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
 
+        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
+
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
             throw new ResourceGroupConflictException();
+        }
+
+        if (resourceGroupNetworkRepository.existsByResourceGroupAndName(resourceGroup, name)) {
+            throw new NetworkAlreadyExistsException();
         }
 
         Course course;
@@ -74,16 +85,26 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     }
 
     @Override
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public List<ResourceGroupNetwork> getResourceGroupNetworks(UUID rgId) {
+        ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
+                .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
+        resourceGroupService.validateResourceGroupOwnershipOrAdmin(resourceGroup);
+
         return resourceGroupNetworkRepository.getAllByResourceGroupId(rgId);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasAuthority('teacher')")
     public void attachNicToNetwork(UUID networkId, UUID vmId, UUID nicId, String etag) {
         ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository
                 .findById(networkId)
                 .orElseThrow();
+
+        ResourceGroup resourceGroup = resourceGroupNetwork.getResourceGroup();
+        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
 
         VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
 
@@ -113,14 +134,19 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
 
     @Override
     @Transactional
+    @PreAuthorize("hasAuthority('teacher')")
     public void detachNicFromNetwork(UUID vmId, UUID nicId, String etag) {
+        VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
+        ResourceGroup resourceGroup = virtualMachine.getResourceGroup();
+
+        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
         NetworkInterface networkInterface = networkInterfaceRepository.findById(nicId).orElseThrow();
 
         if (!networkInterface.getVirtualMachine().getId().equals(vmId)) {
             throw new IllegalArgumentException("Nic does not belong to the VM");
         }
 
-        VirtualMachine virtualMachine = networkInterface.getVirtualMachine();
+
         if (!eTagHelper.validateEtag(etag, virtualMachine.getId(), virtualMachine.getVersion())) {
             throw new VirtualMachineConflictException();
         }
@@ -131,9 +157,12 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
 
     @Override
     @Transactional
+    @PreAuthorize("hasAuthority('teacher')")
     public void deleteNetwork(UUID networkId, UUID rgId, String etag) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
+
+        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
 
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
             throw new ResourceGroupConflictException();

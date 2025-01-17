@@ -42,7 +42,7 @@ public class ClusterMetricController {
 
     /* Create methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createMetricValue(@PathVariable("clusterId") UUID clusterId,
                                                   @RequestBody @Validated CreateMetricValueDto createDto) {
@@ -53,15 +53,15 @@ public class ClusterMetricController {
 
     /* Read methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MetricValueDto>> getAllMetricValues(
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
             @PathVariable("clusterId") UUID clusterId) {
         try {
             Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
-            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+            Pageable pageable = PageRequest.of(page, size);
             Page<ClusterMetric> clusterMetricPage = clusterMetricService.findAllMetricValuesForCluster(cluster, pageable);
 
             PageDto<MetricValueDto> listOfDTOs = new PageDto<>(
@@ -79,7 +79,7 @@ public class ClusterMetricController {
 
     /* Update methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @PatchMapping(path = "/{metricId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MetricValueDto> updateMetricValue(@PathVariable("clusterId") UUID clusterId,
                                                             @PathVariable("metricId") UUID metricId,
@@ -92,7 +92,7 @@ public class ClusterMetricController {
 
     /* Delete methods */
 
-    @PreAuthorize("hasRole('administrator')")
+    @PreAuthorize("hasAuthority('administrator')")
     @DeleteMapping(path = "/{metricId}")
     public ResponseEntity<Void> deleteMetric(@PathVariable("clusterId") UUID clusterId,
                                              @PathVariable("metricId") UUID metricId) {

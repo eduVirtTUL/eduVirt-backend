@@ -7,25 +7,36 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import pl.lodz.p.it.eduvirt.configuration.KeycloackConfig;
+import pl.lodz.p.it.eduvirt.entity.User;
+import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.model.OAuthResult;
+import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.AuthService;
+
+import java.util.UUID;
 
 @Slf4j
 @Controller
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class LoginController {
+
     private final RestClient restClient;
     private final KeycloackConfig keycloackConfig;
     private final AuthService authService;
+    private final UserRepository userRepository;
 
     @GetMapping("/login")
     public void login(HttpServletResponse httpServletResponse) {
@@ -70,5 +81,20 @@ public class LoginController {
         cookie.setPath("/");
         httpServletResponse.addCookie(cookie);
         httpServletResponse.setStatus(302);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping(path = "/update-timezone-and-language")
+    public ResponseEntity<Void> setLanguageAndTimeZone(
+            @RequestParam(name = "timezone", defaultValue = "UTC") String timeZone,
+            @RequestParam(name = "language", defaultValue = "en") String language) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+        user.setTimeZone(timeZone);
+        user.setLanguage(language);
+        userRepository.save(user);
+
+        return ResponseEntity.noContent().build();
     }
 }
