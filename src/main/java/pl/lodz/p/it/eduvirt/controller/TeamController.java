@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
@@ -34,7 +35,7 @@ public class TeamController {
     private final TeamMapper teamMapper;
 
     @PostMapping
-    public ResponseEntity<TeamWithCourseDto> createTeam(@RequestBody CreateTeamDto createTeamDto) {
+    public ResponseEntity<TeamWithCourseDto> createTeam(@RequestBody @Validated CreateTeamDto createTeamDto) {
         Team team = teamMapper.fromCreateDto(createTeamDto);
         Team createdTeam = teamService.createTeam(team, createTeamDto.getCourseId(), createTeamDto.getKeyValue());
         return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(createdTeam));
@@ -66,7 +67,7 @@ public class TeamController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TeamWithCourseDto> updateTeam(@PathVariable UUID id, @RequestBody UpdateTeamDto updateTeamDto) {
+    public ResponseEntity<TeamWithCourseDto> updateTeam(@PathVariable UUID id, @RequestBody @Validated UpdateTeamDto updateTeamDto) {
         Team team = teamMapper.fromUpdateDto(updateTeamDto);
         Team updatedTeam = teamService.updateTeam(team, id);
         return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(updatedTeam));

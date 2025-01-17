@@ -12,11 +12,10 @@ import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyLengthException;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.access_key.InvalidAccessKeyTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.DuplicateKeyValueException;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.course.InvalidCourseTypeException;
-import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.team.*;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.TeamRepository;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
@@ -95,7 +94,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     @Transactional
     public void createTeamKey(UUID teamId, String teamKey) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(TeamNotFoundException::new);
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
 
         if (teamAccessKeyRepository.existsByTeamId(teamId)) {
             throw new AccessKeyAlreadyExistsException();
@@ -129,7 +128,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     @PreAuthorize("isAuthenticated()")
     public TeamAccessKey getKeyForTeam(UUID teamId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(TeamNotFoundException::new);
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
         Course course = team.getCourse();
 
         if (course.getCourseType() == CourseType.SOLO) {

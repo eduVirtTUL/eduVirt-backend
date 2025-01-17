@@ -66,9 +66,9 @@ public interface TeamMapper {
 
     default Team fromUpdateDto(UpdateTeamDto dto) {
         Team team = new Team();
-        team.setName(dto.getName());
-        team.setMaxSize(dto.getMaxSize());
-        team.setActive(dto.isActive());
+        team.setName(dto.name());
+        team.setMaxSize(dto.maxSize());
+        team.setActive(dto.active());
         return team;
     }
 }

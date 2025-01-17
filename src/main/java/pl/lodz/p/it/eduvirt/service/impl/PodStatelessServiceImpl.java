@@ -13,7 +13,7 @@ import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.InvalidPodTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.team.*;
 import pl.lodz.p.it.eduvirt.repository.PodStatelessRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.repository.TeamRepository;
@@ -36,7 +36,7 @@ public class PodStatelessServiceImpl implements PodStatelessService {
     @Override
     public PodStateless createStatelessPod(PodStateless pod, UUID teamId, UUID resourceGroupPoolId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(TeamNotFoundException::new);
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
 
         ResourceGroupPool resourceGroupPool = resourceGroupPoolRepository.findById(resourceGroupPoolId)
                 .orElseThrow(() -> new CourseNotFoundException(resourceGroupPoolId));

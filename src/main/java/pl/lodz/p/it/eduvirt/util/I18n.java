@@ -40,6 +40,7 @@ public class I18n {
     public static final String TEAM_USER_ALREADY_IN_COURSE = "team.user.already.in.course";
     public static final String TEAM_VALIDATION = "team.validation.exception";
     public static final String INCORRECT_TEAM_TYPE = "incorrect.team.type.exception";
+    public static final String USER_ALREADY_IN_COURSE = "team.size.exception";
 
     /* Permission keys */
 

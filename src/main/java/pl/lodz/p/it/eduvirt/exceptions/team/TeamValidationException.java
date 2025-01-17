@@ -2,7 +2,7 @@ package pl.lodz.p.it.eduvirt.exceptions.team;
 
 import pl.lodz.p.it.eduvirt.util.I18n;
 
-public class TeamValidationException extends TeamBaseException {
+public class TeamValidationException extends RuntimeException {
 
     public TeamValidationException() {
         super(I18n.TEAM_VALIDATION);

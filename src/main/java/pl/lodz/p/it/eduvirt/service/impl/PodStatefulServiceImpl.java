@@ -14,7 +14,7 @@ import pl.lodz.p.it.eduvirt.exceptions.pod.InvalidPodTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.team.*;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.PodStatefulRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
@@ -39,7 +39,7 @@ public class PodStatefulServiceImpl implements PodStatefulService {
     @PreAuthorize("isAuthenticated()")
     public PodStateful createStatefulPod(PodStateful pod, UUID teamId, UUID resourceGroupId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(TeamNotFoundException::new);
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
 
         courseRepository.findById(team.getCourse().getId())
                 .orElseThrow(() -> new CourseNotFoundException(team.getCourse().getId()));
