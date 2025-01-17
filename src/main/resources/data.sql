@@ -72,14 +72,9 @@ VALUES ((SELECT id FROM public.resource_group_pool WHERE name = 'testStatelessRG
 ------------------------------------------
 
 INSERT INTO public.administrative_break (id, version, cause, description, type, cluster_id, begin_at, end_at)
-VALUES ('2e8989cb-6811-46ce-be27-9ec7b6ea788c', 0, 'Some random cause #1', 'Some description of the break', 'SYSTEM',
-        null, timestamp 'yesterday' - interval '1 hour', timestamp 'yesterday' + interval '7 hours'),
-       ('eb4c5e2e-215c-442f-82e8-bb38900d0b47', 0, 'Some random cause #2', 'Some description of the break', 'CLUSTER',
-        'c282a57c-624e-448b-823e-a68352d10914', timestamp 'today' - interval '1 hour',
-        timestamp 'today' + interval '7 hours'),
-       ('0136324d-fa42-4d4a-a046-33469ecb9d0b', 0, 'Some random cause #3', 'Some description of the break', 'CLUSTER',
-        'c282a57c-624e-448b-823e-a68352d10914', timestamp 'tomorrow' - interval '1 hour',
-        timestamp 'tomorrow' + interval '7 hours');
+VALUES ('2e8989cb-6811-46ce-be27-9ec7b6ea788c', 0, 'Some random cause #1', 'Some description of the break', 'SYSTEM',null, timestamp 'yesterday' - interval '1 hour', timestamp 'yesterday' + interval '7 hours'),
+       ('eb4c5e2e-215c-442f-82e8-bb38900d0b47', 0, 'Some random cause #2', 'Some description of the break', 'CLUSTER','c282a57c-624e-448b-823e-a68352d10914', timestamp 'today' + interval '18 hour',timestamp 'today' + interval '19 hours'),
+       ('0136324d-fa42-4d4a-a046-33469ecb9d0b', 0, 'Some random cause #3', 'Some description of the break', 'CLUSTER','c282a57c-624e-448b-823e-a68352d10914', timestamp 'tomorrow' - interval '1 hour',timestamp 'tomorrow' + interval '7 hours');
 
 -- INSERT INTO public.user (id, ovirt_id, email, user_name, first_name, last_name)
 -- VALUES ('4edf0d7d-e5cc-4ba5-a7a9-8acaa2763eca', '11f4cd51-350e-4ed5-8074-4f13c012e6cb' , '242447@edu.p.lodz.pl', 'nexto','Piotr', 'Kwiatkowski');
@@ -112,55 +107,34 @@ VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'b96844a7-7cb6-48f1-b4e6-1291988
        ('1decd050-1328-4eca-b2de-84793a8474c2', '87b11363-bb7e-4d54-8f57-ed5a52146210');
 
 INSERT INTO public.users (user_id, ovirt_id, email, first_name, last_name, user_name)
-VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', gen_random_uuid(), '242447@edu.p.lodz.pl', 'FirstName01', 'LastName01',
-        'UserName01'),
-       ('c7ceee90-734d-4e6c-8756-2cd9a44ff668', gen_random_uuid(), 'example02@email.com', 'FirstName02', 'LastName02',
-        'UserName02'),
-       ('f00de025-d801-4276-9b53-9d5ab8f89ac8', gen_random_uuid(), 'example03@email.com', 'FirstName03', 'LastName03',
-        'UserName03'),
-       ('44b21e72-50d2-42c0-a449-4791177251aa', gen_random_uuid(), 'example04@email.com', 'FirstName04', 'LastName04',
-        'UserName04'),
-       ('99403b0e-c184-4d18-95b6-384cb322b449', gen_random_uuid(), 'example05@email.com', 'FirstName05', 'LastName05',
-        'UserName05'),
-       ('b9d89a2a-75ff-4ca4-a9b4-068aab962524', gen_random_uuid(), 'example06@email.com', 'FirstName06', 'LastName06',
-        'UserName06'),
-       ('8551a9c9-0877-4831-b520-bcc8a137cf7c', gen_random_uuid(), 'example07@email.com', 'FirstName07', 'LastName07',
-        'UserName07'),
-       ('5ed87f00-bebc-41ab-aebb-66c587335065', gen_random_uuid(), 'example08@email.com', 'FirstName08', 'LastName08',
-        'UserName08'),
-       ('348213e4-7895-4a06-809c-35fe174eee5a', gen_random_uuid(), 'example09@email.com', 'FirstName09', 'LastName09',
-        'UserName09'),
-       ('08304074-48c3-48b8-8693-342c9add70a6', gen_random_uuid(), 'example10@email.com', 'FirstName10', 'LastName10',
-        'UserName10'),
-       ('e29eadad-0fea-4c08-afe1-15c8b931de3c', gen_random_uuid(), 'example11@email.com', 'FirstName11', 'LastName11',
-        'UserName11'),
-       ('7be81ff0-f42f-4bdf-8002-792b10a2181d', gen_random_uuid(), 'example12@email.com', 'FirstName12', 'LastName12',
-        'UserName12'),
-       ('79b84d69-9761-4c2e-b9d6-223cd55cd917', gen_random_uuid(), 'example13@email.com', 'FirstName13', 'LastName13',
-        'UserName13'),
-       ('9b2db558-1ee7-47e1-9fd2-6626ec95d230', gen_random_uuid(), 'example14@email.com', 'FirstName14', 'LastName14',
-        'UserName14'),
-       ('582d50de-6eab-4343-a2d2-0157c8a6c14d', gen_random_uuid(), 'example15@email.com', 'FirstName15', 'LastName15',
-        'UserName15'),
-       ('6b599d28-d631-41e5-ab76-f66369bccb14', gen_random_uuid(), 'example16@email.com', 'FirstName16', 'LastName16',
-        'UserName16'),
-       ('04adeaa1-c232-46bc-aa0c-caab2e0efacd', gen_random_uuid(), 'example17@email.com', 'FirstName17', 'LastName17',
-        'UserName17'),
-       ('5d2842e9-a219-4afa-bbb9-28cfce5082e8', gen_random_uuid(), 'example18@email.com', 'FirstName18', 'LastName18',
-        'UserName18'),
-       ('a053ddfa-4308-4064-bf16-a07d830bd9fa', gen_random_uuid(), 'example19@email.com', 'FirstName19', 'LastName19',
-        'UserName19'),
-       ('a666ee8c-4b1a-413a-8e89-c45a688f5d1a', gen_random_uuid(), 'example20@email.com', 'FirstName20', 'LastName20',
-        'UserName20');
-
-INSERT INTO public.user_roles (user_id, role)
-VALUES ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', 'administrator'),
-       ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', 'student'),
-       ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', 'teacher');
+VALUES ('4edf0d7d-e5cc-4ba5-a7a9-8acaa2763eca', gen_random_uuid(), '242447@edu.p.lodz.pl', 'Piotr', 'Kwiatkowski','pkwiatkowski'),
+       ('4e88cecc-fa80-4145-b5a8-e2e4acf24279', gen_random_uuid(), 'admin@localhost', 'FirstName01', 'LastName01','UserName01'),
+       ('c7ceee90-734d-4e6c-8756-2cd9a44ff668', gen_random_uuid(), 'example02@email.com', 'FirstName02', 'LastName02','UserName02'),
+       ('f00de025-d801-4276-9b53-9d5ab8f89ac8', gen_random_uuid(), 'example03@email.com', 'FirstName03', 'LastName03','UserName03'),
+       ('44b21e72-50d2-42c0-a449-4791177251aa', gen_random_uuid(), 'example04@email.com', 'FirstName04', 'LastName04','UserName04'),
+       ('99403b0e-c184-4d18-95b6-384cb322b449', gen_random_uuid(), 'example05@email.com', 'FirstName05', 'LastName05','UserName05'),
+       ('b9d89a2a-75ff-4ca4-a9b4-068aab962524', gen_random_uuid(), 'example06@email.com', 'FirstName06', 'LastName06','UserName06'),
+       ('8551a9c9-0877-4831-b520-bcc8a137cf7c', gen_random_uuid(), 'example07@email.com', 'FirstName07', 'LastName07','UserName07'),
+       ('5ed87f00-bebc-41ab-aebb-66c587335065', gen_random_uuid(), 'example08@email.com', 'FirstName08', 'LastName08','UserName08'),
+       ('348213e4-7895-4a06-809c-35fe174eee5a', gen_random_uuid(), 'example09@email.com', 'FirstName09', 'LastName09','UserName09'),
+       ('08304074-48c3-48b8-8693-342c9add70a6', gen_random_uuid(), 'example10@email.com', 'FirstName10', 'LastName10','UserName10'),
+       ('e29eadad-0fea-4c08-afe1-15c8b931de3c', gen_random_uuid(), 'example11@email.com', 'FirstName11', 'LastName11','UserName11'),
+       ('7be81ff0-f42f-4bdf-8002-792b10a2181d', gen_random_uuid(), 'example12@email.com', 'FirstName12', 'LastName12','UserName12'),
+       ('79b84d69-9761-4c2e-b9d6-223cd55cd917', gen_random_uuid(), 'example13@email.com', 'FirstName13', 'LastName13','UserName13'),
+       ('9b2db558-1ee7-47e1-9fd2-6626ec95d230', gen_random_uuid(), 'example14@email.com', 'FirstName14', 'LastName14','UserName14'),
+       ('582d50de-6eab-4343-a2d2-0157c8a6c14d', gen_random_uuid(), 'example15@email.com', 'FirstName15', 'LastName15','UserName15'),
+       ('6b599d28-d631-41e5-ab76-f66369bccb14', gen_random_uuid(), 'example16@email.com', 'FirstName16', 'LastName16','UserName16'),
+       ('04adeaa1-c232-46bc-aa0c-caab2e0efacd', gen_random_uuid(), 'example17@email.com', 'FirstName17', 'LastName17','UserName17'),
+       ('5d2842e9-a219-4afa-bbb9-28cfce5082e8', gen_random_uuid(), 'example18@email.com', 'FirstName18', 'LastName18','UserName18'),
+       ('a053ddfa-4308-4064-bf16-a07d830bd9fa', gen_random_uuid(), 'example19@email.com', 'FirstName19', 'LastName19','UserName19'),
+       ('a666ee8c-4b1a-413a-8e89-c45a688f5d1a', gen_random_uuid(), 'example20@email.com', 'FirstName20', 'LastName20','UserName20');
 
 --------------------------
 --- Systemy operacyjne ---
 --------------------------
+
+INSERT INTO public.course_teachers (course_id, teachers_user_id)
+VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '4edf0d7d-e5cc-4ba5-a7a9-8acaa2763eca');
 
 --- Teams ---
 
@@ -212,6 +186,9 @@ VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 'e028a269-9890-4b02-81d9-b477ea7
 --- Infrastruktury środowisk rozwojowych i produkcyjnych ---
 ------------------------------------------------------------
 
+INSERT INTO public.course_teachers (course_id, teachers_user_id)
+VALUES ('a7556146-23a6-4936-903c-c337c794a8c7', '4edf0d7d-e5cc-4ba5-a7a9-8acaa2763eca');
+
 --- Teams ---
 
 INSERT INTO public.team (id, version, name, active, max_size, course_id)
@@ -242,7 +219,7 @@ VALUES ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', '4e88cecc-fa80-4145-b5a8-e2e4acf
        ('5ef19d54-c429-499d-9654-ac052d83f3e7', '8551a9c9-0877-4831-b520-bcc8a137cf7c'),
        ('5ef19d54-c429-499d-9654-ac052d83f3e7', '5ed87f00-bebc-41ab-aebb-66c587335065'),
        ('5ef19d54-c429-499d-9654-ac052d83f3e7', '348213e4-7895-4a06-809c-35fe174eee5a'),
-       ('64da3d79-52be-4936-97e3-b88597bac8b9', '08304074-48c3-48b8-8693-342c9add70a6'),
+       ('64da3d79-52be-4936-97e3-b88597bac8b9', '4edf0d7d-e5cc-4ba5-a7a9-8acaa2763eca'),
        ('64da3d79-52be-4936-97e3-b88597bac8b9', 'e29eadad-0fea-4c08-afe1-15c8b931de3c'),
        ('64da3d79-52be-4936-97e3-b88597bac8b9', '7be81ff0-f42f-4bdf-8002-792b10a2181d'),
        ('64da3d79-52be-4936-97e3-b88597bac8b9', '79b84d69-9761-4c2e-b9d6-223cd55cd917'),
@@ -319,6 +296,9 @@ VALUES ('181426fb-6cb6-4fd9-9801-cbd03deccc2d', 0, '1b0912df-c4c0-4907-9dd4-b095
 --- Sieciowe systemy baz danych ---
 -----------------------------------
 
+INSERT INTO public.course_teachers (course_id, teachers_user_id)
+VALUES ('e485ded6-c166-45f6-a924-13ce44666f7a', '4edf0d7d-e5cc-4ba5-a7a9-8acaa2763eca');
+
 --- Teams ---
 
 INSERT INTO public.team (id, version, name, active, max_size, course_id)
@@ -350,7 +330,7 @@ VALUES ('f3896c36-2133-4497-965e-0951e1f5aebf', '4e88cecc-fa80-4145-b5a8-e2e4acf
        ('78908655-ee18-4863-9eef-e67519940a0b', 'e29eadad-0fea-4c08-afe1-15c8b931de3c'),
        ('78908655-ee18-4863-9eef-e67519940a0b', '7be81ff0-f42f-4bdf-8002-792b10a2181d'),
        ('78908655-ee18-4863-9eef-e67519940a0b', '79b84d69-9761-4c2e-b9d6-223cd55cd917'),
-       ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '9b2db558-1ee7-47e1-9fd2-6626ec95d230'),
+       ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '4edf0d7d-e5cc-4ba5-a7a9-8acaa2763eca'),
        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '582d50de-6eab-4343-a2d2-0157c8a6c14d'),
        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '6b599d28-d631-41e5-ab76-f66369bccb14'),
        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '04adeaa1-c232-46bc-aa0c-caab2e0efacd'),
@@ -399,6 +379,9 @@ VALUES ('03d31c2f-d300-45af-a8f8-37c894d7a527', '692bde41-c8ca-4873-bbaf-edb789a
 --- Techniki utrzymania aplikacji ---
 -------------------------------------
 
+INSERT INTO public.course_teachers (course_id, teachers_user_id)
+VALUES ('1decd050-1328-4eca-b2de-84793a8474c2', '4edf0d7d-e5cc-4ba5-a7a9-8acaa2763eca');
+
 --- Teams ---
 
 INSERT INTO public.team (id, version, name, active, max_size, course_id)
@@ -429,7 +412,7 @@ VALUES ('d46387ee-7397-4184-91eb-d01d5f301c0e', '4e88cecc-fa80-4145-b5a8-e2e4acf
        ('e608c9d0-e871-4374-a052-f27ced4a9cec', '08304074-48c3-48b8-8693-342c9add70a6'),
        ('e608c9d0-e871-4374-a052-f27ced4a9cec', 'e29eadad-0fea-4c08-afe1-15c8b931de3c'),
        ('e608c9d0-e871-4374-a052-f27ced4a9cec', '7be81ff0-f42f-4bdf-8002-792b10a2181d'),
-       ('18750e93-22a7-4a23-8f8b-e0cabde8f793', '79b84d69-9761-4c2e-b9d6-223cd55cd917'),
+       ('18750e93-22a7-4a23-8f8b-e0cabde8f793', '4edf0d7d-e5cc-4ba5-a7a9-8acaa2763eca'),
        ('18750e93-22a7-4a23-8f8b-e0cabde8f793', '9b2db558-1ee7-47e1-9fd2-6626ec95d230'),
        ('18750e93-22a7-4a23-8f8b-e0cabde8f793', '582d50de-6eab-4343-a2d2-0157c8a6c14d'),
        ('18750e93-22a7-4a23-8f8b-e0cabde8f793', '6b599d28-d631-41e5-ab76-f66369bccb14'),
@@ -443,33 +426,17 @@ VALUES ('a7919551-3807-4b35-88e3-fc3a868ba014', 0, 'TUA-RG01', '', false, 6),
        ('e51132d3-8ac3-4232-85e0-849c8afa6abc', 0, 'TUA-RG02', '', false, 6),
        ('7c7ed665-831c-4e24-b6fe-1947a16fcadb', 0, 'TUA-RG03', '', false, 6);
 
+INSERT INTO public.course_state_full_resource_groups (course_id, state_full_resource_groups_id)
+VALUES ('1decd050-1328-4eca-b2de-84793a8474c2', 'a7919551-3807-4b35-88e3-fc3a868ba014'),
+       ('1decd050-1328-4eca-b2de-84793a8474c2', 'e51132d3-8ac3-4232-85e0-849c8afa6abc'),
+       ('1decd050-1328-4eca-b2de-84793a8474c2', '7c7ed665-831c-4e24-b6fe-1947a16fcadb');
+
 --- Stateful pods ---
 
 INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, max_rent)
-VALUES ('c971b368-92c8-4a01-86d2-dd783b5360a8', '1decd050-1328-4eca-b2de-84793a8474c2',
-        'a7919551-3807-4b35-88e3-fc3a868ba014', 'd46387ee-7397-4184-91eb-d01d5f301c0e', 3),
-       ('161f4a45-f87d-40b5-9ad6-1ec056485e01', '1decd050-1328-4eca-b2de-84793a8474c2',
-        'e51132d3-8ac3-4232-85e0-849c8afa6abc', 'e608c9d0-e871-4374-a052-f27ced4a9cec', 3),
-       ('c3db873c-cfeb-4ec2-b87b-342af78f869a', '1decd050-1328-4eca-b2de-84793a8474c2',
-        '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '18750e93-22a7-4a23-8f8b-e0cabde8f793', 3);
-
---- Resource group pools ---
-
-
-INSERT INTO public.resource_group_pool (id, version, name, description, grace_period, max_rent, max_rent_time,
-                                        course_id)
-VALUES ('33ad145f-10a6-4d4f-a06c-a1a869aa9d43', 0, 'TUA-RGPool01', '', 6, 6, 18,
-        '1decd050-1328-4eca-b2de-84793a8474c2'),
-       ('ad1b03b6-7c19-4f92-b647-9670013ce1fc', 0, 'TUA-RGPool02', '', 6, 6, 18,
-        '1decd050-1328-4eca-b2de-84793a8474c2'),
-       ('86e4d3cd-5764-426e-bff1-49eb21696187', 0, 'TUA-RGPool03', '', 6, 6, 18,
-        '1decd050-1328-4eca-b2de-84793a8474c2');
-
-INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, resource_groups_id)
-VALUES ('33ad145f-10a6-4d4f-a06c-a1a869aa9d43', 'a7919551-3807-4b35-88e3-fc3a868ba014'),
-       ('ad1b03b6-7c19-4f92-b647-9670013ce1fc', 'e51132d3-8ac3-4232-85e0-849c8afa6abc'),
-       ('86e4d3cd-5764-426e-bff1-49eb21696187', '7c7ed665-831c-4e24-b6fe-1947a16fcadb');
-
+VALUES ('c971b368-92c8-4a01-86d2-dd783b5360a8', '1decd050-1328-4eca-b2de-84793a8474c2','a7919551-3807-4b35-88e3-fc3a868ba014', 'd46387ee-7397-4184-91eb-d01d5f301c0e', 3),
+       ('161f4a45-f87d-40b5-9ad6-1ec056485e01', '1decd050-1328-4eca-b2de-84793a8474c2','e51132d3-8ac3-4232-85e0-849c8afa6abc', 'e608c9d0-e871-4374-a052-f27ced4a9cec', 3),
+       ('c3db873c-cfeb-4ec2-b87b-342af78f869a', '1decd050-1328-4eca-b2de-84793a8474c2','7c7ed665-831c-4e24-b6fe-1947a16fcadb', '18750e93-22a7-4a23-8f8b-e0cabde8f793', 3);
 
 INSERT INTO public.users(ovirt_id, user_id, email, first_name, last_name, user_name)
 VALUES ('c505a843-777b-46c7-baed-c3961c90eb63', '2cadb69b-6618-4a6b-8a00-8b44ecd0071a', 'teacher1@example.com',

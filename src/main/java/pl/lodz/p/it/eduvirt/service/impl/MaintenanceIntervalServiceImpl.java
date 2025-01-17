@@ -143,14 +143,13 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
     @PreAuthorize("hasAuthority('administrator')")
     @Override
     public Page<MaintenanceInterval> findAllMaintenanceIntervals(UUID clusterId, boolean active, Pageable pageable) {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         if (active) {
-            if (clusterId != null)
-                return maintenanceIntervalRepository.findAllActiveIntervalsForGivenCluster(clusterId, pageable);
-            return maintenanceIntervalRepository.findAllActiveIntervals(pageable);
+            if (clusterId != null) return maintenanceIntervalRepository.findAllActiveIntervalsForGivenCluster(clusterId, currentTime, pageable);
+            return maintenanceIntervalRepository.findAllActiveIntervals(currentTime, pageable);
         }
-        if (clusterId != null)
-            return maintenanceIntervalRepository.findAllHistoricalIntervalsForGivenCluster(clusterId, pageable);
-        return maintenanceIntervalRepository.findAllHistoricalIntervals(pageable);
+        if (clusterId != null) return maintenanceIntervalRepository.findAllHistoricalIntervalsForGivenCluster(clusterId, currentTime, pageable);
+        return maintenanceIntervalRepository.findAllHistoricalIntervals(currentTime, pageable);
     }
 
     @PreAuthorize("isAuthenticated()")

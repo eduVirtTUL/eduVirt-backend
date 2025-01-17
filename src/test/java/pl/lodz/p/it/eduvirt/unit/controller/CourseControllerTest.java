@@ -242,7 +242,7 @@ public class CourseControllerTest {
         when(courseService.getCoursesForStudent(Mockito.eq(student1), Mockito.eq(pageable)))
                 .thenReturn(List.of(course1, course2));
 
-        MvcResult result = mockMvc.perform(get("/course/member")
+        MvcResult result = mockMvc.perform(get("/course/student")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andDo(print())
@@ -290,7 +290,7 @@ public class CourseControllerTest {
         when(courseService.getCoursesForStudent(Mockito.eq(student1), Mockito.eq(pageable)))
                 .thenReturn(List.of());
 
-        mockMvc.perform(get("/course/member")
+        mockMvc.perform(get("/course/student")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andDo(print())
@@ -309,7 +309,7 @@ public class CourseControllerTest {
 
         when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/course/member")
+        mockMvc.perform(get("/course/student")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size)))
                 .andDo(print())

@@ -43,6 +43,8 @@ public class RepositoryAspect {
                     List<UUID> matches = new LinkedList<>();
                     while (matcher.find()) { matches.add(UUID.fromString(matcher.group())); }
                     throw new ClusterMetricExistsException(matches.getFirst(), matches.getLast());
+                } else if (exceptionCopy.getMessage().contains("metric_name_key")) {
+                    throw new MetricNameAlreadyTakenException("Metric name is already taken and cannot be used to name a new metric");
                 }
                 exceptionCopy = exceptionCopy.getCause();
             } while (exceptionCopy != null);
