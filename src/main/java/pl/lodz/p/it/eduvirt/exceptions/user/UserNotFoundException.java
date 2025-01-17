@@ -5,6 +5,10 @@ import pl.lodz.p.it.eduvirt.util.I18n;
 
 public class UserNotFoundException extends NotFoundException {
 
+    public UserNotFoundException() {
+        super("User not found", I18n.USER_NOT_FOUND);
+    }
+
     public UserNotFoundException(String message) {
         super(message, I18n.USER_NOT_FOUND);
     }

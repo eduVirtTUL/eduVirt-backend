@@ -14,6 +14,9 @@ public class I18n {
 
     public static final String COURSE_NOT_FOUND = "course.not.found";
     public static final String COURSE_INVALID_TYPE = "course.invalid.type";
+    public static final String TEACHER_ALREADY_IN_COURSE = "teacher.already.in.course";
+    public static final String TEACHER_NOT_IN_COURSE = "teacher.not.in.course";
+    public static final String COURSE_NO_TEACHERS = "course.no.teachers";
 
     /* Resource group keys */
 
@@ -26,7 +29,9 @@ public class I18n {
     /* User keys */
 
     public static final String USER_NOT_FOUND = "user.not.found";
-    public static final String USERS_NOT_FOUND = "users.not.found.exception";
+    public static final String USERS_NOT_FOUND = "users.not.found";
+    public static final String USER_NOT_AUTHORIZED = "user.not.authorized";
+
 
     /* Team keys */
 
