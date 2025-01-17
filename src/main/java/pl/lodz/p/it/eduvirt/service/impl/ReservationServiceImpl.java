@@ -104,9 +104,12 @@ public class ReservationServiceImpl implements ReservationService {
         long numOfIntervals = (ChronoUnit.SECONDS.between(start, end) / TimeUnit.MINUTES.toSeconds(windowLength));
         end = start.plusMinutes(numOfIntervals * windowLength);
 
+        long reservationLength = ChronoUnit.SECONDS.between(start, end);
+        if (TimeUnit.MINUTES.toSeconds(createDto.notificationTime()) > (reservationLength / 2))
+            throw new ReservationNotificationTimeTooLongException("Notification time could not be longer than half the reservation duration.");
+
         /* Condition no. 1: Minimum reservation length */
 
-        long reservationLength = ChronoUnit.SECONDS.between(start, end);
         if (reservationLength < (2L * TimeUnit.MINUTES.toSeconds(windowLength)))
             throw new ReservationTooShortException("Minimum length of the reservation in eduVirt system is exactly twice as long as assumed window length.");
 
@@ -211,9 +214,12 @@ public class ReservationServiceImpl implements ReservationService {
         long numOfIntervals = (ChronoUnit.SECONDS.between(start, end) / TimeUnit.MINUTES.toSeconds(windowLength));
         end = start.plusMinutes(numOfIntervals * windowLength);
 
+        long reservationLength = ChronoUnit.SECONDS.between(start, end);
+        if (TimeUnit.MINUTES.toSeconds(createDto.notificationTime()) > (reservationLength / 2))
+            throw new ReservationNotificationTimeTooLongException("Notification time could not be longer than half the reservation duration.");
+
         /* Condition no. 1: Minimum reservation length */
 
-        long reservationLength = ChronoUnit.SECONDS.between(start, end);
         if (reservationLength < (2L * TimeUnit.MINUTES.toSeconds(windowLength)))
             throw new ReservationTooShortException("Minimum length of the reservation in eduVirt system is exactly twice as long as assumed window length.");
 

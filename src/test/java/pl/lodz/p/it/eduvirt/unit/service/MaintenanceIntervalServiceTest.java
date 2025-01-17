@@ -545,7 +545,7 @@ public class MaintenanceIntervalServiceTest {
         UUID randomUUID = UUID.randomUUID();
         Pageable pageable = PageRequest.of(0, 10);
 
-        when(maintenanceIntervalRepository.findAllActiveIntervalsForGivenCluster(Mockito.eq(randomUUID), Mockito.eq(pageable)))
+        when(maintenanceIntervalRepository.findAllActiveIntervalsForGivenCluster(Mockito.eq(randomUUID), Mockito.any(LocalDateTime.class), Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(maintenanceInterval1, maintenanceInterval2, maintenanceInterval3), pageable, 3));
 
         Page<MaintenanceInterval> maintenanceIntervalPage = maintenanceIntervalService.findAllMaintenanceIntervals(randomUUID, true, pageable);
@@ -563,7 +563,7 @@ public class MaintenanceIntervalServiceTest {
         assertEquals(maintenanceInterval3, foundMaintenanceIntervals.getLast());
 
         verify(maintenanceIntervalRepository, times(1))
-                .findAllActiveIntervalsForGivenCluster(Mockito.eq(randomUUID), Mockito.eq(pageable));
+                .findAllActiveIntervalsForGivenCluster(Mockito.eq(randomUUID), Mockito.any(LocalDateTime.class), Mockito.eq(pageable));
     }
 
     @Test
@@ -571,7 +571,7 @@ public class MaintenanceIntervalServiceTest {
         UUID randomUUID = UUID.randomUUID();
         Pageable pageable = PageRequest.of(0, 10);
 
-        when(maintenanceIntervalRepository.findAllHistoricalIntervalsForGivenCluster(Mockito.eq(randomUUID), Mockito.eq(pageable)))
+        when(maintenanceIntervalRepository.findAllHistoricalIntervalsForGivenCluster(Mockito.eq(randomUUID), Mockito.any(LocalDateTime.class), Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(maintenanceInterval1, maintenanceInterval2, maintenanceInterval3), pageable, 3));
 
         Page<MaintenanceInterval> maintenanceIntervalPage = maintenanceIntervalService.findAllMaintenanceIntervals(randomUUID, false, pageable);
@@ -589,14 +589,14 @@ public class MaintenanceIntervalServiceTest {
         assertEquals(maintenanceInterval3, foundMaintenanceIntervals.getLast());
 
         verify(maintenanceIntervalRepository, times(1))
-                .findAllHistoricalIntervalsForGivenCluster(Mockito.eq(randomUUID), Mockito.eq(pageable));
+                .findAllHistoricalIntervalsForGivenCluster(Mockito.eq(randomUUID), Mockito.any(LocalDateTime.class), Mockito.eq(pageable));
     }
 
     @Test
     public void Given_SelectedActiveIntervalsForSystem_When_FindAllMaintenanceIntervals_Then_FoundAllMaintenanceIntervals() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        when(maintenanceIntervalRepository.findAllActiveIntervals(Mockito.eq(pageable)))
+        when(maintenanceIntervalRepository.findAllActiveIntervals(Mockito.any(LocalDateTime.class), Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(maintenanceInterval1, maintenanceInterval2, maintenanceInterval3), pageable, 3));
 
         Page<MaintenanceInterval> maintenanceIntervalPage = maintenanceIntervalService.findAllMaintenanceIntervals(null, true, pageable);
@@ -613,14 +613,15 @@ public class MaintenanceIntervalServiceTest {
         assertEquals(maintenanceInterval2, foundMaintenanceIntervals.get(1));
         assertEquals(maintenanceInterval3, foundMaintenanceIntervals.getLast());
 
-        verify(maintenanceIntervalRepository, times(1)).findAllActiveIntervals(Mockito.eq(pageable));
+        verify(maintenanceIntervalRepository, times(1))
+                .findAllActiveIntervals(Mockito.any(LocalDateTime.class), Mockito.eq(pageable));
     }
 
     @Test
     public void Given_SelectedInactiveIntervalsForSystem_When_FindAllMaintenanceIntervals_Then_FoundAllMaintenanceIntervals() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        when(maintenanceIntervalRepository.findAllHistoricalIntervals(Mockito.eq(pageable)))
+        when(maintenanceIntervalRepository.findAllHistoricalIntervals(Mockito.any(LocalDateTime.class), Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(maintenanceInterval1, maintenanceInterval2, maintenanceInterval3), pageable, 3));
 
         Page<MaintenanceInterval> maintenanceIntervalPage = maintenanceIntervalService.findAllMaintenanceIntervals(null, false, pageable);
@@ -637,7 +638,8 @@ public class MaintenanceIntervalServiceTest {
         assertEquals(maintenanceInterval2, foundMaintenanceIntervals.get(1));
         assertEquals(maintenanceInterval3, foundMaintenanceIntervals.getLast());
 
-        verify(maintenanceIntervalRepository, times(1)).findAllHistoricalIntervals(Mockito.eq(pageable));
+        verify(maintenanceIntervalRepository, times(1))
+                .findAllHistoricalIntervals(Mockito.any(LocalDateTime.class), Mockito.eq(pageable));
     }
 
     /* FindAllMaintenanceIntervalsInTimePeriod method tests */
