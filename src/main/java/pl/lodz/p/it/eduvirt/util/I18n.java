@@ -38,6 +38,7 @@ public class I18n {
 
     public static final String METRIC_NOT_FOUND = "metrics.error.not.found";
     public static final String METRIC_DELETE_EXCEPTION = "metrics.error.delete.exception";
+    public static final String METRIC_NAME_ALREADY_TAKEN = "metrics.error.name.already.taken";
 
     public static final String CLUSTER_METRIC_VALUE_NOT_DEFINED = "clusterMetricValues.error.value.not.defined";
     public static final String CLUSTER_METRIC_VALUE_ALREADY_DEFINED = "clusterMetricValues.error.value.already.defined";
@@ -90,7 +91,6 @@ public class I18n {
     public static final String RESERVATION_TOO_SHORT = "reservations.error.too.short";
 
     public static final String RESERVATION_CREATION_ERROR = "reservations.error.creation.error";
-    public static final String RESERVATION_DELETE_ERROR = "reservations.error.delete.error";
     public static final String RESERVATION_MAINTENANCE_INTERVAL_CONFLICT = "reservations.error.maintenance.interval.conflict";
     public static final String COURSE_RESOURCES_INSUFFICIENT = "reservations.error.course.resources.insufficient";
     public static final String CLUSTER_RESOURCES_INSUFFICIENT = "reservations.error.cluster.resources.insufficient";
@@ -103,6 +103,7 @@ public class I18n {
     public static final String RESOURCE_GROUP_RESERVATION_COUNT_EXCEEDED = "reservations.error.reservation.count.exceeded";
     public static final String RESERVATION_STATUS_ALREADY_SET = "reservations.error.status.already.set";
     public static final String RESERVATION_ALREADY_FINISHED = "reservations.error.status.already.finished";
+    public static final String RESERVATION_NOTIFICATION_TIME_TOO_LONG = "reservations.error.notification.time.too.long";
 
     public static final String STATEFUL_POD_NOT_ASSIGNED = "reservations.error.stateful.pod.not.assigned";
     public static final String STATELESS_POD_NOT_ASSIGNED = "reservations.error.stateless.pod.not.assigned";

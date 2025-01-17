@@ -118,7 +118,8 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     @Transactional
     public ResourceGroup getResourceGroup(UUID id) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
-        validateOwnershipOrAdmin(resourceGroup);
+        // TODO: Return here
+        // validateOwnershipOrAdmin(resourceGroup);
         return resourceGroup;
     }
 

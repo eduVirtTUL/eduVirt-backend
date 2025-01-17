@@ -134,7 +134,7 @@ public class CourseController {
     }
 
     // @PreAuthorize("hasAuthority('student')")
-    @GetMapping(path = "/member", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/student", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<CourseDto>> getCoursesForStudent(Pageable pageable) {
         UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User student = userRepository.findById(studentId).orElseThrow(

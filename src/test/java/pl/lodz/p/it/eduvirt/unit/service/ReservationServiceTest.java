@@ -733,8 +733,7 @@ public class ReservationServiceTest {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         CreateReservationDto newCreateDto = new CreateReservationDto(
                 currentTime.plusHours(2), currentTime.plusHours(2).plusMinutes(2 * windowLength).minusSeconds(1),
-                reservation1.getAutomaticStartup(),
-                reservation1.getNotificationTime()
+                reservation1.getAutomaticStartup(), 5
         );
 
         when(clusterService.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
@@ -1338,8 +1337,7 @@ public class ReservationServiceTest {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         CreateReservationDto newCreateDto = new CreateReservationDto(
                 currentTime.plusHours(2), currentTime.plusHours(2).plusMinutes(2 * windowLength).minusSeconds(1),
-                reservation1.getAutomaticStartup(),
-                reservation1.getNotificationTime()
+                reservation1.getAutomaticStartup(), 5
         );
 
         when(clusterService.findClusterById(Mockito.eq(course.getClusterId()))).thenReturn(cluster);
