@@ -28,12 +28,16 @@ import java.util.UUID;
 @Transactional(propagation = Propagation.REQUIRED)
 public class PodStatelessServiceImpl implements PodStatelessService {
 
+    /* Repositories */
+
     private final PodStatelessRepository podStatelessRepository;
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
     private final TeamRepository teamRepository;
 
-    @PreAuthorize("isAuthenticated()")
+    /* Service methods */
+
     @Override
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public PodStateless createStatelessPod(PodStateless pod, UUID teamId, UUID resourceGroupPoolId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException(teamId));
@@ -55,37 +59,38 @@ public class PodStatelessServiceImpl implements PodStatelessService {
         return podStatelessRepository.saveAndFlush(pod);
     }
 
-    @PreAuthorize("isAuthenticated()")
-    @Override
-    public void deleteStatelessPod(UUID podId) {
-        if (!podStatelessRepository.existsById(podId)) {
-            throw new PodNotFoundException("POD %s could not be found".formatted(podId));
-        }
-        podStatelessRepository.deleteById(podId);
-    }
-
     @Override
     @PreAuthorize("isAuthenticated()")
     public List<PodStateless> getStatelessPodsByTeam(UUID teamId) {
         return podStatelessRepository.findByTeamId(teamId);
     }
 
-    @PreAuthorize("isAuthenticated()")
     @Override
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public List<PodStateless> getStatelessPodsByCourse(UUID courseId) {
         return podStatelessRepository.findByCourseId(courseId);
     }
 
-    @PreAuthorize("isAuthenticated()")
     @Override
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public List<PodStateless> getStatelessPodsByResourceGroupPool(UUID resourceGroupPoolId) {
         return podStatelessRepository.findByResourceGroupPoolId(resourceGroupPoolId);
     }
 
-    @PreAuthorize("isAuthenticated()")
     @Override
-    public PodStateless getStatelessPod(UUID podId) {
+    @PreAuthorize("isAuthenticated()")
+    public PodStateless getStatelessPodById(UUID podId) {
         return podStatelessRepository.findById(podId)
                 .orElseThrow(() -> new PodNotFoundException("POD %s could not be found".formatted(podId)));
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    public void deleteStatelessPod(UUID podId) {
+        //TODO: come back to this later
+        if (!podStatelessRepository.existsById(podId)) {
+            throw new PodNotFoundException("POD %s could not be found".formatted(podId));
+        }
+        podStatelessRepository.deleteById(podId);
     }
 }

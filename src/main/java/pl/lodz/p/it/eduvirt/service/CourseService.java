@@ -35,9 +35,9 @@ public interface CourseService {
 
     List<User> getTeachersForCourse(UUID courseId);
 
-    void addTeacherToCourse(UUID courseId, String email);
+    void addTeacherToCourse(Course course, String email);
 
-    void removeTeacherFromCourse(UUID courseId, String email);
+    void removeTeacherFromCourse(Course course, String email);
 
     Course updateCourse(UUID courseId, Course course, String etag);
 

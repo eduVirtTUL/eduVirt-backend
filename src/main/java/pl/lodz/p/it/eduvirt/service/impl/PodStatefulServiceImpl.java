@@ -30,10 +30,14 @@ import java.util.UUID;
 @Transactional(propagation = Propagation.REQUIRED)
 public class PodStatefulServiceImpl implements PodStatefulService {
 
+    /* Repositories */
+
     private final PodStatefulRepository podStatefulRepository;
     private final ResourceGroupRepository resourceGroupRepository;
     private final TeamRepository teamRepository;
     private final CourseRepository courseRepository;
+
+    /* Service methods */
 
     @Override
     @PreAuthorize("isAuthenticated()")
@@ -52,7 +56,7 @@ public class PodStatefulServiceImpl implements PodStatefulService {
         }
 
         if (podStatefulRepository.existsByResourceGroupId(resourceGroup.getId())) {
-            throw new PodAlreadyExistsException("Resource group already has a pod assigned to it");
+            throw new PodAlreadyExistsException("Resource group with id %s already has a pod assigned to it".formatted(resourceGroup.getId()));
         }
 
         pod.setResourceGroup(resourceGroup);
@@ -63,36 +67,34 @@ public class PodStatefulServiceImpl implements PodStatefulService {
 
     @Override
     @PreAuthorize("isAuthenticated()")
+    public PodStateful getStatefulPodById(UUID podId) {
+        return podStatefulRepository.findById(podId)
+                .orElseThrow(() -> new PodNotFoundException("Stateful pod with id %s not found"
+                        .formatted(podId)));
+    }
+
+    @Override
+    @PreAuthorize("isAuthenticated()")
     public List<PodStateful> getStatefulPodsByTeam(UUID teamId) {
         return podStatefulRepository.findByTeamId(teamId);
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public List<PodStateful> getStatefulPodsByCourse(UUID courseId) {
         return podStatefulRepository.findByCourseId(courseId);
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public List<PodStateful> getStatefulPodsByResourceGroup(UUID resourceGroupId) {
         return podStatefulRepository.findByResourceGroupId(resourceGroupId);
     }
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public PodStateful getStatefulPod(UUID podId) {
-        return podStatefulRepository.findById(podId)
-                .orElseThrow(() -> new PodNotFoundException(
-                        "Stateful POD %s could not be found".formatted(podId)));
-    }
-
-    //TODO: add logic if in use later
-    @Override
-    @PreAuthorize("isAuthenticated()")
     public void deleteStatefulPod(UUID podId) {
-
-
+        //TODO: come back here later
         podStatefulRepository.deleteById(podId);
     }
 

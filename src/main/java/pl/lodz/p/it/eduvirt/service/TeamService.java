@@ -19,13 +19,15 @@ public interface TeamService {
 
     Team getTeamById(UUID teamId);
 
+    Team getTeam(Team team);
+
     Team getTeamByCourseAndUser(Course course, UUID userId);
 
     Team createTeam(Team team, UUID courseId, String keyValue);
 
     Team updateTeam(Team team, UUID teamId);
 
-    void createSoloTeam(UUID courseId, UUID userId);
+    void createSoloTeam(Course course, User user);
 
     void joinUsingKey(String keyValue, UUID userId);
 
@@ -33,13 +35,13 @@ public interface TeamService {
 
     void addStudentToTeam(UUID teamId, String email);
 
-    void addStudentToCourse(UUID courseId, String email);
-
     void removeStudentFromTeam(UUID teamId, String email);
 
-    void removeStudentFromCourse(UUID courseId, String email);
+    void addStudentToCourse(Course course, String email);
 
-    List<User> getStudentsInSoloCourse(UUID courseId);
+    void removeStudentFromCourse(Course course, String email);
+
+    List<User> getStudentsInSoloCourse(Course course);
 
     void deleteTeam(UUID teamId);
 

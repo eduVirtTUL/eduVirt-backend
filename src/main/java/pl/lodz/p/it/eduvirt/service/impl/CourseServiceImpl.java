@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,6 +96,7 @@ public class CourseServiceImpl implements CourseService {
         return courseRepository.findByIdAndTeachersContaining(id, user).orElseThrow(() -> new CourseNotFoundException(id));
     }
 
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     @Transactional
     public Course addCourse(Course course, String teacherEmail) {
@@ -102,7 +104,8 @@ public class CourseServiceImpl implements CourseService {
                 .orElseThrow(() -> new UserNotFoundException("Teacher not found"));
 
         if (!teacher.getRoles().contains(RoleConstants.TEACHER)) {
-            throw new IllegalArgumentException("User is not a teacher");
+            throw new UserNotAuthorizedException("User with id %s is not a teacher"
+                    .formatted(teacher.getId()));
         }
 
         if (course.getTeachers() == null) {
@@ -154,8 +157,11 @@ public class CourseServiceImpl implements CourseService {
         courseRepository.deleteById(course.getId());
     }
 
+    // * Teacher methods * //
+
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<User> getTeachersForCourse(UUID courseId) {
         return courseRepository.findByIdWithTeachers(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId))
@@ -164,11 +170,11 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public void addTeacherToCourse(UUID courseId, String email) {
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-        User user = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    public void addTeacherToCourse(Course course, String email) {
+        User user = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User with email %s not found".formatted(email)));
 
-        if (user.getRoles().contains(RoleConstants.TEACHER)) {
+        if (user.getRoles().contains("/teacher")) {
             if (!course.getTeachers().contains(user)) {
                 course.getTeachers().add(user);
                 courseRepository.saveAndFlush(course);
@@ -180,10 +186,11 @@ public class CourseServiceImpl implements CourseService {
         }
     }
 
+
     @Override
     @Transactional
-    public void removeTeacherFromCourse(UUID courseId, String email) {
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course with id %s not found".formatted(courseId)));
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    public void removeTeacherFromCourse(Course course, String email) {
         User user = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User with email %s not found".formatted(email)));
 
         if (user.getRoles().contains("/teacher")) {
@@ -192,7 +199,7 @@ public class CourseServiceImpl implements CourseService {
                     course.getTeachers().remove(user);
                     courseRepository.saveAndFlush(course);
                 } else {
-                    throw new CourseNoTeachersException("Course with id %s cannot contain less than 1 teacher".formatted(courseId));
+                    throw new CourseNoTeachersException("Course with id %s cannot contain less than 1 teacher".formatted(course.getId()));
                 }
             } else {
                 throw new TeacherNotInCourseException();
