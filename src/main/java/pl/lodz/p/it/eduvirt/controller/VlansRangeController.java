@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import pl.lodz.p.it.eduvirt.dto.vlans_range.CreateVlansRangeDto;
 import pl.lodz.p.it.eduvirt.dto.vlans_range.VlansRangeDto;
 import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
+import pl.lodz.p.it.eduvirt.exceptions.BadRequestEduVirtException;
+import pl.lodz.p.it.eduvirt.exceptions.VlansRangeNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.VlansRangeMapper;
 import pl.lodz.p.it.eduvirt.service.VlansRangeService;
@@ -67,6 +69,7 @@ public class VlansRangeController {
     @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = VlansRangeDto.class))}),
+            @ApiResponse(responseCode = "400", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
             @ApiResponse(responseCode = "409", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
@@ -76,27 +79,19 @@ public class VlansRangeController {
         return ResponseEntity.ok(vlansRangeMapper.vlansRangeToDto(vlansRange));
     }
 
-//    @PutMapping(path = "/{id}/resize", produces = MediaType.APPLICATION_JSON_VALUE)
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = VlansRangeDto.class))}),
-//            @ApiResponse(responseCode = "409", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
-//            @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
-//    )
-//    public ResponseEntity<VlansRangeDto> resizeVlansRange(@PathVariable("id") UUID id, @RequestBody ResizeVlansRangeDto resizeDto) {
-//        VlansRange vlansRange = vlansRangeService.resizeVlansRange(vlansRangeMapper.resizeVlansRangeDtoToVlansRange(id, resizeDto));
-//
-//        return ResponseEntity.ok(vlansRangeMapper.vlansRangeToDto(vlansRange));
-//    }
-
     @DeleteMapping(path = "/{id}/remove")
     @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
-            @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
+            @ApiResponse(responseCode = "400", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
     public ResponseEntity<Void> removeVlansRange(@PathVariable("id") UUID id) {
-        vlansRangeService.removeVlansRange(id);
+        try {
+            vlansRangeService.removeVlansRange(id);
+        } catch (VlansRangeNotFoundException e) {
+            throw new BadRequestEduVirtException(e);
+        }
 
         return ResponseEntity.noContent().build();
     }

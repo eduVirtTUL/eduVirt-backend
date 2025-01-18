@@ -55,13 +55,13 @@ public class I18n {
     public static final String MAINTENANCE_INTERVAL_CONFLICT = "maintenanceIntervals.error.conflict";
     public static final String MAINTENANCE_INTERVAL_ALREADY_FINISHED = "maintenanceIntervals.error.already.finished";
 
-    // Pod
+    /* Pod */
 
     public static final String POD_NOT_FOUND = "pod.not.found.exception";
     public static final String POD_STATELESS_CONFLICT = "pod.conflict.exception";
     public static final String POD_ALREADY_EXISTS = "pod.already.exists.exception";
 
-    // Team
+    /* Team */
 
     public static final String USER_ALREADY_IN_TEAM = "user.already.in.team.exception";
     public static final String USER_ALREADY_IN_COURSE = "user.already.in.course.exception";
@@ -70,17 +70,15 @@ public class I18n {
     public static final String TEAM_VALIDATION = "team.validation.exception";
     public static final String INCORRECT_TEAM_TYPE = "incorrect.team.type.exception";
 
-    // AccessKey
+    /* AccessKey */
 
     public static final String DUPLICATE_KEY_VALUE = "duplicate.key.value.exception";
     public static final String ACCESS_KEY_NOT_FOUND = "access.key.not.found.exception";
     public static final String INCORRECT_KEY_TYPE = "incorrect.key.type.exception";
 
-    // User
+    /* User */
 
     public static final String USERS_NOT_FOUND = "users.not.found.exception";
-
-    // General
 
     /* Reservation keys */
 
@@ -111,6 +109,8 @@ public class I18n {
     /* Vlan range keys */
 
     public static final String VLANS_RANGE_NOT_FOUND = "vlans.range.not.found";
+    public static final String VLANS_RANGE_INVALID_DEFINITION = "vlans.range.invalid.definition";
+    public static final String VLANS_RANGE_CONFLICTING_RANGE = "vlans.range.conflicting.range";
 
     /* Vnic profile keys */
 
