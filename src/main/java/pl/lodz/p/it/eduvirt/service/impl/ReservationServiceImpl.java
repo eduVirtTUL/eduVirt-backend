@@ -350,7 +350,7 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findRgPoolReservations(resourceGroupPool, start, end);
     }
 
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @PreAuthorize("isAuthenticated()")
     @Override
     public Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable) {
         Team foundTeam = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));
@@ -358,7 +358,7 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findAllActiveReservations(foundTeam, currentTime, pageable);
     }
 
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @PreAuthorize("isAuthenticated()")
     @Override
     public Page<Reservation> findHistoricalReservations(UUID teamId, Pageable pageable) {
         Team foundTeam = teamRepository.findById(teamId).orElseThrow(() -> new TeamNotFoundException(teamId));

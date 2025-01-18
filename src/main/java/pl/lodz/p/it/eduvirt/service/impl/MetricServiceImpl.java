@@ -51,13 +51,8 @@ public class MetricServiceImpl implements MetricService {
 
     @PreAuthorize("hasAuthority('administrator')")
     @Override
-    public Page<Metric> findAllMetrics(int pageNumber, int pageSize) {
-        try {
-            Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("name"));
-            return metricRepository.findAll(pageable);
-        } catch (IllegalArgumentException exception) {
-            return Page.empty();
-        }
+    public Page<Metric> findAllMetrics(Pageable pageable) {
+        return metricRepository.findAll(pageable);
     }
 
     /* Update methods */

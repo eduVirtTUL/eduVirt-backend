@@ -48,7 +48,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                                              @Param("start") LocalDateTime start,
                                              @Param("end") LocalDateTime end);
 
-    @PreAuthorize("hasAuthority('administrator')")
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT r FROM Reservation r WHERE r.team.course.clusterId = :clusterId " +
             "AND NOT ((r.startTime <= :start AND r.endTime <= :start) " +
             "OR (r.startTime >= :end AND r.endTime >= :end))")
@@ -56,7 +56,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                                               @Param("start") LocalDateTime start,
                                               @Param("end") LocalDateTime end);
 
-    @PreAuthorize("hasAuthority('administrator')")
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT r FROM Reservation r WHERE NOT((r.startTime <= :start AND r.endTime <= :start) " +
             "OR (r.startTime >= :end AND r.endTime >= :end))")
     List<Reservation> findSystemReservations(@Param("start") LocalDateTime start,
@@ -97,13 +97,13 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
 
     /* Other */
 
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT r FROM Reservation r WHERE r.endTime > :probeTime AND r.team = :team")
     Page<Reservation> findAllActiveReservations(@Param("team") Team team,
                                                 @Param("probeTime") LocalDateTime probeTime,
                                                 Pageable pageable);
 
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT r FROM Reservation r WHERE r.endTime <= :probeTime AND r.team = :team")
     Page<Reservation> findAllHistoricalReservations(@Param("team") Team team,
                                                     @Param("probeTime") LocalDateTime probeTime,

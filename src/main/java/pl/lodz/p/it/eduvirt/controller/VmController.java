@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.types.*;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -107,7 +108,7 @@ public class VmController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EventGeneralDto>> findEventsForVm(
-            @PathVariable("id") UUID vmId, Pageable pageable) {
+            @PathVariable("id") UUID vmId, @PageableDefault Pageable pageable) {
         Vm oVirtVM = oVirtVmService.findVmById(vmId.toString());
         List<Event> foundEvents = oVirtVmService.findEventsByVmId(oVirtVM, pageable);
 

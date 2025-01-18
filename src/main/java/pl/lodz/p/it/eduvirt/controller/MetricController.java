@@ -2,6 +2,8 @@ package pl.lodz.p.it.eduvirt.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,10 +48,8 @@ public class MetricController {
 
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PageDto<MetricDto>> getAllMetrics(
-            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-            @RequestParam(name = "size", defaultValue = "10", required = false) int size) {
-        Page<Metric> metricPage = metricService.findAllMetrics(page, size);
+    public ResponseEntity<PageDto<MetricDto>> getAllMetrics(@PageableDefault Pageable pageable) {
+        Page<Metric> metricPage = metricService.findAllMetrics(pageable);
         PageDto<MetricDto> listOfDTOs = new PageDto<>(
                 metricPage.getContent().stream().map(metricMapper::metricToDto).toList(),
                 new PageInfoDto(metricPage.getNumber(), metricPage.getNumberOfElements(),

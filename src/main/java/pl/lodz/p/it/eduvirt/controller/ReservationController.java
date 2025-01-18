@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,7 @@ import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.ReservationMapper;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.*;
+import pl.lodz.p.it.eduvirt.util.RoleConstants;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -84,8 +86,6 @@ public class ReservationController {
                                                     @PathVariable("podId") UUID podId,
                                                     @RequestBody @Validated CreateReservationDto createDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-
-        // TODO: Potential refactor if course will have a list of users
         Course course = courseService.getCourse(courseId);
         Team team = teamService.getTeamByCourseAndUser(course, userId);
 
@@ -126,9 +126,9 @@ public class ReservationController {
             List<String> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                     .stream().map(GrantedAuthority::getAuthority).toList();
 
-            if (authorities.contains("administrator") ||
-                    (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
-                    (authorities.contains("student") && users.contains(user))) {
+            if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                    (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) ||
+                    (authorities.contains(RoleConstants.STUDENT) && users.contains(user))) {
                 return ResponseEntity.ok(reservationMapper.reservationToDetailsDto(foundReservation));
             }
         }
@@ -186,9 +186,9 @@ public class ReservationController {
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-        if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
-                (authorities.contains("student") && users.contains(user))) &&
+        if ((authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) ||
+                (authorities.contains(RoleConstants.STUDENT) && users.contains(user))) &&
                 !reservations.isEmpty()) {
             return ResponseEntity.ok(listOfDtos);
         }
@@ -217,9 +217,9 @@ public class ReservationController {
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-        if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
-                (authorities.contains("student") && users.contains(user))) && !reservations.isEmpty()) {
+        if ((authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) ||
+                (authorities.contains(RoleConstants.STUDENT) && users.contains(user))) && !reservations.isEmpty()) {
             return ResponseEntity.ok(listOfDtos);
         }
 
@@ -230,11 +230,8 @@ public class ReservationController {
     @GetMapping(path = "/active/courses/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getActiveReservations(
-            @PathVariable("courseId") UUID courseId,
-            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-            @RequestParam(name = "size", defaultValue = "10", required = false) int size) {
+            @PathVariable("courseId") UUID courseId, @PageableDefault Pageable pageable) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        Pageable pageable = PageRequest.of(page, size);
 
         Course course = courseService.getCourse(courseId);
         Team team = teamService.getTeamByCourseAndUser(course, userId);
@@ -256,12 +253,8 @@ public class ReservationController {
     @GetMapping(path = "/historic/courses/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getHistoricReservations(
-            @PathVariable("courseId") UUID courseId,
-            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-            @RequestParam(name = "size", defaultValue = "10", required = false) int size) {
+            @PathVariable("courseId") UUID courseId, @PageableDefault Pageable pageable) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        Pageable pageable = PageRequest.of(page, size);
-
         Course course = courseService.getCourse(courseId);
         Team team = teamService.getTeamByCourseAndUser(course, userId);
 
@@ -280,12 +273,9 @@ public class ReservationController {
 
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @GetMapping(path = "/active/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getActiveReservationsForTeam(
-            @PathVariable("teamId") UUID teamId,
-            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-            @RequestParam(name = "size", defaultValue = "10", required = false) int size) {
-        Pageable pageable = PageRequest.of(page, size);
-
+            @PathVariable("teamId") UUID teamId, @PageableDefault Pageable pageable) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
         Team team = teamService.getTeamById(teamId);
@@ -305,8 +295,8 @@ public class ReservationController {
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-        if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && course.getTeachers().contains(user))) &&
+        if ((authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) &&
                 !listOfDTOs.isEmpty()) {
             return ResponseEntity.ok(outputDto);
         }
@@ -316,12 +306,9 @@ public class ReservationController {
 
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @GetMapping(path = "/historic/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     ResponseEntity<PageDto<ReservationDto>> getHistoricReservationsForTeam(
-            @PathVariable("teamId") UUID teamId,
-            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-            @RequestParam(name = "size", defaultValue = "10", required = false) int size) {
-        Pageable pageable = PageRequest.of(page, size);
-
+            @PathVariable("teamId") UUID teamId, @PageableDefault Pageable pageable) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
         Team team = teamService.getTeamById(teamId);
@@ -339,8 +326,8 @@ public class ReservationController {
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-        if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && course.getTeachers().contains(user))) &&
+        if ((authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) &&
                 !listOfDTOs.isEmpty()) {
             return ResponseEntity.ok(outputDto);
         }
@@ -366,9 +353,9 @@ public class ReservationController {
             List<String> authorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                     .stream().map(GrantedAuthority::getAuthority).toList();
 
-            if (authorities.contains("administrator") ||
-                    (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
-                    (authorities.contains("student") && team.getUsers().contains(user))) {
+            if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                    (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) ||
+                    (authorities.contains(RoleConstants.STUDENT) && team.getUsers().contains(user))) {
                 reservationService.finishReservation(foundReservation);
                 return ResponseEntity.noContent().build();
             }

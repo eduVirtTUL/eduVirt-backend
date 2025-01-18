@@ -93,7 +93,7 @@ public class MetricServiceTest {
         when(metricRepository.findAll(Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(metric1, metric2), pageable, 2));
 
-        Page<Metric> foundPage = metricService.findAllMetrics(pageNumber, pageSize);
+        Page<Metric> foundPage = metricService.findAllMetrics(pageable);
 
         assertNotNull(foundPage);
         assertNotNull(foundPage.getContent());
@@ -115,22 +115,6 @@ public class MetricServiceTest {
         assertEquals(metricName2, secondMetric.getName());
 
         verify(metricRepository, times(1)).findAll(Mockito.eq(pageable));
-    }
-
-    @Test
-    public void Given_IncorrectPageNumberAndPageSizeIsPassed_When_FindAllMetrics_Then_ThrowsException() {
-        int pageNumber = -1;
-        int pageSize = 10;
-
-        Page<Metric> foundPage = metricService.findAllMetrics(pageNumber, pageSize);
-
-        assertNotNull(foundPage);
-        assertNotNull(foundPage.getContent());
-
-        List<Metric> foundMetrics = foundPage.getContent();
-
-        assertNotNull(foundMetrics);
-        assertTrue(foundMetrics.isEmpty());
     }
     
     /* DeleteMetric method test */

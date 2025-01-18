@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.service;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.Metric;
 
 import java.util.UUID;
@@ -14,7 +15,7 @@ public interface MetricService {
     /* Read methods */
 
     Metric findById(UUID id);
-    Page<Metric> findAllMetrics(int pageNumber, int pageSize);
+    Page<Metric> findAllMetrics(Pageable pageable);
 
     /* Delete methods */
 
