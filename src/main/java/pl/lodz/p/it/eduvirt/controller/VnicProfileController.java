@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,10 +29,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-//TODO: pageable?
+//TODO michal: pageable?
 
 @RestController
 @RequestMapping("/resources/vnic-profiles")
+@PreAuthorize("hasAuthority('administrator')")
 @RequiredArgsConstructor
 public class VnicProfileController {
 
@@ -39,6 +41,7 @@ public class VnicProfileController {
     private final VnicProfileMapper vnicProfileMapper;
 
     @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = VnicProfileDto.class)))}),
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
@@ -57,6 +60,7 @@ public class VnicProfileController {
     }
 
     @GetMapping(path = "/ovirt", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = VnicProfileDto.class)))}),
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
@@ -72,6 +76,7 @@ public class VnicProfileController {
     }
 
     @GetMapping(path = "/eduvirt", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = VnicProfilePoolMemberDto.class)))}),
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
@@ -88,6 +93,7 @@ public class VnicProfileController {
     }
 
     @GetMapping(path = "/eduvirt/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = VnicProfilePoolMemberDto.class))}),
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
@@ -106,6 +112,7 @@ public class VnicProfileController {
     }
 
     @PostMapping(path = "/eduvirt/add-to-pool/{vnicProfileId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = VnicProfilePoolMemberDto.class))}),
             @ApiResponse(responseCode = "400", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
@@ -124,6 +131,7 @@ public class VnicProfileController {
     }
 
     @DeleteMapping(path = "/eduvirt/remove-from-pool/{vnicProfileId}")
+    @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),

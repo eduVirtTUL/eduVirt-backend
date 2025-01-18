@@ -72,4 +72,3 @@ executor:
   mail:
     urls:
       reservations: ${FRONTEND_RESERVATIONS_VIEW:http://localhost:5173/reservations}
-}

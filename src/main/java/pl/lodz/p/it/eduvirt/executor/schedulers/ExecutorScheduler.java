@@ -30,7 +30,6 @@ import pl.lodz.p.it.eduvirt.executor.service.MailNotificationService;
 import pl.lodz.p.it.eduvirt.service.OVirtPermissionService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
-import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
 import java.util.ArrayList;

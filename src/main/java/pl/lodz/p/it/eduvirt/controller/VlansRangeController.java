@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/resources/vnic-profiles/vlans-range")
+@PreAuthorize("hasAuthority('administrator')")
 @RequiredArgsConstructor
 public class VlansRangeController {
 
@@ -35,6 +37,7 @@ public class VlansRangeController {
     private final VlansRangeMapper vlansRangeMapper;
 
     @GetMapping(path = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = VlansRangeDto.class)))}),
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
@@ -50,6 +53,7 @@ public class VlansRangeController {
     }
 
     @GetMapping(path = "/{id}",  produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = VlansRangeDto.class))}),
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
@@ -60,6 +64,7 @@ public class VlansRangeController {
     }
 
     @PostMapping(path = "/add", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = VlansRangeDto.class))}),
             @ApiResponse(responseCode = "409", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
@@ -84,6 +89,7 @@ public class VlansRangeController {
 //    }
 
     @DeleteMapping(path = "/{id}/remove")
+    @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
