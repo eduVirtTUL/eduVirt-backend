@@ -14,12 +14,12 @@ spring:
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     sender: ${MAIL_SENDER}
-    protocol: ${MAIL_PROTOCOL}
+    protocol: ${MAIL_PROTOCOL:smtp}
     properties:
-      "mail.smtp.auth": ${MAIL_PROPERTIES_ENABLE_AUTH}
-      "mail.smtp.starttls.enable": ${MAIL_PROPERTIES_STARTTLS}
-      "mail.smtp.ssl.enable": ${MAIL_PROPERTIES_SSL_ENABLE}
-      "mail.smtp.ssl.trust": ${MAIL_PROPERTIES_SSL_TRUST}
+      "mail.smtp.auth": ${MAIL_PROPERTIES_ENABLE_AUTH:true}
+      "mail.smtp.starttls.enable": ${MAIL_PROPERTIES_STARTTLS:true}
+      "mail.smtp.ssl.enable": ${MAIL_PROPERTIES_SSL_ENABLE:true}
+      "mail.smtp.ssl.trust": ${MAIL_PROPERTIES_SSL_TRUST:${HOST}}
   security:
     oauth2:
       resourceserver:
@@ -29,7 +29,7 @@ spring:
     url: ${EDUVIRT_DB_URL}
     username: ${EDUVIRT_DB_USERNAME}
     password: ${EDUVIRT_DB_PASSWORD}
-    driver-class-name: ${EDUVIRT_DB_DRIVER_CLASS}
+    driver-class-name: ${EDUVIRT_DB_DRIVER_CLASS:org.postgresql.Driver}
 
 ovirt:
   engine:
@@ -37,8 +37,8 @@ ovirt:
     username: ${ENGINE_USERNAME}
     password: ${ENGINE_PASSWORD}
     jks:
-      file: ${JKS_FILE}
-      password: ${JKS_PASSWORD}
+      file: ${JKS_FILE:ovirte-tst-keystore.jks}
+      password: ${JKS_PASSWORD:password}
 
 auth:
   keycloack:
@@ -50,15 +50,18 @@ auth:
 
 mail:
   default:
-    timezone: CET
-    language: pl
+    timezone: ${DEFAULT_MAIL_TIMEZONE:CET}
+    language: ${DEFAULT_MAIL_LANGUAGE:pl}
+
+frontend:
+  callback: ${FRONTEND_CALLBACK}
 
 window:
-  length: ${RESERVATION_WINDOW_LENGTH}
+  length: ${RESERVATION_WINDOW_LENGTH:15}
 
 resource:
   warning:
-    mail: ${RESOURCE_WARNING_MAILS_ENABLED}
+    mail: ${RESOURCE_WARNING_MAILS_ENABLED:true}
 
 jws:
   secret: ${JWS_SECRET}

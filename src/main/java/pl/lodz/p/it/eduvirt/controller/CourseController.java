@@ -44,6 +44,7 @@ import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.mappers.UserMapper;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.*;
+import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.time.LocalDateTime;
@@ -141,7 +142,7 @@ public class CourseController {
                 .build());
     }
 
-    // @PreAuthorize("hasAuthority('student')")
+    @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/student", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<CourseDto>> getCoursesForStudent(Pageable pageable) {
         UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -249,9 +250,9 @@ public class CourseController {
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-        if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
-                (authorities.contains("student") && users.contains(user))) &&
+        if ((authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) ||
+                (authorities.contains(RoleConstants.STUDENT) && users.contains(user))) &&
                 !listOfDTOs.isEmpty()) {
             return ResponseEntity.ok(listOfDTOs);
         }
@@ -285,9 +286,9 @@ public class CourseController {
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
 
-        if ((authorities.contains("administrator") ||
-                (authorities.contains("teacher") && course.getTeachers().contains(user)) ||
-                (authorities.contains("student") && users.contains(user))) &&
+        if ((authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) ||
+                (authorities.contains(RoleConstants.STUDENT) && users.contains(user))) &&
                 !listOfDTOs.isEmpty()) {
             return ResponseEntity.ok(listOfDTOs);
         }

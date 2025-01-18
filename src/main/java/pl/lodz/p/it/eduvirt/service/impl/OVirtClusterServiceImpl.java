@@ -31,7 +31,7 @@ public class OVirtClusterServiceImpl implements OVirtClusterService {
 
     /* Read methods */
 
-    @PreAuthorize("hasAuthority('administrator')")
+    @PreAuthorize("isAuthenticated()")
     @Override
     public Cluster findClusterById(UUID clusterId) {
         try {
