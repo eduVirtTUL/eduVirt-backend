@@ -391,7 +391,6 @@ public class CourseController {
                 .map(userMapper::userToDto)
                 .toList();
 
-
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));

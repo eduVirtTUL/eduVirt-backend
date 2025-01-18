@@ -14,7 +14,6 @@ import pl.lodz.p.it.eduvirt.entity.key.CourseAccessKey;
 import pl.lodz.p.it.eduvirt.entity.key.CourseType;
 import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.course.IncorrectCourseTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.team.*;
 import pl.lodz.p.it.eduvirt.exceptions.user.*;
@@ -32,14 +31,21 @@ import java.util.UUID;
 @Transactional(propagation = Propagation.REQUIRED)
 public class TeamServiceImpl implements TeamService {
 
+    /* Services */
+
+    private final AccessKeyService accessKeyService;
+
+    /* Repositories */
+
     private final TeamRepository teamRepository;
     private final CourseRepository courseRepository;
     private final TeamAccessKeyRepository teamKeyRepository;
     private final CourseAccessKeyRepository courseKeyRepository;
-    private final AccessKeyService accessKeyService;
     private final UserRepository userRepository;
     private final PodStatefulRepository statefulPodRepository;
     private final PodStatelessRepository statelessPodRepository;
+
+    /* Helper methods */
 
     private void validateUserNotInCourse(UUID userId, UUID courseId) {
         if (teamRepository.existsByUserIdAndCourseId(userId, courseId)) {
@@ -56,11 +62,15 @@ public class TeamServiceImpl implements TeamService {
         }
     }
 
-    private void validateTeamSizeAndName(Team team, UUID courseId) {
+    private void validateTeamName(Team team, UUID courseId) {
         if (teamRepository.existsByNameAndCourseId(team.getName(), courseId)) {
             throw new TeamAlreadyExistsException();
         }
     }
+
+    /* Service methods */
+
+    /* Get methods */
 
     @Override
     @PreAuthorize("isAuthenticated()")
@@ -71,19 +81,12 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public Team getTeam(Team team) {
-        return teamRepository.findByIdWithUsers(team.getId())
-                .orElseThrow(() -> new TeamNotFoundException(team.getId()));
-    }
-
-    @Override
-    @PreAuthorize("isAuthenticated()")
     public Page<Team> getAllTeams(Pageable pageable) {
         return teamRepository.findAllWithUsers(pageable);
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('student')")
     public Page<Team> getTeamsByStudent(UUID userId, Pageable pageable) {
         return teamRepository.findByUsersId(userId, pageable);
     }
@@ -102,168 +105,34 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
-    public Team createTeam(Team team, UUID courseId, String userKeyValue) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    public List<User> getStudentsInSoloCourse(Course course) {
+        if (course.getCourseType() != CourseType.SOLO) {
+            throw new IncorrectCourseTypeException("Can only get all students from solo courses");
+        }
 
+        List<Team> teams = teamRepository.findByCourseId(course.getId());
+        return teams.stream()
+                .flatMap(team -> team.getUsers().stream())
+                .toList();
+    }
+
+    /* Create, update, delete methods */
+
+    @Override
+    @PreAuthorize("hasAuthority('teacher')")
+    public Team createTeam(Team team, Course course, String userKeyValue) {
         if (course.getCourseType() == CourseType.SOLO) {
             throw new IncorrectCourseTypeException("Cannot manually create a team in a solo course");
         }
 
-        validateTeamSizeAndName(team, courseId);
+        validateTeamName(team, course.getId());
         team.setCourse(course);
         team.setActive(true);
         team = teamRepository.saveAndFlush(team);
 
         accessKeyService.createTeamKey(team.getId(), userKeyValue);
         return team;
-    }
-
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    public Team updateTeam(Team updatedTeam, UUID teamId) {
-        Team existingTeam = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException(teamId));
-
-        if (existingTeam.getCourse().getCourseType() == CourseType.SOLO) {
-            existingTeam.setActive(updatedTeam.isActive());
-            return teamRepository.saveAndFlush(existingTeam);
-        }
-
-        if (!existingTeam.getName().equals(updatedTeam.getName()) &&
-                teamRepository.existsByNameAndCourseId(updatedTeam.getName(), existingTeam.getCourse().getId())) {
-                throw new TeamAlreadyExistsException();
-            }
-
-        if (updatedTeam.getMaxSize() < existingTeam.getUsers().size()) {
-            throw new TeamSizeException();
-        }
-
-        existingTeam.setName(updatedTeam.getName());
-        existingTeam.setMaxSize(updatedTeam.getMaxSize());
-        existingTeam.setActive(updatedTeam.isActive());
-
-        return teamRepository.saveAndFlush(existingTeam);
-    }
-
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    public void joinUsingKey(String keyValue, UUID userId) {
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User with id %s could not be found!".formatted(userId)));
-
-        TeamAccessKey teamKey = teamKeyRepository.findByKeyValue(keyValue)
-                .orElseThrow(AccessKeyNotFoundException::new);
-
-        if (teamKey != null) {
-            Team team = teamKey.getTeam();
-            if (team.isActive()) {
-                validateUserNotInTeam(team, userId);
-                team.getUsers().add(user);
-                teamRepository.saveAndFlush(team);
-            } else {
-                throw new TeamNotActiveException();
-            }
-        } else {
-            CourseAccessKey courseKey = courseKeyRepository.findByKeyValue(keyValue)
-                    .orElseThrow(AccessKeyNotFoundException::new);
-            Course course = courseKey.getCourse();
-
-            if (course.getCourseType() == CourseType.TEAM_BASED) {
-                throw new IncorrectCourseTypeException("Cannot join solo course with team-based access key");
-            }
-
-            validateUserNotInCourse(userId, course.getId());
-            createSoloTeam(course, user);
-        }
-    }
-
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    public void leaveTeam(UUID teamId, UUID userId) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(()-> new TeamNotFoundException(teamId));
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User with id %s could not be found!".formatted(userId)));
-
-        if (team.getUsers().contains(user)) {
-            team.getUsers().remove(user);
-            teamRepository.saveAndFlush(team);
-        } else {
-            throw new TeamUserNotMemberException("User with id %s is not a member of team with id %s".formatted(userId, teamId));
-        }
-    }
-
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    public void addStudentToTeam(UUID teamId, String email) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(()-> new TeamNotFoundException(teamId));
-
-        User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email %s could not be found!".formatted(email)));
-
-        if (team.isActive()) {
-            validateUserNotInTeam(team, user.getId());
-            team.getUsers().add(user);
-            teamRepository.saveAndFlush(team);
-        } else {
-            throw new TeamNotActiveException();
-        }
-    }
-
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    public void addStudentToCourse(Course course, String email) {
-
-        User student = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new UserNotFoundException("Student with email %s could not be found!".formatted(email)));
-
-        if (course.getCourseType() == CourseType.TEAM_BASED) {
-            throw new IncorrectCourseTypeException("Cannot add student directly to team-based course");
-        }
-
-        validateUserNotInCourse(student.getId(), course.getId());
-        createSoloTeam(course, student);
-    }
-
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    public void removeStudentFromCourse(Course course, String email) {
-
-        User student = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email %s could not be found!".formatted(email)));
-
-        if (course.getCourseType() == CourseType.TEAM_BASED) {
-            throw new IncorrectCourseTypeException("Cannot remove student directly from team-based course");
-        }
-
-        Team team = teamRepository.findByUserIdAndCourse(student.getId(), course)
-                .orElseThrow(() -> new TeamNotFoundException(
-                        "Team for user %s could not be found in course %s.".formatted(student.getId(), course.getId())));
-
-        team.getUsers().remove(student);
-        teamRepository.delete(team);
-    }
-
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    public void removeStudentFromTeam(UUID teamId, String email) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException(teamId.toString()));
-
-        User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email %s could not be found!".formatted(email)));
-
-        if (team.getUsers().contains(user)) {
-            team.getUsers().remove(user);
-            teamRepository.saveAndFlush(team);
-        } else {
-            throw new TeamUserNotMemberException();
-        }
     }
 
     @Override
@@ -284,30 +153,41 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
-    public List<User> getStudentsInSoloCourse(Course course) {
-        if (course.getCourseType() != CourseType.SOLO) {
-            throw new IncorrectCourseTypeException("Can only get all students from solo courses");
+    @PreAuthorize("isAuthenticated()")
+    public Team updateTeam(Team updatedTeam, UUID teamId) {
+        Team existingTeam = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
+
+        if (existingTeam.getCourse().getCourseType() == CourseType.SOLO) {
+            existingTeam.setActive(updatedTeam.isActive());
+            return teamRepository.saveAndFlush(existingTeam);
         }
 
-        List<Team> teams = teamRepository.findByCourseId(course.getId());
-        return teams.stream()
-                .flatMap(team -> team.getUsers().stream())
-                .toList();
+        if (!existingTeam.getName().equals(updatedTeam.getName()) &&
+                teamRepository.existsByNameAndCourseId(updatedTeam.getName(), existingTeam.getCourse().getId())) {
+            throw new TeamAlreadyExistsException();
+        }
+
+        if (updatedTeam.getMaxSize() < existingTeam.getUsers().size()) {
+            throw new TeamSizeException();
+        }
+
+        existingTeam.setName(updatedTeam.getName());
+        existingTeam.setMaxSize(updatedTeam.getMaxSize());
+        existingTeam.setActive(updatedTeam.isActive());
+
+        return teamRepository.saveAndFlush(existingTeam);
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
     @Transactional
-    public void deleteTeam(UUID teamId) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new TeamNotFoundException(teamId.toString()));
-
+    @PreAuthorize("isAuthenticated()")
+    public void deleteTeam(Team team) {
         if (team.getCourse().getCourseType() != CourseType.TEAM_BASED) {
-            throw new IncorrectCourseTypeException("Can only delete teams from team-based courses");
+            throw new IncorrectCourseTypeException("Can only delete teams manually from team-based courses");
         }
 
-        teamKeyRepository.deleteByTeamId(teamId);
+        teamKeyRepository.deleteByTeamId(team.getId());
 
         team.getStatefulPods().forEach(pod -> {
             pod.setTeam(null);
@@ -327,5 +207,117 @@ public class TeamServiceImpl implements TeamService {
 
         teamRepository.delete(team);
         teamRepository.flush();
+    }
+
+    /* Join team or course methods */
+
+    @Override
+    @PreAuthorize("hasAuthority('student')")
+    public void joinUsingKey(String keyValue, User user) {
+        TeamAccessKey teamKey = teamKeyRepository.findByKeyValue(keyValue)
+                .orElseThrow(AccessKeyNotFoundException::new);
+
+        if (teamKey != null) {
+            Team team = teamKey.getTeam();
+            if (team.isActive()) {
+                validateUserNotInTeam(team, user.getId());
+                team.getUsers().add(user);
+                teamRepository.saveAndFlush(team);
+            } else {
+                throw new TeamNotActiveException();
+            }
+        } else {
+            CourseAccessKey courseKey = courseKeyRepository.findByKeyValue(keyValue)
+                    .orElseThrow(AccessKeyNotFoundException::new);
+            Course course = courseKey.getCourse();
+
+            if (course.getCourseType() == CourseType.TEAM_BASED) {
+                throw new IncorrectCourseTypeException("Cannot join solo course with team access key");
+            }
+            validateUserNotInCourse(user.getId(), course.getId());
+            createSoloTeam(course, user);
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('teacher')")
+    public void addStudentToTeam(Team team, String email) {
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UserNotFoundException("User with email %s could not be found!".formatted(email)));
+
+        if (team.isActive()) {
+            validateUserNotInTeam(team, user.getId());
+            team.getUsers().add(user);
+            teamRepository.saveAndFlush(team);
+        } else {
+            throw new TeamNotActiveException();
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('teacher')")
+    public void addStudentToCourse(Course course, String email) {
+
+        User student = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UserNotFoundException("Student with email %s could not be found!".formatted(email)));
+
+        if (course.getCourseType() == CourseType.TEAM_BASED) {
+            throw new IncorrectCourseTypeException("Cannot add student directly to team-based course");
+        }
+
+        validateUserNotInCourse(student.getId(), course.getId());
+        createSoloTeam(course, student);
+    }
+
+    /* Leave team or course methods */
+
+    @Override
+    @PreAuthorize("hasAuthority('student')")
+    public void leaveTeam(UUID teamId, UUID userId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User with id %s could not be found!".formatted(userId)));
+
+        if (team.getUsers().contains(user)) {
+            team.getUsers().remove(user);
+            teamRepository.saveAndFlush(team);
+        } else {
+            throw new TeamUserNotMemberException("User with id %s is not a member of team with id %s".formatted(userId, teamId));
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('teacher')")
+    public void removeStudentFromTeam(Team team, String email) {
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UserNotFoundException("User with email %s could not be found!".formatted(email)));
+
+        if (team.getUsers().contains(user)) {
+            team.getUsers().remove(user);
+            teamRepository.saveAndFlush(team);
+        } else {
+            throw new TeamUserNotMemberException("User with email %s is not a member of team with id %s".formatted(email, team.getId()));
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('teacher')")
+    public void removeStudentFromCourse(Course course, String email) {
+
+        User student = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UserNotFoundException("User with email %s could not be found!".formatted(email)));
+
+        if (course.getCourseType() == CourseType.TEAM_BASED) {
+            throw new IncorrectCourseTypeException("Cannot remove student with email %s manually from a team-based course".formatted(email));
+        }
+
+        Team team = teamRepository.findByUserIdAndCourse(student.getId(), course)
+                .orElseThrow(() -> new TeamNotFoundException(
+                        "Team for user %s could not be found in course %s.".formatted(student.getId(), course.getId())));
+
+        team.getUsers().remove(student);
+        teamRepository.delete(team);
     }
 }

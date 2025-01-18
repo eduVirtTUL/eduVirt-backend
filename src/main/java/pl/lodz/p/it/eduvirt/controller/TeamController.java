@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -16,9 +19,15 @@ import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
 import pl.lodz.p.it.eduvirt.dto.team.UpdateTeamDto;
+import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Team;
+import pl.lodz.p.it.eduvirt.entity.User;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.TeamMapper;
+import pl.lodz.p.it.eduvirt.repository.UserRepository;
+import pl.lodz.p.it.eduvirt.service.CourseService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
+import pl.lodz.p.it.eduvirt.util.RoleConstants;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,50 +39,98 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TeamController {
 
+    /* Services */
+
     private final TeamService teamService;
+    private final CourseService courseService;
+
+    /* Repositories */
+
+    private final UserRepository userRepository;
+
+    /* Mappers */
+
     private final TeamMapper teamMapper;
 
+
     @PostMapping
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<TeamWithCourseDto> createTeam(@RequestBody @Validated CreateTeamDto createTeamDto) {
-        Team team = teamMapper.fromCreateDto(createTeamDto);
-        Team createdTeam = teamService.createTeam(team, createTeamDto.getCourseId(), createTeamDto.getKeyValue());
-        return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(createdTeam));
-    }
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Course course = courseService.getCourse(createTeamDto.getCourseId());
 
-    @GetMapping
-    public ResponseEntity<PageDto<TeamWithCourseDto>> getTeams(
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Team> teamsPage = teamService.getAllTeams(pageable);
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
 
-        List<TeamWithCourseDto> teamDtos = teamsPage.getContent().stream()
-                .map(teamMapper::teamToTeamWithCourseDto)
-                .collect(Collectors.toList());
+        if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
+            return ResponseEntity.ok(teamMapper
+                    .teamToTeamWithCourseDto(teamService
+                            .createTeam(teamMapper
+                                    .fromCreateDto(createTeamDto),
+                                    course,
+                                    createTeamDto.getKeyValue())));
+        }
 
-        PageDto<TeamWithCourseDto> pageDto = new PageDto<>(teamDtos,
-                new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
-                        teamsPage.getTotalPages(), teamsPage.getTotalElements()));
-
-        if (teamDtos.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(pageDto);
-    }
-
-    @GetMapping("/{teamId}")
-    public ResponseEntity<TeamWithCourseDto> getTeamDetails(@PathVariable UUID teamId) {
-        Team team = teamService.getTeamById(teamId);
-        return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(team));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<TeamWithCourseDto> updateTeam(@PathVariable UUID id, @RequestBody @Validated UpdateTeamDto updateTeamDto) {
         Team team = teamMapper.fromUpdateDto(updateTeamDto);
         Team updatedTeam = teamService.updateTeam(team, id);
         return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(updatedTeam));
     }
 
+    @GetMapping
+    @PreAuthorize("hasAuthority('administrator')")
+    public ResponseEntity<PageDto<TeamWithCourseDto>> getTeams(
+            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Team> teamsPage = teamService.getAllTeams(pageable);
+
+        List<TeamWithCourseDto> listOfDTOs = teamsPage.getContent().stream()
+                .map(teamMapper::teamToTeamWithCourseDto)
+                .collect(Collectors.toList());
+
+        PageDto<TeamWithCourseDto> pageDto = new PageDto<>(listOfDTOs,
+                new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
+                        teamsPage.getTotalPages(), teamsPage.getTotalElements()));
+
+        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(pageDto);
+    }
+
+    @GetMapping("/{teamId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<TeamWithCourseDto> getTeamDetails(@PathVariable UUID teamId) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Team team = teamService.getTeamById(teamId);
+        Course course = team.getCourse();
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user) ||
+                authorities.contains(RoleConstants.STUDENT) && team.getUsers().contains(user)) {
+            return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(team));
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/student")
     @Transactional
+    @PreAuthorize("hasAuthority('student')")
     public ResponseEntity<PageDto<TeamWithCourseDto>> getTeamsByStudent(
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
@@ -82,19 +139,20 @@ public class TeamController {
         UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         Page<Team> teamsPage = teamService.getTeamsByStudent(studentId, pageable);
 
-        List<TeamWithCourseDto> teamDtos = teamsPage.getContent().stream()
+        List<TeamWithCourseDto> listOfDTOs = teamsPage.getContent().stream()
                 .map(teamMapper::teamToTeamWithCourseDto)
                 .collect(Collectors.toList());
 
-        PageDto<TeamWithCourseDto> pageDto = new PageDto<>(teamDtos,
+        PageDto<TeamWithCourseDto> pageDto = new PageDto<>(listOfDTOs,
                 new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
                         teamsPage.getTotalPages(), teamsPage.getTotalElements()));
 
-        if (teamDtos.isEmpty()) return ResponseEntity.noContent().build();
+        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(pageDto);
     }
 
     @GetMapping("/course/{courseId}")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<PageDto<TeamDto>> getTeamsByCourse(
             @PathVariable UUID courseId,
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -102,26 +160,42 @@ public class TeamController {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<Team> teamsPage = teamService.getTeamsByCourse(courseId, pageable);
 
-        List<TeamDto> teamDtos = teamsPage.getContent().stream()
-                .map(teamMapper::teamToTeamDto)
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Course course = courseService.getCourse(courseId);
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        PageDto<TeamDto> pageDto = new PageDto<>(teamDtos,
-                new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
-                        teamsPage.getTotalPages(), teamsPage.getTotalElements()));
+        if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
+            List<TeamDto> listOfDTOs = teamsPage.getContent().stream()
+                    .map(teamMapper::teamToTeamDto)
+                    .toList();
 
-        if (teamDtos.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(pageDto);
+            PageDto<TeamDto> pageDto = new PageDto<>(listOfDTOs,
+                    new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
+                            teamsPage.getTotalPages(), teamsPage.getTotalElements()));
+            if (!listOfDTOs.isEmpty()) return ResponseEntity.ok(pageDto);
+        }
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/join")
+    @PreAuthorize("hasAuthority('student')")
     public ResponseEntity<Void> joinUsingKey(@RequestParam String keyValue) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        teamService.joinUsingKey(keyValue, userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        teamService.joinUsingKey(keyValue, user);
+
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/leave")
+    @PreAuthorize("hasAuthority('student')")
     public ResponseEntity<Void> leaveTeam(@RequestParam UUID teamId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         teamService.leaveTeam(teamId, userId);
@@ -129,22 +203,68 @@ public class TeamController {
     }
 
     @PostMapping("/{teamId}/add-student")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> addStudentToTeam(@PathVariable UUID teamId, @RequestParam String email) {
-        teamService.addStudentToTeam(teamId, email);
-        return ResponseEntity.noContent().build();
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Team team = teamService.getTeamById(teamId);
+        Course course = team.getCourse();
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
+            teamService.addStudentToTeam(team, email);
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @PostMapping("/{teamId}/remove-student")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> removeStudentFromTeam(@PathVariable UUID teamId, @RequestParam String email) {
-        teamService.removeStudentFromTeam(teamId, email);
-        return ResponseEntity.noContent().build();
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Team team = teamService.getTeamById(teamId);
+        Course course = team.getCourse();
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
+            teamService.removeStudentFromTeam(team, email);
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @DeleteMapping("/{teamId}")
-    // @PreAuthorize("hasAuthority('TEACHER')")
+    @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> deleteTeam(@PathVariable UUID teamId) {
-        teamService.deleteTeam(teamId);
-        return ResponseEntity.noContent().build();
-    }
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Team team = teamService.getTeamById(teamId);
+        Course course = team.getCourse();
 
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
+            teamService.deleteTeam(team);
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
 }

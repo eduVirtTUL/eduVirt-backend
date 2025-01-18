@@ -11,38 +11,44 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TeamService {
+
+    /* Get methods */
+
+    Team getTeamById(UUID teamId);
+
     Page<Team> getAllTeams(Pageable pageable);
 
     Page<Team> getTeamsByStudent(UUID userId, Pageable pageable);
 
     Page<Team> getTeamsByCourse(UUID courseId, Pageable pageable);
 
-    Team getTeamById(UUID teamId);
-
-    Team getTeam(Team team);
-
     Team getTeamByCourseAndUser(Course course, UUID userId);
-
-    Team createTeam(Team team, UUID courseId, String keyValue);
-
-    Team updateTeam(Team team, UUID teamId);
-
-    void createSoloTeam(Course course, User user);
-
-    void joinUsingKey(String keyValue, UUID userId);
-
-    void leaveTeam(UUID teamId, UUID userId);
-
-    void addStudentToTeam(UUID teamId, String email);
-
-    void removeStudentFromTeam(UUID teamId, String email);
-
-    void addStudentToCourse(Course course, String email);
-
-    void removeStudentFromCourse(Course course, String email);
 
     List<User> getStudentsInSoloCourse(Course course);
 
-    void deleteTeam(UUID teamId);
+    /* Create, update, delete methods */
 
+    Team createTeam(Team team, Course course, String keyValue);
+
+    void createSoloTeam(Course course, User user);
+
+    Team updateTeam(Team team, UUID teamId);
+
+    void deleteTeam(Team team);
+
+    /* Join team or course methods */
+
+    void joinUsingKey(String keyValue, User user);
+
+    void addStudentToTeam(Team team, String email);
+
+    void addStudentToCourse(Course course, String email);
+
+    /* Leave team or course methods */
+
+    void leaveTeam(UUID teamId, UUID userId);
+
+    void removeStudentFromTeam(Team team, String email);
+
+    void removeStudentFromCourse(Course course, String email);
 }
