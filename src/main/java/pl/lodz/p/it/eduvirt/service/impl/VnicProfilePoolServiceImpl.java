@@ -23,6 +23,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+//TODO michal: transactional for vnic profile/vlan ranges controllers/services/repositories
+
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor

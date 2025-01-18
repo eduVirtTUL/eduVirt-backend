@@ -414,10 +414,16 @@ VALUES ('a7556146-23a6-4936-903c-c337c794a8c7', '1b0912df-c4c0-4907-9dd4-b09573a
 
 --- Example reservations ---
 
-INSERT INTO public.reservation (id, version, rg_id, team_id, automatic_startup, notification_time, reservation_start, reservation_end, status)
-VALUES ('181426fb-6cb6-4fd9-9801-cbd03deccc2d', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'yesterday' + interval '11 hours',timestamp 'yesterday' + interval '17 hours', 'COMPLETED'),
-       ('24f78aff-d112-4233-b02f-e747854bcd23', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 15, timestamp 'today' + interval '11 hours',timestamp 'today' + interval '23 hours', 'IN_PROGRESS'),
-       ('73f95e89-3a47-4dd5-bb51-382f79d1b976', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'tomorrow' + interval '11 hours',timestamp 'tomorrow' + interval '17 hours', 'PENDING');
+
+-- INSERT INTO public.reservation (id, version, rg_id, team_id, automatic_startup, notification_time, reservation_start, reservation_end, status)
+-- VALUES ('181426fb-6cb6-4fd9-9801-cbd03deccc2d', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'yesterday' + interval '11 hours',timestamp 'yesterday' + interval '17 hours', 'COMPLETED'),
+--        ('24f78aff-d112-4233-b02f-e747854bcd23', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 15, timestamp 'today' + interval '11 hours',timestamp 'today' + interval '23 hours', 'IN_PROGRESS'),
+--        ('73f95e89-3a47-4dd5-bb51-382f79d1b976', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'tomorrow' + interval '11 hours',timestamp 'tomorrow' + interval '17 hours', 'PENDING');
+
+-- INSERT INTO public.reservation (id, version, rg_id, team_id, automatic_startup, notification_time, reservation_start, reservation_end, status)
+-- VALUES ('181426fb-6cb6-4fd9-9801-cbd03deccc2d', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'yesterday' + interval '11 hours',timestamp 'yesterday' + interval '17 hours', 'COMPLETED'),
+--        ('24f78aff-d112-4233-b02f-e747854bcd23', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 15, timestamp 'today' + interval '11 hours',timestamp 'today' + interval '17 hours', 'IN_PROGRESS'),
+--        ('73f95e89-3a47-4dd5-bb51-382f79d1b976', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'tomorrow' + interval '11 hours',timestamp 'tomorrow' + interval '17 hours', 'PENDING');
 
 -----------------------------------
 --- Sieciowe systemy baz danych ---

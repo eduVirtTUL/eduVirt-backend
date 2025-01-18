@@ -16,7 +16,7 @@ import java.security.cert.X509Certificate;
 @Configuration
 public class RestClientConfig {
 
-    @Bean()
+    @Bean
     @Profile("dev")
     public RestTemplate restTemplateDev() throws Exception {
         TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {

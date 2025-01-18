@@ -143,4 +143,56 @@ public class MailProvider {
             mailHelper.sendHtmlEmail(subject, emailTo, "courseResourcesExhaustionRgPool", templateModel, language);
         }
     }
+
+    @PreAuthorize("permitAll()")
+    public void sendReservationEndEmail(String emailTo,
+                                        Reservation reservation,
+                                        String timeZone,
+                                        String language) {
+        LocalDateTime endTime = OffsetDateTime.of(reservation.getEndTime(), ZoneOffset.UTC)
+                .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
+
+        String end = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        String description = messageSource.getMessage("reservationEnd.generalDescription", null, Locale.of(language));
+        Map<String, Object> templateModel = Map.of(
+                "name", emailTo,
+                "description", description.formatted(reservation.getNotificationTime()),
+                "teamName", reservation.getTeam().getName(),
+                "resourceGroupName", reservation.getResourceGroup().getName(),
+                "scheduledEndTime", end
+        );
+
+        String subject = messageSource.getMessage("reservationEnd.subject", null, Locale.of(language));
+        mailHelper.sendHtmlEmail(subject, emailTo, "reservationEnd", templateModel, language);
+    }
+
+    @Value("${executor.mail.urls.reservations}")
+    private String reservationsBaseUrl;
+
+    @PreAuthorize("permitAll()")
+    public void sendReservationStartEmail(String emailTo,
+                                          Reservation reservation,
+                                          String timeZone,
+                                          String language) {
+        LocalDateTime endTime = OffsetDateTime.of(reservation.getEndTime(), ZoneOffset.UTC)
+                .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
+
+        String end = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        String description = messageSource.getMessage("reservationEnd.generalDescription", null, Locale.of(language));
+        Map<String, Object> templateModel = Map.of(
+                "name", emailTo,
+                "description", description.formatted(reservation.getNotificationTime()),
+                "cancelUrl", reservationsBaseUrl + "/" + reservation.getId().toString(),
+                "teamName", reservation.getTeam().getName(),
+                "resourceGroupName", reservation.getResourceGroup().getName(),
+                "scheduledEndTime", end
+        );
+
+        //TODO michal getUrl from props
+
+        String subject = messageSource.getMessage("reservationStart.subject", null, Locale.of(language));
+        mailHelper.sendHtmlEmail(subject, emailTo, "reservationStart", templateModel, language);
+    }
 }

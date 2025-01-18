@@ -42,6 +42,10 @@ public interface ReservationService {
     int findReservationCountForStatelessPod(PodStateless statelessPod, Team team);
     int findReservationCountForStatefulPod(PodStateful statefulPod, Team team);
 
+    List<Reservation> findReservationsToBegin();
+    List<Reservation> findReservationsToStop();
+    List<Reservation> findReservationsToSendNotifications();
+
     /* Update / delete methods */
 
     void finishReservationAsStudent(Reservation reservation);
