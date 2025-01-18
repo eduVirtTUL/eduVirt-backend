@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.controller;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.*;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -55,7 +56,7 @@ public class ClusterController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('administrator')")
-    public ResponseEntity<List<ClusterGeneralDto>> findAllClusters(Pageable pageable) {
+    public ResponseEntity<List<ClusterGeneralDto>> findAllClusters(@PageableDefault Pageable pageable) {
         List<Cluster> clusters = clusterService.findClusters(pageable);
         List<ClusterGeneralDto> listOfDTOs = clusters.stream().map(cluster -> {
             Long hostCount = (long) clusterService.findHostCountInCluster(cluster);
@@ -70,7 +71,7 @@ public class ClusterController {
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<HostDto>> findHostInfoByClusterId(
-            Pageable pageable, @PathVariable("id") UUID clusterId) {
+            @PathVariable("id") UUID clusterId, @PageableDefault Pageable pageable) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<Host> hosts = clusterService.findHostsInCluster(cluster, pageable);
 
@@ -127,7 +128,7 @@ public class ClusterController {
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EventGeneralDto>> findEventsByClusterId(
-            Pageable pageable, @PathVariable("id") UUID clusterId) {
+            @PathVariable("id") UUID clusterId, @PageableDefault Pageable pageable) {
         Cluster cluster = clusterService.findClusterById(clusterId);
         List<Event> events = clusterService.findEventsInCluster(cluster, pageable);
 

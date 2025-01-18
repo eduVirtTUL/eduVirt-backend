@@ -5,6 +5,7 @@ import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -56,12 +57,10 @@ public class ClusterMetricController {
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MetricValueDto>> getAllMetricValues(
-            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            @PageableDefault Pageable pageable,
             @PathVariable("clusterId") UUID clusterId) {
         try {
             Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
-            Pageable pageable = PageRequest.of(page, size);
             Page<ClusterMetric> clusterMetricPage = clusterMetricService.findAllMetricValuesForCluster(cluster, pageable);
 
             PageDto<MetricValueDto> listOfDTOs = new PageDto<>(

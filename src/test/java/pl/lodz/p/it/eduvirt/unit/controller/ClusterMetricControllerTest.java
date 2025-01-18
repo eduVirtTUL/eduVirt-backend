@@ -324,26 +324,6 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_IncorrectPaginationParametersArePassed_When_GetAllMetricValues_Then_ReturnsEmptyClusterMetricValueList() throws Exception {
-        int page = -1;
-        int size = 10;
-
-        Cluster cluster = mock(Cluster.class);
-        when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId)))
-                .thenReturn(cluster);
-
-        mockMvc.perform(get("/clusters/{clusterId}/metrics", existingClusterId)
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size)))
-                .andDo(print())
-                .andExpect(status().isNoContent());
-
-        verify(oVirtClusterServiceImpl, times(1))
-                .findClusterById(Mockito.eq(existingClusterId));
-    }
-
-    @WithMockUser
-    @Test
     public void Given_NoMetricValuesAreDefinedForGivenCluster_When_GetAllMetricValues_Then_ReturnsEmptyClusterMetricValueList() throws Exception {
         int page = 0;
         int size = 10;

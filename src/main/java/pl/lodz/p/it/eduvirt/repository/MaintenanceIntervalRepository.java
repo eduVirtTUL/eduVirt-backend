@@ -23,25 +23,25 @@ public interface MaintenanceIntervalRepository extends JpaRepository<Maintenance
 
     @PreAuthorize("hasAuthority('administrator')")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt >= :probeTime " +
-            "AND ((mi.type = 'CLUSTER' AND mi.clusterId = :clusterId) OR mi.type = 'SYSTEM') ORDER BY mi.endAt ASC")
+            "AND ((mi.type = 'CLUSTER' AND mi.clusterId = :clusterId) OR mi.type = 'SYSTEM')")
     Page<MaintenanceInterval> findAllActiveIntervalsForGivenCluster(@Param("clusterId") UUID clusterId,
                                                                     @Param("probeTime") LocalDateTime probeTime,
                                                                     Pageable pageable);
 
     @PreAuthorize("hasAuthority('administrator')")
-    @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt >= :probeTime ORDER BY mi.endAt ASC")
+    @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt >= :probeTime")
     Page<MaintenanceInterval> findAllActiveIntervals(@Param("probeTime") LocalDateTime probeTime,
                                                      Pageable pageable);
 
     @PreAuthorize("hasAuthority('administrator')")
     @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt < :probeTime " +
-            "AND ((mi.type = 'CLUSTER' AND mi.clusterId = :clusterId) OR mi.type = 'SYSTEM') ORDER BY mi.endAt DESC")
+            "AND ((mi.type = 'CLUSTER' AND mi.clusterId = :clusterId) OR mi.type = 'SYSTEM')")
     Page<MaintenanceInterval> findAllHistoricalIntervalsForGivenCluster(@Param("clusterId") UUID clusterId,
                                                                         @Param("probeTime") LocalDateTime probeTime,
                                                                         Pageable pageable);
 
     @PreAuthorize("hasAuthority('administrator')")
-    @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt < :probeTime ORDER BY mi.endAt DESC")
+    @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt < :probeTime")
     Page<MaintenanceInterval> findAllHistoricalIntervals(@Param("probeTime") LocalDateTime probeTime,
                                                          Pageable pageable);
 

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -77,13 +79,14 @@ public class MaintenanceIntervalController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MaintenanceIntervalDto>> getAllMaintenanceIntervals(
-            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
-            @RequestParam(name = "size", defaultValue = "10", required = false) int size,
+            @PageableDefault Pageable pageable,
             @RequestParam(name = "clusterId", required = false) UUID clusterId,
             @RequestParam(name = "active", required = false, defaultValue = "true") boolean active) {
         try {
+            if (clusterId != null) clusterService.findClusterById(clusterId);
+
             Page<MaintenanceInterval> maintenanceIntervalPage = maintenanceIntervalService
-                    .findAllMaintenanceIntervals(clusterId, active, PageRequest.of(page, size));
+                    .findAllMaintenanceIntervals(clusterId, active, pageable);
 
             PageDto<MaintenanceIntervalDto> listOfDtos = new PageDto<>(
                     maintenanceIntervalPage.getContent().stream().map(maintenanceIntervalMapper::maintenanceIntervalToDto).toList(),
@@ -104,6 +107,8 @@ public class MaintenanceIntervalController {
             @RequestParam(value = "clusterId", required = false) UUID clusterId,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        if (clusterId != null) clusterService.findClusterById(clusterId);
+
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalService
                 .findAllMaintenanceIntervalsInTimePeriod(clusterId, start, end);
 

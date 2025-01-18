@@ -818,22 +818,6 @@ public class MaintenanceIntervalControllerTest {
                 .findAllMaintenanceIntervals(Mockito.eq(clusterId), Mockito.eq(active), Mockito.eq(pageable));
     }
 
-    @WithMockUser
-    @Test
-    public void Given_InvalidPaginationParametersArePassed_When_GetAllMaintenanceIntervals_Then_ReturnsEmptyMaintenanceIntervalList() throws Exception {
-        int page = -1;
-        int size = 10;
-        boolean active = false;
-
-        mockMvc.perform(get("/maintenance-intervals")
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size))
-                        .param("clusterId", existingClusterId.toString())
-                        .param("active", String.valueOf(active)))
-                .andDo(print())
-                .andExpect(status().isNoContent());
-    }
-
     /* GetMaintenanceIntervalsWithinTimePeriod method tests */
 
     @WithMockUser

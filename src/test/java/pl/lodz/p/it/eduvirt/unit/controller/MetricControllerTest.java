@@ -122,7 +122,7 @@ public class MetricControllerTest {
         MetricDto dtoNo2 = new MetricDto(metric2.getId(), metric2.getName(), Metric.MetricCategory.MEMORY);
         MetricDto dtoNo3 = new MetricDto(metric3.getId(), metric3.getName(), Metric.MetricCategory.MEMORY);
 
-        when(metricService.findAllMetrics(Mockito.eq(page), Mockito.eq(size)))
+        when(metricService.findAllMetrics(Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(metric1, metric2, metric3), pageable, 3));
         when(metricMapper.metricToDto(Mockito.any(Metric.class))).thenReturn(dtoNo1, dtoNo2, dtoNo3);
 
@@ -172,7 +172,7 @@ public class MetricControllerTest {
         assertEquals(thirdMetric.name(), metric3.getName());
         assertEquals(thirdMetric.category(), metric3.getCategory());
 
-        verify(metricService, times(1)).findAllMetrics(Mockito.eq(page), Mockito.eq(size));
+        verify(metricService, times(1)).findAllMetrics(Mockito.eq(pageable));
         verify(metricMapper, times(3)).metricToDto(Mockito.any(Metric.class));
     }
 
@@ -183,7 +183,7 @@ public class MetricControllerTest {
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
 
-        when(metricService.findAllMetrics(Mockito.eq(page), Mockito.eq(size)))
+        when(metricService.findAllMetrics(Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(), pageable, 3));
 
         mockMvc.perform(get("/metrics")
@@ -192,7 +192,7 @@ public class MetricControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(metricService, times(1)).findAllMetrics(Mockito.eq(page), Mockito.eq(size));
+        verify(metricService, times(1)).findAllMetrics(Mockito.eq(pageable));
     }
 
     /* DeleteMetric method tests */
