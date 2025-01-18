@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -114,5 +115,28 @@ public class MailProvider {
             templateModel.put("resourceGroupPool", resourceName);
             mailHelper.sendHtmlEmail(subject, emailTo, "courseResourcesExhaustionRgPool", templateModel, language);
         }
+    }
+
+    @PreAuthorize("permitAll()")
+    public void sendReservationEndEmail(String emailTo,
+                                        Reservation reservation,
+                                        String timeZone,
+                                        String language) {
+        LocalDateTime endTime = OffsetDateTime.of(reservation.getEndTime(), ZoneOffset.UTC)
+                .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
+
+        String end = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        String description = messageSource.getMessage("reservationEnd.generalDescription", null, Locale.of(language));
+        Map<String, Object> templateModel = Map.of(
+                "name", emailTo,
+                "description", description.formatted(reservation.getNotificationTime()),
+                "teamName", reservation.getTeam().getName(),
+                "resourceGroupName", reservation.getResourceGroup().getName(),
+                "scheduledEndTime", end
+        );
+
+        String subject = messageSource.getMessage("reservationEnd.subject", null, Locale.of(language));
+        mailHelper.sendHtmlEmail(subject, emailTo, "reservationEnd", templateModel, language);
     }
 }

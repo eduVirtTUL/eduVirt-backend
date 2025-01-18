@@ -8,9 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import org.springframework.transaction.annotation.Propagation;
+import pl.lodz.p.it.eduvirt.executor.service.MailNotificationService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
-import pl.lodz.p.it.eduvirt.util.MailHelper;
-import pl.lodz.p.it.eduvirt.util.MailProvider;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class NotificationScheduler {
 
     private final ReservationService reservationService;
-    private final MailProvider mailProvider;
+    private final MailNotificationService mailNotificationService;
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0L)
     @Transactional(propagation = Propagation.NEVER)
@@ -33,12 +32,11 @@ public class NotificationScheduler {
                 .forEach(
                         reservation -> {
                             try {
+                                mailNotificationService.sendReservationEndNotification(reservation);
                             } catch (Throwable e) {
                                 e.printStackTrace(System.err); //TODO michal
                             }
                         }
                 );
     }
-
-    private void sendMail() {}
 }

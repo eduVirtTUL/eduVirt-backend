@@ -6,8 +6,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
 
 import java.util.List;
 import java.util.UUID;

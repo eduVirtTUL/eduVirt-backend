@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.executor.entity;
+package pl.lodz.p.it.eduvirt.executor.entity.tasks;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -27,6 +27,13 @@ import java.util.UUID;
 @NoArgsConstructor
 public abstract class ExecutorSubtask extends HistoricalData {
 
+    public enum SubtaskType {
+        CHECK_VMS_STATUSES,
+        ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE,
+        START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM,
+        ASSIGN_PERMISSION, REVOKE_PERMISSION
+    }
+
     @ManyToOne
     @JoinColumn(
             name = "task_id",
@@ -35,13 +42,6 @@ public abstract class ExecutorSubtask extends HistoricalData {
             nullable = false, updatable = false
     )
     private ExecutorTask executorTask;
-
-    public enum SubtaskType {
-        CHECK_VMS_STATUSES,
-        ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE,
-        START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM,
-        ASSIGN_PERMISSION, REVOKE_PERMISSION
-    }
 
     /// todo michal maybe change it to VirtualMachine entity -> Foreign Key
     @Column(name = "vm_id", updatable = false, nullable = true)

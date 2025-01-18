@@ -20,11 +20,11 @@ import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.executor.NoAvailableVnicProfileException;
 import pl.lodz.p.it.eduvirt.exceptions.executor.VmInvalidStatusException;
-import pl.lodz.p.it.eduvirt.exceptions.executor.VmTransitionalStatusException;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
-import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
-import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VnicProfileTask;
+import pl.lodz.p.it.eduvirt.exceptions.executor.VmLaunchingStatusException;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.AdditionalId;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 import pl.lodz.p.it.eduvirt.service.OVirtPermissionService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -45,10 +45,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // Priority 0
+//IMPROVEMENTS michal: change some // /* */
 //IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
 //IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
 //IMPROVEMENTS michal: improvements for transactions
-//IMPROVEMENTS michal: change some // /* */
 //IMPROVEMENTS michal: error handling (in whole module - including vnicProfileService, ovirtVmService, etc..)
 //IMPROVEMENTS michal: LoggerInterceptor on other services
 
@@ -59,6 +59,8 @@ import java.util.stream.Collectors;
 
 //IMPROVEMENTS michal: Send mail on reservation start up (with hyperlink to reservation cancellation)
 
+//IMPROVEMENTS michal: Check two conflicting invocation of scheduled method (ex. two pod starts)
+
 // Priority 1
 //IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
 
@@ -66,15 +68,7 @@ import java.util.stream.Collectors;
 //IMPROVEMENTS michal: implement different exceptions for different statues of VM (that is not in DOWN status)
 
 // Priority 2
-
-//IMPROVEMENTS michal: verifications count/type of registered subtasks
 //IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
-
-// Priority 3
-//IMPROVEMENTS michal: perhaps improvement -> .stream().parallel() when calling oVirt Api (d871bd94490e... -> last revision with comments where it could be used)
-//IMPROVEMENTS michal: perhaps optimized VM oVirt API calls (like in f06d3d17fa5...)
-//IMPROVEMENTS michal: perhaps real pooling instead of invoking checking conditions in fixed time
-//IMPROVEMENTS michal: separate revoking permissions to different scheduled tasks (rather not)
 
 @Slf4j
 @Service
@@ -84,13 +78,13 @@ import java.util.stream.Collectors;
 @Transactional(propagation = Propagation.NEVER)
 public class ExecutorScheduler {
 
-    // Model
+    /* Model */
     private final OVirtVmService oVirtVmService;
     private final OVirtPermissionService OVirtPermissionService;
     private final VnicProfilePoolService vnicProfilePoolService;
     private final ReservationService reservationService;
 
-    // Handling logging
+    /* Handling logging */
     private final ExecutorTaskService executorTaskService;
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0L)
@@ -141,7 +135,7 @@ public class ExecutorScheduler {
                 );
     }
 
-    //--------------AGGREGATED OPERATIONS METHODS--------------
+    /* Aggregated operations methods */
     private void startUpPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodInitTask(reservation);
         List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationStartExistingSubTasks(reservation);
@@ -510,7 +504,7 @@ public class ExecutorScheduler {
         }
     }
 
-    //--------------PRIVATE METHODS--------------
+    /* Methods related to oVirt Api calls */
     private List<Vm> fetchOvirtVms(List<VirtualMachine> virtualMachines) {
         Set<String> vmIdsStr = virtualMachines.stream()
                 .map(vm -> vm.getId().toString())
@@ -519,24 +513,22 @@ public class ExecutorScheduler {
     }
 
     private void checkIfVmsDownStatus(List<Vm> vms) {
-        //TODO michal: How to handle this differentiation
-        Set<Vm> invalidStatus = new HashSet<>();
-        Set<Vm> transitionalValidStatus = new HashSet<>();
+        Set<Vm> invalidStatuses = new HashSet<>();
+        Set<Vm> launchingStatuses = new HashSet<>();
 
         vms.forEach(vm -> {
                     switch (vm.status()) {
-                        case DOWN, POWERING_DOWN, IMAGE_LOCKED -> {
-                        }
-                        case UP, MIGRATING, POWERING_UP, RESTORING_STATE,
+                        case DOWN, POWERING_DOWN, IMAGE_LOCKED -> {}
+                        case UP, MIGRATING, RESTORING_STATE,
                              SAVING_STATE, SUSPENDED, PAUSED,
-                             NOT_RESPONDING, UNASSIGNED, UNKNOWN -> invalidStatus.add(vm);
-                        case REBOOT_IN_PROGRESS, WAIT_FOR_LAUNCH -> transitionalValidStatus.add(vm);
+                             NOT_RESPONDING, UNASSIGNED, UNKNOWN -> invalidStatuses.add(vm);
+                        case REBOOT_IN_PROGRESS, POWERING_UP, WAIT_FOR_LAUNCH -> launchingStatuses.add(vm);
                     }
                 }
         );
 
-        if (!invalidStatus.isEmpty()) {
-            String invalidStatusesConcString = invalidStatus.stream()
+        if (!invalidStatuses.isEmpty()) {
+            String invalidStatusesConcString = invalidStatuses.stream()
                     .map(vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name()))
                     .collect(Collectors.joining(";"));
 
@@ -545,14 +537,14 @@ public class ExecutorScheduler {
             throw new VmInvalidStatusException(errorMessage);
         }
 
-        if (!transitionalValidStatus.isEmpty()) {
-            String transitionalStatusesConcString = transitionalValidStatus.stream()
+        if (!launchingStatuses.isEmpty()) {
+            String transitionalStatusesConcString = launchingStatuses.stream()
                     .map(vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name()))
                     .collect(Collectors.joining(";"));
 
-            String errorMessage = "Some VMs are in invalid statuses: " + transitionalStatusesConcString;
+            String errorMessage = "Some VMs are in launching statuses: " + transitionalStatusesConcString;
             log.error(errorMessage);
-            throw new VmTransitionalStatusException(errorMessage);
+            throw new VmLaunchingStatusException(errorMessage);
         }
     }
 
@@ -594,7 +586,7 @@ public class ExecutorScheduler {
         ).map(UUID::fromString).orElse(null);
     }
 
-    //--------------REGISTERING SUBTASKS METHODS--------------
+    /* Registering subtasks methods */
     private <T> T runAndRegister(Supplier<T> supplier, ExecutorTask task, UUID vmId, ExecutorSubtask.SubtaskType type,
                                  AdditionalId... additionalIds) {
         ExecutorSubtask executorSubtask = executorTaskService.registerSubTask(task.getId(), vmId, type);
@@ -621,7 +613,7 @@ public class ExecutorScheduler {
         runAndRegister(castedSupplier, task, vmId, type, additionalIds);
     }
 
-    //--------------INIT&DESTROY--------------
+    /* On startup */
     @PostConstruct
     private void init() {
         // Fetch all IN_PROGRESS and set FAILED due to system restart
@@ -633,7 +625,7 @@ public class ExecutorScheduler {
                 .forEach(subtask -> executorTaskService.finalizeSubTask(subtask.getId(), false, "Failed due to system restart"));
     }
 
-    //--------------UTILS--------------
+    /* Utils methods */
     private static List<VirtualMachine> filterVmsBySubtasks(final List<ExecutorSubtask> subtasks,
                                                             final List<VirtualMachine> originalVms,
                                                             ExecutorSubtask.SubtaskType searchedSubtaskType,

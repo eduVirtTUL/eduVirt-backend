@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.executor.entity;
+package pl.lodz.p.it.eduvirt.executor.entity.tasks;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import pl.lodz.p.it.eduvirt.entity.HistoricalData;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,12 +15,14 @@ import java.util.Objects;
 @NoArgsConstructor
 public class ExecutorTask extends HistoricalData {
 
+    public enum TaskStatus {SUCCESSFUL, FAILED, IN_PROGRESS}
+
     @ManyToOne(optional = false)
     @JoinColumn(
             name = "reservation_id",
             referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "reservation_id_fk"),
-            updatable = false, nullable = false
+            unique = false, updatable = false, nullable = false
     )
     private Reservation reservation;
 
@@ -31,8 +32,6 @@ public class ExecutorTask extends HistoricalData {
     @Enumerated(EnumType.STRING)
     private TaskType type;
 
-    enum TaskStatus {SUCCESSFUL, FAILED, IN_PROGRESS}
-
     @Column(name = "status", updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
     private TaskStatus status = TaskStatus.IN_PROGRESS;
@@ -41,9 +40,9 @@ public class ExecutorTask extends HistoricalData {
     private String description;
 
     @OneToMany(mappedBy = "executorTask", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<ExecutorSubtask> subtasks = new ArrayList<>();
+    private List<ExecutorSubtask> subtasks;
 
-    // Constructors
+    /* Constructors */
 
     public ExecutorTask(Reservation reservation,
                         TaskType type) {
@@ -52,7 +51,7 @@ public class ExecutorTask extends HistoricalData {
     }
 
 
-    // Other methods
+    /* Other methods */
 
     public void setSuccessful() {
         if (status.equals(TaskStatus.IN_PROGRESS)) {

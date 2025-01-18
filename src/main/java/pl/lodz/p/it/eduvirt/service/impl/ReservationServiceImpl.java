@@ -29,7 +29,6 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @LoggerInterceptor
@@ -458,6 +457,16 @@ public class ReservationServiceImpl implements ReservationService {
         reservationList.forEach(ReservationServiceImpl::forceReservationLazyCollections);
 
         return reservationList;
+    }
+
+    @Override
+    public List<Reservation> findReservationsToSendNotifications() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        return reservationRepository.findAllReservationsToSendNotifications(currentTime)
+                .stream()
+                .filter(reservation ->
+                       !reservation.getEndTime().minusMinutes(reservation.getNotificationTime()).isAfter(currentTime))
+                .toList();
     }
 
     private static void forceReservationLazyCollections(Reservation reservation) {

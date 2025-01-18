@@ -68,4 +68,4 @@ jws:
 
 executor:
   vm:
-    grace-time: ${EXECUTOR_VM_SHUTDOWN_GRACE_TIME}
+    grace-time: ${EXECUTOR_VM_SHUTDOWN_GRACE_TIME:2}

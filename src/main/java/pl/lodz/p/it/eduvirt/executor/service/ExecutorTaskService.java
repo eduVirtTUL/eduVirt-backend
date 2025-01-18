@@ -1,9 +1,9 @@
 package pl.lodz.p.it.eduvirt.executor.service;
 
 import pl.lodz.p.it.eduvirt.entity.Reservation;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
-import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.AdditionalId;
 
 import java.util.List;
 import java.util.UUID;

@@ -41,6 +41,7 @@ public interface ReservationService {
 
     List<Reservation> findReservationsToBegin();
     List<Reservation> findReservationsToStop();
+    List<Reservation> findReservationsToSendNotifications();
 
     /* Update / delete methods */
 
