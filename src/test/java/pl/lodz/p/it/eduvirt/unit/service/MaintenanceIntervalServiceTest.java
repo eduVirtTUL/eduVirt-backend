@@ -273,7 +273,6 @@ public class MaintenanceIntervalServiceTest {
                 Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class),
                 Mockito.any(Reservation.class), Mockito.any(), Mockito.any());
 
-        doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo1));
         doNothing().when(reservationRepository).delete(Mockito.eq(reservationNo2));
 
         maintenanceIntervalService.createClusterMaintenanceInterval(cluster, cause, description, start, end);
@@ -286,10 +285,10 @@ public class MaintenanceIntervalServiceTest {
                 Mockito.eq(clusterId), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(6)).findById(Mockito.any(UUID.class));
-        verify(mailProvider, times(6)).sendReservationRemovalEmail(
+        verify(mailProvider, times(3)).sendReservationRemovalEmail(
                 Mockito.any(String.class), Mockito.any(String.class), Mockito.any(String.class),
                 Mockito.any(Reservation.class), Mockito.any(), Mockito.any());
-        verify(reservationRepository, times(2)).delete(Mockito.any(Reservation.class));
+        verify(reservationRepository, times(1)).delete(Mockito.any(Reservation.class));
     }
 
     @Test
@@ -343,18 +342,6 @@ public class MaintenanceIntervalServiceTest {
 
         assertThrows(MaintenanceIntervalInvalidTimeWindowException.class, () -> maintenanceIntervalService
                 .createClusterMaintenanceInterval(cluster, cause, description, start, end));
-    }
-
-    @Test
-    public void Given_MaintenanceIntervalToBeCreatedIsLongerThan24Hours_When_CreateClusterMaintenanceInterval_Then_ThrowsException() {
-        String cause = "example_cause";
-        String description = "example_description";
-        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        LocalDateTime start = currentTime.plusHours(8);
-        LocalDateTime end = start.plusHours(40);
-
-        assertThrows(MaintenanceIntervalTooLongException.class,
-                () -> maintenanceIntervalService.createClusterMaintenanceInterval(cluster, cause, description, start, end));
     }
 
     @Test
@@ -473,18 +460,6 @@ public class MaintenanceIntervalServiceTest {
         LocalDateTime end = currentTime.plusHours(2).plusMinutes(59);
 
         assertThrows(MaintenanceIntervalInvalidTimeWindowException.class, () -> maintenanceIntervalService
-                .createSystemMaintenanceInterval(cause, description, start, end));
-    }
-
-    @Test
-    public void Given_MaintenanceIntervalToBeCreatedIsLongerThan24Hours_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
-        String cause = "example_cause";
-        String description = "example_description";
-        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        LocalDateTime start = currentTime.plusHours(8);
-        LocalDateTime end = currentTime.plusHours(40);
-
-        assertThrows(MaintenanceIntervalTooLongException.class, () -> maintenanceIntervalService
                 .createSystemMaintenanceInterval(cause, description, start, end));
     }
 

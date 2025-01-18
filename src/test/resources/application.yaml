@@ -5,8 +5,12 @@ spring:
         jwt:
           issuer-uri: test
 
+maintenance-interval:
+  min-ahead: 3
+
 window:
   length: 15
+
 resource:
   warning:
     mail: true

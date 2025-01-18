@@ -29,7 +29,7 @@ public interface MaintenanceIntervalRepository extends JpaRepository<Maintenance
                                                                     Pageable pageable);
 
     @PreAuthorize("hasAuthority('administrator')")
-    @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt >= :probeTime")
+    @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt >= :probeTime AND mi.type = 'SYSTEM'")
     Page<MaintenanceInterval> findAllActiveIntervals(@Param("probeTime") LocalDateTime probeTime,
                                                      Pageable pageable);
 
@@ -41,7 +41,7 @@ public interface MaintenanceIntervalRepository extends JpaRepository<Maintenance
                                                                         Pageable pageable);
 
     @PreAuthorize("hasAuthority('administrator')")
-    @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt < :probeTime")
+    @Query("SELECT mi FROM MaintenanceInterval mi WHERE mi.endAt < :probeTime AND mi.type = 'SYSTEM'")
     Page<MaintenanceInterval> findAllHistoricalIntervals(@Param("probeTime") LocalDateTime probeTime,
                                                          Pageable pageable);
 

@@ -83,6 +83,34 @@ public class MailProvider {
     }
 
     @PreAuthorize("permitAll()")
+    public void sendReservationShortenedEmail(String firstName, String lastName,
+                                              String emailTo, Reservation reservation,
+                                              String timeZone, String language) {
+        timeZone = timeZone != null ? timeZone : defaultTimezone;
+        language = language != null ? language : defaultLanguage;
+
+        LocalDateTime startTime = OffsetDateTime.of(reservation.getStartTime(), ZoneOffset.UTC)
+                .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
+        LocalDateTime endTime = OffsetDateTime.of(reservation.getEndTime(), ZoneOffset.UTC)
+                .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
+
+        String start = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String end = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        Map<String, Object> templateModel = Map.of(
+                "firstName", firstName,
+                "lastName", lastName,
+                "teamName", reservation.getTeam().getName(),
+                "resourceGroupName", reservation.getResourceGroup().getName(),
+                "startTime", start,
+                "endTime", end
+        );
+
+        String subject = messageSource.getMessage("reservationShortened.subject", null, Locale.of(language));
+        mailHelper.sendHtmlEmail(subject, emailTo, "reservationShortened", templateModel, language);
+    }
+
+    @PreAuthorize("permitAll()")
     public void sendTemporaryCourseResourcesExhaustionEmail(String firstName, String lastName,
                                                             String emailTo, Course course, String resourceName,
                                                             boolean isRg, LocalDateTime start, LocalDateTime end,

@@ -439,6 +439,20 @@ public class ReservationServiceImpl implements ReservationService {
         return availability;
     }
 
+    @PreAuthorize("hasAuthority('student')")
+    @Override
+    public int findReservationCountForStatelessPod(PodStateless statelessPod, Team team) {
+        return reservationRepository.findAllRgPoolReservationsForGivenTeam(
+                statelessPod.getResourceGroupPool(), team).size();
+    }
+
+    @PreAuthorize("hasAuthority('student')")
+    @Override
+    public int findReservationCountForStatefulPod(PodStateful statefulPod, Team team) {
+        return reservationRepository.findAllRgReservationsForGivenTeam(
+                statefulPod.getResourceGroup(), team).size();
+    }
+
     @Override
     public List<Reservation> findReservationsToBegin() {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -492,15 +506,28 @@ public class ReservationServiceImpl implements ReservationService {
 
     /* Update / delete methods */
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('student')")
     @Override
-    public void finishReservation(Reservation reservation) {
+    public void finishReservationAsStudent(Reservation reservation) {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
 
         if (reservation.getEndTime().isBefore(currentTime)) {
             throw new ReservationAlreadyFinishedException(
                     "Reservation %s has already finished!".formatted(reservation.getId()));
         } else if (reservation.getStartTime().isBefore(currentTime)) {
+            reservation.setEndTime(currentTime);
+            reservationRepository.saveAndFlush(reservation);
+        } else {
+            reservationRepository.delete(reservation);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @Override
+    public void finishReservationAsTeacherOrAdmin(Reservation reservation) {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+
+        if (reservation.getStartTime().isBefore(currentTime)) {
             reservation.setEndTime(currentTime);
             reservationRepository.saveAndFlush(reservation);
         } else {
