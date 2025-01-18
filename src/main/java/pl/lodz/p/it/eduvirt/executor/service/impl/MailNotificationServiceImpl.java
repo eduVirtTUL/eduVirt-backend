@@ -24,7 +24,17 @@ public class MailNotificationServiceImpl implements MailNotificationService {
 
     @Override
     public void sendReservationStartNotification(Reservation reservation) {
-
+        reservation.getTeam()
+                .getUsers()
+                .forEach(user ->
+                        mailProvider.sendReservationStartEmail(
+                                user.getEmail(),
+                                reservation,
+                                user.getTimeZone(),
+                                user.getLanguage()
+                        )
+                );
+        mailNotificationRepository.saveAndFlush(MailNotification.reservationStartNotification(reservation));
     }
 
     @Override

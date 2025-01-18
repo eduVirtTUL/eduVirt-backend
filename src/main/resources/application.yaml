@@ -69,3 +69,7 @@ jws:
 executor:
   vm:
     grace-time: ${EXECUTOR_VM_SHUTDOWN_GRACE_TIME:2}
+  mail:
+    urls:
+      reservations: ${FRONTEND_RESERVATIONS_VIEW:http://localhost:5173/reservations}
+}

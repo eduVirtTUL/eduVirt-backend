@@ -26,9 +26,11 @@ import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.AdditionalId;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
+import pl.lodz.p.it.eduvirt.executor.service.MailNotificationService;
 import pl.lodz.p.it.eduvirt.service.OVirtPermissionService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
+import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
 import java.util.ArrayList;
@@ -57,8 +59,6 @@ import java.util.stream.Collectors;
 
 //IMPROVEMENTS michal: findReservationsToBegin(), findReservationsToStop() change endTime to endTime - (graceTime + 2 min)
 
-//IMPROVEMENTS michal: Send mail on reservation start up (with hyperlink to reservation cancellation)
-
 //IMPROVEMENTS michal: Check two conflicting invocation of scheduled method (ex. two pod starts)
 
 // Priority 1
@@ -86,6 +86,9 @@ public class ExecutorScheduler {
 
     /* Handling logging */
     private final ExecutorTaskService executorTaskService;
+
+    /* Mail notifications */
+    private final MailNotificationService mailNotificationService;
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0L)
     @Transactional(propagation = Propagation.NEVER)
@@ -310,6 +313,12 @@ public class ExecutorScheduler {
         } catch (Throwable e) {
             executorTaskService.finalizeTask(executorTask.getId(), false, e.getMessage());
             throw e;
+        }
+
+        try {
+            mailNotificationService.sendReservationStartNotification(reservation);
+        } catch (Throwable e) {
+            log.error("Some error occurred while sending reservation start notifications. Cause: {}", e.getMessage());
         }
     }
 
