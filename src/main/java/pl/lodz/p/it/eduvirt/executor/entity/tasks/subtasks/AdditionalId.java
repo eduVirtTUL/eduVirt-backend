@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.executor.entity.subtasks;
+package pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks;
 
 import lombok.Getter;
 

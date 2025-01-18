@@ -3,21 +3,26 @@ package pl.lodz.p.it.eduvirt.executor.service.impl;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
-import pl.lodz.p.it.eduvirt.executor.entity.subtasks.AdditionalId;
-import pl.lodz.p.it.eduvirt.executor.entity.subtasks.PermissionTask;
-import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VmTask;
-import pl.lodz.p.it.eduvirt.executor.entity.subtasks.VnicProfileTask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.AdditionalId;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.PermissionTask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.PreconditionsCheckTask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.VmTask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.repository.ExecutorSubtaskRepository;
 import pl.lodz.p.it.eduvirt.executor.repository.ExecutorTaskRepository;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +37,9 @@ import java.util.UUID;
 @Transactional(propagation = Propagation.REQUIRES_NEW)
 public class ExecutorTaskServiceImpl implements ExecutorTaskService {
 
+    @Value("${executor.vm.grace-time}")
+    private int vmShutdownGraceTime;
+
     private final ExecutorTaskRepository executorTaskRepository;
     private final ExecutorSubtaskRepository executorSubtaskRepository;
 
@@ -43,6 +51,11 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
     @Override
     public ExecutorTask registerPodDestroyTask(Reservation reservation) {
         return registerNewExecutorTask(reservation, ExecutorTask.TaskType.POD_DESTRUCT);
+    }
+
+    @Override
+    public ExecutorTask registerEndReservationTask(Reservation reservation) {
+        return registerNewExecutorTask(reservation, ExecutorTask.TaskType.END_RESERVATION);
     }
 
     private ExecutorTask registerNewExecutorTask(Reservation reservation, ExecutorTask.TaskType type) {
@@ -69,7 +82,7 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
     @Override
     public ExecutorSubtask registerSubTask(UUID taskId, UUID vmId, ExecutorSubtask.SubtaskType type) {
         ExecutorTask task = executorTaskRepository.findById(taskId)
-                .orElseThrow(RuntimeException::new);
+                .orElseThrow(EntityNotFoundException::new);
 
         // TODO michal: Ask is better save nulls or mapping nulls to 00000000-0000-0000-0000-000000000000
         UUID sanitizedVmId = Objects.requireNonNullElse(vmId, UUID.fromString("00000000-0000-0000-0000-000000000000"));
@@ -78,6 +91,7 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
             case START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM -> new VmTask(task, sanitizedVmId, type);
             case ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE -> new VnicProfileTask(task, sanitizedVmId, type);
             case ASSIGN_PERMISSION, REVOKE_PERMISSION -> new PermissionTask(task, sanitizedVmId, type);
+            case CHECK_VMS_STATUSES -> new PreconditionsCheckTask(task);
         };
 
         return executorSubtaskRepository.saveAndFlush(subtask);
@@ -90,7 +104,7 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
 
         subtask.setSuccessful(success);
         subtask.setDescription(
-                Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(200, comment.length())) : null
+                Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(500, comment.length())) : null
         );
 
         Map<AdditionalId, UUID> mapOfAdditionalIds = new HashMap<>();
@@ -106,14 +120,13 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
         }
 
         switch (subtask) {
-            case VmTask vmTask -> {
-            }
+            case VmTask vmTask -> {}
             case VnicProfileTask vnicProfileTask -> {
                 vnicProfileTask.setVnicProfileId(mapOfAdditionalIds.get(AdditionalId.VNIC_PROFILE));
                 vnicProfileTask.setNicId(mapOfAdditionalIds.get(AdditionalId.NIC));
             }
-            case PermissionTask permissionTask -> {
-            }
+            case PermissionTask permissionTask -> {}
+            case PreconditionsCheckTask preconditionsCheckTask -> {}
             default -> throw new IllegalArgumentException("Unexpected subtask type: " + subtask);
         }
 
@@ -126,12 +139,28 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
     }
 
     @Override
-    public List<ExecutorSubtask> getReservationEndExistingSubTasks(Reservation reservation) {
+    public List<ExecutorSubtask> getStopPodExistingSubTasks(Reservation reservation) {
         return executorSubtaskRepository.findByReservation(reservation.getId(), ExecutorTask.TaskType.POD_DESTRUCT);
     }
 
     @Override
+    public List<ExecutorSubtask> getReservationEndExistingSubTasks(Reservation reservation) {
+        return executorSubtaskRepository.findByReservation(reservation.getId(), ExecutorTask.TaskType.END_RESERVATION);
+    }
+
+    @Override
     public List<ExecutorTask> getReservationsToEndTasks() {
-        return executorTaskRepository.findReservationsToEndTasks();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        return executorTaskRepository.findReservationsToEndTasks(currentTime.minusMinutes(vmShutdownGraceTime));
+    }
+
+    @Override
+    public List<ExecutorTask> getReservationsInProgressTasks() {
+        return executorTaskRepository.findReservationsInProgressTasks();
+    }
+
+    @Override
+    public List<ExecutorSubtask> getReservationsInProgressSubTasks() {
+        return executorTaskRepository.findReservationsInProgressSubTasks();
     }
 }
