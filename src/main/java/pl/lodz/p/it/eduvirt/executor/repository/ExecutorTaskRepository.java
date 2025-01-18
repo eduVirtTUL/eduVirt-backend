@@ -6,11 +6,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.entity.Reservation;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
 
@@ -21,11 +16,6 @@ import java.util.UUID;
 @Repository
 @Transactional(propagation = Propagation.MANDATORY)
 public interface ExecutorTaskRepository extends JpaRepository<ExecutorTask, UUID> {
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    void deleteByReservation(Reservation reservation);
-
-    //TODO michal: include reservations that has multiply failed tries to shutdown VMs
 
     @Query("""
             SELECT e FROM ExecutorTask e
