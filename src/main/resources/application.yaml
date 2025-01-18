@@ -56,6 +56,9 @@ mail:
 frontend:
   callback: ${FRONTEND_CALLBACK}
 
+maintenance-interval:
+  min-ahead: ${MAINTENANCE_INTERVAL_MIN_AHEAD}
+
 window:
   length: ${RESERVATION_WINDOW_LENGTH:15}
 

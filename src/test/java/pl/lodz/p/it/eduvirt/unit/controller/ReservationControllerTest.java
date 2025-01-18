@@ -789,6 +789,112 @@ public class ReservationControllerTest {
         verify(userRepository, times(1)).findById(Mockito.eq(nonExistentUserId1));
     }
 
+    /* GetPreviousReservationCount method tests */
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_ExistingCourseAndStatefulPodIdentifiersArePassed_When_GetPreviousReservationCount_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
+
+        when(reservationService.findReservationCountForStatefulPod(
+                Mockito.eq(podStateful1), Mockito.eq(team1))).thenReturn(2);
+
+        MvcResult result = mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous/count",
+                        course.getId(), podStateful1.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        int reservationCount = mapper.readValue(json, Integer.class);
+        assertEquals(2, reservationCount);
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+
+        verify(reservationService, times(1))
+                .findReservationCountForStatefulPod(Mockito.eq(podStateful1), Mockito.eq(team1));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_ExistingCourseAndStatelessPodIdentifiersArePassed_When_GetPreviousReservationCount_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
+
+        when(reservationService.findReservationCountForStatelessPod(
+                Mockito.eq(podStateless1), Mockito.eq(team1))).thenReturn(2);
+
+        MvcResult result = mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous/count",
+                        course.getId(), podStateless1.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        int reservationPage = mapper.readValue(json, Integer.class);
+
+        assertEquals(2, reservationPage);
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+
+        verify(reservationService, times(1))
+                .findReservationCountForStatelessPod(Mockito.eq(podStateless1), Mockito.eq(team1));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_NonPodIdentifiersIsPassed_When_GetPreviousReservationCount_Then_ReturnsEmptyListOfReservations() throws Exception {
+        UUID nonExistentPodIdentifier = UUID.randomUUID();
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
+
+        mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous/count",
+                        course.getId(), nonExistentPodIdentifier))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_NonExistentCourseIdentifierIsPassed_When_GetPreviousReservationCount_Then_Returns404NotFound() throws Exception {
+        UUID nonExistentCourseIdentifier = UUID.randomUUID();
+
+        when(courseService.getCourse(Mockito.eq(nonExistentCourseIdentifier)))
+                .thenThrow(CourseNotFoundException.class);
+
+        mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous/count",
+                        nonExistentCourseIdentifier, podStateful1.getId()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(courseService, times(1))
+                .getCourse(Mockito.eq(nonExistentCourseIdentifier));
+    }
+
+    @Test
+    @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
+    public void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetPreviousReservationCount_Then_Returns404NotFound() throws Exception {
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(studentId)))
+                .thenThrow(TeamNotFoundException.class);
+
+        mockMvc.perform(get("/reservations/course/{courseId}/pods/{podId}/previous/count",
+                        course.getId(), podStateful1.getId()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1))
+                .getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(studentId));
+    }
+
     /* GetPreviousReservations method tests */
 
     @Test
@@ -2628,7 +2734,7 @@ public class ReservationControllerTest {
     public void Given_ExistingReservationIdentifierIsPassed_When_FinishReservation_Then_Returns204NoContent() throws Exception {
         when(reservationService.findReservationById(Mockito.eq(reservation1.getId()))).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(Mockito.eq(userId1))).thenReturn(Optional.of(user1));
-        doNothing().when(reservationService).finishReservation(Mockito.eq(reservation1));
+        doNothing().when(reservationService).finishReservationAsStudent(Mockito.eq(reservation1));
 
         mockMvc.perform(post("/reservations/{reservationId}/cancel", reservation1.getId())
                         .secure(true)
@@ -2638,7 +2744,7 @@ public class ReservationControllerTest {
 
         verify(reservationService, times(1)).findReservationById(Mockito.eq(reservation1.getId()));
         verify(userRepository, times(1)).findById(Mockito.eq(userId1));
-        verify(reservationService, times(1)).finishReservation(Mockito.eq(reservation1));
+        verify(reservationService, times(1)).finishReservationAsStudent(Mockito.eq(reservation1));
     }
 
     @Test
@@ -2678,7 +2784,7 @@ public class ReservationControllerTest {
     public void Given_ExistingReservationIdentifierIsPassedAsAdministrator_When_FinishReservation_Then_Returns204NoContent() throws Exception {
         when(reservationService.findReservationById(Mockito.eq(reservation1.getId()))).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(Mockito.eq(adminId))).thenReturn(Optional.of(admin));
-        doNothing().when(reservationService).finishReservation(Mockito.eq(reservation1));
+        doNothing().when(reservationService).finishReservationAsTeacherOrAdmin(Mockito.eq(reservation1));
 
         mockMvc.perform(post("/reservations/{reservationId}/cancel", reservation1.getId())
                         .secure(true)
@@ -2688,7 +2794,7 @@ public class ReservationControllerTest {
 
         verify(reservationService, times(1)).findReservationById(Mockito.eq(reservation1.getId()));
         verify(userRepository, times(1)).findById(Mockito.eq(adminId));
-        verify(reservationService, times(1)).finishReservation(Mockito.eq(reservation1));
+        verify(reservationService, times(1)).finishReservationAsTeacherOrAdmin(Mockito.eq(reservation1));
     }
 
     @Test
@@ -2696,7 +2802,7 @@ public class ReservationControllerTest {
     public void Given_ExistingReservationIdentifierIsPassedAsTeacherInCourse_When_FinishReservation_Then_Returns204NoContent() throws Exception {
         when(reservationService.findReservationById(Mockito.eq(reservation1.getId()))).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
-        doNothing().when(reservationService).finishReservation(Mockito.eq(reservation1));
+        doNothing().when(reservationService).finishReservationAsTeacherOrAdmin(Mockito.eq(reservation1));
 
         mockMvc.perform(post("/reservations/{reservationId}/cancel", reservation1.getId())
                         .secure(true)
@@ -2706,7 +2812,7 @@ public class ReservationControllerTest {
 
         verify(reservationService, times(1)).findReservationById(Mockito.eq(reservation1.getId()));
         verify(userRepository, times(1)).findById(Mockito.eq(teacherId1));
-        verify(reservationService, times(1)).finishReservation(Mockito.eq(reservation1));
+        verify(reservationService, times(1)).finishReservationAsTeacherOrAdmin(Mockito.eq(reservation1));
     }
 
     @Test

@@ -275,7 +275,7 @@ VALUES ('e028a269-9890-4b02-81d9-b477ea7f552a', 0, 'SO-RG01', '', true, 3),
 --- Resource group pools ---
 
 INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id, description, max_rent_time)
-VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 0, 'SysOp-Pool', 6, 3, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '', 3);
+VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 0, 'SysOp-Pool', 6, 6, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '', 3);
 
 INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, resource_groups_id)
 VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 'e028a269-9890-4b02-81d9-b477ea7f552a'),
@@ -284,6 +284,46 @@ VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 'e028a269-9890-4b02-81d9-b477ea7
        ('4778c01d-4962-4cbd-a653-c90aea9dbddf', '2ef59c08-2ec5-40cc-8730-53723d3abda4'),
        ('4778c01d-4962-4cbd-a653-c90aea9dbddf', '071be818-ab6e-4a46-8c26-b62b6a88054f'),
        ('4778c01d-4962-4cbd-a653-c90aea9dbddf', '16e5367f-65fc-46e0-83d6-2966bef7f399');
+
+INSERT INTO public.pod_stateless (id, rgp_id, course_id, team_id)
+VALUES (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '72fc908f-5d02-4c81-91a3-2bccaa627946'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'cb97b2f0-646f-4876-906f-0fd44cf6d63a'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '12ca7f40-c596-44ae-a8d2-671843ecc9e5'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '83698296-0b9f-40ae-a8e7-2caec8068e1e'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'b4232713-05fa-411a-a40d-9a3e15f13fa0'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'd82a711e-a308-4127-95f9-2c38851c3e71'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '89f530ca-f5a0-40cd-b00a-1997c96dd9d3'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'bbf54d7d-3ccb-4cea-9726-baef3c58e2dd'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'c5aaa2ae-4ba7-4b87-86b5-52643d92de47'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '33e44d4e-c937-4d13-a060-f41a4c3c05fb'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '689e85c3-249a-4946-b841-c6d03cde11e1'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '3351cf7b-ec52-48f5-a55d-ed93fe459391'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'e246f8f5-6b3f-4bd3-8d6f-5af27da20604'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'eb5abbd0-8e44-4fcb-b8dd-2626dc68b41b'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '37094fa9-a4eb-4569-886e-21653f73b7c3'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '519e1c5a-c234-48db-872c-e3e80f8f93e3'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '471ae643-21e7-4c75-9566-cb3e7902653c'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'd8dab219-cc39-469d-907f-1f89dafa0b38'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '73998221-fe61-4556-9789-c3ad0284a42e'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '89b7f55f-d4f5-405d-b431-126e9bf18228'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '1752cfec-0ac2-4a82-b642-7793e74f7830'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'df8d50ab-dfc2-4ec2-9449-d6cbc8245cfb'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'edf8b22d-3d16-49d7-8b17-a0aaf9c1d0d2'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'ce8ac5fe-052d-4c71-b7d8-2ed4125c80b9'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '83e5b49c-a18b-471c-9be5-159afbeac04e'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '74c14fd0-dad4-41f9-82e5-d7eee80ff4cd'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '73e6f6b9-835f-448f-b520-9fd8f11f916b'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '082d5e42-8f09-4532-a455-f55852c39f5d'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '7ebb8957-6c76-4baf-bfcb-34b0ae7e55e2'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '8d30cb57-acb0-435a-b5c5-61746c9d0f29'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'e6b208cf-e048-4f2b-a574-4d2395a72b61'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '554bc486-dc2d-48e3-98c4-aa9fb730ac68'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '2a659111-fbc7-4c7c-bfaa-c688e3042c16'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '0c0237c9-2120-4389-9051-28a0b9cc18fb'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'd0c5c7ab-4c96-45a8-a397-62af51ce86c5'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'e57de942-12cb-4b3d-849c-1ed7d6f34fa8'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'a20fa2a9-bf37-4b4f-8da7-304190988b47'),
+       (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '7d8407f9-cc68-484c-b262-952b9b9db27e');
 
 ------------------------------------------------------------
 --- Infrastruktury środowisk rozwojowych i produkcyjnych ---
@@ -376,7 +416,7 @@ VALUES ('a7556146-23a6-4936-903c-c337c794a8c7', '1b0912df-c4c0-4907-9dd4-b09573a
 
 INSERT INTO public.reservation (id, version, rg_id, team_id, automatic_startup, notification_time, reservation_start, reservation_end, status)
 VALUES ('181426fb-6cb6-4fd9-9801-cbd03deccc2d', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'yesterday' + interval '11 hours',timestamp 'yesterday' + interval '17 hours', 'COMPLETED'),
-       ('24f78aff-d112-4233-b02f-e747854bcd23', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 15, timestamp 'today' + interval '11 hours',timestamp 'today' + interval '17 hours', 'IN_PROGRESS'),
+       ('24f78aff-d112-4233-b02f-e747854bcd23', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 15, timestamp 'today' + interval '11 hours',timestamp 'today' + interval '23 hours', 'IN_PROGRESS'),
        ('73f95e89-3a47-4dd5-bb51-382f79d1b976', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'tomorrow' + interval '11 hours',timestamp 'tomorrow' + interval '17 hours', 'PENDING');
 
 -----------------------------------
