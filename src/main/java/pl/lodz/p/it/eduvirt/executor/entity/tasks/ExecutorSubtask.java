@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.executor.entity;
+package pl.lodz.p.it.eduvirt.executor.entity.tasks;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -13,9 +13,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import pl.lodz.p.it.eduvirt.entity.Updatable;
+import pl.lodz.p.it.eduvirt.entity.HistoricalData;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Entity
@@ -24,7 +25,14 @@ import java.util.UUID;
 @DiscriminatorColumn(name = "kind")
 @Getter
 @NoArgsConstructor
-public abstract class ExecutorSubtask extends Updatable {
+public abstract class ExecutorSubtask extends HistoricalData {
+
+    public enum SubtaskType {
+        CHECK_VMS_STATUSES,
+        ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE,
+        START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM,
+        ASSIGN_PERMISSION, REVOKE_PERMISSION
+    }
 
     @ManyToOne
     @JoinColumn(
@@ -35,17 +43,11 @@ public abstract class ExecutorSubtask extends Updatable {
     )
     private ExecutorTask executorTask;
 
-    public enum SubtaskType {
-        ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE,
-        START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM,
-        ASSIGN_PERMISSION, REVOKE_PERMISSION
-    }
-
     /// todo michal maybe change it to VirtualMachine entity -> Foreign Key
-    @Column(name = "vm_id", updatable = false, nullable = false)
+    @Column(name = "vm_id", updatable = false, nullable = true)
     private UUID vmId;
 
-    @Column(name = "type", updatable = false, nullable = false)
+    @Column(name = "type", updatable = false, nullable = true)
     @Enumerated(EnumType.STRING)
     private SubtaskType type;
 
@@ -65,6 +67,13 @@ public abstract class ExecutorSubtask extends Updatable {
         this.vmId = vmId;
         this.type = type;
     }
+
+    // Custom Getters
+
+    public Boolean getSuccessful() {
+        return Optional.ofNullable(successful).orElse(false);
+    }
+
 
     // Other methods
 

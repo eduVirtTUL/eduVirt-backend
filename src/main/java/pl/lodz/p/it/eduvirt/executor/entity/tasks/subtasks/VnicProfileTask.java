@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.executor.entity.subtasks;
+package pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -9,8 +9,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorSubtask;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
 
 import java.util.List;
 import java.util.UUID;

@@ -7,7 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.lodz.p.it.eduvirt.executor.entity.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.mails.MailNotification;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -75,6 +76,9 @@ public class Reservation extends HistoricalData {
 
     @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ExecutorTask> executorTasks;
+
+    @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<MailNotification> mailNotifications;
 
     /* Constructors */
 
