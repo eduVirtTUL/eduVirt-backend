@@ -1,11 +1,28 @@
 package pl.lodz.p.it.eduvirt.executor.entity.tasks;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import pl.lodz.p.it.eduvirt.entity.HistoricalData;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
+import pl.lodz.p.it.eduvirt.entity.Updatable;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,7 +30,7 @@ import java.util.Objects;
 @Table(name = "executor_task")
 @Getter
 @NoArgsConstructor
-public class ExecutorTask extends HistoricalData {
+public class ExecutorTask extends Updatable {
 
     public enum TaskStatus {SUCCESSFUL, FAILED, IN_PROGRESS}
 
@@ -42,6 +59,14 @@ public class ExecutorTask extends HistoricalData {
     @OneToMany(mappedBy = "executorTask", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ExecutorSubtask> subtasks;
 
+    @Column(name = "_created_at", updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime createdAt;
+
+    @Column(name = "_updated_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime updatedAt;
+
     /* Constructors */
 
     public ExecutorTask(Reservation reservation,
@@ -51,7 +76,7 @@ public class ExecutorTask extends HistoricalData {
     }
 
 
-    /* Other methods */
+    /* Custom setters */
 
     public void setSuccessful() {
         if (status.equals(TaskStatus.IN_PROGRESS)) {
@@ -75,5 +100,17 @@ public class ExecutorTask extends HistoricalData {
         } else {
             throw new IllegalStateException("Cannot override task description");
         }
+    }
+
+    /* Other methods */
+
+    @PrePersist
+    public void changeCreateData() {
+        this.createdAt = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+    }
+
+    @PreUpdate
+    public void changeUpdateData() {
+        this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
     }
 }
