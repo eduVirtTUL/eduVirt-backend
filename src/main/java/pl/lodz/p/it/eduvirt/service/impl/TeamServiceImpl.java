@@ -17,6 +17,7 @@ import pl.lodz.p.it.eduvirt.entity.key.CourseAccessKey;
 import pl.lodz.p.it.eduvirt.entity.key.CourseType;
 import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.access_key.DuplicateKeyValueException;
 import pl.lodz.p.it.eduvirt.exceptions.course.IncorrectCourseTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.team.*;
 import pl.lodz.p.it.eduvirt.exceptions.user.*;
@@ -24,12 +25,16 @@ import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.AccessKeyService;
+import pl.lodz.p.it.eduvirt.service.KeyGeneratorService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +45,8 @@ public class TeamServiceImpl implements TeamService {
     /* Services */
 
     private final AccessKeyService accessKeyService;
+    private final KeyGeneratorService keyGeneratorService;
+
 
     /* Repositories */
 
@@ -73,6 +80,28 @@ public class TeamServiceImpl implements TeamService {
         if (teamRepository.existsByNameAndCourseId(team.getName(), courseId)) {
             throw new TeamAlreadyExistsException();
         }
+    }
+
+    private String generateTeamNamePrefix(String courseName) {
+        return Arrays.stream(courseName.split("\\s+"))
+                .filter(word -> !word.isEmpty())
+                .map(word -> word.substring(0, 1).toUpperCase())
+                .collect(Collectors.joining()) + "-Student";
+    }
+
+    private int findFirstAvailableNumber(List<Integer> existingNumbers) {
+        if (existingNumbers.isEmpty()) {
+            return 1;
+        }
+
+        int expected = 1;
+        for (int actual : existingNumbers) {
+            if (actual != expected) {
+                return expected;
+            }
+            expected++;
+        }
+        return expected;
     }
 
     /* Service methods */
@@ -162,8 +191,10 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @PreAuthorize("hasAuthority('teacher')")
     public Team createTeam(Team team, Course course, String userKeyValue) {
-        if (course.getCourseType() == CourseType.SOLO) {
-            throw new IncorrectCourseTypeException("Cannot manually create a team in a solo course");
+        if (userKeyValue != null) {
+            if (teamKeyRepository.existsByKeyValue(userKeyValue)) {
+                throw new DuplicateKeyValueException(userKeyValue);
+            }
         }
 
         validateTeamName(team, course.getId());
@@ -171,15 +202,52 @@ public class TeamServiceImpl implements TeamService {
         team.setActive(true);
         team = teamRepository.saveAndFlush(team);
 
-        accessKeyService.createTeamKey(team.getId(), userKeyValue);
+        String keyValue = userKeyValue != null ? userKeyValue : keyGeneratorService.generateUniqueTeamKey(course);
+        accessKeyService.createTeamKey(team.getId(), keyValue);
         return team;
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('teacher')")
+    public List<Team> createTeamsBatch(Course course, String prefix, int teamSize, int numberOfTeams) {
+        if (course.getCourseType() != CourseType.TEAM_BASED) {
+            throw new IncorrectCourseTypeException("Can only create batch teams for team-based courses");
+        }
+
+        List<Integer> existingNumbers = teamRepository.findTeamNumbersByPrefix(course.getId(), prefix + "-");
+        int startNumber = findFirstAvailableNumber(existingNumbers);
+        List<Team> teams = new ArrayList<>();
+
+        for (int i = 0; i < numberOfTeams; i++) {
+            String teamName = prefix + "-" + (startNumber + i);
+            Team team = Team.builder()
+                    .name(teamName)
+                    .course(course)
+                    .maxSize(teamSize)
+                    .active(true)
+                    .users(new ArrayList<>())
+                    .build();
+
+            team = teamRepository.saveAndFlush(team);
+            String keyValue = keyGeneratorService.generateUniqueTeamKey(course);
+            accessKeyService.createTeamKey(team.getId(), keyValue);
+            teams.add(team);
+        }
+
+        return teams;
     }
 
     @Override
     @PreAuthorize("isAuthenticated()")
     public void createSoloTeam(Course course, User user) {
-        Long soloTeamCount = teamRepository.countByCourseId(course.getId());
-        String teamName = course.getName() + " - Solo " + (soloTeamCount + 1);
+        String namePrefix = generateTeamNamePrefix(course.getName());
+        List<Integer> existingNumbers = teamRepository.findTeamNumbersByCourseIdAndPrefix(
+                course.getId(),
+                namePrefix
+        );
+
+        int teamNumber = findFirstAvailableNumber(existingNumbers);
+        String teamName = namePrefix + teamNumber;
 
         Team team = Team.builder()
                 .name(teamName)

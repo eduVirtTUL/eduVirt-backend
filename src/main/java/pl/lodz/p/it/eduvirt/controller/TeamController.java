@@ -23,6 +23,7 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.access_key.JoinTeamKeyDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
+import pl.lodz.p.it.eduvirt.dto.team.CreateTeamBatchDto;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithKeyDto;
@@ -45,6 +46,7 @@ import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -89,14 +91,49 @@ public class TeamController {
                 .toList();
 
         if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
-            return ResponseEntity.ok(teamMapper
-                    .teamToTeamWithCourseDto(teamService
-                            .createTeam(teamMapper
-                                            .fromCreateDto(createTeamDto),
-                                    course,
-                                    createTeamDto.getKeyValue())));
+            Team team = teamMapper.fromCreateDto(createTeamDto);
+            Team created = teamService.createTeam(team, course, createTeamDto.getKeyValue());
+            return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(created));
         }
 
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @PostMapping("/batch")
+    @Transactional
+    @PreAuthorize("hasAuthority('teacher')")
+    public ResponseEntity<List<TeamWithKeyDto>> createTeamsBatch(@RequestBody @Validated CreateTeamBatchDto createTeamBatchDto) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Course course = courseService.getCourse(createTeamBatchDto.getCourseId());
+
+        if (course.getTeachers().contains(user)) {
+            List<Team> createdTeams = teamService.createTeamsBatch(
+                    course,
+                    createTeamBatchDto.getPrefix(),
+                    createTeamBatchDto.getTeamSize(),
+                    createTeamBatchDto.getNumberOfTeams()
+            );
+
+            List<TeamWithKeyDto> teamDtos = createdTeams.stream()
+                    .map(team -> {
+                        String keyValue = teamAccessKeyRepository.findByTeamId(team.getId())
+                                .map(TeamAccessKey::getKeyValue)
+                                .orElse(null);
+                        return TeamWithKeyDto.builder()
+                                .id(team.getId())
+                                .name(team.getName())
+                                .active(team.isActive())
+                                .maxSize(team.getMaxSize())
+                                .users(Collections.emptyList())
+                                .keyValue(keyValue)
+                                .build();
+                    })
+                    .toList();
+
+            return ResponseEntity.ok(teamDtos);
+        }
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
@@ -275,7 +312,6 @@ public class TeamController {
     }
 
     @GetMapping("/course/{courseId}/search-emails")
-    @Transactional
     @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<PageDto<TeamWithKeyDto>> searchTeamsByEmails(
             @PathVariable UUID courseId,

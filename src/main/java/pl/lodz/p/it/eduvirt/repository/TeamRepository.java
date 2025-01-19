@@ -70,4 +70,19 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
     Page<Team> findByCourseIdAndEmailPrefixes(@Param("courseId") UUID courseId,
                                               @Param("emailPrefixes") List<String> emailPrefixes,
                                               Pageable pageable);
+
+    @Query("SELECT CAST(SUBSTRING(t.name, LENGTH(:prefix) + 1) AS integer) " +
+            "FROM Team t " +
+            "WHERE t.course.id = :courseId " +
+            "AND t.name LIKE CONCAT(:prefix, '%') " +
+            "ORDER BY CAST(SUBSTRING(t.name, LENGTH(:prefix) + 1) AS integer)")
+    List<Integer> findTeamNumbersByCourseIdAndPrefix(@Param("courseId") UUID courseId,
+                                                     @Param("prefix") String prefix);
+
+    @Query("SELECT CAST(SUBSTRING(t.name, LENGTH(:prefix) + 1) AS integer) " +
+            "FROM Team t " +
+            "WHERE t.course.id = :courseId " +
+            "AND t.name LIKE CONCAT(:prefix, '%') " +
+            "ORDER BY CAST(SUBSTRING(t.name, LENGTH(:prefix) + 1) AS integer)")
+    List<Integer> findTeamNumbersByPrefix(@Param("courseId") UUID courseId, @Param("prefix") String prefix);
 }

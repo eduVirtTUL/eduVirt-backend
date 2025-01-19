@@ -140,4 +140,5 @@ public class I18n {
     public static final String ACCESS_KEY_INVALID_FORMAT = "access.key.invalid.format";
     public static final String ACCESS_KEY_INVALID_TYPE = "access.key.invalid.type";
     public static final String ACCESS_KEY_DUPLICATE = "access.key.duplicate";
+    public static final String ACCESS_KEY_COULD_NOT_BE_GENERATED = "access.key.could.not.be.generated";
 }

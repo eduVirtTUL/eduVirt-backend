@@ -32,6 +32,8 @@ public interface TeamService {
 
     Team createTeam(Team team, Course course, String keyValue);
 
+    List<Team> createTeamsBatch(Course course, String prefix, int teamSize, int numberOfTeams);
+
     void createSoloTeam(Course course, User user);
 
     Team updateTeam(Team updatedTeam, UUID teamId, String etag);
