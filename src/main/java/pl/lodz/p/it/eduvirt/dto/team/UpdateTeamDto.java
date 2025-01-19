@@ -9,7 +9,7 @@ public record UpdateTeamDto(
         @Size(min = 1, max = 50, message = "teams.validation.name.invalid")
         String name,
 
-        @Min(value = 2, message = "teams.validation.max.size.invalid")
+        @Min(value = 1, message = "teams.validation.max.size.invalid")
         @Max(value = 10, message = "teams.validation.max.size.invalid")
         int maxSize,
 

@@ -418,6 +418,7 @@ public class CourseController {
     }
 
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @Transactional
     @GetMapping("/{courseId}/students")
     public ResponseEntity<List<UserDto>> getStudentsInSoloCourse(@PathVariable UUID courseId) {
         Course course = courseService.getCourse(courseId);
