@@ -14,7 +14,6 @@ import java.util.UUID;
 public class TeamDto {
     UUID id;
     String name;
-    boolean active;
     int maxSize;
     List<UserDto> users;
 }

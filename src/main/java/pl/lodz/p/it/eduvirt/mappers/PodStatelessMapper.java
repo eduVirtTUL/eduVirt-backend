@@ -44,7 +44,6 @@ public interface PodStatelessMapper {
                 new TeamDto(
                         pod.getTeam().getId(),
                         pod.getTeam().getName(),
-                        pod.getTeam().isActive(),
                         pod.getTeam().getMaxSize(),
                         pod.getTeam().getUsers().stream().map(user -> new UserDto(
                                 user.getId().toString(),

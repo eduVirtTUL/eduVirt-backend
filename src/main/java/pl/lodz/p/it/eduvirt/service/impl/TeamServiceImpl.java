@@ -262,7 +262,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('teacher')")
     public Team updateTeam(Team updatedTeam, UUID teamId, String etag) {
         Team existingTeam = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException(teamId));
@@ -271,9 +271,8 @@ public class TeamServiceImpl implements TeamService {
             throw new TeamConflictException();
         }
 
-        if (existingTeam.getCourse().getCourseType() == CourseType.SOLO) {
-            existingTeam.setActive(updatedTeam.isActive());
-            return teamRepository.saveAndFlush(existingTeam);
+        if (existingTeam.getCourse().getCourseType() != CourseType.TEAM_BASED) {
+            throw new IncorrectCourseTypeException("Can only update teams in team-based courses");
         }
 
         if (!existingTeam.getName().equals(updatedTeam.getName()) &&
@@ -287,7 +286,6 @@ public class TeamServiceImpl implements TeamService {
 
         existingTeam.setName(updatedTeam.getName());
         existingTeam.setMaxSize(updatedTeam.getMaxSize());
-        existingTeam.setActive(updatedTeam.isActive());
 
         return teamRepository.saveAndFlush(existingTeam);
     }

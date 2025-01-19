@@ -124,7 +124,6 @@ public class TeamController {
                         return TeamWithKeyDto.builder()
                                 .id(team.getId())
                                 .name(team.getName())
-                                .active(team.isActive())
                                 .maxSize(team.getMaxSize())
                                 .users(Collections.emptyList())
                                 .keyValue(keyValue)
@@ -286,7 +285,6 @@ public class TeamController {
                         return TeamWithKeyDto.builder()
                                 .id(team.getId())
                                 .name(team.getName())
-                                .active(team.isActive())
                                 .maxSize(team.getMaxSize())
                                 .users(team.getUsers().stream()
                                         .map(u -> new UserDto(
@@ -342,7 +340,6 @@ public class TeamController {
                         return TeamWithKeyDto.builder()
                                 .id(team.getId())
                                 .name(team.getName())
-                                .active(team.isActive())
                                 .maxSize(team.getMaxSize())
                                 .users(team.getUsers().stream()
                                         .map(u -> new UserDto(
