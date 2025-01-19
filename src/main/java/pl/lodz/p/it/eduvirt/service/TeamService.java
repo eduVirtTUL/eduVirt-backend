@@ -18,7 +18,7 @@ public interface TeamService {
 
     Page<Team> getAllTeams(Pageable pageable);
 
-    Page<Team> getTeamsByStudent(UUID userId, Pageable pageable);
+    Page<Team> getTeamsByStudent(UUID userId, int page, int size, String search, String sortOrder);
 
     Page<Team> getTeamsByCourse(UUID courseId, Pageable pageable);
 

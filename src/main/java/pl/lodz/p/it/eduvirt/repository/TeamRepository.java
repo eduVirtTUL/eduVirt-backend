@@ -52,4 +52,6 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
            "WHERE t.course.id = :courseId " +
            "AND t.course.courseType = 'SOLO'")
     List<User> findUsersInSoloCourse(@Param("courseId") UUID courseId);
+
+    Page<Team> findByUsersIdAndNameContainingIgnoreCase(UUID userId, String search, Pageable pageable);
 }

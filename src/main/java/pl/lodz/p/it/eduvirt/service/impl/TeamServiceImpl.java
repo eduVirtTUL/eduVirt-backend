@@ -2,7 +2,9 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -24,6 +26,7 @@ import pl.lodz.p.it.eduvirt.service.AccessKeyService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -87,8 +90,19 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @PreAuthorize("hasAuthority('student')")
-    public Page<Team> getTeamsByStudent(UUID userId, Pageable pageable) {
-        return teamRepository.findByUsersId(userId, pageable);
+    public Page<Team> getTeamsByStudent(UUID userId, int page, int size, String search, String sortOrder) {
+        Sort sort = null;
+        if (Objects.equals(sortOrder, "ASC")) {
+            sort = Sort.by("name").ascending();
+        } else if ("DESC".equals(sortOrder)) {
+            sort = Sort.by("name").descending();
+        }
+
+        if (search == null || search.isEmpty()) {
+            return teamRepository.findByUsersId(userId, PageRequest.of(page, size, sort));
+        }
+
+        return teamRepository.findByUsersIdAndNameContainingIgnoreCase(userId, search, PageRequest.of(page, size, sort));
     }
 
     @Override
@@ -214,26 +228,27 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @PreAuthorize("hasAuthority('student')")
     public void joinUsingKey(String keyValue, User user) {
-        TeamAccessKey teamKey = teamKeyRepository.findByKeyValue(keyValue)
-                .orElseThrow(AccessKeyNotFoundException::new);
+        try {
+            TeamAccessKey teamKey = teamKeyRepository.findByKeyValue(keyValue)
+                    .orElseThrow(AccessKeyNotFoundException::new);
 
-        if (teamKey != null) {
             Team team = teamKey.getTeam();
-            if (team.isActive()) {
-                validateUserNotInTeam(team, user.getId());
-                team.getUsers().add(user);
-                teamRepository.saveAndFlush(team);
-            } else {
+            if (!team.isActive()) {
                 throw new TeamNotActiveException();
             }
-        } else {
+
+            validateUserNotInTeam(team, user.getId());
+            team.getUsers().add(user);
+            teamRepository.saveAndFlush(team);
+        } catch (AccessKeyNotFoundException e) {
             CourseAccessKey courseKey = courseKeyRepository.findByKeyValue(keyValue)
                     .orElseThrow(AccessKeyNotFoundException::new);
-            Course course = courseKey.getCourse();
 
+            Course course = courseKey.getCourse();
             if (course.getCourseType() == CourseType.TEAM_BASED) {
                 throw new IncorrectCourseTypeException("Cannot join solo course with team access key");
             }
+
             validateUserNotInCourse(user.getId(), course.getId());
             createSoloTeam(course, user);
         }

@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import pl.lodz.p.it.eduvirt.dto.access_key.CourseAccessKeyDto;
@@ -45,6 +46,7 @@ public class AccessKeyController {
 
 
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @Transactional
     @PostMapping("/course/{courseId}")
     public ResponseEntity<CourseAccessKeyDto> createCourseKey(@PathVariable UUID courseId, @RequestParam String courseKey) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -68,6 +70,7 @@ public class AccessKeyController {
     }
 
     @GetMapping("/course/{courseId}")
+    @Transactional
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public ResponseEntity<CourseAccessKeyDto> getKeyForCourse(@PathVariable UUID courseId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -91,6 +94,7 @@ public class AccessKeyController {
     }
 
     @GetMapping("/team/{teamId}")
+    @Transactional
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TeamAccessKeyDto> getKeyForTeam(@PathVariable UUID teamId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());

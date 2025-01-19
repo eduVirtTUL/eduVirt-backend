@@ -384,6 +384,7 @@ public class CourseController {
     }
 
     @PreAuthorize("isAuthenticated()")
+    @Transactional
     @GetMapping("/{courseId}/teachers")
     public ResponseEntity<List<UserDto>> getTeachersForCourse(@PathVariable UUID courseId) {
         List<User> teachers = courseService.getTeachersForCourse(courseId);
@@ -447,5 +448,4 @@ public class CourseController {
         courseService.resetCourse(courseId);
         return ResponseEntity.noContent().build();
     }
-
 }

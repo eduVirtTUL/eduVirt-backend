@@ -13,18 +13,24 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
+import pl.lodz.p.it.eduvirt.dto.access_key.JoinTeamKeyDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
+import pl.lodz.p.it.eduvirt.dto.team.TeamWithKeyDto;
 import pl.lodz.p.it.eduvirt.dto.team.UpdateTeamDto;
+import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.User;
+import pl.lodz.p.it.eduvirt.entity.key.CourseType;
+import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.TeamMapper;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
+import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 import pl.lodz.p.it.eduvirt.util.RoleConstants;
@@ -47,6 +53,7 @@ public class TeamController {
     /* Repositories */
 
     private final UserRepository userRepository;
+    private final TeamAccessKeyRepository teamAccessKeyRepository;
 
     /* Mappers */
 
@@ -54,6 +61,7 @@ public class TeamController {
 
 
     @PostMapping
+    @Transactional
     @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<TeamWithCourseDto> createTeam(@RequestBody @Validated CreateTeamDto createTeamDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -70,7 +78,7 @@ public class TeamController {
             return ResponseEntity.ok(teamMapper
                     .teamToTeamWithCourseDto(teamService
                             .createTeam(teamMapper
-                                    .fromCreateDto(createTeamDto),
+                                            .fromCreateDto(createTeamDto),
                                     course,
                                     createTeamDto.getKeyValue())));
         }
@@ -132,16 +140,21 @@ public class TeamController {
     @Transactional
     @PreAuthorize("hasAuthority('student')")
     public ResponseEntity<PageDto<TeamWithCourseDto>> getTeamsByStudent(
-            @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
+            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+            @RequestParam(name = "size", required = false, defaultValue = "10") Integer size,
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "sort", required = false, defaultValue = "ASC") String sortOrder) {
 
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        if (!(sortOrder.equals("ASC") || sortOrder.equals("DESC"))) {
+            sortOrder = "ASC";
+        }
+
         UUID studentId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        Page<Team> teamsPage = teamService.getTeamsByStudent(studentId, pageable);
+        Page<Team> teamsPage = teamService.getTeamsByStudent(studentId, page, size, search, sortOrder);
 
         List<TeamWithCourseDto> listOfDTOs = teamsPage.getContent().stream()
                 .map(teamMapper::teamToTeamWithCourseDto)
-                .collect(Collectors.toList());
+                .toList();
 
         PageDto<TeamWithCourseDto> pageDto = new PageDto<>(listOfDTOs,
                 new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
@@ -152,8 +165,9 @@ public class TeamController {
     }
 
     @GetMapping("/course/{courseId}")
+    @Transactional
     @PreAuthorize("hasAuthority('teacher')")
-    public ResponseEntity<PageDto<TeamDto>> getTeamsByCourse(
+    public ResponseEntity<PageDto<TeamWithKeyDto>> getTeamsByCourse(
             @PathVariable UUID courseId,
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
@@ -165,17 +179,35 @@ public class TeamController {
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
         Course course = courseService.getCourse(courseId);
 
-        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
-
-        if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
-            List<TeamDto> listOfDTOs = teamsPage.getContent().stream()
-                    .map(teamMapper::teamToTeamDto)
+        if (course.getTeachers().contains(user)) {
+            List<TeamWithKeyDto> listOfDTOs = teamsPage.getContent().stream()
+                    .map(team -> {
+                        String keyValue = null;
+                        if (course.getCourseType() == CourseType.TEAM_BASED) {
+                            keyValue = teamAccessKeyRepository.findByTeamId(team.getId())
+                                    .map(TeamAccessKey::getKeyValue)
+                                    .orElse(null);
+                        }
+                        return TeamWithKeyDto.builder()
+                                .id(team.getId())
+                                .name(team.getName())
+                                .active(team.isActive())
+                                .maxSize(team.getMaxSize())
+                                .users(team.getUsers().stream()
+                                        .map(u -> new UserDto(
+                                                u.getId().toString(),
+                                                u.getOVirtId().toString(),
+                                                u.getEmail(),
+                                                u.getUserName(),
+                                                u.getFirstName(),
+                                                u.getLastName()
+                                        )).toList())
+                                .keyValue(keyValue)
+                                .build();
+                    })
                     .toList();
 
-            PageDto<TeamDto> pageDto = new PageDto<>(listOfDTOs,
+            PageDto<TeamWithKeyDto> pageDto = new PageDto<>(listOfDTOs,
                     new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
                             teamsPage.getTotalPages(), teamsPage.getTotalElements()));
             if (!listOfDTOs.isEmpty()) return ResponseEntity.ok(pageDto);
@@ -185,11 +217,11 @@ public class TeamController {
 
     @PostMapping("/join")
     @PreAuthorize("hasAuthority('student')")
-    public ResponseEntity<Void> joinUsingKey(@RequestParam String keyValue) {
+    public ResponseEntity<Void> joinUsingKey(@RequestBody @Validated JoinTeamKeyDto joinRequest) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
-        teamService.joinUsingKey(keyValue, user);
+        teamService.joinUsingKey(joinRequest.getKeyValue(), user);
 
         return ResponseEntity.noContent().build();
     }
