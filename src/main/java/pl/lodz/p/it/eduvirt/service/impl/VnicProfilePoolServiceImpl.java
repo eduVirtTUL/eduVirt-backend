@@ -1,20 +1,18 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
+import pl.lodz.p.it.eduvirt.exceptions.VnicProfileAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileEduvirtNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.VnicProfileExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.VlansRangeRepository;
 import pl.lodz.p.it.eduvirt.repository.VnicProfileRepository;
+import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
-import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,18 +22,19 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 //TODO michal: transactional for vnic profile/vlan ranges controllers/services/repositories
+//TODO michal consider managing transaction timeouts rather than excluding API operations from transactions
 
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
 public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
 
-    //TODO michal consider managing transaction timeouts rather than excluding API operations from transactions
 
-    private final ConnectionFactory connectionFactory;
     private final VnicProfileRepository vnicProfileRepository;
 
     private final VlansRangeRepository vlansRangeRepository;
+
+    private final OVirtVnicProfileService oVirtVnicProfileService;
 
     @Override
     @Transactional
@@ -46,11 +45,11 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     //TODO michal test Transactional????
     //TODO michal change map to class with lists /maps??
     @Transactional
-    Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles(List<VnicProfilePoolMember> poolSource) {
+    protected Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles(List<VnicProfilePoolMember> poolSource) {
         List<VnicProfile> vnicProfilesInPool = new ArrayList<>();
         List<VnicProfile> vnicProfilesOutOfPool = new ArrayList<>();
 
-        fetchOVirtVnicProfiles().forEach(oVirtVnicProfile -> {
+        oVirtVnicProfileService.getVnicProfiles().forEach(oVirtVnicProfile -> {
             int vlanId = Optional.ofNullable(oVirtVnicProfile.network().vlan())
                     .map(v -> v.id().intValue())
                     .orElse(-1);
@@ -74,22 +73,6 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     private boolean isInRanges(int vlanId) {
         return vlansRangeRepository.findAll().stream()
                 .anyMatch(vlansRange -> vlansRange.getFrom() <= vlanId && vlansRange.getTo() >= vlanId);
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.NEVER)
-    public List<VnicProfile> fetchOVirtVnicProfiles() {
-        //todo michal move it to OVirtVnicProfileService
-        try (Connection connection = connectionFactory.getConnection()) {
-            return connection.systemService()
-                    .vnicProfilesService()
-                    .list()
-                    .follow("network")
-                    .send()
-                    .profiles();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -118,7 +101,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Transactional
     public VnicProfilePoolMember addVnicProfileToPool(UUID vnicProfileId) {
         if (vnicProfileRepository.findById(vnicProfileId).isPresent()) {
-            throw new VnicProfileExistsException(vnicProfileId);
+            throw new VnicProfileAlreadyExistsException(vnicProfileId);
         }
         //todo michal ref to fetching only one profile from ovirt, by id/ not whole list...
         List<VnicProfile> ovirtVnicProfiles = getSynchronizedVnicProfiles().get(Boolean.FALSE);

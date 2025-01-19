@@ -6,16 +6,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.User;
-import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.course.CourseAlreadyExists;
-import pl.lodz.p.it.eduvirt.exceptions.course.CourseConflictException;
-import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.course.*;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotAuthorizedException;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
@@ -96,6 +96,7 @@ public class CourseServiceImpl implements CourseService {
         return courseRepository.findByIdAndTeachersContaining(id, user).orElseThrow(() -> new CourseNotFoundException(id));
     }
 
+    @PreAuthorize("hasAuthority('administrator')")
     @Override
     @Transactional
     public Course addCourse(Course course, String teacherEmail) {
@@ -103,7 +104,8 @@ public class CourseServiceImpl implements CourseService {
                 .orElseThrow(() -> new UserNotFoundException("Teacher not found"));
 
         if (!teacher.getRoles().contains(RoleConstants.TEACHER)) {
-            throw new IllegalArgumentException("User is not a teacher");
+            throw new UserNotAuthorizedException("User with id %s is not a teacher"
+                    .formatted(teacher.getId()));
         }
 
         if (course.getTeachers() == null) {
@@ -155,8 +157,11 @@ public class CourseServiceImpl implements CourseService {
         courseRepository.deleteById(course.getId());
     }
 
+    // * Teacher methods * //
+
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public List<User> getTeachersForCourse(UUID courseId) {
         return courseRepository.findByIdWithTeachers(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId))
@@ -165,41 +170,42 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public void addTeacherToCourse(UUID courseId, String email) {
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-        User teacher = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    public void addTeacherToCourse(Course course, String email) {
+        User user = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User with email %s not found".formatted(email)));
 
-        if (teacher.getRoles().contains("/teacher")) {
-            if (!course.getTeachers().contains(teacher)) {
-                course.getTeachers().add(teacher);
+        if (user.getRoles().contains("/teacher")) {
+            if (!course.getTeachers().contains(user)) {
+                course.getTeachers().add(user);
                 courseRepository.saveAndFlush(course);
             } else {
-                throw new IllegalArgumentException("This teacher is already assigned to this course");
+                throw new TeacherAlreadyInCourseException();
             }
         } else {
-            throw new IllegalArgumentException("User is not a teacher");
+            throw new UserNotAuthorizedException("User with id %s is not a teacher".formatted(user.getId()));
         }
     }
 
+
     @Override
     @Transactional
-    public void removeTeacherFromCourse(UUID courseId, String email) {
-        Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("Course not found"));
-        User teacher = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User not found"));
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    public void removeTeacherFromCourse(Course course, String email) {
+        User user = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User with email %s not found".formatted(email)));
 
-        if (teacher.getRoles().contains("/teacher")) {
-            if (course.getTeachers().contains(teacher)) {
+        if (user.getRoles().contains("/teacher")) {
+            if (course.getTeachers().contains(user)) {
                 if (course.getTeachers().size() > 1) {
-                    course.getTeachers().remove(teacher);
+                    course.getTeachers().remove(user);
                     courseRepository.saveAndFlush(course);
                 } else {
-                    throw new IllegalArgumentException("Course must have at least one teacher");
+                    throw new CourseNoTeachersException("Course with id %s cannot contain less than 1 teacher".formatted(course.getId()));
                 }
             } else {
-                throw new IllegalArgumentException("This teacher is not assigned to this course");
+                throw new TeacherNotInCourseException();
             }
         } else {
-            throw new IllegalArgumentException("User is not a teacher");
+            throw new UserNotAuthorizedException("User with id %s is not a teacher".formatted(user.getId()));
         }
     }
 

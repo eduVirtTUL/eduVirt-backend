@@ -12,6 +12,6 @@ public class VnicProfileOvirtNotFoundException extends NotFoundException {
     }
 
     public VnicProfileOvirtNotFoundException(UUID vnicProfileId) {
-        super("Not found in EduVirt the vnic profile with id:" + vnicProfileId,  I18n.VNIC_PROFILE_OVIRT_NOT_FOUND);
+        super("Not found in oVirt the vnic profile with id:" + vnicProfileId,  I18n.VNIC_PROFILE_OVIRT_NOT_FOUND);
     }
 }

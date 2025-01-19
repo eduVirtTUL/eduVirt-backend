@@ -6,8 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.ovirt.engine.sdk4.types.User;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Team;
 
@@ -16,9 +14,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface TeamRepository extends JpaRepository<Team, UUID> {
-
-    @Query("SELECT DISTINCT t FROM Team t LEFT JOIN FETCH t.users u WHERE u.id = :userId")
-    List<Team> findByUsersId(@Param("userId") UUID userId);
 
     @Query(value = "SELECT DISTINCT t FROM Team t LEFT JOIN FETCH t.users u WHERE u.id = :userId",
             countQuery = "SELECT COUNT(DISTINCT t) FROM Team t JOIN t.users u WHERE u.id = :userId")
@@ -46,9 +41,6 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
     @Query("SELECT DISTINCT t FROM Team t LEFT JOIN FETCH t.users WHERE t.id = :id")
     Optional<Team> findByIdWithUsers(@Param("id") UUID id);
 
-    @Query("SELECT DISTINCT t FROM Team t LEFT JOIN FETCH t.users")
-    List<Team> findAllWithUsers();
-
     @Query(value = "SELECT DISTINCT t FROM Team t LEFT JOIN FETCH t.users",
             countQuery = "SELECT COUNT(DISTINCT t) FROM Team t")
     Page<Team> findAllWithUsers(Pageable pageable);
@@ -56,8 +48,20 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
     void deleteAllByCourseId(UUID courseId);
 
     @Query("SELECT DISTINCT u FROM Team t " +
-           "JOIN t.users u " +
-           "WHERE t.course.id = :courseId " +
-           "AND t.course.courseType = 'SOLO'")
+            "JOIN t.users u " +
+            "WHERE t.course.id = :courseId " +
+            "AND t.course.courseType = 'SOLO'")
     List<User> findUsersInSoloCourse(@Param("courseId") UUID courseId);
+
+    Page<Team> findByUsersIdAndNameContainingIgnoreCase(UUID userId, String search, Pageable pageable);
+
+    @Query("SELECT DISTINCT t FROM Team t LEFT JOIN t.users u WHERE t.course.id = :courseId AND " +
+            "(:searchType = 'TEAM_NAME' AND LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            ":searchType = 'STUDENT_NAME' AND (LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :search, '%'))) OR " +
+            ":searchType = 'STUDENT_EMAIL' AND LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Team> findByCourseIdWithSearch(@Param("courseId") UUID courseId,
+                                        @Param("search") String search,
+                                        @Param("searchType") String searchType,
+                                        Pageable pageable);
+
 }

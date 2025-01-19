@@ -12,9 +12,9 @@ import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyLengthException;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
-import pl.lodz.p.it.eduvirt.repository.CourseRepository;
+import pl.lodz.p.it.eduvirt.exceptions.access_key.DuplicateKeyValueException;
+import pl.lodz.p.it.eduvirt.exceptions.course.InvalidCourseTypeException;
+import pl.lodz.p.it.eduvirt.exceptions.team.*;
 import pl.lodz.p.it.eduvirt.repository.TeamRepository;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
@@ -28,10 +28,18 @@ import java.util.function.Predicate;
 @Transactional(readOnly = true)
 public class AccessKeyServiceImpl implements AccessKeyService {
 
-    private final CourseRepository courseRepository;
+    /* Repositories */
+
     private final TeamRepository teamRepository;
     private final TeamAccessKeyRepository teamAccessKeyRepository;
     private final CourseAccessKeyRepository courseAccessKeyRepository;
+
+    /* Constants */
+
+    private static final String KEY_FORMAT_REGEX = "^[a-zA-Z0-9-_]{5,50}$";
+
+
+    /* Helper methods */
 
     private String generateKeyValue(String baseName) {
         String baseKey = baseName.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
@@ -42,8 +50,11 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     private String validateAndGetKeyValue(String providedKey, String name,
                                           Predicate<String> existsCheck) {
         if (providedKey != null && !providedKey.isEmpty()) {
-            if (providedKey.length() < 5 || providedKey.length() > 50) {
+            if (!providedKey.matches(KEY_FORMAT_REGEX)) {
                 throw new AccessKeyLengthException();
+            }
+            if (existsCheck.test(providedKey)) {
+                throw new DuplicateKeyValueException(providedKey);
             }
             return providedKey;
         }
@@ -56,18 +67,17 @@ public class AccessKeyServiceImpl implements AccessKeyService {
         return generatedKey;
     }
 
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    @Transactional
-    public CourseAccessKey createCourseKey(UUID courseId, String userCourseKey) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
+    /* Service methods */
 
+    @Override
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    public CourseAccessKey createCourseKey(Course course, String userCourseKey) {
         if (course.getCourseType() == CourseType.TEAM_BASED) {
-            throw new RuntimeException("Cannot create access key for a team based course");
+            throw new InvalidCourseTypeException("Cannot create access key for a team based course");
         }
 
-        if (courseAccessKeyRepository.existsByCourseId(courseId)) {
+        if (courseAccessKeyRepository.existsByCourseId(course.getId())) {
             throw new AccessKeyAlreadyExistsException();
         }
 
@@ -83,10 +93,21 @@ public class AccessKeyServiceImpl implements AccessKeyService {
 
     @Override
     @PreAuthorize("isAuthenticated()")
+    public CourseAccessKey getKeyForCourse(Course course) {
+        if (course.getCourseType() == CourseType.TEAM_BASED) {
+            throw new InvalidCourseTypeException("Cannot get access key for a team based course");
+        }
+
+        return courseAccessKeyRepository.findByCourseId(course.getId())
+                .orElseThrow(AccessKeyNotFoundException::new);
+    }
+
+    @Override
+    @PreAuthorize("isAuthenticated()")
     @Transactional
-    public TeamAccessKey createTeamKey(UUID teamId, String teamKey) {
+    public void createTeamKey(UUID teamId, String teamKey) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(TeamNotFoundException::new);
+                .orElseThrow(() -> new TeamNotFoundException(teamId));
 
         if (teamAccessKeyRepository.existsByTeamId(teamId)) {
             throw new AccessKeyAlreadyExistsException();
@@ -99,36 +120,16 @@ public class AccessKeyServiceImpl implements AccessKeyService {
         newTeamAccessKey.setKeyValue(keyValue);
         newTeamAccessKey.setTeam(team);
 
-        return teamAccessKeyRepository.saveAndFlush(newTeamAccessKey);
+        teamAccessKeyRepository.saveAndFlush(newTeamAccessKey);
     }
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public CourseAccessKey getKeyForCourse(UUID courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
-
-        if (course.getCourseType() == CourseType.TEAM_BASED) {
-            throw new IllegalStateException("Cannot get access key for a team based course"); //TODO:
-            // change to custom exception
-        } else {
-            return courseAccessKeyRepository.findByCourseId(courseId)
-                    .orElseThrow(AccessKeyNotFoundException::new);
-        }
-    }
-
-    @Override
-    @PreAuthorize("isAuthenticated()")
-    public TeamAccessKey getKeyForTeam(UUID teamId) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(TeamNotFoundException::new);
-        Course course = team.getCourse();
-
+    public TeamAccessKey getKeyForTeam(Team team, Course course) {
         if (course.getCourseType() == CourseType.SOLO) {
-            throw new IllegalStateException("Cannot get access key to a team in a solo course"); //TODO:
-            // change to custom exception
+            throw new InvalidCourseTypeException("Cannot get access key to a team in a solo course");
         } else {
-            return teamAccessKeyRepository.findByTeamId(teamId)
+            return teamAccessKeyRepository.findByTeamId(team.getId())
                     .orElseThrow(AccessKeyNotFoundException::new);
         }
     }

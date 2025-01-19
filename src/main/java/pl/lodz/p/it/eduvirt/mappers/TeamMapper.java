@@ -65,10 +65,10 @@ public interface TeamMapper {
     }
 
     default Team fromUpdateDto(UpdateTeamDto dto) {
-        Team team = new Team();
-        team.setName(dto.getName());
-        team.setMaxSize(dto.getMaxSize());
-        team.setActive(dto.isActive());
-        return team;
+        return Team.builder()
+                .name(dto.name())
+                .maxSize(dto.maxSize())
+                .active(dto.active())
+                .build();
     }
 }

@@ -1,20 +1,11 @@
 package pl.lodz.p.it.eduvirt.exceptions.access_key;
 
-public class AccessKeyLengthException extends AccessKeyBaseException {
+import pl.lodz.p.it.eduvirt.exceptions.general.BadRequestException;
+import pl.lodz.p.it.eduvirt.util.I18n;
 
+public class AccessKeyLengthException extends BadRequestException {
     public AccessKeyLengthException() {
-        super("Access key length is invalid.");
-    }
-
-    public AccessKeyLengthException(String message) {
-        super(message);
-    }
-
-    public AccessKeyLengthException(Throwable cause) {
-        super("Access key length is invalid.", cause);
-    }
-
-    public AccessKeyLengthException(String message, Throwable cause) {
-        super(message, cause);
+        super("Access key must be 5-50 characters long and contain only letters, numbers, hyphens and underscores", 
+              I18n.ACCESS_KEY_INVALID_FORMAT);
     }
 }

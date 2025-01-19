@@ -5,9 +5,9 @@ import pl.lodz.p.it.eduvirt.util.I18n;
 
 import java.util.UUID;
 
-public class VnicProfileExistsException extends AlreadyExistsException {
+public class VnicProfileAlreadyExistsException extends AlreadyExistsException {
 
-    public VnicProfileExistsException(UUID vnicProfileId) {
+    public VnicProfileAlreadyExistsException(UUID vnicProfileId) {
         super("Vnic profile with id %s already exists", I18n.VNIC_PROFILE_ALREADY_EXISTS);
     }
 }

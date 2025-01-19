@@ -19,10 +19,13 @@ import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfileDto;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfilePoolMemberDto;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.BadRequestEduVirtException;
+import pl.lodz.p.it.eduvirt.exceptions.VnicProfileAlreadyExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.general.ConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileEduvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
+import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
 import java.util.ArrayList;
@@ -37,6 +40,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class VnicProfileController {
 
+    private final OVirtVnicProfileService oVirtVnicProfileService;
     private final VnicProfilePoolService vnicProfileService;
     private final VnicProfileMapper vnicProfileMapper;
 
@@ -67,7 +71,7 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
     public ResponseEntity<List<VnicProfileDto>> getOvirtVnicProfiles() {
-        List<VnicProfileDto> vnicProfileDtoList = vnicProfileService.fetchOVirtVnicProfiles().stream()
+        List<VnicProfileDto> vnicProfileDtoList = oVirtVnicProfileService.getVnicProfiles().stream()
                 .map(vnicProfile -> vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, null))
                 .toList();
 
@@ -124,7 +128,9 @@ public class VnicProfileController {
         try {
             vnicProfile = vnicProfileService.addVnicProfileToPool(vnicProfileId);
         } catch (VnicProfileOvirtNotFoundException e) {
-            throw new BadRequestEduVirtException(e.getMessage());
+            throw new BadRequestEduVirtException(e);
+        } catch (VnicProfileAlreadyExistsException e2) {
+            throw new ConflictException(e2);
         }
 
         return ResponseEntity.ok(vnicProfileMapper.vnicProfileToDto(vnicProfile));
@@ -134,11 +140,15 @@ public class VnicProfileController {
     @PreAuthorize("hasAuthority('administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
-            @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
+            @ApiResponse(responseCode = "400", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
     public ResponseEntity<Void> reduceVnicProfilesPool(@PathVariable("vnicProfileId") UUID vnicProfileId) {
-        vnicProfileService.removeVnicProfileFromPool(vnicProfileId);
+        try {
+            vnicProfileService.removeVnicProfileFromPool(vnicProfileId);
+        } catch (VnicProfileEduvirtNotFoundException e) {
+            throw new BadRequestEduVirtException(e);
+        }
 
         return ResponseEntity.noContent().build();
     }

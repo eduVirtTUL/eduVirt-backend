@@ -11,7 +11,7 @@ import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDtoWthEtag;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupAlreadyExists;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;

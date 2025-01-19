@@ -1,24 +1,17 @@
 package pl.lodz.p.it.eduvirt.exceptions.team;
 
-import org.springframework.web.bind.annotation.ResponseStatus;
+import pl.lodz.p.it.eduvirt.exceptions.general.NotFoundException;
 import pl.lodz.p.it.eduvirt.util.I18n;
 
-@ResponseStatus()
-public class TeamNotFoundException extends TeamBaseException {
+import java.util.UUID;
 
-    public TeamNotFoundException() {
-        super(I18n.TEAM_NOT_FOUND);
-    }
+public class TeamNotFoundException extends NotFoundException {
 
     public TeamNotFoundException(String message) {
-        super(message);
+        super(message, I18n.TEAM_NOT_FOUND);
     }
 
-    public TeamNotFoundException(Throwable cause) {
-        super(I18n.TEAM_NOT_FOUND, cause);
-    }
-
-    public TeamNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+    public TeamNotFoundException(UUID teamId) {
+        super("Team with id %s could not be found".formatted(teamId), I18n.TEAM_NOT_FOUND);
     }
 }

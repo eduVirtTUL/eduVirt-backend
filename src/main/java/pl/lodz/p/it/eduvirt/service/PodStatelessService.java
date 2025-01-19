@@ -7,9 +7,14 @@ import java.util.UUID;
 public interface PodStatelessService {
 
     PodStateless createStatelessPod(PodStateless pod, UUID teamId, UUID resourceGroupPoolId);
+
     void deleteStatelessPod(UUID podId);
+
     List<PodStateless> getStatelessPodsByTeam(UUID teamId);
+
     List<PodStateless> getStatelessPodsByCourse(UUID courseId);
+
     List<PodStateless> getStatelessPodsByResourceGroupPool(UUID resourceGroupPoolId);
-    PodStateless getStatelessPod(UUID podId);
+
+    PodStateless getStatelessPodById(UUID podId);
 }

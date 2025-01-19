@@ -29,7 +29,7 @@ import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.ReservationNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.ReservationMapper;

@@ -14,6 +14,4 @@ public interface VlansRangeService {
     VlansRange addVlansRange(VlansRange vlansRange);
 
     void removeVlansRange(UUID id);
-
-//    VlansRange resizeVlansRange(VlansRange vlansRange);
 }
