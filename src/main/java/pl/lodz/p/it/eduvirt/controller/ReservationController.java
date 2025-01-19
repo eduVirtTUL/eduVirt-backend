@@ -347,8 +347,8 @@ public class ReservationController {
             @RequestParam(value = "end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         Course course = courseService.getCourse(courseId);
-        ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
         Team team = teamService.getTeamByCourseAndUser(course, userId);
+        ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
 
         List<Reservation> reservations = reservationService.findRgReservationsForTeam(resourceGroup, team, start, end);
         List<ReservationDto> listOfDtos = reservations.stream().map(reservationMapper::reservationToDto).toList();
