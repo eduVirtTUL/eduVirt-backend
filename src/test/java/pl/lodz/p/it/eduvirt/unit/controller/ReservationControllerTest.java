@@ -27,6 +27,7 @@ import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.ReservationNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupPoolNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.*;
@@ -1144,7 +1145,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(userId1)).thenReturn(Optional.of(user1));
@@ -1192,8 +1193,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(userId1));
     }
@@ -1207,7 +1207,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of());
 
         when(userRepository.findById(studentId)).thenReturn(Optional.of(student));
@@ -1221,8 +1221,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(studentId));
     }
@@ -1281,7 +1280,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
@@ -1329,8 +1328,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(adminId));
     }
@@ -1344,7 +1342,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
@@ -1392,8 +1390,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(teacherId1));
     }
@@ -1407,7 +1404,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
@@ -1421,8 +1418,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(teacherId2));
     }
@@ -1436,7 +1432,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(studentId)).thenReturn(Optional.of(student));
@@ -1450,8 +1446,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(studentId));
     }
@@ -1465,7 +1460,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of());
 
         when(userRepository.findById(userId1)).thenReturn(Optional.of(user1));
@@ -1479,8 +1474,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(userId1));
     }
@@ -1494,7 +1488,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(studentId)).thenReturn(Optional.empty());
@@ -1508,10 +1502,166 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(studentId));
+    }
+
+    /* GetOwnRgReservationsInGivenCourse method tests */
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_SomeReservationsExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team2);
+        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
+        when(reservationService.findRgReservationsForTeam(Mockito.eq(resourceGroup1),
+                Mockito.eq(team2), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of(reservation1, reservation3));
+
+        MvcResult result = mockMvc.perform(get("/reservations/courses/{courseId}/resource-groups/{rgId}/period/own",
+                        course.getId(), resourceGroup1.getId())
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        List<ReservationDto> foundReservations = mapper.readValue(json, new TypeReference<>() {});
+
+        assertNotNull(foundReservations);
+        assertFalse(foundReservations.isEmpty());
+        assertEquals(2, foundReservations.size());
+
+        ReservationDto firstReservation = foundReservations.getFirst();
+        assertNotNull(firstReservation);
+        assertEquals(reservation1.getId(), firstReservation.id());
+        assertEquals(reservation1.getResourceGroup().getId(), UUID.fromString(firstReservation.resourceGroup().id()));
+        assertEquals(reservation1.getResourceGroup().getName(), firstReservation.resourceGroup().name());
+        assertEquals(reservation1.getResourceGroup().getDescription(), firstReservation.resourceGroup().description());
+        assertEquals(reservation1.getResourceGroup().getMaxRentTime(), firstReservation.resourceGroup().maxRentTime());
+        assertEquals(reservation1.getTeam().getId(), firstReservation.team().getId());
+        assertEquals(reservation1.getTeam().getName(), firstReservation.team().getName());
+        assertEquals(reservation1.getTeam().getMaxSize(), firstReservation.team().getMaxSize());
+        assertEquals(reservation1.getStartTime(), firstReservation.start());
+        assertEquals(reservation1.getEndTime(), firstReservation.end());
+
+        ReservationDto secondReservation = foundReservations.getLast();
+        assertNotNull(secondReservation);
+        assertEquals(reservation3.getId(), secondReservation.id());
+        assertEquals(reservation3.getResourceGroup().getId(), UUID.fromString(secondReservation.resourceGroup().id()));
+        assertEquals(reservation3.getResourceGroup().getName(), secondReservation.resourceGroup().name());
+        assertEquals(reservation3.getResourceGroup().getDescription(), secondReservation.resourceGroup().description());
+        assertEquals(reservation3.getResourceGroup().getMaxRentTime(), secondReservation.resourceGroup().maxRentTime());
+        assertEquals(reservation3.getTeam().getId(), secondReservation.team().getId());
+        assertEquals(reservation3.getTeam().getName(), secondReservation.team().getName());
+        assertEquals(reservation3.getTeam().getMaxSize(), secondReservation.team().getMaxSize());
+        assertEquals(reservation3.getStartTime(), secondReservation.start());
+        assertEquals(reservation3.getEndTime(), secondReservation.end());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
+        verify(reservationService, times(1)).findRgReservationsForTeam(
+                Mockito.eq(resourceGroup1), Mockito.eq(team2), Mockito.eq(start), Mockito.eq(end));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_NoReservationExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgReservationsInGivenCourse_Then_ReturnsEmptyListOfReservations() throws Exception {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team2);
+        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
+        when(reservationService.findRgPoolReservationsForTeam(Mockito.eq(resourceGroupPool1),
+                Mockito.eq(team2), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
+
+        mockMvc.perform(get("/reservations/courses/{courseId}/resource-groups/{rgId}/period/own",
+                        course.getId(), resourceGroup1.getId())
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
+        verify(reservationService, times(1)).findRgReservationsForTeam(
+                Mockito.eq(resourceGroup1), Mockito.eq(team2), Mockito.eq(start), Mockito.eq(end));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_NonExistentCourseIdentifierIsProvider_When_GetOwnRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+        UUID nonExistentCourseIdentifier = UUID.randomUUID();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenThrow(CourseNotFoundException.class);
+
+        mockMvc.perform(get("/reservations/courses/{courseId}/resource-groups/{rgId}/period/own",
+                        nonExistentCourseIdentifier, resourceGroupPool1.getId())
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(nonExistentCourseIdentifier));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_TeamNotFoundForTheCurrentlyAuthenticatedUser_When_GetOwnRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1)))
+                .thenThrow(TeamNotFoundException.class);
+
+        mockMvc.perform(get("/reservations/courses/{courseId}/resource-groups/{rgId}/period/own",
+                        course.getId(), resourceGroupPool1.getId())
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_NonExistentResourceGroupPoolIdentifierIsPassed_When_GetOwnRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+        UUID nonExistentResourceGroupIdentifier = UUID.randomUUID();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
+        when(resourceGroupService.getResourceGroup(Mockito.eq(nonExistentResourceGroupIdentifier)))
+                .thenThrow(ResourceGroupNotFoundException.class);
+
+        mockMvc.perform(get("/reservations/courses/{courseId}/resource-groups/{rgId}/period/own",
+                        course.getId(), nonExistentResourceGroupIdentifier)
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(nonExistentResourceGroupIdentifier));
     }
 
     /* GetRgPoolReservationsInGivenCourse method tests */
@@ -1526,7 +1676,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation2, reservation4));
 
         when(userRepository.findById(Mockito.eq(userId1))).thenReturn(Optional.of(user1));
@@ -1575,7 +1725,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(userId1));
     }
@@ -1590,8 +1740,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
-                .thenReturn(List.of());
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
 
         when(userRepository.findById(Mockito.eq(userId1))).thenReturn(Optional.of(user1));
 
@@ -1605,7 +1754,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(userId1));
     }
@@ -1668,8 +1817,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
-                .thenReturn(List.of());
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
 
         when(userRepository.findById(Mockito.eq(studentId))).thenReturn(Optional.empty());
 
@@ -1683,7 +1831,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(studentId));
     }
@@ -1698,7 +1846,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation2, reservation4));
 
         when(userRepository.findById(Mockito.eq(adminId))).thenReturn(Optional.of(admin));
@@ -1747,7 +1895,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(adminId));
     }
@@ -1762,7 +1910,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation2, reservation4));
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
@@ -1811,7 +1959,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(teacherId1));
     }
@@ -1826,7 +1974,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation2, reservation4));
 
         when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
@@ -1841,7 +1989,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(teacherId2));
     }
@@ -1856,7 +2004,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation2, reservation4));
 
         when(userRepository.findById(Mockito.eq(studentId))).thenReturn(Optional.of(student));
@@ -1871,9 +2019,166 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(studentId));
+    }
+
+    /* GetOwnRgPoolReservationsInGivenCourse method tests */
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_SomeReservationsExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgPoolReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team2);
+        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
+        when(reservationService.findRgPoolReservationsForTeam(Mockito.eq(resourceGroupPool1),
+                Mockito.eq(team2), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of(reservation2, reservation4));
+
+        MvcResult result = mockMvc.perform(get("/reservations/courses/{courseId}/resource-group-pools/{rgPoolId}/period/own",
+                        course.getId(), resourceGroupPool1.getId())
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        List<ReservationDto> foundReservations = mapper.readValue(json, new TypeReference<>() {});
+
+        assertNotNull(foundReservations);
+        assertFalse(foundReservations.isEmpty());
+        assertEquals(2, foundReservations.size());
+
+        ReservationDto firstReservation = foundReservations.getFirst();
+        assertNotNull(firstReservation);
+        assertEquals(reservation2.getId(), firstReservation.id());
+        assertEquals(reservation2.getResourceGroup().getId(), UUID.fromString(firstReservation.resourceGroup().id()));
+        assertEquals(reservation2.getResourceGroup().getName(), firstReservation.resourceGroup().name());
+        assertEquals(reservation2.getResourceGroup().getDescription(), firstReservation.resourceGroup().description());
+        assertEquals(reservation2.getResourceGroup().getMaxRentTime(), firstReservation.resourceGroup().maxRentTime());
+        assertEquals(reservation2.getTeam().getId(), firstReservation.team().getId());
+        assertEquals(reservation2.getTeam().getName(), firstReservation.team().getName());
+        assertEquals(reservation2.getTeam().getMaxSize(), firstReservation.team().getMaxSize());
+        assertEquals(reservation2.getStartTime(), firstReservation.start());
+        assertEquals(reservation2.getEndTime(), firstReservation.end());
+
+        ReservationDto secondReservation = foundReservations.getLast();
+        assertNotNull(secondReservation);
+        assertEquals(reservation4.getId(), secondReservation.id());
+        assertEquals(reservation4.getResourceGroup().getId(), UUID.fromString(secondReservation.resourceGroup().id()));
+        assertEquals(reservation4.getResourceGroup().getName(), secondReservation.resourceGroup().name());
+        assertEquals(reservation4.getResourceGroup().getDescription(), secondReservation.resourceGroup().description());
+        assertEquals(reservation4.getResourceGroup().getMaxRentTime(), secondReservation.resourceGroup().maxRentTime());
+        assertEquals(reservation4.getTeam().getId(), secondReservation.team().getId());
+        assertEquals(reservation4.getTeam().getName(), secondReservation.team().getName());
+        assertEquals(reservation4.getTeam().getMaxSize(), secondReservation.team().getMaxSize());
+        assertEquals(reservation4.getStartTime(), secondReservation.start());
+        assertEquals(reservation4.getEndTime(), secondReservation.end());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
+        verify(reservationService, times(1)).findRgPoolReservationsForTeam(
+                Mockito.eq(resourceGroupPool1), Mockito.eq(team2), Mockito.eq(start), Mockito.eq(end));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_NoReservationExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgPoolReservationsInGivenCourse_Then_ReturnsEmptyListOfReservations() throws Exception {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team2);
+        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
+        when(reservationService.findRgPoolReservationsForTeam(Mockito.eq(resourceGroupPool1),
+                Mockito.eq(team2), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
+
+        mockMvc.perform(get("/reservations/courses/{courseId}/resource-group-pools/{rgPoolId}/period/own",
+                        course.getId(), resourceGroupPool1.getId())
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
+        verify(reservationService, times(1)).findRgPoolReservationsForTeam(
+                Mockito.eq(resourceGroupPool1), Mockito.eq(team2), Mockito.eq(start), Mockito.eq(end));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_NonExistentCourseIdentifierIsProvider_When_GetOwnRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+        UUID nonExistentCourseIdentifier = UUID.randomUUID();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenThrow(CourseNotFoundException.class);
+
+        mockMvc.perform(get("/reservations/courses/{courseId}/resource-group-pools/{rgPoolId}/period/own",
+                        nonExistentCourseIdentifier, resourceGroupPool1.getId())
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(nonExistentCourseIdentifier));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_TeamNotFoundForTheCurrentlyAuthenticatedUser_When_GetOwnRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1)))
+                .thenThrow(TeamNotFoundException.class);
+
+        mockMvc.perform(get("/reservations/courses/{courseId}/resource-group-pools/{rgPoolId}/period/own",
+                        course.getId(), resourceGroupPool1.getId())
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+    }
+
+    @Test
+    @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
+    public void Given_NonExistentResourceGroupPoolIdentifierIsPassed_When_GetOwnRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+        UUID nonExistentResourceGroupPoolIdentifier = UUID.randomUUID();
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
+        when(teamService.getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1))).thenReturn(team1);
+        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(nonExistentResourceGroupPoolIdentifier)))
+                .thenThrow(ResourceGroupPoolNotFoundException.class);
+
+        mockMvc.perform(get("/reservations/courses/{courseId}/resource-group-pools/{rgPoolId}/period/own",
+                        course.getId(), nonExistentResourceGroupPoolIdentifier)
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
+        verify(teamService, times(1)).getTeamByCourseAndUser(Mockito.eq(course), Mockito.eq(userId1));
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(nonExistentResourceGroupPoolIdentifier));
     }
 
     /* GetActiveReservations method tests */

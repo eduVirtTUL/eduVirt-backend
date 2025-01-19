@@ -2028,7 +2028,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
-        List<Reservation> foundReservations = reservationService.findRgReservations(resourceGroup1, course, start, end);
+        List<Reservation> foundReservations = reservationService.findRgReservations(resourceGroup1, start, end);
 
         assertNotNull(foundReservations);
         assertFalse(foundReservations.isEmpty());
@@ -2055,7 +2055,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of());
 
-        List<Reservation> foundReservations = reservationService.findRgReservations(resourceGroup1, course, start, end);
+        List<Reservation> foundReservations = reservationService.findRgReservations(resourceGroup1, start, end);
 
         assertNotNull(foundReservations);
         assertTrue(foundReservations.isEmpty());
@@ -2078,7 +2078,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findRgPoolReservations(Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
-        List<Reservation> foundReservations = reservationService.findRgPoolReservations(resourceGroupPool1, course, start, end);
+        List<Reservation> foundReservations = reservationService.findRgPoolReservations(resourceGroupPool1, start, end);
 
         assertNotNull(foundReservations);
         assertFalse(foundReservations.isEmpty());
@@ -2105,13 +2105,107 @@ public class ReservationServiceTest {
         when(reservationRepository.findRgPoolReservations(Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of());
 
-        List<Reservation> foundReservations = reservationService.findRgPoolReservations(resourceGroupPool1, course, start, end);
+        List<Reservation> foundReservations = reservationService.findRgPoolReservations(resourceGroupPool1, start, end);
 
         assertNotNull(foundReservations);
         assertTrue(foundReservations.isEmpty());
 
         verify(reservationRepository, times(1))
                 .findRgPoolReservations(Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
+    }
+
+    /* FindOwnRgReservations method tests */
+
+    @Test
+    public void Given_SomeReservationsExistForTeam_When_FindOwnRgReservations_Then_ReturnListOfFoundReservation() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(reservationRepository.findRgReservationsForGivenTeam(Mockito.eq(resourceGroup1),
+                Mockito.eq(team1), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of(reservation1, reservation3));
+
+        List<Reservation> foundReservations = reservationService.findRgReservationsForTeam(resourceGroup1, team1, start, end);
+
+        assertNotNull(foundReservations);
+        assertFalse(foundReservations.isEmpty());
+        assertEquals(2, foundReservations.size());
+
+        Reservation firstReservation = foundReservations.getFirst();
+        assertNotNull(firstReservation);
+        assertEquals(reservation1, firstReservation);
+
+        Reservation secondReservation = foundReservations.getLast();
+        assertNotNull(secondReservation);
+        assertEquals(reservation3, secondReservation);
+
+        verify(reservationRepository, times(1)).findRgReservationsForGivenTeam(
+                Mockito.eq(resourceGroup1), Mockito.eq(team1), Mockito.eq(start), Mockito.eq(end));
+    }
+
+    @Test
+    public void Given_NoReservationExistForTeam_When_FindOwnRgReservations_Then_ReturnEmptyListOfReservation() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(reservationRepository.findRgReservationsForGivenTeam(Mockito.eq(resourceGroup1),
+                Mockito.eq(team1), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
+
+        List<Reservation> foundReservations = reservationService.findRgReservationsForTeam(resourceGroup1, team1, start, end);
+
+        assertNotNull(foundReservations);
+        assertTrue(foundReservations.isEmpty());
+
+        verify(reservationRepository, times(1)).findRgReservationsForGivenTeam(
+                Mockito.eq(resourceGroup1), Mockito.eq(team1), Mockito.eq(start), Mockito.eq(end));
+    }
+
+    /* FindOwnRgPoolReservations method tests */
+
+    @Test
+    public void Given_SomeReservationsExistForTeam_When_FindOwnRgPoolReservations_Then_ReturnListOfFoundReservation() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(reservationRepository.findRgPoolReservationsForGivenTeam(Mockito.eq(resourceGroupPool1),
+                Mockito.eq(team1), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of(reservation2, reservation4));
+
+        List<Reservation> foundReservations = reservationService.findRgPoolReservationsForTeam(resourceGroupPool1, team1, start, end);
+
+        assertNotNull(foundReservations);
+        assertFalse(foundReservations.isEmpty());
+        assertEquals(2, foundReservations.size());
+
+        Reservation firstReservation = foundReservations.getFirst();
+        assertNotNull(firstReservation);
+        assertEquals(reservation2, firstReservation);
+
+        Reservation secondReservation = foundReservations.getLast();
+        assertNotNull(secondReservation);
+        assertEquals(reservation4, secondReservation);
+
+        verify(reservationRepository, times(1)).findRgPoolReservationsForGivenTeam(
+                Mockito.eq(resourceGroupPool1), Mockito.eq(team1), Mockito.eq(start), Mockito.eq(end));
+    }
+
+    @Test
+    public void Given_NoReservationExistForTeam_When_FindOwnRgPoolReservations_Then_ReturnListOfFoundReservation() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusHours(6);
+
+        when(reservationRepository.findRgPoolReservationsForGivenTeam(Mockito.eq(resourceGroupPool1),
+                Mockito.eq(team1), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
+
+        List<Reservation> foundReservations = reservationService.findRgPoolReservationsForTeam(resourceGroupPool1, team1, start, end);
+
+        assertNotNull(foundReservations);
+        assertTrue(foundReservations.isEmpty());
+
+        verify(reservationRepository, times(1)).findRgPoolReservationsForGivenTeam(
+                Mockito.eq(resourceGroupPool1), Mockito.eq(team1), Mockito.eq(start), Mockito.eq(end));
     }
 
     /* FindActiveReservations method tests */
@@ -2475,10 +2569,10 @@ public class ReservationServiceTest {
         verify(clusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
     }
 
-    /* FinishReservation method tests */
+    /* FinishReservationAsStudent method tests */
 
     @Test
-    public void Given_ReservationHasAlreadyFinished_ReservationAlreadyFinished_When_FinishReservation_Then_ThrowsException() {
+    public void Given_ReservationHasAlreadyFinished_ReservationAlreadyFinished_WhenAsStudent_FinishReservation_Then_ThrowsException() {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         reservation1.setStartTime(currentTime.minusHours(8));
         reservation1.setEndTime(currentTime.minusHours(4));
@@ -2488,7 +2582,7 @@ public class ReservationServiceTest {
     }
 
     @Test
-    public void Given_ReservationHasAlreadyBegunButNotYetFinished_When_FinishReservation_Then_FinishesReservationEarlier() {
+    public void Given_ReservationHasAlreadyBegunButNotYetFinished_When_FinishReservationAsStudent_Then_FinishesReservationEarlier() {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         reservation1.setStartTime(currentTime.minusHours(2));
         reservation1.setEndTime(currentTime.plusHours(4));
@@ -2505,7 +2599,7 @@ public class ReservationServiceTest {
     }
 
     @Test
-    public void Given_ReservationHasNotYetBegun_When_FinishReservation_Then_RemovesReservation() {
+    public void Given_ReservationHasNotYetBegun_When_FinishReservationAsStudent_Then_RemovesReservation() {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         reservation1.setStartTime(currentTime.plusHours(2));
         reservation1.setEndTime(currentTime.plusHours(6));
@@ -2529,7 +2623,7 @@ public class ReservationServiceTest {
         when(reservationRepository.saveAndFlush(Mockito.eq(reservation1)))
                 .thenReturn(reservation1);
 
-        reservationService.finishReservationAsStudent(reservation1);
+        reservationService.finishReservationAsTeacherOrAdmin(reservation1);
 
         assertNotEquals(currentTime.plusHours(4), reservation1.getEndTime());
 
@@ -2545,7 +2639,7 @@ public class ReservationServiceTest {
 
         doNothing().when(reservationRepository).delete(Mockito.eq(reservation1));
 
-        reservationService.finishReservationAsStudent(reservation1);
+        reservationService.finishReservationAsTeacherOrAdmin(reservation1);
 
         verify(reservationRepository, times(1))
                 .delete(Mockito.eq(reservation1));

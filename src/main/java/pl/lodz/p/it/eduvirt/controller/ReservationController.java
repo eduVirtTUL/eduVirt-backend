@@ -293,7 +293,7 @@ public class ReservationController {
             @RequestParam(value = "end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         Course course = courseService.getCourse(courseId);
         ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
-        List<Reservation> reservations = reservationService.findRgReservations(resourceGroup, course, start, end);
+        List<Reservation> reservations = reservationService.findRgReservations(resourceGroup, start, end);
 
         List<ReservationDto> listOfDtos = reservations.stream().map(reservationMapper::reservationToDto).toList();
 
@@ -313,6 +313,48 @@ public class ReservationController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+        method = "GET", summary = "Get reservation for the resource group in course in given time window, that belong to the team currently authenticated user is a part of",
+        description = "This endpoint can be used to find reservations made by the team, that the currently authenticated user is a part of, for given resource group in the given course in certain time window. ",
+        parameters = {
+            @Parameter(name = "courseId", in = ParameterIn.PATH, description = "Identifier of the course, which contains the resource group.", required = true),
+            @Parameter(name = "rgId", in = ParameterIn.PATH, description = "Identifier of the resource group, which the reservations are to be fetched for.", required = true),
+            @Parameter(name = "start", in = ParameterIn.QUERY, description = "Start of the time window, which the searched reservations overlap with.", required = true),
+            @Parameter(name = "end", in = ParameterIn.QUERY, description = "End of the time window, which the searched reservations overlap with", required = true),
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = """
+                Reservations, overlapping given time window, for the given resource group were found and were sent to the client successfully."""),
+            @ApiResponse(responseCode = "204", description = """
+                No reservations, overlapping given time window, of the given resource group were found or currently authenticated
+                user does not have privileges to fetch them.""",
+                content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = """
+                Course identified with given identifier or resource group with given identifier could not be found in the database.""",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        }
+    )
+    @PreAuthorize("hasAuthority('student')")
+    @GetMapping(path = "/courses/{courseId}/resource-groups/{rgId}/period/own")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    ResponseEntity<List<ReservationDto>> getOwnRgReservationsInGivenCourse(
+            @PathVariable("courseId") UUID courseId, @PathVariable("rgId") UUID rgId,
+            @RequestParam(value = "start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(value = "end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        Course course = courseService.getCourse(courseId);
+        Team team = teamService.getTeamByCourseAndUser(course, userId);
+        ResourceGroup resourceGroup = resourceGroupService.getResourceGroup(rgId);
+
+        List<Reservation> reservations = reservationService.findRgReservationsForTeam(resourceGroup, team, start, end);
+        List<ReservationDto> listOfDtos = reservations.stream().map(reservationMapper::reservationToDto).toList();
+
+        if (reservations.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDtos);
     }
 
     @Operation(
@@ -347,7 +389,7 @@ public class ReservationController {
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         Course course = courseService.getCourse(courseId);
         ResourceGroupPool resourceGroupPool = resourceGroupPoolService.getResourceGroupPool(rgPoolId);
-        List<Reservation> reservations = reservationService.findRgPoolReservations(resourceGroupPool, course, start, end);
+        List<Reservation> reservations = reservationService.findRgPoolReservations(resourceGroupPool, start, end);
 
         List<ReservationDto> listOfDtos = reservations.stream().map(reservationMapper::reservationToDto).toList();
 
@@ -366,6 +408,48 @@ public class ReservationController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+        method = "GET", summary = "Get reservation for the resource group pool in course in given time window for the team currently authenticated user is a part of",
+        description = "This endpoint can be used to find reservations made, by the team that the currently authenticated user belongs to, for given resource group pool in the given course in given time window.",
+        parameters = {
+            @Parameter(name = "courseId", in = ParameterIn.PATH, description = "Identifier of the course, which contains the resource group pool.", required = true),
+            @Parameter(name = "rgPoolId", in = ParameterIn.PATH, description = "Identifier of the resource group pool, which the reservations are to be fetched for.", required = true),
+            @Parameter(name = "start", in = ParameterIn.QUERY, description = "Start of the time window, which the searched reservations overlap with.", required = true),
+            @Parameter(name = "end", in = ParameterIn.QUERY, description = "End of the time window, which the searched reservations overlap with", required = true),
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = """
+                Reservation, overlapping given time window, for the given resource group pool were found and were sent to the client successfully."""),
+            @ApiResponse(responseCode = "204", description = """
+                No reservations, overlapping given time window, of the given resource group pool were found or currently authenticated
+                user does not have privileges to fetch them.""",
+                content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = """
+                Course identified with given identifier or resource group pool with given identifier could not be found in the database.""",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        }
+    )
+    @PreAuthorize("hasAuthority('student')")
+    @GetMapping(path = "/courses/{courseId}/resource-group-pools/{rgPoolId}/period/own")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    ResponseEntity<List<ReservationDto>> getOwnRgPoolReservationsInGivenCourse(
+            @PathVariable("courseId") UUID courseId, @PathVariable("rgPoolId") UUID rgPoolId,
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        Course course = courseService.getCourse(courseId);
+        Team team = teamService.getTeamByCourseAndUser(course, userId);
+        ResourceGroupPool resourceGroupPool = resourceGroupPoolService.getResourceGroupPool(rgPoolId);
+
+        List<Reservation> reservations = reservationService.findRgPoolReservationsForTeam(resourceGroupPool, team, start, end);
+        List<ReservationDto> listOfDtos = reservations.stream().map(reservationMapper::reservationToDto).toList();
+
+        if (reservations.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDtos);
     }
 
     @Operation(
