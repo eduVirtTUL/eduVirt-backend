@@ -177,9 +177,9 @@ public class MaintenanceIntervalController {
         description = "This endpoint can be used to fetch maintenance intervals, defined for certain cluster / system in the specified time window.",
         parameters = {
             @Parameter(name = "clusterId", in = ParameterIn.QUERY, description = "Identifier of the cluster, which the maintenance intervals are to be fetched from the database. If not provided, then maintenance intervals for system are fetched."),
-            @Parameter(name = "active", in = ParameterIn.QUERY, description = """
-                Status of the reservations that are to be fetched from the database, expressed as boolean value.
-                If true then active intervals are fetched, in the other case inactive intervals are fetched.""", required = true),
+//            @Parameter(name = "active", in = ParameterIn.QUERY, description = """
+//                Status of the reservations that are to be fetched from the database, expressed as boolean value.
+//                If true then active intervals are fetched, in the other case inactive intervals are fetched.""", required = true),
             @Parameter(name = "start", description = "Timestamp of the start of the time window, which the searched maintenance intervals overlaps with."),
             @Parameter(name = "end", description = "Timestamp of the end of the time window, which the searched maintenance intervals overlaps with.")
         },

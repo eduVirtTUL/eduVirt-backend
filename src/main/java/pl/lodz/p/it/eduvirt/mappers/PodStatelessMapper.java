@@ -6,7 +6,7 @@ import pl.lodz.p.it.eduvirt.dto.course.CourseBasicDto;
 import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatelessDto;
 import pl.lodz.p.it.eduvirt.dto.pod.PodStatelessDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.pod.PodStatelessDto;
-import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
+import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolWithMaxRentTimeDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.PodStateless;
@@ -28,10 +28,11 @@ public interface PodStatelessMapper {
     default PodStatelessDetailsDto podStatelessToDetailsDto(PodStateless pod) {
         return new PodStatelessDetailsDto(
                 pod.getId(),
-                new ResourceGroupPoolDto(
+                new ResourceGroupPoolWithMaxRentTimeDto(
                         pod.getResourceGroupPool().getId(),
                         pod.getResourceGroupPool().getName(),
-                        pod.getResourceGroupPool().getDescription()
+                        pod.getResourceGroupPool().getDescription(),
+                        pod.getResourceGroupPool().getMaxRentTime()
                 ),
                 new CourseBasicDto(
                         pod.getCourse().getId(),
@@ -53,8 +54,8 @@ public interface PodStatelessMapper {
                                 user.getFirstName(),
                                 user.getLastName()
                         )).toList()
-                )
-
+                ),
+                pod.getResourceGroupPool().getMaxRent()
         );
     }
 }

@@ -124,7 +124,18 @@ public class TeamServiceImpl implements TeamService {
         }
 
         return teamRepository.findByCourseIdWithSearch(courseId, search, searchType, PageRequest.of(page, size, sort));
-}
+    }
+
+    @Override
+    @PreAuthorize("isAuthenticated()")
+    public Page<Team> findTeamsByEmails(UUID courseId, List<String> emailPrefixes, int page, int size, String sortOrder) {
+        Sort sort = Sort.by(sortOrder.equals("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC, "name");
+        return teamRepository.findByCourseIdAndEmailPrefixes(
+                courseId,
+                emailPrefixes.stream().map(String::toLowerCase).toList(),
+                PageRequest.of(page, size, sort)
+        );
+    }
 
     @Override
     @PreAuthorize("isAuthenticated()")
