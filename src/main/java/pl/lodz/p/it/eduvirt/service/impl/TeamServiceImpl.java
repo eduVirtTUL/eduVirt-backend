@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,7 @@ import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.AccessKeyService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
 import java.util.Objects;
@@ -31,6 +33,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(propagation = Propagation.REQUIRED)
 public class TeamServiceImpl implements TeamService {
 
@@ -41,7 +44,6 @@ public class TeamServiceImpl implements TeamService {
     /* Repositories */
 
     private final TeamRepository teamRepository;
-    private final CourseRepository courseRepository;
     private final TeamAccessKeyRepository teamKeyRepository;
     private final CourseAccessKeyRepository courseKeyRepository;
     private final UserRepository userRepository;
@@ -49,6 +51,8 @@ public class TeamServiceImpl implements TeamService {
     private final PodStatelessRepository statelessPodRepository;
 
     /* Helper methods */
+
+    private final ETagHelper eTagHelper;
 
     private void validateUserNotInCourse(UUID userId, UUID courseId) {
         if (teamRepository.existsByUserIdAndCourseId(userId, courseId)) {
@@ -167,10 +171,15 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    @Transactional
     @PreAuthorize("isAuthenticated()")
-    public Team updateTeam(Team updatedTeam, UUID teamId) {
+    public Team updateTeam(Team updatedTeam, UUID teamId, String etag) {
         Team existingTeam = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException(teamId));
+
+        if (!eTagHelper.validateEtag(etag, existingTeam)) {
+            throw new TeamConflictException();
+        }
 
         if (existingTeam.getCourse().getCourseType() == CourseType.SOLO) {
             existingTeam.setActive(updatedTeam.isActive());

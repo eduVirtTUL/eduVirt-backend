@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,12 +13,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.access_key.JoinTeamKeyDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
-import pl.lodz.p.it.eduvirt.dto.team.TeamDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithKeyDto;
 import pl.lodz.p.it.eduvirt.dto.team.UpdateTeamDto;
@@ -27,6 +33,7 @@ import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.entity.key.CourseType;
 import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
+import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.TeamMapper;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
@@ -34,6 +41,7 @@ import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 import pl.lodz.p.it.eduvirt.util.RoleConstants;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
 import java.util.UUID;
@@ -59,6 +67,9 @@ public class TeamController {
 
     private final TeamMapper teamMapper;
 
+    /* Helpers */
+
+    private final ETagHelper etagHelper;
 
     @PostMapping
     @Transactional
@@ -87,11 +98,31 @@ public class TeamController {
     }
 
     @PutMapping("/{id}")
+    @Transactional
     @PreAuthorize("hasAuthority('teacher')")
-    public ResponseEntity<TeamWithCourseDto> updateTeam(@PathVariable UUID id, @RequestBody @Validated UpdateTeamDto updateTeamDto) {
-        Team team = teamMapper.fromUpdateDto(updateTeamDto);
-        Team updatedTeam = teamService.updateTeam(team, id);
-        return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(updatedTeam));
+    public ResponseEntity<TeamWithCourseDto> updateTeam(
+            @PathVariable UUID id,
+            @RequestBody @Validated UpdateTeamDto updateTeamDto,
+            @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Team team = teamService.getTeamById(id);
+        Course course = team.getCourse();
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
+            Team mapped = teamMapper.fromUpdateDto(updateTeamDto);
+            Team updated = teamService.updateTeam(mapped, id, ifMatch);
+            return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(updated));
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @GetMapping
@@ -115,7 +146,16 @@ public class TeamController {
     }
 
     @GetMapping("/{teamId}")
+    @Transactional
     @PreAuthorize("isAuthenticated()")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    headers = @Header(name = "ETag", description = "ETag value", schema = @Schema(implementation = String.class)),
+                    content = {@Content(mediaType = "application/json", schema = @Schema(implementation = TeamWithCourseDto.class))}
+            ),
+            @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ExceptionResponse.class))})
+    })
     public ResponseEntity<TeamWithCourseDto> getTeamDetails(@PathVariable UUID teamId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
@@ -130,7 +170,11 @@ public class TeamController {
 
         if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user) ||
                 authorities.contains(RoleConstants.STUDENT) && team.getUsers().contains(user)) {
-            return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(team));
+
+            String etag = etagHelper.generateEtag(team);
+            return ResponseEntity.ok()
+                    .eTag(etag)
+                    .body(teamMapper.teamToTeamWithCourseDto(team));
         }
 
         return ResponseEntity.noContent().build();
@@ -279,6 +323,7 @@ public class TeamController {
     }
 
     @DeleteMapping("/{teamId}")
+    @Transactional
     @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> deleteTeam(@PathVariable UUID teamId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());

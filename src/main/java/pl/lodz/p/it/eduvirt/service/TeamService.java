@@ -32,7 +32,7 @@ public interface TeamService {
 
     void createSoloTeam(Course course, User user);
 
-    Team updateTeam(Team team, UUID teamId);
+    Team updateTeam(Team updatedTeam, UUID teamId, String etag);
 
     void deleteTeam(Team team);
 
