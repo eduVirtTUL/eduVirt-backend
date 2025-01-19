@@ -39,8 +39,8 @@ import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.exceptions.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
@@ -170,8 +170,7 @@ public class CourseController {
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})})
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public ResponseEntity<CourseDto> getCourse(@PathVariable UUID id) {
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        Course course = courseService.getCourse(id, userId);
+        Course course = courseService.getCourse(id);
 
         String etag = etagHelper.generateEtag(course);
 
@@ -341,55 +340,152 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     @PostMapping("/{courseId}/add-student")
     public ResponseEntity<Void> addStudentToCourse(@PathVariable UUID courseId, @RequestParam String email) {
-        teamService.addStudentToCourse(courseId, email);
-        return ResponseEntity.noContent().build();
-    }
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Course course = courseService.getCourse(courseId);
 
-    @PostMapping("/{courseId}/remove-student")
-    public ResponseEntity<Void> removeStudentFromCourse(@PathVariable UUID courseId, @RequestParam String email) {
-        teamService.removeStudentFromCourse(courseId, email);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{courseId}/add-teacher")
-    public ResponseEntity<Void> addTeacherToCourse(@PathVariable UUID courseId, @RequestParam String email) {
-        courseService.addTeacherToCourse(courseId, email);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{courseId}/remove-teacher")
-    public ResponseEntity<Void> removeTeacherFromCourse(@PathVariable UUID courseId, @RequestParam String email) {
-        courseService.removeTeacherFromCourse(courseId, email);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{courseId}/teachers")
-    public ResponseEntity<List<UserDto>> getTeachersForCourse(@PathVariable UUID courseId) {
-
-        List<User> teachers = courseService.getTeachersForCourse(courseId);
-
-        List<UserDto> userDtos = teachers.stream()
-                .map(userMapper::userToDto)
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        if (userDtos.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(userDtos);
-    }
-
-    @GetMapping("/{courseId}/students")
-//    @PreAuthorize("hasAuthority('TEACHER')")
-    public ResponseEntity<List<UserDto>> getStudentsInSoloCourse(@PathVariable UUID courseId) {
-        List<User> users = teamService.getStudentsInSoloCourse(courseId);
-        List<UserDto> userDtos = users.stream()
-                .map(userMapper::userToDto)
-                .toList();
-
-        if (userDtos.isEmpty()) {
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+            teamService.addStudentToCourse(course, email);
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(userDtos);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @PostMapping("/{courseId}/remove-student")
+    public ResponseEntity<Void> removeStudentFromCourse(@PathVariable UUID courseId, @RequestParam String email) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Course course = courseService.getCourse(courseId);
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+            teamService.removeStudentFromCourse(course, email);
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @PostMapping("/{courseId}/add-teacher")
+    public ResponseEntity<Void> addTeacherToCourse(@PathVariable UUID courseId, @RequestParam String email) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Course course = courseService.getCourse(courseId);
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+            courseService.addTeacherToCourse(course, email);
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @PostMapping("/{courseId}/remove-teacher")
+    public ResponseEntity<Void> removeTeacherFromCourse(@PathVariable UUID courseId, @RequestParam String email) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Course course = courseService.getCourse(courseId);
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+            courseService.removeTeacherFromCourse(course, email);
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Transactional
+    @GetMapping("/{courseId}/teachers")
+    public ResponseEntity<List<UserDto>> getTeachersForCourse(@PathVariable UUID courseId) {
+        List<User> teachers = courseService.getTeachersForCourse(courseId);
+        List<UserDto> teacherDtos = teachers.stream()
+                .map(userMapper::userToDto)
+                .toList();
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Course course = courseService.getCourse(courseId);
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        boolean isStudentInCourse = course.getTeams().stream()
+                .flatMap(team -> team.getUsers().stream())
+                .anyMatch(student -> student.equals(user));
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) ||
+                (authorities.contains(RoleConstants.STUDENT) && isStudentInCourse)) {
+
+            return teacherDtos.isEmpty() ?
+                    ResponseEntity.noContent().build() :
+                    ResponseEntity.ok(teacherDtos);
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @Transactional
+    @GetMapping("/{courseId}/students")
+    public ResponseEntity<List<UserDto>> getStudentsInSoloCourse(@PathVariable UUID courseId) {
+        Course course = courseService.getCourse(courseId);
+        List<User> students = teamService.getStudentsInSoloCourse(course);
+        List<UserDto> listOfDTOs = students.stream()
+                .map(userMapper::userToDto)
+                .toList();
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+            return ResponseEntity.ok(listOfDTOs);
+        }
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{courseId}/reset")
@@ -398,5 +494,4 @@ public class CourseController {
         courseService.resetCourse(courseId);
         return ResponseEntity.noContent().build();
     }
-
 }

@@ -17,6 +17,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.*;
+import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.impl.ReservationServiceImpl;

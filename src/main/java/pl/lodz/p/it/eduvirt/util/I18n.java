@@ -13,6 +13,10 @@ public class I18n {
     /* Course keys */
 
     public static final String COURSE_NOT_FOUND = "course.not.found";
+    public static final String COURSE_INVALID_TYPE = "course.invalid.type";
+    public static final String TEACHER_ALREADY_IN_COURSE = "teacher.already.in.course";
+    public static final String TEACHER_NOT_IN_COURSE = "teacher.not.in.course";
+    public static final String COURSE_NO_TEACHERS = "course.no.teachers";
 
     /* Resource group keys */
 
@@ -25,10 +29,24 @@ public class I18n {
     /* User keys */
 
     public static final String USER_NOT_FOUND = "user.not.found";
+    public static final String USERS_NOT_FOUND = "users.not.found";
+    public static final String USER_NOT_AUTHORIZED = "user.not.authorized";
 
-    /* Team keys*/
+
+    /* Team keys */
 
     public static final String TEAM_NOT_FOUND = "team.not.found";
+    public static final String TEAM_NOT_FOUND_IN_COURSE = "team.not.found.in.course";
+    public static final String TEAM_ALREADY_EXISTS = "team.already.exists";
+    public static final String TEAM_INVALID_SIZE = "team.invalid.size";
+    public static final String TEAM_NOT_ACTIVE = "team.not.active";
+    public static final String TEAM_USER_NOT_MEMBER = "team.user.not.member";
+    public static final String TEAM_USER_ALREADY_MEMBER = "team.user.already.member";
+    public static final String TEAM_USER_ALREADY_IN_COURSE = "team.user.already.in.course";
+    public static final String TEAM_VALIDATION = "team.validation.exception";
+    public static final String INCORRECT_TEAM_TYPE = "incorrect.team.type.exception";
+    public static final String USER_ALREADY_IN_COURSE = "team.size.exception";
+    public static final String TEAM_CONFLICT = "team.conflict.exception";
 
     /* Permission keys */
 
@@ -55,30 +73,18 @@ public class I18n {
     public static final String MAINTENANCE_INTERVAL_CONFLICT = "maintenanceIntervals.error.conflict";
     public static final String MAINTENANCE_INTERVAL_ALREADY_FINISHED = "maintenanceIntervals.error.already.finished";
 
-    /* Pod */
+    /* Pod keys */
 
-    public static final String POD_NOT_FOUND = "pod.not.found.exception";
-    public static final String POD_STATELESS_CONFLICT = "pod.conflict.exception";
-    public static final String POD_ALREADY_EXISTS = "pod.already.exists.exception";
-
-    /* Team */
-
-    public static final String USER_ALREADY_IN_TEAM = "user.already.in.team.exception";
-    public static final String USER_ALREADY_IN_COURSE = "user.already.in.course.exception";
-    public static final String TEAM_ALREADY_EXISTS = "team.already.exists.exception";
-    public static final String INCORRECT_TEAM_SIZE = "incorrect.team.size.exception";
-    public static final String TEAM_VALIDATION = "team.validation.exception";
-    public static final String INCORRECT_TEAM_TYPE = "incorrect.team.type.exception";
+    public static final String POD_NOT_FOUND = "pod.not.found";
+    public static final String POD_ALREADY_EXISTS = "pod.already.exists";
+    public static final String POD_INVALID_TYPE = "pod.invalid.type";
 
     /* AccessKey */
 
     public static final String DUPLICATE_KEY_VALUE = "duplicate.key.value.exception";
     public static final String ACCESS_KEY_NOT_FOUND = "access.key.not.found.exception";
     public static final String INCORRECT_KEY_TYPE = "incorrect.key.type.exception";
-
-    /* User */
-
-    public static final String USERS_NOT_FOUND = "users.not.found.exception";
+    ;
 
     /* Reservation keys */
 
@@ -127,4 +133,11 @@ public class I18n {
     public static final String OPTIMISTIC_LOCK_EXCEPTION = "general.error.optimistic.lock.exception";
     public static final String INTERNAL_SERVER_ERROR = "general.error.internal.server.error";
     public static final String PATH_NOT_FOUND = "general.error.path.not.found.error";
+
+    /* AccessKey keys */
+
+    public static final String ACCESS_KEY_ALREADY_EXISTS = "access.key.already.exists";
+    public static final String ACCESS_KEY_INVALID_FORMAT = "access.key.invalid.format";
+    public static final String ACCESS_KEY_INVALID_TYPE = "access.key.invalid.type";
+    public static final String ACCESS_KEY_DUPLICATE = "access.key.duplicate";
 }
