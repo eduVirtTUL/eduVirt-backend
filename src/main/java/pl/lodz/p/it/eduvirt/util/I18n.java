@@ -84,10 +84,7 @@ public class I18n {
     public static final String DUPLICATE_KEY_VALUE = "duplicate.key.value.exception";
     public static final String ACCESS_KEY_NOT_FOUND = "access.key.not.found.exception";
     public static final String INCORRECT_KEY_TYPE = "incorrect.key.type.exception";
-
-    /* User */
-
-    public static final String USERS_NOT_FOUND = "users.not.found.exception";
+    ;
 
     /* Reservation keys */
 
@@ -139,7 +136,6 @@ public class I18n {
 
     /* AccessKey keys */
 
-    public static final String ACCESS_KEY_NOT_FOUND = "access.key.not.found";
     public static final String ACCESS_KEY_ALREADY_EXISTS = "access.key.already.exists";
     public static final String ACCESS_KEY_INVALID_FORMAT = "access.key.invalid.format";
     public static final String ACCESS_KEY_INVALID_TYPE = "access.key.invalid.type";
