@@ -1,5 +1,8 @@
 package pl.lodz.p.it.eduvirt.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -223,6 +226,27 @@ public class CourseController {
         return ResponseEntity.ok(courseMapper.courseToCourseDto(course));
     }
 
+    @Operation(
+        method = "GET", summary = "Check availability of certain resource group in given course during specified time window",
+        description = """
+            This endpoint can be used to establish availability of certain resource group in given course during
+            specified time window. That endpoint is specifically used by the calendar component in the UI.""",
+        parameters = {
+            @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the course, which contains the resource group, which availability is to be established.", required = true),
+            @Parameter(name = "rgId", in = ParameterIn.PATH, description = "Identifier of the resource group, which availability is to be established by the web application.", required = true),
+            @Parameter(name = "start", in = ParameterIn.QUERY, description = "Start of the time window, which the availability will be established for.", required = true),
+            @Parameter(name = "end", in = ParameterIn.QUERY, description = "End of the time window, which the availability will be established for.", required = true),
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Availability of given resource group from given course was established for certain timestamp, each time window apart from each other."),
+            @ApiResponse(responseCode = "204", description = "Specified time window length is shorter than the required minimum of window length.",
+                content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "Course identified with given identifier or resource group could not be found, or currently authenticated user did not have privileges to access it.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        }
+    )
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/resource-groups/{rgId}/availability")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -259,6 +283,27 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(
+        method = "GET", summary = "Check availability of certain resource group pool in given course during specified time window",
+        description = """
+            This endpoint can be used to establish availability of certain resource group pool in given course during
+            specified time window. That endpoint is specifically used by the calendar component in the UI.""",
+        parameters = {
+            @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the course, which contains the resource group pool, which availability is to be established.", required = true),
+            @Parameter(name = "rgId", in = ParameterIn.PATH, description = "Identifier of the resource group pool, which availability is to be established by the web application.", required = true),
+            @Parameter(name = "start", in = ParameterIn.QUERY, description = "Start of the time window, which the availability will be established for.", required = true),
+            @Parameter(name = "end", in = ParameterIn.QUERY, description = "End of the time window, which the availability will be established for.", required = true),
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Availability of given resource group pool from given course was established for certain timestamp, each time window apart from each other."),
+            @ApiResponse(responseCode = "204", description = "Specified time window length is shorter than the required minimum of window length.",
+                content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "Course identified with given identifier or resource group pool could not be found, or currently authenticated user did not have privileges to access it.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        }
+    )
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/resource-group-pools/{rgPoolId}/availability")
     @Transactional(propagation = Propagation.REQUIRES_NEW)

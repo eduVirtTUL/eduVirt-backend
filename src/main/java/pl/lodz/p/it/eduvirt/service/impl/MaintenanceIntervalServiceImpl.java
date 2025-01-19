@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.Cluster;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,6 @@ import pl.lodz.p.it.eduvirt.util.MailProvider;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +33,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.REQUIRES_NEW)
 public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalService {
+
+    @Value("${maintenance-interval.min-ahead}")
+    private int maintenanceIntervalMinAhead;
 
     /* Repositories */
 
@@ -53,12 +56,9 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
             throw new MaintenanceIntervalInvalidTimeWindowException("Maintenance interval end must happen after its start");
 
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        if (beginAt.isBefore(currentTime))
+        if (beginAt.isBefore(currentTime.plusHours(maintenanceIntervalMinAhead)))
             throw new MaintenanceIntervalInvalidTimeWindowException(
                     I18n.MAINTENANCE_INTERVAL_BEGIN_AT_PAST);
-
-        if (ChronoUnit.HOURS.between(beginAt, endAt) > 24)
-            throw new MaintenanceIntervalTooLongException("Maintenance interval length cannot exceed 24 hours");
 
         UUID clusterId = UUID.fromString(cluster.id());
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
@@ -75,7 +75,18 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         List<Reservation> foundReservations = reservationRepository
                 .findClusterReservations(clusterId, beginAt, endAt);
 
-        foundReservations.forEach(reservation -> {
+        foundReservations.stream().filter(reservation -> reservation.getStartTime().isBefore(currentTime)).forEach(reservation -> {
+            List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
+            /* Send e-mail notification*/
+            userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationShortenedEmail(
+                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, user.getTimeZone(), user.getLanguage()
+            )));
+
+            /* Save edited reservation */
+            reservationRepository.saveAndFlush(reservation);
+        });
+
+        foundReservations.stream().filter(reservation -> !reservation.getStartTime().isBefore(currentTime)).forEach(reservation -> {
             List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
             /* Send e-mail notification*/
             userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
@@ -96,12 +107,9 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
             throw new MaintenanceIntervalInvalidTimeWindowException("Maintenance interval end must happen after its start");
 
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        if (beginAt.isBefore(currentTime))
+        if (beginAt.isBefore(currentTime.plusHours(maintenanceIntervalMinAhead)))
             throw new MaintenanceIntervalInvalidTimeWindowException(
                     I18n.MAINTENANCE_INTERVAL_BEGIN_AT_PAST);
-
-        if (ChronoUnit.HOURS.between(beginAt, endAt) > 24)
-            throw new MaintenanceIntervalTooLongException("Maintenance interval length cannot exceed 24 hours");
 
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
                 .findAllIntervalsInGivenTimePeriod(beginAt, endAt, MaintenanceInterval.IntervalType.SYSTEM, null);

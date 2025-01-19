@@ -1,5 +1,11 @@
 package pl.lodz.p.it.eduvirt.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.*;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +22,7 @@ import pl.lodz.p.it.eduvirt.dto.cluster.ClusterDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.cluster.ClusterGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.host.HostDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmGeneralDto;
+import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -47,6 +54,22 @@ public class ClusterController {
 
     /* Read methods */
 
+    @Operation(
+        method = "GET", summary = "Get detailed information about certain cluster",
+        description = "This endpoint can be used by the administrator to fetch detailed information about certain cluster, identified with the given identifier.",
+        parameters = {
+            @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the cluster, which detailed information is to be found in the oVirt system.", required = true),
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Cluster's detailed information, identified with given identifier was found and sent to the client successfully."),
+            @ApiResponse(responseCode = "404",
+                description = "Cluster, identified with given identifier could not be found in the oVirt system.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500",
+                description = "Some other, unknown error occurred while processing the request.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        }
+    )
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ClusterDetailsDto> findClusterById(@PathVariable("id") UUID clusterId) {
@@ -54,6 +77,22 @@ public class ClusterController {
         return ResponseEntity.ok(clusterMapper.ovirtClusterToDetailsDto(foundCluster));
     }
 
+    @Operation(
+        method = "GET", summary = "Get all available clusters in the oVirt engine instance",
+        description = "This endpoint can be used by the administrator to fetch all the clusters from the oVirt engine instance.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of clusters from given page of given size were found in the oVirt system and sent to the client successfully."),
+            @ApiResponse(responseCode = "204",
+                description = "No cluster was found in the oVirt system (which could be due to pagination), and as a result 204 NO CONTENT is returned.",
+                content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404",
+                description = "Some error occurred during calls to the oVirt system and the data could not be retrieved.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500",
+                description = "Some other, unknown error occurred while processing the request.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        }
+    )
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('administrator')")
     public ResponseEntity<List<ClusterGeneralDto>> findAllClusters(@PageableDefault Pageable pageable) {
@@ -68,6 +107,25 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @Operation(
+        method = "GET", summary = "Get all nodes of certain cluster in the oVirt engine instance",
+        description = "This endpoint can be used by the administrator to fetch all the nodes of certain cluster (hosts) from the oVirt engine instance.",
+        parameters = {
+            @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the cluster, which nodes are to be found in the oVirt system.", required = true),
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of hosts from given page of given size were found for given cluster in the oVirt system and sent to the client successfully."),
+            @ApiResponse(responseCode = "204",
+                description = "No host was found in the oVirt system (which could be due to pagination) for given cluster, and as a result 204 NO CONTENT is returned.",
+                content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404",
+                description = "Cluster with given identifier could not be found in the oVirt system or some error occurred during calls to the oVirt system and the data could not be retrieved.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500",
+                description = "Some other, unknown error occurred while processing the request.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        }
+    )
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/hosts", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<HostDto>> findHostInfoByClusterId(
@@ -81,6 +139,25 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @Operation(
+        method = "GET", summary = "Get detailed info on all virtual machines that are located in certain cluster in the oVirt engine instance",
+        description = "This endpoint can be used by the administrator to fetch all the virtual machines assigned to certain cluster in the oVirt system.",
+        parameters = {
+            @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the cluster, which virtual machines are to be found in the oVirt system.", required = true),
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of virtual machines from given page of given size were found for given cluster in the oVirt system and sent to the client successfully."),
+            @ApiResponse(responseCode = "204",
+                description = "No virtual machines was found in the oVirt system (which could be due to pagination) for given cluster, and as a result 204 NO CONTENT is returned.",
+                content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404",
+                description = "Cluster with given identifier could not be found in the oVirt system or some error occurred during calls to the oVirt system and the data could not be retrieved.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500",
+                description = "Some other, unknown error occurred while processing the request.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        }
+    )
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/vms", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<VmGeneralDto>> findVirtualMachinesByClusterId(
@@ -110,6 +187,25 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @Operation(
+        method = "GET", summary = "Get all networks, which certain cluster has the access to in the oVirt engine instance",
+        description = "This endpoint can be used by the administrator to fetch all the networks, which as located in certain clusters datacenter in the oVirt system.",
+        parameters = {
+            @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the cluster, which networks are to be found in the oVirt system.", required = true),
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of networks from given page of given size were found for given cluster in the oVirt system and sent to the client successfully."),
+            @ApiResponse(responseCode = "204",
+                description = "No networks was found in the oVirt system (which could be due to pagination) for given cluster, and as a result 204 NO CONTENT is returned.",
+                content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404",
+                description = "Cluster with given identifier could not be found in the oVirt system or some error occurred during calls to the oVirt system and the data could not be retrieved.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500",
+                description = "Some other, unknown error occurred while processing the request.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        }
+    )
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/networks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<NetworkDto>> findNetworksByClusterId(
@@ -125,6 +221,25 @@ public class ClusterController {
         return ResponseEntity.ok(listOfDTOs);
     }
 
+    @Operation(
+        method = "GET", summary = "Get all events that occurred in certain cluster in the oVirt engine instance",
+        description = "This endpoint can be used by the administrator to fetch all events that occurred in certain cluster in the oVirt system.",
+        parameters = {
+            @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the cluster, which events are to be found in the oVirt system.", required = true),
+        },
+        responses = {
+            @ApiResponse(responseCode = "200", description = "List of events from given page of given size were found for given cluster in the oVirt system and sent to the client successfully."),
+            @ApiResponse(responseCode = "204",
+                description = "No event was found in the oVirt system (which could be due to pagination) for given cluster, and as a result 204 NO CONTENT is returned.",
+                content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404",
+                description = "Cluster with given identifier could not be found in the oVirt system or some error occurred during calls to the oVirt system and the data could not be retrieved.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @ApiResponse(responseCode = "500",
+                description = "Some other, unknown error occurred while processing the request.",
+                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+        }
+    )
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{id}/events", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EventGeneralDto>> findEventsByClusterId(

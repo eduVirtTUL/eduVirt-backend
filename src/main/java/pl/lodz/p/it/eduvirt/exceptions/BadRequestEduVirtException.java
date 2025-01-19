@@ -7,4 +7,8 @@ public class BadRequestEduVirtException extends ApplicationBaseException {
     public BadRequestEduVirtException(String message) {
         super(message, "");
     }
+
+    public BadRequestEduVirtException(ApplicationBaseException wrappedException) {
+        super(wrappedException.getMessage(), wrappedException.getKey());
+    }
 }

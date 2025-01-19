@@ -896,6 +896,26 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
+    public void Given_NonExistentClusterIdentifierIsPassed_When_GetMaintenanceIntervalsWithinTimePeriod_Then_Returns404NotFound() throws Exception {
+        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(24).toLocalDateTime();
+        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(48).toLocalDateTime();
+
+        when(clusterService.findClusterById(Mockito.eq(nonExistentClusterId)))
+                .thenThrow(ClusterNotFoundException.class);
+
+        mockMvc.perform(get("/maintenance-intervals/time-period")
+                        .param("clusterId", nonExistentClusterId.toString())
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(clusterService, times(1))
+                .findClusterById(Mockito.eq(nonExistentClusterId));
+    }
+
+    @WithMockUser
+    @Test
     public void Given_NoMaintenanceIntervalsExistInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsEmptyMaintenanceIntervalList() throws Exception {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(24).toLocalDateTime();
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(48).toLocalDateTime();
@@ -992,7 +1012,7 @@ public class MaintenanceIntervalControllerTest {
         doNothing().when(maintenanceIntervalService)
                 .finishMaintenanceInterval(Mockito.eq(maintenanceInterval1.getId()));
 
-        mockMvc.perform(delete("/maintenance-intervals/{intervalId}", maintenanceInterval1.getId())
+        mockMvc.perform(post("/maintenance-intervals/{intervalId}", maintenanceInterval1.getId())
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
@@ -1008,7 +1028,7 @@ public class MaintenanceIntervalControllerTest {
         doThrow(MaintenanceIntervalNotFound.class).when(maintenanceIntervalService)
                 .finishMaintenanceInterval(Mockito.eq(randomUUID));
 
-        mockMvc.perform(delete("/maintenance-intervals/{intervalId}", randomUUID)
+        mockMvc.perform(post("/maintenance-intervals/{intervalId}", randomUUID)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());

@@ -53,7 +53,8 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     public List<VmDto> getVms(UUID id) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(id)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(id));
-        validateOwnershipOrAdmin(resourceGroup);
+        // TODO: Add access for student
+        // validateOwnershipOrAdmin(resourceGroup);
         return resourceGroup.getVms()
                 .parallelStream()
                 .map(machine -> {

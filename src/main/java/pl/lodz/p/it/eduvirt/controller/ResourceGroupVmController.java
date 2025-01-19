@@ -30,7 +30,7 @@ public class ResourceGroupVmController {
 
     @GetMapping
     @Transactional
-    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @PreAuthorize("hasAnyAuthority('student', 'teacher', 'administrator')")
     public ResponseEntity<List<VmDto>> getVms(@PathVariable UUID rgId) {
         return ResponseEntity.ok(resourceGroupService.getVms(rgId));
     }

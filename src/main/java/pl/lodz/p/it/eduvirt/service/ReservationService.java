@@ -39,13 +39,17 @@ public interface ReservationService {
             ResourceGroupPool resourceGroupPool, Course course,
             int windowLength, LocalDateTime start, LocalDateTime end);
 
+    int findReservationCountForStatelessPod(PodStateless statelessPod, Team team);
+    int findReservationCountForStatefulPod(PodStateful statefulPod, Team team);
+
     List<Reservation> findReservationsToBegin();
     List<Reservation> findReservationsToStop();
     List<Reservation> findReservationsToSendNotifications();
 
     /* Update / delete methods */
 
-    void finishReservation(Reservation reservation);
+    void finishReservationAsStudent(Reservation reservation);
+    void finishReservationAsTeacherOrAdmin(Reservation reservation);
 
     void startReservation(Reservation reservation);
     void endReservation(Reservation reservation);

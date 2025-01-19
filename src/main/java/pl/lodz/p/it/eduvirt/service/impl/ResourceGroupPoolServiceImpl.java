@@ -70,7 +70,8 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
     @Transactional
     public ResourceGroupPool getResourceGroupPool(UUID id) {
         ResourceGroupPool pool = resourceGroupPoolRepository.findById(id).orElseThrow(() -> new ResourceGroupPoolNotFoundException(id));
-        checkTeacherOrAdministratorInCourse(pool.getCourse().getId());
+        // TODO: Fix for student
+        // checkTeacherOrAdministratorInCourse(pool.getCourse().getId());
         return pool;
     }
 

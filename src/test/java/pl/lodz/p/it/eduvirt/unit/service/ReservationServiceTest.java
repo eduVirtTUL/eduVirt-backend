@@ -2484,7 +2484,7 @@ public class ReservationServiceTest {
         reservation1.setEndTime(currentTime.minusHours(4));
 
         assertThrows(ReservationAlreadyFinishedException.class,
-                () -> reservationService.finishReservation(reservation1));
+                () -> reservationService.finishReservationAsStudent(reservation1));
     }
 
     @Test
@@ -2496,7 +2496,7 @@ public class ReservationServiceTest {
         when(reservationRepository.saveAndFlush(Mockito.eq(reservation1)))
                 .thenReturn(reservation1);
 
-        reservationService.finishReservation(reservation1);
+        reservationService.finishReservationAsStudent(reservation1);
 
         assertNotEquals(currentTime.plusHours(4), reservation1.getEndTime());
 
@@ -2512,7 +2512,40 @@ public class ReservationServiceTest {
 
         doNothing().when(reservationRepository).delete(Mockito.eq(reservation1));
 
-        reservationService.finishReservation(reservation1);
+        reservationService.finishReservationAsStudent(reservation1);
+
+        verify(reservationRepository, times(1))
+                .delete(Mockito.eq(reservation1));
+    }
+
+    /* FinishReservation method tests */
+
+    @Test
+    public void Given_ReservationHasAlreadyBegunButNotYetFinished_When_FinishReservationAsTeacherOrAdmin_Then_FinishesReservationEarlier() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        reservation1.setStartTime(currentTime.minusHours(2));
+        reservation1.setEndTime(currentTime.plusHours(4));
+
+        when(reservationRepository.saveAndFlush(Mockito.eq(reservation1)))
+                .thenReturn(reservation1);
+
+        reservationService.finishReservationAsStudent(reservation1);
+
+        assertNotEquals(currentTime.plusHours(4), reservation1.getEndTime());
+
+        verify(reservationRepository, times(1)).
+                saveAndFlush(Mockito.eq(reservation1));
+    }
+
+    @Test
+    public void Given_ReservationHasNotYetBegun_When_FinishReservationAsTeacherOrAdmin_Then_RemovesReservation() {
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        reservation1.setStartTime(currentTime.plusHours(2));
+        reservation1.setEndTime(currentTime.plusHours(6));
+
+        doNothing().when(reservationRepository).delete(Mockito.eq(reservation1));
+
+        reservationService.finishReservationAsStudent(reservation1);
 
         verify(reservationRepository, times(1))
                 .delete(Mockito.eq(reservation1));

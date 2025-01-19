@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html th:lang="#{lang}" xmlns:th="http://www.w3.org/1999/xhtml">
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html" charset="UTF-8"/>
+    </head>
+
+    <body>
+        <h3 th:text="#{hello} + ' ' + ${firstName} + ' ' + ${lastName} + '!'"></h3>
+
+        <br/>
+
+        <p><strong th:text="#{reservationShortened.generalDescription} + '.'"></strong></p>
+
+        <p th:text="#{reservationShortened.teamName} + ': ' + ${teamName}"></p>
+        <p th:text="#{reservationShortened.resourceGroupName} + ': ' + ${resourceGroupName}"></p>
+        <p th:text="#{reservationShortened.startTime} + ': ' + ${startTime}"></p>
+        <p th:text="#{reservationShortened.endTime} + ': ' + ${endTime}"></p>
+
+        <br/><br/>
+
+        <p><strong th:text="#{note}"></strong>: <span th:text="#{emailNote}"></span></p>
+    </body>
+</html>
