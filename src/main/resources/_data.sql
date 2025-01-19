@@ -1,0 +1,584 @@
+-- ---------------------
+-- --> Example users <--
+-- ---------------------
+--
+-- INSERT INTO public.users (ovirt_id, user_id, email, first_name, last_name, user_name)
+-- VALUES ('1acd2865-6cc4-481c-8700-b2df5af24b23', '43c36b21-eed9-4ce4-811d-abc9e226e7fc', 'tklosges0@trellian.com', 'Tadd', 'Klosges', 'tsadmin1'),
+--        ('2e313f97-646d-404e-8c9c-844d458a047a', '69f850ce-21e1-462b-9c01-0d6437c16f6b', 'tsurcombe1@goo.gl', 'Tobie', 'Surcombe', 'tsadmin2'),
+--        ('e70791e8-e20c-400b-aba5-591a3362a1cf', '2e9eba6f-2262-4a25-8142-4837a336fab0', 'hdrowsfield2@theguardian.com', 'Harlin', 'Drowsfield', 'tadmin1'),
+--        ('676a7dc1-d032-4603-94d3-e37ed106aed1', '6c3e7b50-3e42-46b2-9bad-839423ebab5d', 'fvickerstaff3@aol.com', 'Farr', 'Vickerstaff', 'tadmin1'),
+--        ('c9ee6fd5-937d-4283-b49c-7d700e9b4289', '0a9da1c8-572e-4b68-b41b-9c80bae12ca2', 'gdixon4@foxnews.com', 'Gabriel', 'Dixon', 'tadmin3'),
+--        ('c56ebf6c-693d-42e9-8a95-84a91bd827c8', '4e742426-db70-4af4-84e8-e1bb867e0460', 'shullock5@hao123.com', 'Steffen', 'Hullock', 'tadmin4'),
+--        ('6c1058d8-80f5-4f7a-9106-48a535aea297', 'e94c5920-2925-4def-9ccc-b42504bd18ae', 'erait6@homestead.com', 'Euell', 'Rait', 'steacher1'),
+--        ('aedbc0cc-aaf1-47b3-a2b4-809e3136e242', '97226f2b-b7ae-43e7-844a-8d65e880a882', 'bfleury7@about.me', 'Brnaba', 'Fleury', 'steacher2'),
+--        ('09a859c1-bad7-433d-8364-5e14792920c3', '93b00dda-b5a4-4249-86b4-bcb2cb4d4bc0', 'zcockaday8@ovh.net', 'Zelda', 'Cockaday', 'steacher3'),
+--        ('b70a6925-39ca-4752-a28b-3e5cd7549513', '1623120d-18bb-48e7-9f4f-8c8c38486e79', 'jjervis9@rediff.com', 'Jessamine', 'Jervis', 'steacher4'),
+--        ('86d810a2-e8b0-493c-86d4-0f9bc118262b', 'f2f21406-88c4-4a2f-a978-056d8e049e28', 'vridgesa@nytimes.com', 'Vivi', 'Ridges', 'admin1'),
+--        ('ead50521-401b-4e0e-945e-c457c2e9340c', '4a6db1c0-c017-4558-8392-30761beda6f3', 'cmcpartlingb@mashable.com', 'Chastity', 'McPartling', 'admin2'),
+--        ('18732603-7b22-4f47-bb8e-a974e5fc9e83', 'f1e5274d-07b2-443a-80ed-595af1f1aa55', 'bhayersc@youtu.be', 'Bondon', 'Hayers', 'admin3'),
+--        ('58224f36-c634-4243-bc80-4480ea02b6ff', '1a31122a-ebca-43e0-bad6-eec675594c00', 'cdonneelyd@dropbox.com', 'Cyrillus', 'Donneely', 'admin4'),
+--        ('5a07dfd6-d1ef-4c66-bbb1-04d305114a46', '19bc2d1c-57df-454d-9d01-8af04bd02fb9', 'atilstone@state.gov', 'Astolfo', 'Tilston', 'teacher1'),
+--        ('f8ebd00d-77b5-4253-8d48-ab563e4bbe1f', '4f45c1ce-a0e8-4fbd-aca2-ccf598e6faa7', 'bcashamf@chicagotribune.com', 'Basilio', 'Casham', 'teacher2'),
+--        ('a05dda76-f035-4045-982a-f351b0c8ee3d', '6704f5c1-8114-4d85-82f0-086e285c7970', 'hcorballyg@disqus.com', 'Hendrick', 'Corbally', 'teacher3'),
+--        ('f746e8fc-b064-4eb0-a95c-c59b8cc7622f', '1d6324b2-67c6-41d0-a386-c4e47b288fe5', 'zcoarserh@arstechnica.com', NULL, NULL, 'teacher4'),
+--        ('8b9af221-bbe7-4d35-a77b-abd01d093e68', 'adecad44-d29a-4c80-81d3-e99e20c288ac', 'abriancei@marketwatch.com', 'Alix', 'Briance', 'student1'),
+--        ('717210f7-a54a-430d-89a3-8b54f574c90a', 'f3f1e587-348f-498f-827d-6f44ab3f37e1', 'ccrickmoorj@so-net.ne.jp', 'Clary', 'Crickmoor', 'student2'),
+--        ('e2d567eb-df1d-4160-98a9-0e5d11f1b622', 'e89a6623-556e-4248-8072-34c238c4c08b', 'fclarridgek@youtu.be', 'Fielding', 'Clarridge', 'student3'),
+--        ('5705ae95-406d-458e-9315-b942025c4675', '67c1faba-bbf3-498d-a705-69a3b6463ab2', 'ghansoml@cam.ac.uk', 'Garvy', 'Hansom', 'student4'),
+--        ('4e64bac0-9d9e-4499-b5c8-f9970986b64d', 'c89f131e-75ca-4609-8a6a-a94a1a1df585', 'etalmadgem@hao123.com', 'Erika', 'Talmadge', 'student5'),
+--        ('dd3c96bd-2e0d-451a-b44b-3ecd99a89989', '2be4579e-b2ac-4b60-94f1-d78bd26cccd8', 'bblasln@accuweather.com', 'Bevvy', 'Blasl', 'student6'),
+--        ('8a1fd369-e418-41fd-9cfd-e65aa3ce58ba', '6272de1a-abc2-419c-add0-935615d6f891', 'sanstero@epa.gov', 'Sandy', 'Anster', 'student7'),
+--        ('c6dda4a0-c4f6-4e2f-9d1a-b73f8e191853', 'd08ed959-e6b1-4abf-b4a2-ab6448de44fd', 'qsherrellp@wordpress.org', 'Quinn', 'Sherrell', 'student8'),
+--        ('beae3fb5-37aa-469a-b3cb-ed3e9abb201c', '8c36d482-f936-419b-8739-eb6d340c374a', 'jchatanq@ucoz.com', 'Jammie', 'Chatan', 'student9'),
+--        ('3c51e503-1c83-46a0-9c2a-8108fe3d430d', '3dd3cc21-c70d-4456-85e7-771b95ca34ec', 'wfostenr@ftc.gov', 'Wilhelm', 'Fosten', 'student10'),
+--        ('fcee6bde-c7b1-48f6-a97b-6300503729a8', 'eabff8f7-475e-4ef0-b451-fe92dbe9ce1f', 'vkneaths@vk.com', 'Valentine', 'Kneath', 'student11'),
+--        ('6b83e8da-f9ad-45e1-bd20-3db3a30df281', 'e5362aec-e9d3-4183-8c54-dee894688826', 'cgareisrt@marketwatch.com', 'Chloris', 'Gareisr', 'student12'),
+--        ('c955f74d-aa7f-44da-857e-61f9261aa5db', 'c9590189-ea9b-4661-9f37-cb5cf2f1a5a1', 'bdongallu@networkadvertising.org', 'Bea', 'Dongall', 'student13'),
+--        ('a7557d5b-085d-4267-917d-9472c9c1db60', 'ef8f4fd1-c2d5-469f-9ece-17cb33660f90', 'akahlerv@webmd.com', 'Annabela', 'Kahler', 'student14'),
+--        ('e9e31a97-174b-46ec-96a6-270d21a7b2bb', '810c31d7-d385-4593-86f6-0899fa585d23', 'bvanarsdallw@auda.org.au', 'Brigida', 'Van Arsdall', 'student15'),
+--        ('141fa840-583e-4f5d-b69d-82afaecf92c9', '9ba1ee70-b857-4611-ab2c-9db14f35d4cc', 'wmouldx@vkontakte.ru', 'Wilow', 'Mould', 'student16'),
+--        ('31e29b80-daa5-4039-bd5f-f2b69fadb418', 'acdad2b6-436f-46d5-8a83-8c319a2093c2', 'hpendery@hud.gov', 'Harley', 'Pender', 'student17'),
+--        ('27f2970f-48a3-413f-bcb5-7c512c38405f', 'cb58c0ab-ed48-4be5-a340-3e7878038e62', 'hlavenz@wordpress.org', 'Hendrik', 'Laven', 'student18'),
+--        ('b5b87ace-f7dd-403f-90bf-d00ffaec2faa', '0814feaa-1592-47e7-b744-0fee9a300a4d', 'cskerme10@fotki.com', 'Chico', 'Skerme', 'student19'),
+--        ('ff655393-fb21-4201-a30c-e27a344a31b6', '0445c45d-cb31-4110-ab06-905864ca34c4', 'mmcteer11@opensource.org', 'Martie', 'McTeer', 'student20'),
+--        ('3a0d861d-9ca1-42a8-878d-f8aa9173d652', '6804cd54-660f-4bf9-9e6f-82a0586f78c1', 'rhollow12@surveymonkey.com', 'Ryon', 'Hollow', 'student21'),
+--        ('9677a965-e5d5-46bd-b771-060637e169b3', 'ef3946e6-fa81-48f6-9f7f-e44052f6ea09', 'mwindrus13@webs.com', 'Marlin', 'Windrus', 'student22'),
+--        ('f85f9431-17f8-4c1c-bf9d-efcea1b34497', '5e002216-f4e2-4466-8fd3-42efb6b6bd03', 'dbickerdicke14@bandcamp.com', 'Deonne', 'Bickerdicke', 'student23'),
+--        ('d1160ef6-5df7-4f8c-ab4b-fed32ed3bfef', '1e44ade8-f958-4166-b617-04069a2e2db8', 'ewethered15@ebay.com', 'Edna', 'Wethered', 'student24'),
+--        ('f7cb8c8b-f699-4dd0-b03c-3ecb10ed2c0c', '08638346-3f07-4b21-a858-be3b5d856a53', 'jeyam16@sourceforge.net', 'Jeanna', 'Eyam', 'student25'),
+--        ('a7e30b06-8252-4cea-a6e5-4285fe20c0ed', '27632e9c-55aa-4567-8249-6e1c58702261', 'nrohloff17@hostgator.com', 'Neala', 'Rohloff', 'student26'),
+--        ('7f15bd36-5259-4140-a86f-aa0d298f914b', 'a189a564-6448-457e-8beb-9d8bb540948b', 'esurmanwells18@narod.ru', 'Egor', 'Surman-Wells', 'student27'),
+--        ('3fcd9a26-0c04-4ce8-830b-14868683c171', 'e6b9f4d9-7355-447f-845d-c5662adcc3b8', 'gcallister19@psu.edu', 'Gabbie', 'Callister', 'student28'),
+--        ('a5867232-2009-48a7-b401-9d9d0f27cf60', '4fcfd620-a1d0-4a0d-982f-b766a01486e6', 'epourveer1a@rambler.ru', 'Emilee', 'Pourveer', 'student29'),
+--        ('5e2646d4-e15c-4737-99f3-d3f56c5ce326', 'bb299337-4048-425c-be0f-5c15a8ecc660', 'rstruan1b@geocities.jp', 'Raine', 'Struan', 'student30'),
+--        ('c7aceb18-6a97-4126-ba65-7826c39d4f7f', '53735d24-302b-438b-9071-f187f018e1c5', 'kbattabee1c@sogou.com', 'Krystle', 'Battabee', 'student31'),
+--        ('131dc587-b9ef-47a8-8b13-c50f47e0db97', '7f837d79-40f1-473c-996f-3d4ca4bac786', 'dbotte1d@unblog.fr', 'Donnamarie', 'Botte', 'student32');
+--
+-- -----------------------
+-- --> Roles for users <--
+-- -----------------------
+--
+-- INSERT INTO public.user_roles
+-- VALUES ('69f850ce-21e1-462b-9c01-0d6437c16f6b', 'administrator'),
+--        ('69f850ce-21e1-462b-9c01-0d6437c16f6b', 'student'),
+--        ('69f850ce-21e1-462b-9c01-0d6437c16f6b', 'teacher'),
+--        ('43c36b21-eed9-4ce4-811d-abc9e226e7fc', 'administrator'),
+--        ('43c36b21-eed9-4ce4-811d-abc9e226e7fc', 'student'),
+--        ('43c36b21-eed9-4ce4-811d-abc9e226e7fc', 'teacher'),
+--        ('2e9eba6f-2262-4a25-8142-4837a336fab0', 'administrator'),
+--        ('2e9eba6f-2262-4a25-8142-4837a336fab0', 'teacher'),
+--        ('6c3e7b50-3e42-46b2-9bad-839423ebab5d', 'administrator'),
+--        ('6c3e7b50-3e42-46b2-9bad-839423ebab5d', 'teacher'),
+--        ('0a9da1c8-572e-4b68-b41b-9c80bae12ca2', 'administrator'),
+--        ('0a9da1c8-572e-4b68-b41b-9c80bae12ca2', 'teacher'),
+--        ('4e742426-db70-4af4-84e8-e1bb867e0460', 'administrator'),
+--        ('4e742426-db70-4af4-84e8-e1bb867e0460', 'teacher'),
+--        ('e94c5920-2925-4def-9ccc-b42504bd18ae', 'student'),
+--        ('e94c5920-2925-4def-9ccc-b42504bd18ae', 'teacher'),
+--        ('97226f2b-b7ae-43e7-844a-8d65e880a882', 'student'),
+--        ('97226f2b-b7ae-43e7-844a-8d65e880a882', 'teacher'),
+--        ('93b00dda-b5a4-4249-86b4-bcb2cb4d4bc0', 'student'),
+--        ('93b00dda-b5a4-4249-86b4-bcb2cb4d4bc0', 'teacher'),
+--        ('1623120d-18bb-48e7-9f4f-8c8c38486e79', 'student'),
+--        ('1623120d-18bb-48e7-9f4f-8c8c38486e79', 'teacher'),
+--        ('f2f21406-88c4-4a2f-a978-056d8e049e28', 'administrator'),
+--        ('4a6db1c0-c017-4558-8392-30761beda6f3', 'administrator'),
+--        ('f1e5274d-07b2-443a-80ed-595af1f1aa55', 'administrator'),
+--        ('1a31122a-ebca-43e0-bad6-eec675594c00', 'administrator'),
+--        ('19bc2d1c-57df-454d-9d01-8af04bd02fb9', 'teacher'),
+--        ('4f45c1ce-a0e8-4fbd-aca2-ccf598e6faa7', 'teacher'),
+--        ('6704f5c1-8114-4d85-82f0-086e285c7970', 'teacher'),
+--        ('adecad44-d29a-4c80-81d3-e99e20c288ac', 'student'),
+--        ('f3f1e587-348f-498f-827d-6f44ab3f37e1', 'student'),
+--        ('e89a6623-556e-4248-8072-34c238c4c08b', 'student'),
+--        ('67c1faba-bbf3-498d-a705-69a3b6463ab2', 'student'),
+--        ('2be4579e-b2ac-4b60-94f1-d78bd26cccd8', 'student'),
+--        ('6272de1a-abc2-419c-add0-935615d6f891', 'student'),
+--        ('d08ed959-e6b1-4abf-b4a2-ab6448de44fd', 'student'),
+--        ('8c36d482-f936-419b-8739-eb6d340c374a', 'student'),
+--        ('3dd3cc21-c70d-4456-85e7-771b95ca34ec', 'student'),
+--        ('eabff8f7-475e-4ef0-b451-fe92dbe9ce1f', 'student'),
+--        ('e5362aec-e9d3-4183-8c54-dee894688826', 'student'),
+--        ('c9590189-ea9b-4661-9f37-cb5cf2f1a5a1', 'student'),
+--        ('ef8f4fd1-c2d5-469f-9ece-17cb33660f90', 'student'),
+--        ('810c31d7-d385-4593-86f6-0899fa585d23', 'student'),
+--        ('9ba1ee70-b857-4611-ab2c-9db14f35d4cc', 'student'),
+--        ('acdad2b6-436f-46d5-8a83-8c319a2093c2', 'student'),
+--        ('cb58c0ab-ed48-4be5-a340-3e7878038e62', 'student'),
+--        ('0814feaa-1592-47e7-b744-0fee9a300a4d', 'student'),
+--        ('0445c45d-cb31-4110-ab06-905864ca34c4', 'student'),
+--        ('6804cd54-660f-4bf9-9e6f-82a0586f78c1', 'student'),
+--        ('ef3946e6-fa81-48f6-9f7f-e44052f6ea09', 'student'),
+--        ('5e002216-f4e2-4466-8fd3-42efb6b6bd03', 'student'),
+--        ('1e44ade8-f958-4166-b617-04069a2e2db8', 'student'),
+--        ('08638346-3f07-4b21-a858-be3b5d856a53', 'student'),
+--        ('27632e9c-55aa-4567-8249-6e1c58702261', 'student'),
+--        ('a189a564-6448-457e-8beb-9d8bb540948b', 'student'),
+--        ('e6b9f4d9-7355-447f-845d-c5662adcc3b8', 'student'),
+--        ('4fcfd620-a1d0-4a0d-982f-b766a01486e6', 'student'),
+--        ('bb299337-4048-425c-be0f-5c15a8ecc660', 'student'),
+--        ('53735d24-302b-438b-9071-f187f018e1c5', 'student'),
+--        ('7f837d79-40f1-473c-996f-3d4ca4bac786', 'student');
+--
+-- --------------------------------
+-- --> Example metrics & values <--
+-- --------------------------------
+--
+-- INSERT INTO public.metric (id, name, category)
+-- VALUES ('2865efff-f8e5-4960-a0ce-fc05e98828ba', 'cpu_count', 'COUNTABLE'),
+--        ('63490da4-d0f1-4e7a-88fc-3342633accc0', 'memory_size', 'MEMORY'),
+--        ('1929c2b2-ba03-4180-ae90-79bd2335f2a8', 'network_count', 'COUNTABLE');
+--
+-- INSERT INTO public.metric_cluster (id, cluster_id, metric_id, metric_value)
+--
+-- VALUES (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '2865efff-f8e5-4960-a0ce-fc05e98828ba', 100),
+--        (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '63490da4-d0f1-4e7a-88fc-3342633accc0', 10737418240),
+--        (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '1929c2b2-ba03-4180-ae90-79bd2335f2a8', 10);
+--
+-- ------------------------------------------
+-- --- Sample data for maintenance module ---
+-- ------------------------------------------
+--
+-- INSERT INTO public.administrative_break (id, version, cause, description, type, cluster_id, begin_at, end_at)
+-- VALUES ('2e8989cb-6811-46ce-be27-9ec7b6ea788c', 0, 'Some random cause #1', 'Some description of the break', 'SYSTEM',null, timestamp 'yesterday' - interval '1 hour', timestamp 'yesterday' + interval '7 hours'),
+--        ('eb4c5e2e-215c-442f-82e8-bb38900d0b47', 0, 'Some random cause #2', 'Some description of the break', 'CLUSTER','c282a57c-624e-448b-823e-a68352d10914', timestamp 'today' + interval '18 hour',timestamp 'today' + interval '19 hours'),
+--        ('0136324d-fa42-4d4a-a046-33469ecb9d0b', 0, 'Some random cause #3', 'Some description of the break', 'CLUSTER','c282a57c-624e-448b-823e-a68352d10914', timestamp 'tomorrow' - interval '1 hour',timestamp 'tomorrow' + interval '7 hours');
+--
+-- ------------------------------------------
+-- --- Sample data for reservation module ---
+-- ------------------------------------------
+--
+-- INSERT INTO public.course (id, version, name, description, cluster_id, course_type, external_link)
+-- VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 0, 'Systemy operacyjne', 'Operating Systems','c282a57c-624e-448b-823e-a68352d10914', 'SOLO', 'https://programy.p.lodz.pl/ectslabel-web/przedmiot_4.jsp?l=pl&idPrzedmiotu=178923&pkId=1654&s=2&j=0&w=informatyka%20stosowana&v=4'),
+--        ('a7556146-23a6-4936-903c-c337c794a8c7', 0, 'Infrastruktury środowisk rozwojowych i produkcyjnych','Infrastructures of Development and Production Environments', 'c282a57c-624e-448b-823e-a68352d10914','TEAM_BASED', 'https://programy.p.lodz.pl/ectslabel-web/przedmiot_4.jsp?l=pl&idPrzedmiotu=179056&pkId=1654&s=5&j=0&w=informatyka%20stosowana&v=4'),
+--        ('e485ded6-c166-45f6-a924-13ce44666f7a', 0, 'Sieciowe systemy baz danych', 'Network Database Systems','c282a57c-624e-448b-823e-a68352d10914', 'TEAM_BASED', 'https://programy.p.lodz.pl/ectslabel-web/przedmiot_4.jsp?l=pl&idPrzedmiotu=179032&pkId=1654&s=6&j=0&w=informatyka%20stosowana&v=4'),
+--        ('1decd050-1328-4eca-b2de-84793a8474c2', 0, 'Techniki utrzymania aplikacji','Techniques of Application Maintenance', 'c282a57c-624e-448b-823e-a68352d10914', 'TEAM_BASED', 'https://programy.p.lodz.pl/ectslabel-web/przedmiot_4.jsp?l=pl&idPrzedmiotu=179059&pkId=1654&s=7&j=0&w=informatyka%20stosowana&v=4');
+--
+-- INSERT INTO access_key (id, key_value)
+-- VALUES ('b96844a7-7cb6-48f1-b4e6-129198825f2c', 'SO-AccessKey'),
+--        ('fc2da32b-2146-4db6-adfa-d754575fdf22', 'ISRP-AccessKey'),
+--        ('c1c58086-f1dc-45ce-a01c-62b9be04b6ef', 'SSBD-AccessKey'),
+--        ('87b11363-bb7e-4d54-8f57-ed5a52146210', 'TUA-AccessKey');
+--
+-- INSERT INTO public.course_access_key (course_id, id)
+-- VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'b96844a7-7cb6-48f1-b4e6-129198825f2c'),
+--        ('a7556146-23a6-4936-903c-c337c794a8c7', 'fc2da32b-2146-4db6-adfa-d754575fdf22'),
+--        ('e485ded6-c166-45f6-a924-13ce44666f7a', 'c1c58086-f1dc-45ce-a01c-62b9be04b6ef'),
+--        ('1decd050-1328-4eca-b2de-84793a8474c2', '87b11363-bb7e-4d54-8f57-ed5a52146210');
+--
+-- --------------------------
+-- --- Systemy operacyjne ---
+-- --------------------------
+--
+-- INSERT INTO public.course_teachers (course_id, teachers_user_id)
+-- VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '19bc2d1c-57df-454d-9d01-8af04bd02fb9'),
+--        ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '4f45c1ce-a0e8-4fbd-aca2-ccf598e6faa7'),
+--        ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '6704f5c1-8114-4d85-82f0-086e285c7970'),
+--        ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '1d6324b2-67c6-41d0-a386-c4e47b288fe5'),
+--        ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '43c36b21-eed9-4ce4-811d-abc9e226e7fc'),
+--        ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '69f850ce-21e1-462b-9c01-0d6437c16f6b');
+--
+-- --- Teams ---
+--
+-- INSERT INTO public.team (id, version, name, active, max_size, course_id)
+-- VALUES ('72fc908f-5d02-4c81-91a3-2bccaa627946', 0, 'SO-Student001', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('cb97b2f0-646f-4876-906f-0fd44cf6d63a', 0, 'SO-Student002', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('12ca7f40-c596-44ae-a8d2-671843ecc9e5', 0, 'SO-Student003', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('83698296-0b9f-40ae-a8e7-2caec8068e1e', 0, 'SO-Student004', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('b4232713-05fa-411a-a40d-9a3e15f13fa0', 0, 'SO-Student005', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('d82a711e-a308-4127-95f9-2c38851c3e71', 0, 'SO-Student006', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('89f530ca-f5a0-40cd-b00a-1997c96dd9d3', 0, 'SO-Student007', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('bbf54d7d-3ccb-4cea-9726-baef3c58e2dd', 0, 'SO-Student008', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('c5aaa2ae-4ba7-4b87-86b5-52643d92de47', 0, 'SO-Student009', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('33e44d4e-c937-4d13-a060-f41a4c3c05fb', 0, 'SO-Student010', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('689e85c3-249a-4946-b841-c6d03cde11e1', 0, 'SO-Student011', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('3351cf7b-ec52-48f5-a55d-ed93fe459391', 0, 'SO-Student012', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('e246f8f5-6b3f-4bd3-8d6f-5af27da20604', 0, 'SO-Student013', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('eb5abbd0-8e44-4fcb-b8dd-2626dc68b41b', 0, 'SO-Student014', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('37094fa9-a4eb-4569-886e-21653f73b7c3', 0, 'SO-Student015', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('519e1c5a-c234-48db-872c-e3e80f8f93e3', 0, 'SO-Student016', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('471ae643-21e7-4c75-9566-cb3e7902653c', 0, 'SO-Student017', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('d8dab219-cc39-469d-907f-1f89dafa0b38', 0, 'SO-Student018', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('73998221-fe61-4556-9789-c3ad0284a42e', 0, 'SO-Student019', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('89b7f55f-d4f5-405d-b431-126e9bf18228', 0, 'SO-Student020', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('1752cfec-0ac2-4a82-b642-7793e74f7830', 0, 'SO-Student021', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('df8d50ab-dfc2-4ec2-9449-d6cbc8245cfb', 0, 'SO-Student022', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('edf8b22d-3d16-49d7-8b17-a0aaf9c1d0d2', 0, 'SO-Student023', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('ce8ac5fe-052d-4c71-b7d8-2ed4125c80b9', 0, 'SO-Student024', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('83e5b49c-a18b-471c-9be5-159afbeac04e', 0, 'SO-Student025', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('74c14fd0-dad4-41f9-82e5-d7eee80ff4cd', 0, 'SO-Student026', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('73e6f6b9-835f-448f-b520-9fd8f11f916b', 0, 'SO-Student027', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('082d5e42-8f09-4532-a455-f55852c39f5d', 0, 'SO-Student028', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('7ebb8957-6c76-4baf-bfcb-34b0ae7e55e2', 0, 'SO-Student029', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('8d30cb57-acb0-435a-b5c5-61746c9d0f29', 0, 'SO-Student030', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('e6b208cf-e048-4f2b-a574-4d2395a72b61', 0, 'SO-Student031', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('554bc486-dc2d-48e3-98c4-aa9fb730ac68', 0, 'SO-Student032', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--
+--        ('2a659111-fbc7-4c7c-bfaa-c688e3042c16', 0, 'SO-Student033', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('0c0237c9-2120-4389-9051-28a0b9cc18fb', 0, 'SO-Student034', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('d0c5c7ab-4c96-45a8-a397-62af51ce86c5', 0, 'SO-Student035', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('e57de942-12cb-4b3d-849c-1ed7d6f34fa8', 0, 'SO-Student036', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('a20fa2a9-bf37-4b4f-8da7-304190988b47', 0, 'SO-Student037', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
+--        ('7d8407f9-cc68-484c-b262-952b9b9db27e', 0, 'SO-Student038', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9');
+--
+-- INSERT INTO public.team_users (team_id, user_id)
+-- VALUES ('72fc908f-5d02-4c81-91a3-2bccaa627946', 'adecad44-d29a-4c80-81d3-e99e20c288ac'),
+--        ('cb97b2f0-646f-4876-906f-0fd44cf6d63a', 'f3f1e587-348f-498f-827d-6f44ab3f37e1'),
+--        ('12ca7f40-c596-44ae-a8d2-671843ecc9e5', 'e89a6623-556e-4248-8072-34c238c4c08b'),
+--        ('83698296-0b9f-40ae-a8e7-2caec8068e1e', '67c1faba-bbf3-498d-a705-69a3b6463ab2'),
+--        ('b4232713-05fa-411a-a40d-9a3e15f13fa0', 'c89f131e-75ca-4609-8a6a-a94a1a1df585'),
+--        ('d82a711e-a308-4127-95f9-2c38851c3e71', '2be4579e-b2ac-4b60-94f1-d78bd26cccd8'),
+--        ('89f530ca-f5a0-40cd-b00a-1997c96dd9d3', '6272de1a-abc2-419c-add0-935615d6f891'),
+--        ('bbf54d7d-3ccb-4cea-9726-baef3c58e2dd', 'd08ed959-e6b1-4abf-b4a2-ab6448de44fd'),
+--        ('c5aaa2ae-4ba7-4b87-86b5-52643d92de47', '8c36d482-f936-419b-8739-eb6d340c374a'),
+--        ('33e44d4e-c937-4d13-a060-f41a4c3c05fb', '3dd3cc21-c70d-4456-85e7-771b95ca34ec'),
+--        ('689e85c3-249a-4946-b841-c6d03cde11e1', 'eabff8f7-475e-4ef0-b451-fe92dbe9ce1f'),
+--        ('3351cf7b-ec52-48f5-a55d-ed93fe459391', 'e5362aec-e9d3-4183-8c54-dee894688826'),
+--        ('e246f8f5-6b3f-4bd3-8d6f-5af27da20604', 'c9590189-ea9b-4661-9f37-cb5cf2f1a5a1'),
+--        ('eb5abbd0-8e44-4fcb-b8dd-2626dc68b41b', 'ef8f4fd1-c2d5-469f-9ece-17cb33660f90'),
+--        ('37094fa9-a4eb-4569-886e-21653f73b7c3', '810c31d7-d385-4593-86f6-0899fa585d23'),
+--        ('519e1c5a-c234-48db-872c-e3e80f8f93e3', '9ba1ee70-b857-4611-ab2c-9db14f35d4cc'),
+--        ('471ae643-21e7-4c75-9566-cb3e7902653c', 'acdad2b6-436f-46d5-8a83-8c319a2093c2'),
+--        ('d8dab219-cc39-469d-907f-1f89dafa0b38', 'cb58c0ab-ed48-4be5-a340-3e7878038e62'),
+--        ('73998221-fe61-4556-9789-c3ad0284a42e', '0814feaa-1592-47e7-b744-0fee9a300a4d'),
+--        ('89b7f55f-d4f5-405d-b431-126e9bf18228', '0445c45d-cb31-4110-ab06-905864ca34c4'),
+--        ('1752cfec-0ac2-4a82-b642-7793e74f7830', '6804cd54-660f-4bf9-9e6f-82a0586f78c1'),
+--        ('df8d50ab-dfc2-4ec2-9449-d6cbc8245cfb', 'ef3946e6-fa81-48f6-9f7f-e44052f6ea09'),
+--        ('edf8b22d-3d16-49d7-8b17-a0aaf9c1d0d2', '5e002216-f4e2-4466-8fd3-42efb6b6bd03'),
+--        ('ce8ac5fe-052d-4c71-b7d8-2ed4125c80b9', '1e44ade8-f958-4166-b617-04069a2e2db8'),
+--        ('83e5b49c-a18b-471c-9be5-159afbeac04e', '08638346-3f07-4b21-a858-be3b5d856a53'),
+--        ('74c14fd0-dad4-41f9-82e5-d7eee80ff4cd', '27632e9c-55aa-4567-8249-6e1c58702261'),
+--        ('73e6f6b9-835f-448f-b520-9fd8f11f916b', 'a189a564-6448-457e-8beb-9d8bb540948b'),
+--        ('082d5e42-8f09-4532-a455-f55852c39f5d', 'e6b9f4d9-7355-447f-845d-c5662adcc3b8'),
+--        ('7ebb8957-6c76-4baf-bfcb-34b0ae7e55e2', '4fcfd620-a1d0-4a0d-982f-b766a01486e6'),
+--        ('8d30cb57-acb0-435a-b5c5-61746c9d0f29', 'bb299337-4048-425c-be0f-5c15a8ecc660'),
+--        ('e6b208cf-e048-4f2b-a574-4d2395a72b61', '53735d24-302b-438b-9071-f187f018e1c5'),
+--        ('554bc486-dc2d-48e3-98c4-aa9fb730ac68', '7f837d79-40f1-473c-996f-3d4ca4bac786'),
+--
+--        ('2a659111-fbc7-4c7c-bfaa-c688e3042c16', '1d6324b2-67c6-41d0-a386-c4e47b288fe5'),
+--        ('0c0237c9-2120-4389-9051-28a0b9cc18fb', '97226f2b-b7ae-43e7-844a-8d65e880a882'),
+--        ('d0c5c7ab-4c96-45a8-a397-62af51ce86c5', '93b00dda-b5a4-4249-86b4-bcb2cb4d4bc0'),
+--        ('e57de942-12cb-4b3d-849c-1ed7d6f34fa8', '1623120d-18bb-48e7-9f4f-8c8c38486e79'),
+--        ('a20fa2a9-bf37-4b4f-8da7-304190988b47', '43c36b21-eed9-4ce4-811d-abc9e226e7fc'),
+--        ('7d8407f9-cc68-484c-b262-952b9b9db27e', '69f850ce-21e1-462b-9c01-0d6437c16f6b');
+--
+-- --- Resource groups ---
+--
+-- INSERT INTO public.resource_group (id, version, name, description, stateless, max_rent_time)
+-- VALUES ('e028a269-9890-4b02-81d9-b477ea7f552a', 0, 'SO-RG01', '', true, 3),
+--        ('023192a9-9a7e-4861-95e7-a77ac29ca039', 0, 'SO-RG02', '', true, 3),
+--        ('e205cf0a-6966-4cc0-8237-d2424de35e22', 0, 'SO-RG03', '', true, 3),
+--        ('2ef59c08-2ec5-40cc-8730-53723d3abda4', 0, 'SO-RG04', '', true, 3),
+--        ('071be818-ab6e-4a46-8c26-b62b6a88054f', 0, 'SO-RG05', '', true, 3),
+--        ('16e5367f-65fc-46e0-83d6-2966bef7f399', 0, 'SO-RG06', '', true, 3);
+--
+-- --- Resource group pools ---
+--
+-- INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id, description, max_rent_time)
+-- VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 0, 'SysOp-Pool', 6, 6, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '', 3);
+--
+-- INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, resource_groups_id)
+-- VALUES ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 'e028a269-9890-4b02-81d9-b477ea7f552a'),
+--        ('4778c01d-4962-4cbd-a653-c90aea9dbddf', '023192a9-9a7e-4861-95e7-a77ac29ca039'),
+--        ('4778c01d-4962-4cbd-a653-c90aea9dbddf', 'e205cf0a-6966-4cc0-8237-d2424de35e22'),
+--        ('4778c01d-4962-4cbd-a653-c90aea9dbddf', '2ef59c08-2ec5-40cc-8730-53723d3abda4'),
+--        ('4778c01d-4962-4cbd-a653-c90aea9dbddf', '071be818-ab6e-4a46-8c26-b62b6a88054f'),
+--        ('4778c01d-4962-4cbd-a653-c90aea9dbddf', '16e5367f-65fc-46e0-83d6-2966bef7f399');
+--
+-- INSERT INTO public.pod_stateless (id, rgp_id, course_id, team_id)
+-- VALUES (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '72fc908f-5d02-4c81-91a3-2bccaa627946'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'cb97b2f0-646f-4876-906f-0fd44cf6d63a'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '12ca7f40-c596-44ae-a8d2-671843ecc9e5'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '83698296-0b9f-40ae-a8e7-2caec8068e1e'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'b4232713-05fa-411a-a40d-9a3e15f13fa0'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'd82a711e-a308-4127-95f9-2c38851c3e71'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '89f530ca-f5a0-40cd-b00a-1997c96dd9d3'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'bbf54d7d-3ccb-4cea-9726-baef3c58e2dd'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'c5aaa2ae-4ba7-4b87-86b5-52643d92de47'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '33e44d4e-c937-4d13-a060-f41a4c3c05fb'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '689e85c3-249a-4946-b841-c6d03cde11e1'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '3351cf7b-ec52-48f5-a55d-ed93fe459391'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'e246f8f5-6b3f-4bd3-8d6f-5af27da20604'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'eb5abbd0-8e44-4fcb-b8dd-2626dc68b41b'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '37094fa9-a4eb-4569-886e-21653f73b7c3'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '519e1c5a-c234-48db-872c-e3e80f8f93e3'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '471ae643-21e7-4c75-9566-cb3e7902653c'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'd8dab219-cc39-469d-907f-1f89dafa0b38'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '73998221-fe61-4556-9789-c3ad0284a42e'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '89b7f55f-d4f5-405d-b431-126e9bf18228'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '1752cfec-0ac2-4a82-b642-7793e74f7830'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'df8d50ab-dfc2-4ec2-9449-d6cbc8245cfb'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'edf8b22d-3d16-49d7-8b17-a0aaf9c1d0d2'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'ce8ac5fe-052d-4c71-b7d8-2ed4125c80b9'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '83e5b49c-a18b-471c-9be5-159afbeac04e'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '74c14fd0-dad4-41f9-82e5-d7eee80ff4cd'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '73e6f6b9-835f-448f-b520-9fd8f11f916b'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '082d5e42-8f09-4532-a455-f55852c39f5d'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '7ebb8957-6c76-4baf-bfcb-34b0ae7e55e2'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '8d30cb57-acb0-435a-b5c5-61746c9d0f29'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'e6b208cf-e048-4f2b-a574-4d2395a72b61'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '554bc486-dc2d-48e3-98c4-aa9fb730ac68'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '2a659111-fbc7-4c7c-bfaa-c688e3042c16'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '0c0237c9-2120-4389-9051-28a0b9cc18fb'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'd0c5c7ab-4c96-45a8-a397-62af51ce86c5'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'e57de942-12cb-4b3d-849c-1ed7d6f34fa8'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'a20fa2a9-bf37-4b4f-8da7-304190988b47'),
+--        (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '7d8407f9-cc68-484c-b262-952b9b9db27e');
+--
+-- ------------------------------------------------------------
+-- --- Infrastruktury środowisk rozwojowych i produkcyjnych ---
+-- ------------------------------------------------------------
+--
+-- INSERT INTO public.course_teachers (course_id, teachers_user_id)
+-- VALUES ('a7556146-23a6-4936-903c-c337c794a8c7', '19bc2d1c-57df-454d-9d01-8af04bd02fb9'),
+--        ('a7556146-23a6-4936-903c-c337c794a8c7', '4f45c1ce-a0e8-4fbd-aca2-ccf598e6faa7'),
+--        ('a7556146-23a6-4936-903c-c337c794a8c7', 'e94c5920-2925-4def-9ccc-b42504bd18ae'),
+--        ('a7556146-23a6-4936-903c-c337c794a8c7', '97226f2b-b7ae-43e7-844a-8d65e880a882'),
+--        ('a7556146-23a6-4936-903c-c337c794a8c7', '43c36b21-eed9-4ce4-811d-abc9e226e7fc'),
+--        ('a7556146-23a6-4936-903c-c337c794a8c7', '69f850ce-21e1-462b-9c01-0d6437c16f6b');
+--
+-- --- Teams ---
+--
+-- INSERT INTO public.team (id, version, name, active, max_size, course_id)
+-- VALUES ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 0, 'ISRP-01', true, 5, 'a7556146-23a6-4936-903c-c337c794a8c7'),
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', 0, 'ISRP-02', true, 5, 'a7556146-23a6-4936-903c-c337c794a8c7'),
+--        ('64da3d79-52be-4936-97e3-b88597bac8b9', 0, 'ISRP-03', true, 5, 'a7556146-23a6-4936-903c-c337c794a8c7'),
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', 0, 'ISRP-04', true, 5, 'a7556146-23a6-4936-903c-c337c794a8c7');
+--
+-- INSERT INTO public.access_key (id, key_value)
+-- VALUES ('44c2419e-20bc-4dd5-a2e9-e7a44b1e8552', 'ISRP-Team01-Key'),
+--        ('a827ddcd-bda9-40c2-a4cd-6c26bd5d717b', 'ISRP-Team02-Key'),
+--        ('883f2352-416b-479a-8323-cb62a663fe41', 'ISRP-Team03-Key'),
+--        ('492c81df-b3c5-44d5-84e6-5d3eb77b4728', 'ISRP-Team04-Key');
+--
+-- INSERT INTO public.team_access_key (id, team_id)
+-- VALUES ('44c2419e-20bc-4dd5-a2e9-e7a44b1e8552', 'f15e7fe3-60a6-4d2c-a124-ad763f6869e2'),
+--        ('a827ddcd-bda9-40c2-a4cd-6c26bd5d717b', '5ef19d54-c429-499d-9654-ac052d83f3e7'),
+--        ('883f2352-416b-479a-8323-cb62a663fe41', '64da3d79-52be-4936-97e3-b88597bac8b9'),
+--        ('492c81df-b3c5-44d5-84e6-5d3eb77b4728', '60deabdf-ba7d-482a-b6a5-26e440850496');
+--
+-- INSERT INTO public.team_users (team_id, user_id)
+-- VALUES ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 'adecad44-d29a-4c80-81d3-e99e20c288ac'),
+--        ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 'f3f1e587-348f-498f-827d-6f44ab3f37e1'),
+--        ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 'e89a6623-556e-4248-8072-34c238c4c08b'),
+--        ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', '67c1faba-bbf3-498d-a705-69a3b6463ab2'),
+--
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', 'c89f131e-75ca-4609-8a6a-a94a1a1df585'),
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', '2be4579e-b2ac-4b60-94f1-d78bd26cccd8'),
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', '6272de1a-abc2-419c-add0-935615d6f891'),
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', 'd08ed959-e6b1-4abf-b4a2-ab6448de44fd'),
+--        ('5ef19d54-c429-499d-9654-ac052d83f3e7', '8c36d482-f936-419b-8739-eb6d340c374a'),
+--
+--        ('64da3d79-52be-4936-97e3-b88597bac8b9', '3dd3cc21-c70d-4456-85e7-771b95ca34ec'),
+--        ('64da3d79-52be-4936-97e3-b88597bac8b9', 'eabff8f7-475e-4ef0-b451-fe92dbe9ce1f'),
+--        ('64da3d79-52be-4936-97e3-b88597bac8b9', 'e5362aec-e9d3-4183-8c54-dee894688826'),
+--        ('64da3d79-52be-4936-97e3-b88597bac8b9', 'c9590189-ea9b-4661-9f37-cb5cf2f1a5a1'),
+--
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', 'ef8f4fd1-c2d5-469f-9ece-17cb33660f90'),
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', '810c31d7-d385-4593-86f6-0899fa585d23'),
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', '9ba1ee70-b857-4611-ab2c-9db14f35d4cc'),
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', 'acdad2b6-436f-46d5-8a83-8c319a2093c2'),
+--        ('60deabdf-ba7d-482a-b6a5-26e440850496', 'cb58c0ab-ed48-4be5-a340-3e7878038e62');
+--
+-- --- Resource groups ---
+--
+-- INSERT INTO public.resource_group (id, version, name, description, stateless, max_rent_time)
+-- VALUES ('1b0912df-c4c0-4907-9dd4-b09573a3ef44', 0, 'ISRP-RG01', '', false, 6),
+--        ('dfe85896-7c82-41c6-ba31-f9401d10c4f2', 0, 'ISRP-RG02', '', false, 6),
+--        ('0454b258-1457-4719-99b6-a9cc9576de2d', 0, 'ISRP-RG03', '', false, 6),
+--        ('a1529025-aae8-4f33-b5cf-295353d77c48', 0, 'ISRP-RG04', '', false, 6);
+--
+-- INSERT INTO public.virtual_machine (hidden, id, resource_group_id, version)
+-- VALUES (false, '5d1606b4-5263-4c78-a89b-57a2a26510cc', '1b0912df-c4c0-4907-9dd4-b09573a3ef44', 0),
+--        (false, '40861333-18c9-48b3-9956-a2168060cbca', 'dfe85896-7c82-41c6-ba31-f9401d10c4f2', 0),
+--        (false, 'c136faca-c487-4be6-8eff-90e2617ffdad', 'dfe85896-7c82-41c6-ba31-f9401d10c4f2', 0),
+--        (false, '4181e5f8-7cc6-4021-a653-b7c59f5ef16e', '0454b258-1457-4719-99b6-a9cc9576de2d', 0),
+--        (false, 'ef44305e-adc6-4329-97ba-78ebaa30eb98', '0454b258-1457-4719-99b6-a9cc9576de2d', 0),
+--        (false, '943584ee-66fb-406e-86f2-648156d78138', 'a1529025-aae8-4f33-b5cf-295353d77c48', 0);
+--
+-- --- Stateful pods ---
+--
+-- INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, max_rent)
+-- VALUES ('0e542d51-ba4f-4dd5-bef8-eae5b7477103', 'a7556146-23a6-4936-903c-c337c794a8c7','1b0912df-c4c0-4907-9dd4-b09573a3ef44', 'f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 3),
+--        ('61807f79-334e-4fdd-985b-6aaa95c0bf8d', 'a7556146-23a6-4936-903c-c337c794a8c7','dfe85896-7c82-41c6-ba31-f9401d10c4f2', '5ef19d54-c429-499d-9654-ac052d83f3e7', 3),
+--        ('c5cec07a-f8c1-41ca-a439-397a7aae63df', 'a7556146-23a6-4936-903c-c337c794a8c7','0454b258-1457-4719-99b6-a9cc9576de2d', '64da3d79-52be-4936-97e3-b88597bac8b9', 3),
+--        ('e016831f-96e4-4c96-a14d-54c167fdd5d0', 'a7556146-23a6-4936-903c-c337c794a8c7','a1529025-aae8-4f33-b5cf-295353d77c48', '60deabdf-ba7d-482a-b6a5-26e440850496', 3);
+--
+-- --- Resource group pools ---
+--
+-- INSERT INTO public.course_state_full_resource_groups (course_id, state_full_resource_groups_id)
+-- VALUES ('a7556146-23a6-4936-903c-c337c794a8c7', '1b0912df-c4c0-4907-9dd4-b09573a3ef44'),
+--        ('a7556146-23a6-4936-903c-c337c794a8c7', 'dfe85896-7c82-41c6-ba31-f9401d10c4f2'),
+--        ('a7556146-23a6-4936-903c-c337c794a8c7', '0454b258-1457-4719-99b6-a9cc9576de2d'),
+--        ('a7556146-23a6-4936-903c-c337c794a8c7', 'a1529025-aae8-4f33-b5cf-295353d77c48');
+--
+-- --- Example reservations ---
+--
+--
+-- -- INSERT INTO public.reservation (id, version, rg_id, team_id, automatic_startup, notification_time, reservation_start, reservation_end, status)
+-- -- VALUES ('181426fb-6cb6-4fd9-9801-cbd03deccc2d', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'yesterday' + interval '11 hours',timestamp 'yesterday' + interval '17 hours', 'COMPLETED'),
+-- --        ('24f78aff-d112-4233-b02f-e747854bcd23', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 15, timestamp 'today' + interval '11 hours',timestamp 'today' + interval '23 hours', 'IN_PROGRESS'),
+-- --        ('73f95e89-3a47-4dd5-bb51-382f79d1b976', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'tomorrow' + interval '11 hours',timestamp 'tomorrow' + interval '17 hours', 'PENDING');
+--
+-- -- INSERT INTO public.reservation (id, version, rg_id, team_id, automatic_startup, notification_time, reservation_start, reservation_end, status)
+-- -- VALUES ('181426fb-6cb6-4fd9-9801-cbd03deccc2d', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'yesterday' + interval '11 hours',timestamp 'yesterday' + interval '17 hours', 'COMPLETED'),
+-- --        ('24f78aff-d112-4233-b02f-e747854bcd23', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 15, timestamp 'today' + interval '11 hours',timestamp 'today' + interval '17 hours', 'IN_PROGRESS'),
+-- --        ('73f95e89-3a47-4dd5-bb51-382f79d1b976', 0, '1b0912df-c4c0-4907-9dd4-b09573a3ef44','f15e7fe3-60a6-4d2c-a124-ad763f6869e2', true, 0, timestamp 'tomorrow' + interval '11 hours',timestamp 'tomorrow' + interval '17 hours', 'PENDING');
+--
+-- -----------------------------------
+-- --- Sieciowe systemy baz danych ---
+-- -----------------------------------
+--
+-- INSERT INTO public.course_teachers (course_id, teachers_user_id)
+-- VALUES ('e485ded6-c166-45f6-a924-13ce44666f7a', '19bc2d1c-57df-454d-9d01-8af04bd02fb9'),
+--        ('e485ded6-c166-45f6-a924-13ce44666f7a', '4f45c1ce-a0e8-4fbd-aca2-ccf598e6faa7'),
+--        ('e485ded6-c166-45f6-a924-13ce44666f7a', '93b00dda-b5a4-4249-86b4-bcb2cb4d4bc0'),
+--        ('e485ded6-c166-45f6-a924-13ce44666f7a', '1623120d-18bb-48e7-9f4f-8c8c38486e79'),
+--        ('e485ded6-c166-45f6-a924-13ce44666f7a', '43c36b21-eed9-4ce4-811d-abc9e226e7fc'),
+--        ('e485ded6-c166-45f6-a924-13ce44666f7a', '69f850ce-21e1-462b-9c01-0d6437c16f6b');
+--
+-- --- Teams ---
+--
+-- INSERT INTO public.team (id, version, name, active, max_size, course_id)
+-- VALUES ('f3896c36-2133-4497-965e-0951e1f5aebf', 0, 'EventSymphony', true, 8, 'e485ded6-c166-45f6-a924-13ce44666f7a'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', 0, 'LandlordKingdom', true, 8, 'e485ded6-c166-45f6-a924-13ce44666f7a'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', 0, 'Eldorado', true, 8, 'e485ded6-c166-45f6-a924-13ce44666f7a');
+--
+-- INSERT INTO public.access_key (id, key_value)
+-- VALUES ('18ed4422-1976-4296-9924-56e8a03e59a3', 'SSBD-Team01-Key'),
+--        ('a6dcf8e8-c317-4d50-b2f7-41012856918b', 'SSBD-Team02-Key'),
+--        ('60ea45d0-f657-4a43-bc45-a4ea6ee6db88', 'SSBD-Team03-Key');
+--
+-- INSERT INTO public.team_access_key (id, team_id)
+-- VALUES ('18ed4422-1976-4296-9924-56e8a03e59a3', 'f3896c36-2133-4497-965e-0951e1f5aebf'),
+--        ('a6dcf8e8-c317-4d50-b2f7-41012856918b', '78908655-ee18-4863-9eef-e67519940a0b'),
+--        ('60ea45d0-f657-4a43-bc45-a4ea6ee6db88', '40517c17-58b9-41ce-b53e-abaf0e7782fd');
+--
+-- INSERT INTO public.team_users (team_id, user_id)
+-- VALUES ('f3896c36-2133-4497-965e-0951e1f5aebf', 'adecad44-d29a-4c80-81d3-e99e20c288ac'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'f3f1e587-348f-498f-827d-6f44ab3f37e1'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'e89a6623-556e-4248-8072-34c238c4c08b'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', '67c1faba-bbf3-498d-a705-69a3b6463ab2'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'c89f131e-75ca-4609-8a6a-a94a1a1df585'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', '2be4579e-b2ac-4b60-94f1-d78bd26cccd8'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', '6272de1a-abc2-419c-add0-935615d6f891'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'd08ed959-e6b1-4abf-b4a2-ab6448de44fd'),
+--
+--        ('78908655-ee18-4863-9eef-e67519940a0b', '8c36d482-f936-419b-8739-eb6d340c374a'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', '3dd3cc21-c70d-4456-85e7-771b95ca34ec'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', 'eabff8f7-475e-4ef0-b451-fe92dbe9ce1f'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', 'e5362aec-e9d3-4183-8c54-dee894688826'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', 'c9590189-ea9b-4661-9f37-cb5cf2f1a5a1'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', 'ef8f4fd1-c2d5-469f-9ece-17cb33660f90'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', '810c31d7-d385-4593-86f6-0899fa585d23'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', '9ba1ee70-b857-4611-ab2c-9db14f35d4cc'),
+--
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', 'acdad2b6-436f-46d5-8a83-8c319a2093c2'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', 'cb58c0ab-ed48-4be5-a340-3e7878038e62'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '0814feaa-1592-47e7-b744-0fee9a300a4d'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '0445c45d-cb31-4110-ab06-905864ca34c4'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '6804cd54-660f-4bf9-9e6f-82a0586f78c1'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', 'ef3946e6-fa81-48f6-9f7f-e44052f6ea09'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '5e002216-f4e2-4466-8fd3-42efb6b6bd03'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '1e44ade8-f958-4166-b617-04069a2e2db8');
+--
+-- --- Resource groups ---
+--
+-- INSERT INTO public.resource_group (id, version, name, description, stateless, max_rent_time)
+-- VALUES ('692bde41-c8ca-4873-bbaf-edb789ae7c87', 0, 'SSBD-RG01', '', false, 6),
+--        ('f13f85d1-14bf-4930-bc2a-b044f3feebe2', 0, 'SSBD-RG02', '', false, 6),
+--        ('50c319f6-d29d-4193-bfef-5e33b4e26353', 0, 'SSBD-RG03', '', false, 6);
+--
+-- INSERT INTO public.virtual_machine (hidden, id, resource_group_id, version)
+-- VALUES (false, 'e3bfbebc-2497-45d3-b298-604039640a75', '692bde41-c8ca-4873-bbaf-edb789ae7c87', 0);
+--
+-- --- Stateful pods ---
+--
+-- INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, max_rent)
+-- VALUES ('a57e55b8-471d-4754-acf0-15c57b877e99', 'e485ded6-c166-45f6-a924-13ce44666f7a','692bde41-c8ca-4873-bbaf-edb789ae7c87', 'f3896c36-2133-4497-965e-0951e1f5aebf', 3),
+--        ('849f00e3-199d-4e81-9892-5b5c2a3b5b7d', 'e485ded6-c166-45f6-a924-13ce44666f7a','f13f85d1-14bf-4930-bc2a-b044f3feebe2', '78908655-ee18-4863-9eef-e67519940a0b', 3),
+--        ('a5681e23-bcec-4353-9e4d-f0c60f2efb26', 'e485ded6-c166-45f6-a924-13ce44666f7a','50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', 3);
+--
+-- --- Resource group pools ---
+--
+-- INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id, description,
+--                                         max_rent_time)
+-- VALUES ('03d31c2f-d300-45af-a8f8-37c894d7a527', 0, 'SSBD-RGPool01', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a', '',6),
+--        ('0e484149-67a8-4c1c-80b6-901fa737f2c9', 0, 'SSBD-RGPool02', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a', '',6),
+--        ('9872c8c5-70e9-432e-8a29-7c6dafd35ddc', 0, 'SSBD-RGPool03', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a', '',6);
+--
+--
+-- INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, resource_groups_id)
+-- VALUES ('03d31c2f-d300-45af-a8f8-37c894d7a527', '692bde41-c8ca-4873-bbaf-edb789ae7c87'),
+--        ('0e484149-67a8-4c1c-80b6-901fa737f2c9', 'f13f85d1-14bf-4930-bc2a-b044f3feebe2'),
+--        ('9872c8c5-70e9-432e-8a29-7c6dafd35ddc', '50c319f6-d29d-4193-bfef-5e33b4e26353');
+--
+-- -------------------------------------
+-- --- Techniki utrzymania aplikacji ---
+-- -------------------------------------
+--
+-- INSERT INTO public.course_teachers (course_id, teachers_user_id)
+-- VALUES ('1decd050-1328-4eca-b2de-84793a8474c2', '19bc2d1c-57df-454d-9d01-8af04bd02fb9'),
+--        ('1decd050-1328-4eca-b2de-84793a8474c2', '4f45c1ce-a0e8-4fbd-aca2-ccf598e6faa7'),
+--        ('1decd050-1328-4eca-b2de-84793a8474c2', 'e94c5920-2925-4def-9ccc-b42504bd18ae'),
+--        ('1decd050-1328-4eca-b2de-84793a8474c2', '97226f2b-b7ae-43e7-844a-8d65e880a882'),
+--        ('1decd050-1328-4eca-b2de-84793a8474c2', '43c36b21-eed9-4ce4-811d-abc9e226e7fc'),
+--        ('1decd050-1328-4eca-b2de-84793a8474c2', '69f850ce-21e1-462b-9c01-0d6437c16f6b');
+--
+-- --- Teams ---
+--
+-- INSERT INTO public.team (id, version, name, active, max_size, course_id)
+-- VALUES ('d46387ee-7397-4184-91eb-d01d5f301c0e', 0, 'EventSymphony', true, 7, '1decd050-1328-4eca-b2de-84793a8474c2'),
+--        ('e608c9d0-e871-4374-a052-f27ced4a9cec', 0, 'LandlordKingdom', true, 7, '1decd050-1328-4eca-b2de-84793a8474c2'),
+--        ('18750e93-22a7-4a23-8f8b-e0cabde8f793', 0, 'Eldorado', true, 7, '1decd050-1328-4eca-b2de-84793a8474c2');
+--
+-- INSERT INTO public.access_key (id, key_value)
+-- VALUES ('91f834d9-3c1c-460e-b28d-0e9f46a8b5ac', 'TUA-Team01-Key'),
+--        ('c3e69479-681a-4b61-b627-e25f03c72eee', 'TUA-Team02-Key'),
+--        ('90cf4fdd-53b2-4062-b162-1d3c6f4c3ec0', 'TUA-Team03-Key');
+--
+-- INSERT INTO public.team_access_key (id, team_id)
+-- VALUES ('91f834d9-3c1c-460e-b28d-0e9f46a8b5ac', 'd46387ee-7397-4184-91eb-d01d5f301c0e'),
+--        ('c3e69479-681a-4b61-b627-e25f03c72eee', 'e608c9d0-e871-4374-a052-f27ced4a9cec'),
+--        ('90cf4fdd-53b2-4062-b162-1d3c6f4c3ec0', '18750e93-22a7-4a23-8f8b-e0cabde8f793');
+--
+-- INSERT INTO public.team_users (team_id, user_id)
+-- VALUES ('f3896c36-2133-4497-965e-0951e1f5aebf', 'adecad44-d29a-4c80-81d3-e99e20c288ac'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'f3f1e587-348f-498f-827d-6f44ab3f37e1'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'e89a6623-556e-4248-8072-34c238c4c08b'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', '67c1faba-bbf3-498d-a705-69a3b6463ab2'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'c89f131e-75ca-4609-8a6a-a94a1a1df585'),
+--        ('f3896c36-2133-4497-965e-0951e1f5aebf', '2be4579e-b2ac-4b60-94f1-d78bd26cccd8'),
+--
+--        ('78908655-ee18-4863-9eef-e67519940a0b', '8c36d482-f936-419b-8739-eb6d340c374a'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', '3dd3cc21-c70d-4456-85e7-771b95ca34ec'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', 'eabff8f7-475e-4ef0-b451-fe92dbe9ce1f'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', 'e5362aec-e9d3-4183-8c54-dee894688826'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', 'c9590189-ea9b-4661-9f37-cb5cf2f1a5a1'),
+--        ('78908655-ee18-4863-9eef-e67519940a0b', 'ef8f4fd1-c2d5-469f-9ece-17cb33660f90'),
+--
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', 'acdad2b6-436f-46d5-8a83-8c319a2093c2'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', 'cb58c0ab-ed48-4be5-a340-3e7878038e62'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '0814feaa-1592-47e7-b744-0fee9a300a4d'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '0445c45d-cb31-4110-ab06-905864ca34c4'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', '6804cd54-660f-4bf9-9e6f-82a0586f78c1'),
+--        ('40517c17-58b9-41ce-b53e-abaf0e7782fd', 'ef3946e6-fa81-48f6-9f7f-e44052f6ea09');
+--
+-- --- Resource groups ---
+--
+-- INSERT INTO public.resource_group (id, version, name, description, stateless, max_rent_time)
+-- VALUES ('a7919551-3807-4b35-88e3-fc3a868ba014', 0, 'TUA-RG01', '', false, 6),
+--        ('e51132d3-8ac3-4232-85e0-849c8afa6abc', 0, 'TUA-RG02', '', false, 6),
+--        ('7c7ed665-831c-4e24-b6fe-1947a16fcadb', 0, 'TUA-RG03', '', false, 6);
+--
+-- INSERT INTO public.course_state_full_resource_groups (course_id, state_full_resource_groups_id)
+-- VALUES ('1decd050-1328-4eca-b2de-84793a8474c2', 'a7919551-3807-4b35-88e3-fc3a868ba014'),
+--        ('1decd050-1328-4eca-b2de-84793a8474c2', 'e51132d3-8ac3-4232-85e0-849c8afa6abc'),
+--        ('1decd050-1328-4eca-b2de-84793a8474c2', '7c7ed665-831c-4e24-b6fe-1947a16fcadb');
+--
+-- --- Stateful pods ---
+--
+-- INSERT INTO public.pod_stateful (id, course_id, rg_id, team_id, max_rent)
+-- VALUES ('c971b368-92c8-4a01-86d2-dd783b5360a8', '1decd050-1328-4eca-b2de-84793a8474c2','a7919551-3807-4b35-88e3-fc3a868ba014', 'd46387ee-7397-4184-91eb-d01d5f301c0e', 3),
+--        ('161f4a45-f87d-40b5-9ad6-1ec056485e01', '1decd050-1328-4eca-b2de-84793a8474c2','e51132d3-8ac3-4232-85e0-849c8afa6abc', 'e608c9d0-e871-4374-a052-f27ced4a9cec', 3),
+--        ('c3db873c-cfeb-4ec2-b87b-342af78f869a', '1decd050-1328-4eca-b2de-84793a8474c2','7c7ed665-831c-4e24-b6fe-1947a16fcadb', '18750e93-22a7-4a23-8f8b-e0cabde8f793', 3);

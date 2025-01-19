@@ -10,7 +10,6 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,13 +33,13 @@ public class HistoricalData extends Updatable {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 
-    // Constructors
+    /* Constructors */
 
     public HistoricalData(Long version) {
         super(version);
     }
 
-    // Other methods
+    /* Other methods */
 
     @PrePersist
     public void changeCreateData() {

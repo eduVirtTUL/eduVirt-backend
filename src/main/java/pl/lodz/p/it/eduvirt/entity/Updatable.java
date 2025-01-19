@@ -15,7 +15,7 @@ public class Updatable extends AbstractEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    // Constructors
+    /* Constructors */
 
     public Updatable(Long version) {
         this.version = version;

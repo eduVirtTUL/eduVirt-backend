@@ -11,12 +11,4 @@ public interface VlansRangeMapper {
     VlansRange createVlansRangeDtoToVlansRange(CreateVlansRangeDto createVlansRangeDto);
 
     VlansRangeDto vlansRangeToDto(VlansRange vlansRange);
-
-//    default VlansRange resizeVlansRangeDtoToVlansRange(UUID id, ResizeVlansRangeDto resizeVlansRangeDto) {
-//        return new VlansRange(
-//                id,
-//                resizeVlansRangeDto.from()
-//                resizeVlansRangeDto.to()
-//        );
-//    }
 }

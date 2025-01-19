@@ -14,8 +14,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Optional;
 import java.util.UUID;
 
 @Entity
@@ -61,8 +66,9 @@ public class VnicProfilePoolMember {
 
     @PrePersist
     public void changeCreateData() {
-        //TODO michal: Change it later, when authentication is implemented (to put user's id in the context as well)
-//        this.createdBy = UUID.fromString((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-        this.createdAt = LocalDateTime.now();
+        String performerId = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Principal::getName).orElse("00000000-0000-0000-0000-000000000000");
+        this.createdBy = UUID.fromString(performerId);
+        this.createdAt = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
     }
 }

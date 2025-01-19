@@ -31,7 +31,7 @@ public class VnicProfileTask extends ExecutorSubtask {
     @Setter
     private UUID nicId;
 
-    // Constructors
+    /* Constructors */
 
     public VnicProfileTask(ExecutorTask executorTask,
                            UUID vmId,

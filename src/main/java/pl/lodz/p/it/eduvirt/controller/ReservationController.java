@@ -27,6 +27,7 @@ import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
+import pl.lodz.p.it.eduvirt.dto.reservation.ReservationTimeframeModifiersDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.ReservationNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
@@ -37,7 +38,9 @@ import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.*;
 import pl.lodz.p.it.eduvirt.util.RoleConstants;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +54,12 @@ public class ReservationController {
 
     @Value("${window.length}")
     private int windowLength;
+
+    @Value("${executor.task-time-tolerance}")
+    private int taskTimeTolerance;
+
+    @Value("${executor.vm.grace-time}")
+    private int vmGraceTime;
 
     @PostConstruct
     public void validateProperty() {
@@ -131,6 +140,23 @@ public class ReservationController {
     @GetMapping(path = "/window-length")
     ResponseEntity<Integer> getWindowLength() {
         return ResponseEntity.ok(windowLength);
+    }
+
+    @Operation(
+            method = "GET", summary = "Get anticipated reservation start time delay and reservation end time hastening", hidden = false,
+            description = "This endpoint can be used to fetch anticipated reservation start time delay and reservation end time hastening.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Reservation start time delay and reservation end time hastening, specified by the administrator in the deployment descriptor, is returned to the client."),
+            }
+    )
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(path = "/timeframe-modifiers")
+    ResponseEntity<ReservationTimeframeModifiersDto> getReservationGlobalTimeframeModifiers() {
+        int startTimeDelay = 0;
+        int endTimeHastening = taskTimeTolerance + vmGraceTime;
+        return ResponseEntity.ok(new ReservationTimeframeModifiersDto(startTimeDelay, endTimeHastening));
     }
 
     @Operation(
