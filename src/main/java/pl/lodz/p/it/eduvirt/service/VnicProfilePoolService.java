@@ -11,8 +11,6 @@ public interface VnicProfilePoolService {
 
     Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles();
 
-    List<VnicProfile> fetchOVirtVnicProfiles();
-
     List<VnicProfilePoolMember> getVnicProfilesPool();
 
     VnicProfilePoolMember addVnicProfileToPool(UUID vnicProfileId);
