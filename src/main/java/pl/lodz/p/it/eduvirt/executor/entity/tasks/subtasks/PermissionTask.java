@@ -21,7 +21,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class PermissionTask extends ExecutorSubtask {
 
-    // Constructors
+    /* Constructors */
 
     public PermissionTask(ExecutorTask executorTask,
                           UUID vmId,

@@ -34,6 +34,12 @@ public class MailProvider {
     @Value("${executor.mail.urls.reservations}")
     private String reservationsBaseUrl;
 
+    @Value("${executor.task-time-tolerance}")
+    private int taskTimeTolerance;
+
+    @Value("${executor.vm.grace-time}")
+    private int vmGraceTime;
+
     private final MailHelper mailHelper;
     private final ResourceBundleMessageSource messageSource;
 
@@ -158,7 +164,8 @@ public class MailProvider {
         language = Objects.requireNonNullElse(language, defaultLanguage);
 
         LocalDateTime endTime = OffsetDateTime.of(reservation.getEndTime(), ZoneOffset.UTC)
-                .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
+                .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime()
+                .minusMinutes(taskTimeTolerance + vmGraceTime);
         String end = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         String description = messageSource.getMessage("reservationEnd.generalDescription", null, Locale.of(language));
@@ -184,7 +191,8 @@ public class MailProvider {
         language = Objects.requireNonNullElse(language, defaultLanguage);
 
         LocalDateTime endTime = OffsetDateTime.of(reservation.getEndTime(), ZoneOffset.UTC)
-                .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
+                .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime()
+                .minusMinutes(taskTimeTolerance + vmGraceTime);
         String end = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         String description = messageSource.getMessage("reservationStart.generalDescription", null, Locale.of(language));

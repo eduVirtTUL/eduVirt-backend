@@ -84,7 +84,6 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
         ExecutorTask task = executorTaskRepository.findById(taskId)
                 .orElseThrow(EntityNotFoundException::new);
 
-        // TODO michal: Ask is better save nulls or mapping nulls to 00000000-0000-0000-0000-000000000000
         UUID sanitizedVmId = Objects.requireNonNullElse(vmId, UUID.fromString("00000000-0000-0000-0000-000000000000"));
 
         ExecutorSubtask subtask = switch (type) {
@@ -112,7 +111,6 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
             for (AdditionalId additionalId : additionalIds) {
                 mapOfAdditionalIds.put(
                         additionalId,
-                        // TODO michal: Ask is better save nulls or mapping nulls to 00000000-0000-0000-0000-000000000000
                         Optional.ofNullable(additionalId.getId())
                                 .orElse(UUID.fromString("00000000-0000-0000-0000-000000000000"))
                 );

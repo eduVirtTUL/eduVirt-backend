@@ -43,6 +43,12 @@ public class ReservationServiceImpl implements ReservationService {
     @Value("${window.length}")
     private int windowLength;
 
+    @Value("${executor.task-time-tolerance}")
+    private int taskTimeTolerance;
+
+    @Value("${executor.vm.grace-time}")
+    private int vmGraceTime;
+
     @PostConstruct
     public void validateProperty() {
         if (windowLength < 10) windowLength = 10;
@@ -467,7 +473,8 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public List<Reservation> findReservationsToBegin() {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        List<Reservation> reservationList = reservationRepository.findAllReservationsToBegin(currentTime);
+        LocalDateTime probeTimeWithTimeNeededToStop = currentTime.plusMinutes(taskTimeTolerance + vmGraceTime);
+        List<Reservation> reservationList = reservationRepository.findAllReservationsToBegin(currentTime, probeTimeWithTimeNeededToStop);
 
         reservationList.forEach(ReservationServiceImpl::forceReservationLazyCollections);
 
@@ -476,8 +483,9 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public List<Reservation> findReservationsToStop() {
-        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
-        List<Reservation> reservationList = reservationRepository.findAllReservationsToStop(currentTime);
+        LocalDateTime probeTimeWithTimeNeededToStop = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime()
+                .plusMinutes(taskTimeTolerance + vmGraceTime);
+        List<Reservation> reservationList = reservationRepository.findAllReservationsToStop(probeTimeWithTimeNeededToStop);
 
         reservationList.forEach(ReservationServiceImpl::forceReservationLazyCollections);
 
@@ -489,8 +497,11 @@ public class ReservationServiceImpl implements ReservationService {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         return reservationRepository.findAllReservationsToSendNotifications(currentTime)
                 .stream()
-                .filter(reservation ->
-                       !reservation.getEndTime().minusMinutes(reservation.getNotificationTime()).isAfter(currentTime))
+                .filter(r -> {
+                            long minBeforeReservationEnd = r.getNotificationTime() + taskTimeTolerance + vmGraceTime;
+                            return !r.getEndTime().minusMinutes(minBeforeReservationEnd).isAfter(currentTime);
+                        }
+                )
                 .toList();
     }
 
@@ -587,8 +598,7 @@ public class ReservationServiceImpl implements ReservationService {
             if (availability.get(startTemp)) {
                 availabilityStack.push(true);
                 if (availabilityStack.size() >= 2) return false;
-            }
-            else availabilityStack.clear();
+            } else availabilityStack.clear();
 
             startTemp = startTemp.plusMinutes(windowLength);
         }

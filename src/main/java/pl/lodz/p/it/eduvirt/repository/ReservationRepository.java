@@ -115,24 +115,23 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                                                     @Param("probeTime") LocalDateTime probeTime,
                                                     Pageable pageable);
 
-
-
-    //TODO michal r.endTime - (taskTolerance + vmGraceTime)
+    //probeTimeWithTimeNeededToStop == (probeTime + taskTolerance + vmGraceTime)
     @Query("""
             SELECT DISTINCT r FROM Reservation r
-            WHERE :probeTime BETWEEN r.startTime AND r.endTime
+            WHERE :probeTime >= r.startTime AND :probeTimeWithTimeNeededToStop <= r.endTime
             AND r.status = 'PENDING'
             AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_INIT' AND et.status != 'FAILED')
             """)
-    List<Reservation> findAllReservationsToBegin(@Param("probeTime") LocalDateTime probeTime);
+    List<Reservation> findAllReservationsToBegin(@Param("probeTime") LocalDateTime probeTime,
+                                                 @Param("probeTimeWithTimeNeededToStop") LocalDateTime probeTimeWithTimeNeededToStop);
 
     @Query("""
             SELECT DISTINCT r FROM Reservation r
-            WHERE :probeTime >= r.endTime
+            WHERE :probeTimeWithTimeNeededToStop >= r.endTime
             AND r.status = 'IN_PROGRESS'
             AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_DESTRUCT' AND et.status != 'FAILED')
             """)
-    List<Reservation> findAllReservationsToStop(@Param("probeTime") LocalDateTime probeTime);
+    List<Reservation> findAllReservationsToStop(@Param("probeTimeWithTimeNeededToStop") LocalDateTime probeTimeWithTimeNeededToStop);
 
     @Query("""
             SELECT DISTINCT r FROM Reservation r

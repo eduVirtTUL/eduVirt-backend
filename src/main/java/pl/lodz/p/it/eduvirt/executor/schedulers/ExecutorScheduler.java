@@ -46,15 +46,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // Priority 0
-//IMPROVEMENTS michal: change some // /* */
 //IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
 //IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
 //IMPROVEMENTS michal: improvements for transactions
 //IMPROVEMENTS michal: LoggerInterceptor on other services
 
 //IMPROVEMENTS michal: block RG cause of previous reservation
-
-//IMPROVEMENTS michal: findReservationsToBegin(), findReservationsToStop() change endTime to endTime - (graceTime + 2 min)
 
 //IMPROVEMENTS michal: Check two conflicting invocation of scheduled method (ex. two pod starts) => set UniqueConstraints
 

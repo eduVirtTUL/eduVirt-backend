@@ -57,25 +57,24 @@ public abstract class ExecutorSubtask extends HistoricalData {
     @Column(name = "description", updatable = true, nullable = true, length = 200)
     private String description;
 
-    // Constructors
+    /* Constructors */
 
     public ExecutorSubtask(ExecutorTask executorTask,
                            UUID vmId,
                            SubtaskType type) {
         this.executorTask = executorTask;
-        //TODO michal maybe validate it with VMs in RG, but maybeeeee
         this.vmId = vmId;
         this.type = type;
     }
 
-    // Custom Getters
+    /* Custom Getters */
 
     public Boolean getSuccessful() {
         return Optional.ofNullable(successful).orElse(false);
     }
 
 
-    // Other methods
+    /* Other methods */
 
     public void setSuccessful(Boolean successful) {
         if (Objects.isNull(this.successful)) {
