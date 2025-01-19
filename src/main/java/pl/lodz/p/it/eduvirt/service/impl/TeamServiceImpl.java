@@ -111,9 +111,20 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @PreAuthorize("isAuthenticated()")
-    public Page<Team> getTeamsByCourse(UUID courseId, Pageable pageable) {
-        return teamRepository.findByCourseId(courseId, pageable);
-    }
+    public Page<Team> getTeamsByCourse(UUID courseId, int page, int size, String search, String searchType, String sortOrder) {
+        Sort sort = null;
+        if (Objects.equals(sortOrder, "ASC")) {
+            sort = Sort.by("name").ascending();
+        } else if ("DESC".equals(sortOrder)) {
+            sort = Sort.by("name").descending();
+        }
+
+        if (search == null || search.isEmpty()) {
+            return teamRepository.findByCourseId(courseId, PageRequest.of(page, size, sort));
+        }
+
+        return teamRepository.findByCourseIdWithSearch(courseId, search, searchType, PageRequest.of(page, size, sort));
+}
 
     @Override
     @PreAuthorize("isAuthenticated()")

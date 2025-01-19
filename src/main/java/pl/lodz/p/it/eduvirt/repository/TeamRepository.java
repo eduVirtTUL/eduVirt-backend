@@ -48,10 +48,20 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
     void deleteAllByCourseId(UUID courseId);
 
     @Query("SELECT DISTINCT u FROM Team t " +
-           "JOIN t.users u " +
-           "WHERE t.course.id = :courseId " +
-           "AND t.course.courseType = 'SOLO'")
+            "JOIN t.users u " +
+            "WHERE t.course.id = :courseId " +
+            "AND t.course.courseType = 'SOLO'")
     List<User> findUsersInSoloCourse(@Param("courseId") UUID courseId);
 
     Page<Team> findByUsersIdAndNameContainingIgnoreCase(UUID userId, String search, Pageable pageable);
+
+    @Query("SELECT DISTINCT t FROM Team t LEFT JOIN t.users u WHERE t.course.id = :courseId AND " +
+            "(:searchType = 'TEAM_NAME' AND LOWER(t.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            ":searchType = 'STUDENT_NAME' AND (LOWER(u.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :search, '%'))) OR " +
+            ":searchType = 'STUDENT_EMAIL' AND LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Team> findByCourseIdWithSearch(@Param("courseId") UUID courseId,
+                                        @Param("search") String search,
+                                        @Param("searchType") String searchType,
+                                        Pageable pageable);
+
 }

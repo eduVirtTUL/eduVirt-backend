@@ -20,7 +20,7 @@ public interface TeamService {
 
     Page<Team> getTeamsByStudent(UUID userId, int page, int size, String search, String sortOrder);
 
-    Page<Team> getTeamsByCourse(UUID courseId, Pageable pageable);
+    Page<Team> getTeamsByCourse(UUID courseId, int page, int size, String search, String searchType, String sortOrder);
 
     Team getTeamByCourseAndUser(Course course, UUID userId);
 

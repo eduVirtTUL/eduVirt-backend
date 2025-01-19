@@ -43,6 +43,7 @@ import pl.lodz.p.it.eduvirt.service.TeamService;
 import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -214,9 +215,18 @@ public class TeamController {
     public ResponseEntity<PageDto<TeamWithKeyDto>> getTeamsByCourse(
             @PathVariable UUID courseId,
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Team> teamsPage = teamService.getTeamsByCourse(courseId, pageable);
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "searchType", required = false, defaultValue = "TEAM_NAME") String searchType,
+            @RequestParam(name = "sort", required = false, defaultValue = "ASC") String sortOrder) {
+
+        if (!(sortOrder.equals("ASC") || sortOrder.equals("DESC"))) {
+            sortOrder = "ASC";
+        }
+
+        if (!Arrays.asList("TEAM_NAME", "STUDENT_NAME", "STUDENT_EMAIL").contains(searchType)) {
+            searchType = "TEAM_NAME";
+        }
 
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
@@ -224,6 +234,8 @@ public class TeamController {
         Course course = courseService.getCourse(courseId);
 
         if (course.getTeachers().contains(user)) {
+            Page<Team> teamsPage = teamService.getTeamsByCourse(courseId, pageNumber, pageSize, search, searchType, sortOrder);
+
             List<TeamWithKeyDto> listOfDTOs = teamsPage.getContent().stream()
                     .map(team -> {
                         String keyValue = null;
@@ -254,6 +266,7 @@ public class TeamController {
             PageDto<TeamWithKeyDto> pageDto = new PageDto<>(listOfDTOs,
                     new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
                             teamsPage.getTotalPages(), teamsPage.getTotalElements()));
+
             if (!listOfDTOs.isEmpty()) return ResponseEntity.ok(pageDto);
         }
         return ResponseEntity.noContent().build();
