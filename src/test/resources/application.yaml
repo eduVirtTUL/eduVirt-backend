@@ -14,3 +14,8 @@ window:
 resource:
   warning:
     mail: true
+
+executor:
+  task-time-tolerance: 3
+  vm:
+    grace-time: 2
