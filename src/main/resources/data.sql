@@ -6,7 +6,7 @@ INSERT INTO public.users (ovirt_id, user_id, email, first_name, last_name, user_
 VALUES ('1acd2865-6cc4-481c-8700-b2df5af24b23', '43c36b21-eed9-4ce4-811d-abc9e226e7fc', 'tklosges0@trellian.com', 'Tadd', 'Klosges', 'tsadmin1'),
        ('2e313f97-646d-404e-8c9c-844d458a047a', '69f850ce-21e1-462b-9c01-0d6437c16f6b', 'tsurcombe1@goo.gl', 'Tobie', 'Surcombe', 'tsadmin2'),
        ('e70791e8-e20c-400b-aba5-591a3362a1cf', '2e9eba6f-2262-4a25-8142-4837a336fab0', 'hdrowsfield2@theguardian.com', 'Harlin', 'Drowsfield', 'tadmin1'),
-       ('676a7dc1-d032-4603-94d3-e37ed106aed1', '6c3e7b50-3e42-46b2-9bad-839423ebab5d', 'fvickerstaff3@aol.com', 'Farr', 'Vickerstaff', 'tadmin1'),
+       ('676a7dc1-d032-4603-94d3-e37ed106aed1', '6c3e7b50-3e42-46b2-9bad-839423ebab5d', 'fvickerstaff3@aol.com', 'Farr', 'Vickerstaff', 'tadmin2'),
        ('c9ee6fd5-937d-4283-b49c-7d700e9b4289', '0a9da1c8-572e-4b68-b41b-9c80bae12ca2', 'gdixon4@foxnews.com', 'Gabriel', 'Dixon', 'tadmin3'),
        ('c56ebf6c-693d-42e9-8a95-84a91bd827c8', '4e742426-db70-4af4-84e8-e1bb867e0460', 'shullock5@hao123.com', 'Steffen', 'Hullock', 'tadmin4'),
        ('6c1058d8-80f5-4f7a-9106-48a535aea297', 'e94c5920-2925-4def-9ccc-b42504bd18ae', 'erait6@homestead.com', 'Euell', 'Rait', 'steacher1'),

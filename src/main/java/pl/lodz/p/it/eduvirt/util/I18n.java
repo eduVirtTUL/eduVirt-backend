@@ -31,7 +31,7 @@ public class I18n {
     public static final String USER_NOT_FOUND = "user.not.found";
     public static final String USERS_NOT_FOUND = "users.not.found";
     public static final String USER_NOT_AUTHORIZED = "user.not.authorized";
-
+    public static final String USER_NAME_ALREADY_EXISTS = "user.name.already.exists";
 
     /* Team keys */
 

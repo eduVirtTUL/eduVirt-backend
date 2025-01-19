@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.exceptions.general.ApplicationBaseException;
 import pl.lodz.p.it.eduvirt.exceptions.general.IntervalServerError;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNameAlreadyExistsException;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -45,6 +46,8 @@ public class RepositoryAspect {
                     throw new ClusterMetricExistsException(matches.getFirst(), matches.getLast());
                 } else if (exceptionCopy.getMessage().contains("metric_name_key")) {
                     throw new MetricNameAlreadyTakenException("Metric name is already taken and cannot be used to name a new metric");
+                } else if (exceptionCopy.getMessage().contains("users_user_name_key")) {
+                    throw new UserNameAlreadyExistsException();
                 }
                 exceptionCopy = exceptionCopy.getCause();
             } while (exceptionCopy != null);
