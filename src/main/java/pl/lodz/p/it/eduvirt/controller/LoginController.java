@@ -37,6 +37,9 @@ public class LoginController {
     @Value("${frontend.callback}")
     private String frontendCallback;
 
+    @Value("${frontend.login}")
+    private String frontendLogin;
+
     private final RestClient restClient;
     private final KeycloackConfig keycloackConfig;
     private final AuthService authService;
@@ -44,29 +47,29 @@ public class LoginController {
 
     @GetMapping("/login")
     public void login(HttpServletResponse httpServletResponse) {
-        String uri = UriComponentsBuilder.fromHttpUrl(keycloackConfig.getUrl())
+        String uri = UriComponentsBuilder.fromUriString(keycloackConfig.getLoginUrl())
                 .queryParam("response_type", "code")
                 .queryParam("scope", "openid")
                 .queryParam("client_id", keycloackConfig.getClientId())
-                .queryParam("redirect_uri", keycloackConfig.getRedirectUri())
+                .queryParam("redirect_uri", keycloackConfig.getLoginRedirectUrl())
                 .build().toString();
 
         httpServletResponse.setHeader("Location", uri);
         httpServletResponse.setStatus(302);
     }
 
-    @GetMapping("/callback")
+    @GetMapping("/login/callback")
     public void loginCallback(@Param("code") String code, HttpServletResponse httpServletResponse) {
         MultiValueMap<String, String> values = new LinkedMultiValueMap<>();
         values.add("grant_type", "authorization_code");
         values.add("client_id", keycloackConfig.getClientId());
         values.add("client_secret", keycloackConfig.getClientSecret());
         values.add("code", code);
-        values.add("redirect_uri", keycloackConfig.getRedirectUri());
+        values.add("redirect_uri", keycloackConfig.getLoginRedirectUrl());
 
         ResponseEntity<OAuthResult> result = restClient
                 .post()
-                .uri(keycloackConfig.getTokenUri())
+                .uri(keycloackConfig.getTokenUrl())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(values)
                 .retrieve()
@@ -84,6 +87,25 @@ public class LoginController {
         Cookie cookie = new Cookie("access_token", result.getBody().getAccessToken());
         cookie.setPath("/");
         httpServletResponse.addCookie(cookie);
+        httpServletResponse.setStatus(302);
+    }
+
+    @GetMapping("/logout")
+    public void logout(HttpServletResponse httpServletResponse) {
+        String uri = UriComponentsBuilder.fromUriString(keycloackConfig.getLogoutUrl())
+                .queryParam("response_type", "code")
+                .queryParam("scope", "openid")
+                .queryParam("client_id", keycloackConfig.getClientId())
+                .queryParam("redirect_uri", keycloackConfig.getLogoutRedirectUrl())
+                .build().toString();
+
+        httpServletResponse.setHeader("Location", uri);
+        httpServletResponse.setStatus(302);
+    }
+
+    @GetMapping("/logout/callback")
+    public void logoutCallback(HttpServletResponse httpServletResponse) {
+        httpServletResponse.setHeader("Location", frontendLogin);
         httpServletResponse.setStatus(302);
     }
 

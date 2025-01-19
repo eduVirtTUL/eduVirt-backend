@@ -11,9 +11,11 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "auth.keycloack")
 public class KeycloackConfig {
-    private String url;
     private String clientId;
-    private String redirectUri;
-    private String tokenUri;
+    private String tokenUrl;
     private String clientSecret;
+    private String loginUrl;
+    private String logoutUrl;
+    private String loginRedirectUrl;
+    private String logoutRedirectUrl;
 }
