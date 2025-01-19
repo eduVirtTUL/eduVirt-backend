@@ -64,4 +64,10 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
                                         @Param("searchType") String searchType,
                                         Pageable pageable);
 
+    @Query("SELECT DISTINCT t FROM Team t JOIN t.users u " +
+            "WHERE t.course.id = :courseId AND " +
+            "LOWER(SUBSTRING(u.email, 1, LOCATE('@', u.email) - 1)) IN :emailPrefixes")
+    Page<Team> findByCourseIdAndEmailPrefixes(@Param("courseId") UUID courseId,
+                                              @Param("emailPrefixes") List<String> emailPrefixes,
+                                              Pageable pageable);
 }

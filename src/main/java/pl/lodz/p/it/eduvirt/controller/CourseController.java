@@ -363,6 +363,7 @@ public class CourseController {
     }
 
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @Transactional
     @PostMapping("/{courseId}/remove-student")
     public ResponseEntity<Void> removeStudentFromCourse(@PathVariable UUID courseId, @RequestParam String email) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());

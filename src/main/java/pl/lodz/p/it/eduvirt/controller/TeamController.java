@@ -36,6 +36,7 @@ import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.TeamMapper;
+import pl.lodz.p.it.eduvirt.repository.TeamRepository;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
@@ -63,6 +64,7 @@ public class TeamController {
 
     private final UserRepository userRepository;
     private final TeamAccessKeyRepository teamAccessKeyRepository;
+    private final TeamRepository teamRepository;
 
     /* Mappers */
 
@@ -236,6 +238,63 @@ public class TeamController {
         if (course.getTeachers().contains(user)) {
             Page<Team> teamsPage = teamService.getTeamsByCourse(courseId, pageNumber, pageSize, search, searchType, sortOrder);
 
+            List<TeamWithKeyDto> listOfDTOs = teamsPage.getContent().stream()
+                    .map(team -> {
+                        String keyValue = null;
+                        if (course.getCourseType() == CourseType.TEAM_BASED) {
+                            keyValue = teamAccessKeyRepository.findByTeamId(team.getId())
+                                    .map(TeamAccessKey::getKeyValue)
+                                    .orElse(null);
+                        }
+                        return TeamWithKeyDto.builder()
+                                .id(team.getId())
+                                .name(team.getName())
+                                .active(team.isActive())
+                                .maxSize(team.getMaxSize())
+                                .users(team.getUsers().stream()
+                                        .map(u -> new UserDto(
+                                                u.getId().toString(),
+                                                u.getOVirtId().toString(),
+                                                u.getEmail(),
+                                                u.getUserName(),
+                                                u.getFirstName(),
+                                                u.getLastName()
+                                        )).toList())
+                                .keyValue(keyValue)
+                                .build();
+                    })
+                    .toList();
+
+            PageDto<TeamWithKeyDto> pageDto = new PageDto<>(listOfDTOs,
+                    new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
+                            teamsPage.getTotalPages(), teamsPage.getTotalElements()));
+
+            if (!listOfDTOs.isEmpty()) return ResponseEntity.ok(pageDto);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/course/{courseId}/search-emails")
+    @Transactional
+    @PreAuthorize("hasAuthority('teacher')")
+    public ResponseEntity<PageDto<TeamWithKeyDto>> searchTeamsByEmails(
+            @PathVariable UUID courseId,
+            @RequestParam List<String> emailPrefixes,
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(name = "sort", defaultValue = "ASC") String sortOrder) {
+
+        if (!(sortOrder.equals("ASC") || sortOrder.equals("DESC"))) {
+            sortOrder = "ASC";
+        }
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Course course = courseService.getCourse(courseId);
+
+        if (course.getTeachers().contains(user)) {
+            Page<Team> teamsPage = teamService.findTeamsByEmails(courseId, emailPrefixes, pageNumber, pageSize, sortOrder);
             List<TeamWithKeyDto> listOfDTOs = teamsPage.getContent().stream()
                     .map(team -> {
                         String keyValue = null;

@@ -22,6 +22,8 @@ public interface TeamService {
 
     Page<Team> getTeamsByCourse(UUID courseId, int page, int size, String search, String searchType, String sortOrder);
 
+    Page<Team> findTeamsByEmails(UUID courseId, List<String> emailPrefixes, int page, int size, String sortOrder);
+
     Team getTeamByCourseAndUser(Course course, UUID userId);
 
     List<User> getStudentsInSoloCourse(Course course);
