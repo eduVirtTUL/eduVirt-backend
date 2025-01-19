@@ -298,23 +298,34 @@ public class TeamServiceImpl implements TeamService {
             throw new IncorrectCourseTypeException("Can only delete teams manually from team-based courses");
         }
 
-        teamKeyRepository.deleteByTeamId(team.getId());
+        Team finalTeam = team;
+        team = teamRepository.findById(team.getId())
+                .orElseThrow(() -> new TeamNotFoundException(finalTeam.getId()));
 
         team.getStatefulPods().forEach(pod -> {
             pod.setTeam(null);
             pod.setCourse(null);
-            statefulPodRepository.delete(pod);
+            statefulPodRepository.saveAndFlush(pod);
         });
 
         team.getStatelessPods().forEach(pod -> {
             pod.setTeam(null);
             pod.setCourse(null);
-            statelessPodRepository.delete(pod);
+            statelessPodRepository.saveAndFlush(pod);
         });
 
         team.getStatefulPods().clear();
         team.getStatelessPods().clear();
         team.getUsers().clear();
+
+        teamRepository.saveAndFlush(team);
+
+        TeamAccessKey teamKey = teamKeyRepository.findByTeamId(team.getId())
+                .orElse(null);
+        if (teamKey != null) {
+            teamKeyRepository.delete(teamKey);
+            teamKeyRepository.flush();
+        }
 
         teamRepository.delete(team);
         teamRepository.flush();
