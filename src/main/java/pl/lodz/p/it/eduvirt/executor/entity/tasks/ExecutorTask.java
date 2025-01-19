@@ -7,6 +7,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -15,6 +16,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
@@ -27,7 +29,10 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "executor_task")
+@Table(
+        name = "executor_task",
+        indexes = @Index(name = "executor_task_reservation_id_idx", columnList = "reservation_id")
+)
 @Getter
 @NoArgsConstructor
 public class ExecutorTask extends Updatable {

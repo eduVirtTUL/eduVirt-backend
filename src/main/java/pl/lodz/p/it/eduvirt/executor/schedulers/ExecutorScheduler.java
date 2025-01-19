@@ -48,20 +48,19 @@ import java.util.stream.Collectors;
 // Priority 0
 //IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
 //IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
+
 //IMPROVEMENTS michal: improvements for transactions
 //IMPROVEMENTS michal: LoggerInterceptor on other services
 
 //IMPROVEMENTS michal: block RG cause of previous reservation
 
-//IMPROVEMENTS michal: Check two conflicting invocation of scheduled method (ex. two pod starts) => set UniqueConstraints
-
 // Priority 1
 //IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
-
 //IMPROVEMENTS michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems) (probably no limit)
 
 // Priority 2
 //IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
+//IMPROVEMENTS michal: indexes for sub queries and FK?
 
 @Slf4j
 @Service
