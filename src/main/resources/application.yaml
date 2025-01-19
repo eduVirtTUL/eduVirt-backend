@@ -40,13 +40,23 @@ ovirt:
       file: ${JKS_FILE:ovirte-tst-keystore.jks}
       password: ${JKS_PASSWORD:password}
 
+#auth:
+#  keycloack:
+#    tokenUri: ${KEYCLOAK_TOKEN_URI}
+#    url: ${KEYCLOAK_URL}
+#    clientId: ${KEYCLOAK_CLIENT_ID}
+#    clientSecret: ${KEYCLOAK_CLIENT_SECRET}
+#    redirectUri: ${KEYCLOAK_REDIRECT_URI}
+
 auth:
   keycloack:
-    tokenUri: ${KEYCLOAK_TOKEN_URI}
-    url: ${KEYCLOAK_URL}
+    loginUrl: ${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/${KEYCLOAK_PROTOCOL}/auth
+    logoutUrl: ${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/${KEYCLOAK_PROTOCOL}/logout
+    loginRedirectUrl: ${KEYCLOAK_REDIRECT_LOGIN_URI}
+    logoutRedirectUrl: ${KEYCLOAK_REDIRECT_LOGOUT_URI}
     clientId: ${KEYCLOAK_CLIENT_ID}
+    tokenUrl: ${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/${KEYCLOAK_PROTOCOL}/token
     clientSecret: ${KEYCLOAK_CLIENT_SECRET}
-    redirectUri: ${KEYCLOAK_REDIRECT_URI}
 
 mail:
   default:
@@ -54,6 +64,7 @@ mail:
     language: ${DEFAULT_MAIL_LANGUAGE:pl}
 
 frontend:
+  login: ${FRONTEND_LOGIN}
   callback: ${FRONTEND_CALLBACK}
 
 maintenance-interval:
