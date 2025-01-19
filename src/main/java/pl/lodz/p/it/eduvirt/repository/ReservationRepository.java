@@ -62,6 +62,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
     List<Reservation> findSystemReservations(@Param("start") LocalDateTime start,
                                              @Param("end") LocalDateTime end);
 
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :rg AND r.team = :team " +
             "AND NOT ((r.startTime <= :start AND r.endTime <= :start) " +
             "OR (r.startTime >= :end AND r.endTime >= :end))")
@@ -69,6 +70,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             @Param("rg") ResourceGroup rg, @Param("team") Team team,
             @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT r FROM Reservation r WHERE r.team = :team AND " +
             "r.resourceGroup IN (SELECT rgp.resourceGroups FROM ResourceGroupPool rgp WHERE rgp = :rgp) " +
             "AND NOT ((r.startTime <= :start AND r.endTime <= :start) " +
@@ -77,19 +79,23 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             @Param("rgp") ResourceGroupPool rgp, @Param("team") Team team,
             @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :rg AND r.team = :team")
     List<Reservation> findAllRgReservationsForGivenTeam(@Param("rg") ResourceGroup rg,
                                                         @Param("team") Team team);
 
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :rg AND r.team = :team")
     Page<Reservation> findAllRgReservationsForGivenTeam(@Param("rg") ResourceGroup rg,
                                                         @Param("team") Team team, Pageable pageable);
 
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT r FROM Reservation r WHERE r.team = :team AND " +
             "r.resourceGroup IN (SELECT rgp.resourceGroups FROM ResourceGroupPool rgp WHERE rgp = :rgp)")
     List<Reservation> findAllRgPoolReservationsForGivenTeam(@Param("rgp") ResourceGroupPool rgp,
                                                             @Param("team") Team team);
 
+    @PreAuthorize("isAuthenticated()")
     @Query("SELECT r FROM Reservation r WHERE r.team = :team AND " +
             "r.resourceGroup IN (SELECT rgp.resourceGroups FROM ResourceGroupPool rgp WHERE rgp = :rgp)")
     Page<Reservation> findAllRgPoolReservationsForGivenTeam(@Param("rgp") ResourceGroupPool rgp,

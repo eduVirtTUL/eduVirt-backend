@@ -338,16 +338,26 @@ public class ReservationServiceImpl implements ReservationService {
 
     @PreAuthorize("isAuthenticated()")
     @Override
-    public List<Reservation> findRgReservations(ResourceGroup resourceGroup,
-                                                Course course, LocalDateTime start, LocalDateTime end) {
+    public List<Reservation> findRgReservations(ResourceGroup resourceGroup, LocalDateTime start, LocalDateTime end) {
         return reservationRepository.findRgReservations(resourceGroup, start, end);
     }
 
     @PreAuthorize("isAuthenticated()")
     @Override
-    public List<Reservation> findRgPoolReservations(ResourceGroupPool resourceGroupPool,
-                                                    Course course, LocalDateTime start, LocalDateTime end) {
+    public List<Reservation> findRgPoolReservations(ResourceGroupPool resourceGroupPool, LocalDateTime start, LocalDateTime end) {
         return reservationRepository.findRgPoolReservations(resourceGroupPool, start, end);
+    }
+
+    @PreAuthorize("hasAuthority('student')")
+    @Override
+    public List<Reservation> findRgReservationsForTeam(ResourceGroup resourceGroup, Team team, LocalDateTime start, LocalDateTime end) {
+        return reservationRepository.findRgReservationsForGivenTeam(resourceGroup, team, start, end);
+    }
+
+    @PreAuthorize("hasAuthority('student')")
+    @Override
+    public List<Reservation> findRgPoolReservationsForTeam(ResourceGroupPool resourceGroupPool, Team team, LocalDateTime start, LocalDateTime end) {
+        return reservationRepository.findRgPoolReservationsForGivenTeam(resourceGroupPool, team, start, end);
     }
 
     @PreAuthorize("isAuthenticated()")
