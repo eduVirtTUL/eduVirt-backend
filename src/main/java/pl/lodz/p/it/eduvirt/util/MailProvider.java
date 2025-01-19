@@ -18,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +30,9 @@ public class MailProvider {
 
     @Value("${mail.default.timezone}")
     private String defaultTimezone;
+
+    @Value("${executor.mail.urls.reservations}")
+    private String reservationsBaseUrl;
 
     private final MailHelper mailHelper;
     private final ResourceBundleMessageSource messageSource;
@@ -145,18 +149,21 @@ public class MailProvider {
     }
 
     @PreAuthorize("permitAll()")
-    public void sendReservationEndEmail(String emailTo,
+    public void sendReservationEndEmail(String firstName, String lastName,
+                                        String emailTo,
                                         Reservation reservation,
                                         String timeZone,
                                         String language) {
+        timeZone = Objects.requireNonNullElse(timeZone, defaultTimezone);
+        language = Objects.requireNonNullElse(language, defaultLanguage);
+
         LocalDateTime endTime = OffsetDateTime.of(reservation.getEndTime(), ZoneOffset.UTC)
                 .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
-
         String end = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         String description = messageSource.getMessage("reservationEnd.generalDescription", null, Locale.of(language));
         Map<String, Object> templateModel = Map.of(
-                "name", emailTo,
+                "name", "%s %s".formatted(firstName, lastName),
                 "description", description.formatted(reservation.getNotificationTime()),
                 "teamName", reservation.getTeam().getName(),
                 "resourceGroupName", reservation.getResourceGroup().getName(),
@@ -167,30 +174,28 @@ public class MailProvider {
         mailHelper.sendHtmlEmail(subject, emailTo, "reservationEnd", templateModel, language);
     }
 
-    @Value("${executor.mail.urls.reservations}")
-    private String reservationsBaseUrl;
-
     @PreAuthorize("permitAll()")
-    public void sendReservationStartEmail(String emailTo,
+    public void sendReservationStartEmail(String firstName, String lastName,
+                                          String emailTo,
                                           Reservation reservation,
                                           String timeZone,
                                           String language) {
+        timeZone = Objects.requireNonNullElse(timeZone, defaultTimezone);
+        language = Objects.requireNonNullElse(language, defaultLanguage);
+
         LocalDateTime endTime = OffsetDateTime.of(reservation.getEndTime(), ZoneOffset.UTC)
                 .atZoneSameInstant(ZoneId.of(timeZone)).toLocalDateTime();
-
         String end = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        String description = messageSource.getMessage("reservationEnd.generalDescription", null, Locale.of(language));
+        String description = messageSource.getMessage("reservationStart.generalDescription", null, Locale.of(language));
         Map<String, Object> templateModel = Map.of(
-                "name", emailTo,
+                "name", "%s %s".formatted(firstName, lastName),
                 "description", description.formatted(reservation.getNotificationTime()),
                 "cancelUrl", reservationsBaseUrl + "/" + reservation.getId().toString(),
                 "teamName", reservation.getTeam().getName(),
                 "resourceGroupName", reservation.getResourceGroup().getName(),
                 "scheduledEndTime", end
         );
-
-        //TODO michal getUrl from props
 
         String subject = messageSource.getMessage("reservationStart.subject", null, Locale.of(language));
         mailHelper.sendHtmlEmail(subject, emailTo, "reservationStart", templateModel, language);

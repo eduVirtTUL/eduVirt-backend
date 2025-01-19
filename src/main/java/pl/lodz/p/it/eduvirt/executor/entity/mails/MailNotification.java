@@ -26,9 +26,8 @@ import java.time.ZoneOffset;
 @Entity
 @Table(
         name = "mail_notification",
-        indexes = @Index(name = "mail_notification_reservation_id_idx", columnList = "reservation_id", unique = true)
-//        ,
-//        uniqueConstraints = @UniqueConstraint(name = "reservation_notification_type_unique", columnNames = {"reservation_id", "type"})
+        indexes = @Index(name = "mail_notification_reservation_id_idx", columnList = "reservation_id", unique = false),
+        uniqueConstraints = @UniqueConstraint(name = "reservation_notification_type_unique", columnNames = {"reservation_id", "type"})
 )
 @Getter
 @NoArgsConstructor

@@ -116,6 +116,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                                                     Pageable pageable);
 
 
+
+    //TODO michal r.endTime - (taskTolerance + vmGraceTime)
     @Query("""
             SELECT DISTINCT r FROM Reservation r
             WHERE :probeTime BETWEEN r.startTime AND r.endTime

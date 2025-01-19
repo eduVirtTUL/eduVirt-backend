@@ -28,6 +28,7 @@ public class MailNotificationServiceImpl implements MailNotificationService {
                 .getUsers()
                 .forEach(user ->
                         mailProvider.sendReservationStartEmail(
+                                user.getFirstName(), user.getLastName(),
                                 user.getEmail(),
                                 reservation,
                                 user.getTimeZone(),
@@ -46,6 +47,7 @@ public class MailNotificationServiceImpl implements MailNotificationService {
                 .getUsers()
                 .forEach(user ->
                         mailProvider.sendReservationEndEmail(
+                                user.getFirstName(), user.getLastName(),
                                 user.getEmail(),
                                 reservation,
                                 user.getTimeZone(),
