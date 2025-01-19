@@ -1144,7 +1144,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(userId1)).thenReturn(Optional.of(user1));
@@ -1192,8 +1192,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(userId1));
     }
@@ -1207,7 +1206,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of());
 
         when(userRepository.findById(studentId)).thenReturn(Optional.of(student));
@@ -1221,8 +1220,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(studentId));
     }
@@ -1281,7 +1279,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
@@ -1329,8 +1327,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(adminId));
     }
@@ -1344,7 +1341,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
@@ -1392,8 +1389,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(teacherId1));
     }
@@ -1407,7 +1403,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
@@ -1421,8 +1417,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(teacherId2));
     }
@@ -1436,7 +1431,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(studentId)).thenReturn(Optional.of(student));
@@ -1450,8 +1445,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(studentId));
     }
@@ -1465,7 +1459,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of());
 
         when(userRepository.findById(userId1)).thenReturn(Optional.of(user1));
@@ -1479,8 +1473,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(userId1));
     }
@@ -1494,7 +1487,7 @@ public class ReservationControllerTest {
 
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+        when(reservationService.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
         when(userRepository.findById(studentId)).thenReturn(Optional.empty());
@@ -1508,8 +1501,7 @@ public class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1),
-                Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+        verify(reservationService, times(1)).findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(studentId));
     }
@@ -1526,7 +1518,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation2, reservation4));
 
         when(userRepository.findById(Mockito.eq(userId1))).thenReturn(Optional.of(user1));
@@ -1575,7 +1567,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(userId1));
     }
@@ -1590,8 +1582,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
-                .thenReturn(List.of());
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
 
         when(userRepository.findById(Mockito.eq(userId1))).thenReturn(Optional.of(user1));
 
@@ -1605,7 +1596,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(userId1));
     }
@@ -1668,8 +1659,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
-                .thenReturn(List.of());
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end))).thenReturn(List.of());
 
         when(userRepository.findById(Mockito.eq(studentId))).thenReturn(Optional.empty());
 
@@ -1683,7 +1673,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(studentId));
     }
@@ -1698,7 +1688,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation2, reservation4));
 
         when(userRepository.findById(Mockito.eq(adminId))).thenReturn(Optional.of(admin));
@@ -1747,7 +1737,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(adminId));
     }
@@ -1762,7 +1752,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation2, reservation4));
 
         when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
@@ -1811,7 +1801,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(teacherId1));
     }
@@ -1826,7 +1816,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation2, reservation4));
 
         when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
@@ -1841,7 +1831,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(teacherId2));
     }
@@ -1856,7 +1846,7 @@ public class ReservationControllerTest {
         when(courseService.getCourse(Mockito.eq(course.getId()))).thenReturn(course);
         when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
         when(reservationService.findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end)))
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation2, reservation4));
 
         when(userRepository.findById(Mockito.eq(studentId))).thenReturn(Optional.of(student));
@@ -1871,7 +1861,7 @@ public class ReservationControllerTest {
         verify(courseService, times(1)).getCourse(Mockito.eq(course.getId()));
         verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
         verify(reservationService, times(1)).findRgPoolReservations(
-                Mockito.eq(resourceGroupPool1), Mockito.eq(course), Mockito.eq(start), Mockito.eq(end));
+                Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end));
 
         verify(userRepository, times(1)).findById(Mockito.eq(studentId));
     }

@@ -2027,7 +2027,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
-        List<Reservation> foundReservations = reservationService.findRgReservations(resourceGroup1, course, start, end);
+        List<Reservation> foundReservations = reservationService.findRgReservations(resourceGroup1, start, end);
 
         assertNotNull(foundReservations);
         assertFalse(foundReservations.isEmpty());
@@ -2054,7 +2054,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of());
 
-        List<Reservation> foundReservations = reservationService.findRgReservations(resourceGroup1, course, start, end);
+        List<Reservation> foundReservations = reservationService.findRgReservations(resourceGroup1, start, end);
 
         assertNotNull(foundReservations);
         assertTrue(foundReservations.isEmpty());
@@ -2077,7 +2077,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findRgPoolReservations(Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of(reservation1, reservation3));
 
-        List<Reservation> foundReservations = reservationService.findRgPoolReservations(resourceGroupPool1, course, start, end);
+        List<Reservation> foundReservations = reservationService.findRgPoolReservations(resourceGroupPool1, start, end);
 
         assertNotNull(foundReservations);
         assertFalse(foundReservations.isEmpty());
@@ -2104,7 +2104,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findRgPoolReservations(Mockito.eq(resourceGroupPool1), Mockito.eq(start), Mockito.eq(end)))
                 .thenReturn(List.of());
 
-        List<Reservation> foundReservations = reservationService.findRgPoolReservations(resourceGroupPool1, course, start, end);
+        List<Reservation> foundReservations = reservationService.findRgPoolReservations(resourceGroupPool1, start, end);
 
         assertNotNull(foundReservations);
         assertTrue(foundReservations.isEmpty());

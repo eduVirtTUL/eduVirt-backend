@@ -22,8 +22,11 @@ public interface ReservationService {
 
     Optional<Reservation> findReservationById(UUID reservationId);
 
-    List<Reservation> findRgReservations(ResourceGroup resourceGroup, Course course, LocalDateTime start, LocalDateTime end);
-    List<Reservation> findRgPoolReservations(ResourceGroupPool resourceGroupPool, Course course, LocalDateTime start, LocalDateTime end);
+    List<Reservation> findRgReservations(ResourceGroup resourceGroup, LocalDateTime start, LocalDateTime end);
+    List<Reservation> findRgPoolReservations(ResourceGroupPool resourceGroupPool, LocalDateTime start, LocalDateTime end);
+
+    List<Reservation> findRgReservationsForTeam(ResourceGroup resourceGroup, Team team, LocalDateTime start, LocalDateTime end);
+    List<Reservation> findRgPoolReservationsForTeam(ResourceGroupPool resourceGroupPool, Team team, LocalDateTime start, LocalDateTime end);
 
     Page<Reservation> findReservationsForStatelessPod(PodStateless statelessPod, Team team, Pageable pageable);
     Page<Reservation> findReservationsForStatefulPod(PodStateful statefulPod, Team team, Pageable pageable);
