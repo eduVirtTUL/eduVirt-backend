@@ -40,6 +40,7 @@ import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.exceptions.TeacherSelfModificationException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
@@ -398,6 +399,11 @@ public class CourseController {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        if (user.getEmail().equals(emailDto.getEmail())) {
+            throw new TeacherSelfModificationException("Teacher cannot add themselves to a course");
+        }
+        
         Course course = courseService.getCourse(courseId);
 
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
@@ -422,6 +428,11 @@ public class CourseController {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        if (user.getEmail().equals(emailDto.getEmail())) {
+            throw new TeacherSelfModificationException("Teacher cannot remove themselves from a course");
+        }
+
         Course course = courseService.getCourse(courseId);
 
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()

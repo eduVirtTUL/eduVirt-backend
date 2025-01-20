@@ -29,20 +29,18 @@ public class I18n {
     /* User keys */
 
     public static final String USER_NOT_FOUND = "user.not.found";
-    public static final String USERS_NOT_FOUND = "users.not.found";
     public static final String USER_NOT_AUTHORIZED = "user.not.authorized";
     public static final String USER_NAME_ALREADY_EXISTS = "user.name.already.exists";
+    public static final String TEACHER_SELF_MODIFICATION_EXCEPTION = "teacher.self.modification.exception";
 
     /* Team keys */
 
     public static final String TEAM_NOT_FOUND = "team.not.found";
     public static final String TEAM_NOT_FOUND_IN_COURSE = "team.not.found.in.course";
     public static final String TEAM_ALREADY_EXISTS = "team.already.exists";
-    public static final String TEAM_INVALID_SIZE = "team.invalid.size";
     public static final String TEAM_NOT_ACTIVE = "team.not.active";
     public static final String TEAM_USER_NOT_MEMBER = "team.user.not.member";
     public static final String TEAM_USER_ALREADY_MEMBER = "team.user.already.member";
-    public static final String TEAM_USER_ALREADY_IN_COURSE = "team.user.already.in.course";
     public static final String TEAM_VALIDATION = "team.validation.exception";
     public static final String INCORRECT_TEAM_TYPE = "incorrect.team.type.exception";
     public static final String USER_ALREADY_IN_COURSE = "team.size.exception";
@@ -78,13 +76,6 @@ public class I18n {
     public static final String POD_NOT_FOUND = "pod.not.found";
     public static final String POD_ALREADY_EXISTS = "pod.already.exists";
     public static final String POD_INVALID_TYPE = "pod.invalid.type";
-
-    /* AccessKey */
-
-    public static final String DUPLICATE_KEY_VALUE = "duplicate.key.value.exception";
-    public static final String ACCESS_KEY_NOT_FOUND = "access.key.not.found.exception";
-    public static final String INCORRECT_KEY_TYPE = "incorrect.key.type.exception";
-    ;
 
     /* Reservation keys */
 
@@ -141,4 +132,6 @@ public class I18n {
     public static final String ACCESS_KEY_INVALID_TYPE = "access.key.invalid.type";
     public static final String ACCESS_KEY_DUPLICATE = "access.key.duplicate";
     public static final String ACCESS_KEY_COULD_NOT_BE_GENERATED = "access.key.could.not.be.generated";
+    public static final String ACCESS_KEY_NOT_FOUND = "access.key.not.found.exception";
+
 }
