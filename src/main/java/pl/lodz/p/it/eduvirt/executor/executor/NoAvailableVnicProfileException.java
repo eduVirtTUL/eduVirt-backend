@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.exceptions.executor;
+package pl.lodz.p.it.eduvirt.executor.executor;
 
 public class NoAvailableVnicProfileException extends ExecutorBaseException {
 

@@ -18,9 +18,9 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
-import pl.lodz.p.it.eduvirt.exceptions.executor.NoAvailableVnicProfileException;
-import pl.lodz.p.it.eduvirt.exceptions.executor.VmInvalidStatusException;
-import pl.lodz.p.it.eduvirt.exceptions.executor.VmLaunchingStatusException;
+import pl.lodz.p.it.eduvirt.executor.executor.NoAvailableVnicProfileException;
+import pl.lodz.p.it.eduvirt.executor.executor.VmInvalidStatusException;
+import pl.lodz.p.it.eduvirt.executor.executor.VmLaunchingStatusException;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.AdditionalId;
@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 // Priority 0
 //IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
 //IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
+//IMPROVEMENTS michal: Check two conflicting invocation of scheduled method (ex. two pod starts) => set UniqueConstraints (when some tasks wait more then one minute i forEach)
 
 //IMPROVEMENTS michal: improvements for transactions
 //IMPROVEMENTS michal: LoggerInterceptor on other services
