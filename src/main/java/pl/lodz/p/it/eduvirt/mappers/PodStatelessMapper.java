@@ -14,7 +14,6 @@ import pl.lodz.p.it.eduvirt.entity.PodStateless;
 @Mapper(componentModel = "spring")
 public interface PodStatelessMapper {
 
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "team", ignore = true)
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "resourceGroupPool", ignore = true)

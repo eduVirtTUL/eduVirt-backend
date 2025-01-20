@@ -19,6 +19,7 @@ import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.repository.TeamRepository;
 import pl.lodz.p.it.eduvirt.service.PodStatelessService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,6 +58,56 @@ public class PodStatelessServiceImpl implements PodStatelessService {
         team.addStatelessPod(pod);
 
         return podStatelessRepository.saveAndFlush(pod);
+    }
+
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @Transactional
+    public List<PodStateless> createStatelessPodsBatch(List<PodStateless> pods, List<UUID> teamIds, List<UUID> resourceGroupPoolIds) {
+        if (pods.size() != teamIds.size() || pods.size() != resourceGroupPoolIds.size()) {
+            throw new IllegalArgumentException("Lists must be of equal size");
+        }
+
+        List<PodStateless> createdPods = new ArrayList<>();
+
+        for (int i = 0; i < pods.size(); i++) {
+            final int index = i;
+            Team team = teamRepository.findById(teamIds.get(index))
+                    .orElseThrow(() -> new TeamNotFoundException(teamIds.get(index)));
+
+            ResourceGroupPool resourceGroupPool = resourceGroupPoolRepository.findById(resourceGroupPoolIds.get(i))
+                    .orElseThrow(() -> new CourseNotFoundException(resourceGroupPoolIds.get(index)));
+
+            if (resourceGroupPool.getCourse() != team.getCourse()) {
+                throw new InvalidPodTypeException("Resource group pool does not belong to the course the team is in");
+            }
+
+            if (podStatelessRepository.existsByResourceGroupPoolIdAndTeamId(resourceGroupPool.getId(), team.getId())) {
+                continue;
+            }
+
+            PodStateless pod = pods.get(i);
+            pod.setResourceGroupPool(resourceGroupPool);
+            pod.setTeam(team);
+            pod.setCourse(team.getCourse());
+
+            team.addStatelessPod(pod);
+            createdPods.add(podStatelessRepository.saveAndFlush(pod));
+        }
+
+        return createdPods;
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @Transactional
+    public void deleteStatelessPodsBatch(List<UUID> podIds) {
+        List<PodStateless> pods = podStatelessRepository.findAllById(podIds);
+        if (pods.size() != podIds.size()) {
+            throw new PodNotFoundException("One or more pods not found");
+        }
+        podStatelessRepository.deleteAllById(podIds);
     }
 
     @Override
