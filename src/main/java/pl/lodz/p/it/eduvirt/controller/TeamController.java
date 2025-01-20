@@ -310,6 +310,7 @@ public class TeamController {
     }
 
     @GetMapping("/course/{courseId}/search-emails")
+    @Transactional
     @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<PageDto<TeamWithKeyDto>> searchTeamsByEmails(
             @PathVariable UUID courseId,

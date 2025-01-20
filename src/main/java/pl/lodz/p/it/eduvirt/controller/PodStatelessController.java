@@ -51,6 +51,7 @@ public class PodStatelessController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create new stateless pod", description = "Creates a new stateless pod for the specified team and resource group pool")
+    @Transactional
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pod created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request data"),
@@ -121,6 +122,7 @@ public class PodStatelessController {
 
     @GetMapping(path = "/course/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Get course pods", description = "Retrieves all stateless pods for a specific course")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pods retrieved successfully"),
             @ApiResponse(responseCode = "204", description = "No pods found"),
@@ -183,6 +185,7 @@ public class PodStatelessController {
     }
 
     @DeleteMapping("/{podId}")
+    @Transactional
     @Operation(summary = "Delete pod", description = "Deletes a specific stateless pod")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Pod deleted successfully"),

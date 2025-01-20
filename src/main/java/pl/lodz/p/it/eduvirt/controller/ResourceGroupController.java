@@ -49,15 +49,6 @@ public class ResourceGroupController {
         return ResponseEntity.ok().eTag(etag).body(resourceGroupMapper.toDto(resourceGroup));
     }
 
-    @GetMapping("/assigned")
-    public ResponseEntity<List<ResourceGroupDto>> getAssignedStatefulResourceGroups() {
-        return ResponseEntity.ok(
-                resourceGroupMapper.toDtos(
-                        resourceGroupService.getAssignedStatefulResourceGroups().stream()
-                )
-        );
-    }
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> deleteResourceGroup(@PathVariable UUID id) {

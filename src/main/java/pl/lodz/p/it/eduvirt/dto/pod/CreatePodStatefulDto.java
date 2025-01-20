@@ -1,7 +1,8 @@
 package pl.lodz.p.it.eduvirt.dto.pod;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 import java.util.UUID;
 
@@ -12,6 +13,8 @@ public record CreatePodStatefulDto(
         @NotNull(message = "pods.validation.null.rg.id")
         UUID resourceGroupId,
 
-        @Size(min=0, max=1000, message = "pods.validation.max.rent.invalid")
+        @Min(value = 1, message = "pods.validation.min.rent.invalid")
+        @Max(value = 100, message = "pods.validation.min.rent.invalid")
         Integer maxRent
-) {}
+) {
+}

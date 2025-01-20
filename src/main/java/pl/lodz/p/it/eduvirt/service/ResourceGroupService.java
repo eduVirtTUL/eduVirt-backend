@@ -18,8 +18,6 @@ public interface ResourceGroupService {
 
     ResourceGroup getResourceGroup(UUID id);
 
-    List<ResourceGroup> getAssignedStatefulResourceGroups();
-
     List<Vm> findAvailableVms(UUID rgId);
 
     void deleteResourceGroup(UUID id);

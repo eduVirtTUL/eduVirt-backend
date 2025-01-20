@@ -54,6 +54,7 @@ public class PodStatefulController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @Transactional
     @Operation(summary = "Create new stateful pod", description = "Creates a new stateful pod for the specified team and resource group")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pod created successfully"),
@@ -126,6 +127,7 @@ public class PodStatefulController {
 
     @GetMapping(path = "/course/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @Transactional
     @Operation(summary = "Get course pods", description = "Retrieves all stateful pods for a specific course")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pods retrieved successfully"),
@@ -157,8 +159,9 @@ public class PodStatefulController {
     }
 
     @DeleteMapping("/{podId}")
+    @Transactional
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
-    @Operation(summary = "Delete pod", description = "Deletes a specific stateful pod")
+    @Operation(summary = "Delete stateful pod", description = "Deletes a specific stateful pod")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Pod deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Pod not found"),
