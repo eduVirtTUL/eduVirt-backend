@@ -24,10 +24,10 @@ public interface ExecutorTaskRepository extends JpaRepository<ExecutorTask, UUID
             JOIN FETCH e.reservation.resourceGroup.vms
             WHERE e.type = 'POD_DESTRUCT'
             AND e.status = 'SUCCESSFUL'
-            AND e.updatedAt <= :probeTime
+            AND e.updatedAt <= :probeTimeWithGraceTime
             AND e.reservation.status != 'COMPLETED'
             """)
-    List<ExecutorTask> findReservationsToEndTasks(@Param("probeTime") LocalDateTime probeTime);
+    List<ExecutorTask> findReservationsToEndTasks(@Param("probeTimeWithGraceTime") LocalDateTime probeTimeWithGraceTime);
 
     @Query("SELECT e FROM ExecutorTask e WHERE e.status = 'IN_PROGRESS'")
     List<ExecutorTask> findReservationsInProgressTasks();

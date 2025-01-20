@@ -81,6 +81,7 @@ jws:
   secret: ${JWS_SECRET}
 
 executor:
+  task-time-tolerance: ${EXECUTOR_TASK_TIME_TOLERANCE:3}
   vm:
     grace-time: ${EXECUTOR_VM_SHUTDOWN_GRACE_TIME:2}
   mail:

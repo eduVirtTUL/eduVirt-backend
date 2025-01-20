@@ -10,11 +10,18 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import pl.lodz.p.it.eduvirt.entity.HistoricalData;
+import pl.lodz.p.it.eduvirt.entity.Updatable;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,7 +32,7 @@ import java.util.UUID;
 @DiscriminatorColumn(name = "kind")
 @Getter
 @NoArgsConstructor
-public abstract class ExecutorSubtask extends HistoricalData {
+public abstract class ExecutorSubtask extends Updatable {
 
     public enum SubtaskType {
         CHECK_VMS_STATUSES,
@@ -43,7 +50,6 @@ public abstract class ExecutorSubtask extends HistoricalData {
     )
     private ExecutorTask executorTask;
 
-    /// todo michal maybe change it to VirtualMachine entity -> Foreign Key
     @Column(name = "vm_id", updatable = false, nullable = true)
     private UUID vmId;
 
@@ -57,25 +63,32 @@ public abstract class ExecutorSubtask extends HistoricalData {
     @Column(name = "description", updatable = true, nullable = true, length = 200)
     private String description;
 
-    // Constructors
+    @Column(name = "_created_at", updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime createdAt;
+
+    @Column(name = "_updated_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime updatedAt;
+
+    /* Constructors */
 
     public ExecutorSubtask(ExecutorTask executorTask,
                            UUID vmId,
                            SubtaskType type) {
         this.executorTask = executorTask;
-        //TODO michal maybe validate it with VMs in RG, but maybeeeee
         this.vmId = vmId;
         this.type = type;
     }
 
-    // Custom Getters
+    /* Custom Getters */
 
     public Boolean getSuccessful() {
         return Optional.ofNullable(successful).orElse(false);
     }
 
 
-    // Other methods
+    /* Custom setters */
 
     public void setSuccessful(Boolean successful) {
         if (Objects.isNull(this.successful)) {
@@ -91,5 +104,17 @@ public abstract class ExecutorSubtask extends HistoricalData {
         } else {
             throw new IllegalStateException("Cannot override subtask description");
         }
+    }
+
+    /* Other methods */
+
+    @PrePersist
+    public void changeCreateData() {
+        this.createdAt = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+    }
+
+    @PreUpdate
+    public void changeUpdateData() {
+        this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
     }
 }

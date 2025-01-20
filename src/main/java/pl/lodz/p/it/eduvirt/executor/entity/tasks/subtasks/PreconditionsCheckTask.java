@@ -20,7 +20,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class PreconditionsCheckTask extends ExecutorSubtask {
 
-    // Constructors
+    /* Constructors */
 
     public PreconditionsCheckTask(ExecutorTask executorTask) {
         super(
