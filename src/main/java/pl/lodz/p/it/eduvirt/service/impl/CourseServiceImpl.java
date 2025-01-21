@@ -124,7 +124,7 @@ public class CourseServiceImpl implements CourseService {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
         Course course = courseRepository.findByIdAndTeachersContaining(courseId, user).orElseThrow(() -> new CourseNotFoundException(courseId));
         resourceGroup.setStateless(false);
-        course.getStateFullResourceGroups().add(resourceGroup);
+        course.getStateFulResourceGroups().add(resourceGroup);
         courseRepository.save(course);
     }
 
@@ -141,7 +141,7 @@ public class CourseServiceImpl implements CourseService {
         }
 
         return course
-                .getStateFullResourceGroups();
+                .getStateFulResourceGroups();
     }
 
     @Override
@@ -252,7 +252,7 @@ public class CourseServiceImpl implements CourseService {
         if (resourceGroup.isStateless()) {
             course = resourceGroupPoolRepository.findByResourceGroupsContaining(resourceGroup).getCourse();
         } else {
-            course = courseRepository.findByStateFullResourceGroupsContaining(resourceGroup);
+            course = courseRepository.findByStateFulResourceGroupsContaining(resourceGroup);
         }
 
         return course;

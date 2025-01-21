@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.proxy.HibernateProxy;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,7 +19,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class HistoricalData extends Updatable {
+public abstract class HistoricalData extends Updatable {
 
     @Column(name = "created_by", updatable = false)
     private UUID createdBy;
@@ -35,7 +37,7 @@ public class HistoricalData extends Updatable {
 
     /* Constructors */
 
-    public HistoricalData(Long version) {
+    protected HistoricalData(Long version) {
         super(version);
     }
 
@@ -55,5 +57,21 @@ public class HistoricalData extends Updatable {
                 .map(Principal::getName).orElse("00000000-0000-0000-0000-000000000000");
         this.updatedBy = UUID.fromString(performerId);
         this.updatedAt = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass()) return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        HistoricalData that = (HistoricalData) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return this instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
 }

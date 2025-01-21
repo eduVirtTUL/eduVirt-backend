@@ -11,10 +11,10 @@ import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDtoWthEtag;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupAlreadyExists;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.NicMapper;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.OVirtVmService;
@@ -144,7 +144,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
         if (resourceGroup.isStateless()) {
             clusterId = resourceGroupPoolRepository.findByResourceGroupsContaining(resourceGroup).getCourse().getClusterId();
         } else {
-            clusterId = courseRepository.findByStateFullResourceGroupsContaining(resourceGroup).getClusterId();
+            clusterId = courseRepository.findByStateFulResourceGroupsContaining(resourceGroup).getClusterId();
         }
 
         return oVirtVmService.findVms().stream()
@@ -159,8 +159,8 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
         validateOwnership(resourceGroup);
 
         if (!resourceGroup.isStateless()) {
-            Course course = courseRepository.findByStateFullResourceGroupsContaining(resourceGroup);
-            course.getStateFullResourceGroups().remove(resourceGroup);
+            Course course = courseRepository.findByStateFulResourceGroupsContaining(resourceGroup);
+            course.getStateFulResourceGroups().remove(resourceGroup);
             courseRepository.save(course);
         } else {
             resourceGroupRepository.deleteById(id);
@@ -190,8 +190,8 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
             existingResourceGroup.setDescription(resourceGroup.getDescription());
             existingResourceGroup.setMaxRentTime(resourceGroup.getMaxRentTime());
 
-            Course course = courseRepository.findByStateFullResourceGroupsContaining(existingResourceGroup);
-            isNameTaken = course.getStateFullResourceGroups().stream().anyMatch(rg ->
+            Course course = courseRepository.findByStateFulResourceGroupsContaining(existingResourceGroup);
+            isNameTaken = course.getStateFulResourceGroups().stream().anyMatch(rg ->
                     Objects.equals(rg.getName(), resourceGroup.getName())
                             && !Objects.equals(rg.getId(), existingResourceGroup.getId()));
         }
@@ -243,7 +243,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
             ResourceGroupPool pool = resourceGroupPoolRepository.findByResourceGroupsContaining(resourceGroup);
             isOwner = courseRepository.existsCourseForTeacher(pool.getCourse().getId(), userId);
         } else {
-            Course course = courseRepository.findByStateFullResourceGroupsContaining(resourceGroup);
+            Course course = courseRepository.findByStateFulResourceGroupsContaining(resourceGroup);
             isOwner = courseRepository.existsCourseForTeacher(course.getId(), userId);
         }
         return isOwner;
