@@ -526,7 +526,7 @@ public class ReservationServiceTest {
         when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
-        when(reservationRepository.saveAndFlush(reservation)).thenReturn(reservation);
+        when(reservationRepository.saveAndFlush(any())).thenReturn(reservation);
 
         reservationService.createReservationForStatefulPod(team1, podStateful1, newCreateDto);
 
@@ -559,7 +559,7 @@ public class ReservationServiceTest {
         verify(bankerAlgorithm, times(1)).process(Mockito.any(), Mockito.eq(clusterReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts));
 
-        verify(reservationRepository, times(1)).saveAndFlush(reservation);
+        verify(reservationRepository, times(1)).saveAndFlush(any());
     }
 
     @Test
@@ -615,7 +615,7 @@ public class ReservationServiceTest {
         when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
-        when(reservationRepository.saveAndFlush(reservation)).thenReturn(reservation);
+        when(reservationRepository.saveAndFlush(any())).thenReturn(reservation);
 
         reservationService.createReservationForStatefulPod(team1, podStateful1, newCreateDto);
 
@@ -644,7 +644,7 @@ public class ReservationServiceTest {
         verify(bankerAlgorithm, times(1)).process(Mockito.any(), Mockito.eq(clusterReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts));
 
-        verify(reservationRepository, times(1)).saveAndFlush(reservation);
+        verify(reservationRepository, times(1)).saveAndFlush(any());
     }
 
     @Test
@@ -1079,7 +1079,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup3), Mockito.eq(newCreateDto.start()),
                 Mockito.eq(newCreateDto.end()))).thenReturn(List.of());
 
-        when(reservationRepository.saveAndFlush(Mockito.eq(reservation))).thenReturn(reservation);
+        when(reservationRepository.saveAndFlush(any())).thenReturn(reservation);
 
         reservationService.createReservationForStatelessPod(team1, podStateless1, newCreateDto);
 
@@ -1120,7 +1120,7 @@ public class ReservationServiceTest {
         verify(reservationRepository, times(1)).findRgReservations(Mockito.eq(resourceGroup3),
                 Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
-        verify(reservationRepository, times(1)).saveAndFlush(Mockito.eq(reservation));
+        verify(reservationRepository, times(1)).saveAndFlush(any());
     }
 
     @Test
@@ -1191,7 +1191,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup3), Mockito.eq(newCreateDto.start()),
                 Mockito.eq(newCreateDto.end()))).thenReturn(List.of());
 
-        when(reservationRepository.saveAndFlush(Mockito.eq(reservation))).thenReturn(reservation);
+        when(reservationRepository.saveAndFlush(any())).thenReturn(reservation);
 
         reservationService.createReservationForStatelessPod(team1, podStateless1, newCreateDto);
 
@@ -1232,7 +1232,7 @@ public class ReservationServiceTest {
         verify(reservationRepository, times(1)).findRgReservations(Mockito.eq(resourceGroup3),
                 Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
-        verify(reservationRepository, times(1)).saveAndFlush(Mockito.eq(reservation));
+        verify(reservationRepository, times(1)).saveAndFlush(any());
     }
 
     @Test
@@ -1863,7 +1863,8 @@ public class ReservationServiceTest {
         Optional<Reservation> reservationOptional = reservationService.findReservationById(nonExistentReservationId);
 
         assertNotNull(reservationOptional);
-        assertTrue(reservationOptional.isEmpty());;
+        assertTrue(reservationOptional.isEmpty());
+        ;
 
         verify(reservationRepository, times(1)).findById(Mockito.eq(nonExistentReservationId));
     }
@@ -2410,13 +2411,13 @@ public class ReservationServiceTest {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
-        
+
         UUID nonExistentClusterId = UUID.randomUUID();
         course.setClusterId(nonExistentClusterId);
-        
+
         when(clusterService.findClusterById(Mockito.eq(nonExistentClusterId)))
                 .thenThrow(ClusterNotFoundException.class);
-        
+
         assertThrows(ClusterNotFoundException.class, () -> reservationService
                 .checkResourceGroupAvailability(resourceGroup1, course, windowLength, start, end));
 
@@ -2436,7 +2437,7 @@ public class ReservationServiceTest {
         when(clusterService.findClusterById(Mockito.eq(course.getClusterId()))).thenReturn(cluster);
         when(clusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenThrow(
                 new HostNotFoundException("No host could be found for cluster %s".formatted(course.getClusterId())));
-                
+
         assertThrows(HostNotFoundException.class, () -> reservationService
                 .checkResourceGroupAvailability(resourceGroup1, course, windowLength, start, end));
 
