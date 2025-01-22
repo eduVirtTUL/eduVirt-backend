@@ -33,7 +33,7 @@ import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.ClusterMetricMapper;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
-import pl.lodz.p.it.eduvirt.service.impl.OVirtClusterServiceImpl;
+import pl.lodz.p.it.eduvirt.service.ovirt.impl.OVirtClusterServiceImpl;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -254,7 +254,8 @@ public class ClusterMetricControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        PageDto<MetricValueDto> foundPage = mapper.readValue(json, new TypeReference<>() {});
+        PageDto<MetricValueDto> foundPage = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundPage);
         assertNotNull(foundPage.page());

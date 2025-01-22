@@ -14,7 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import pl.lodz.p.it.eduvirt.exceptions.*;
-import pl.lodz.p.it.eduvirt.service.impl.OVirtClusterServiceImpl;
+import pl.lodz.p.it.eduvirt.service.ovirt.impl.OVirtClusterServiceImpl;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;

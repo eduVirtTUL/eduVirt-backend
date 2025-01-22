@@ -9,7 +9,7 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.permission.OvirtUserPermissionDto;
 import pl.lodz.p.it.eduvirt.dto.permission.VmPermissionDto;
 import pl.lodz.p.it.eduvirt.mappers.PermissionMapper;
-import pl.lodz.p.it.eduvirt.service.OVirtPermissionService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtPermissionService;
 
 import java.util.List;
 import java.util.UUID;

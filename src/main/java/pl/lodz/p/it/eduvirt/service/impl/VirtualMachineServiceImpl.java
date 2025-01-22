@@ -17,7 +17,7 @@ import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineConflictExc
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
