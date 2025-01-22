@@ -14,7 +14,7 @@ import pl.lodz.p.it.eduvirt.dto.user.OVirtUserWithPermissionsDto;
 
 import pl.lodz.p.it.eduvirt.dto.user.OvirtUserDto;
 import pl.lodz.p.it.eduvirt.mappers.OVirtUserMapper;
-import pl.lodz.p.it.eduvirt.service.OVirtUserService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtUserService;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,7 +28,7 @@ public class OVirtUserController {
     private final OVirtUserService ovirtUserService;
     private final OVirtUserMapper OVirtUserMapper;
 
-    @GetMapping(path="/permissions",  produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/permissions", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAllUsersWithPermissions() {
         List<User> foundUsers = ovirtUserService.getAllUsersWithPermissions();
         List<OVirtUserWithPermissionsDto> userDtos = foundUsers.stream()
@@ -62,7 +62,7 @@ public class OVirtUserController {
     public ResponseEntity<?> getUserByPrincipal(@PathVariable("principal") String principal) {
         User foundUser = ovirtUserService.getUserByPrincipal(principal);
         OVirtUserWithPermissionsDto userDto = OVirtUserMapper.ovirtUserWithPermissionsToUserDto(foundUser);
-        
+
         return ResponseEntity.ok(userDto);
     }
 

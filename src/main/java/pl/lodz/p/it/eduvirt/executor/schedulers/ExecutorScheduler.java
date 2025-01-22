@@ -27,8 +27,8 @@ import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.AdditionalId;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 import pl.lodz.p.it.eduvirt.executor.service.MailNotificationService;
-import pl.lodz.p.it.eduvirt.service.OVirtPermissionService;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtPermissionService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
@@ -519,7 +519,8 @@ public class ExecutorScheduler {
 
         vms.forEach(vm -> {
                     switch (vm.status()) {
-                        case DOWN, POWERING_DOWN, IMAGE_LOCKED -> {}
+                        case DOWN, POWERING_DOWN, IMAGE_LOCKED -> {
+                        }
                         case UP, MIGRATING, RESTORING_STATE,
                              SAVING_STATE, SUSPENDED, PAUSED,
                              NOT_RESPONDING, UNASSIGNED, UNKNOWN -> invalidStatuses.add(vm);

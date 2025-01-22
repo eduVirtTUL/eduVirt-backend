@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.service.impl;
+package pl.lodz.p.it.eduvirt.service.ovirt.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.service;
+package pl.lodz.p.it.eduvirt.service.ovirt;
 
 import org.ovirt.engine.sdk4.types.Event;
 import org.ovirt.engine.sdk4.types.Nic;
@@ -20,6 +20,7 @@ public interface OVirtVmService {
     Map<String, Object> findVmResources(Vm vm, Qos qos, Host host, Cluster cluster);
 
     Vm findVmWithCpuProfileById(String id);
+
     Vm findVmById(String id);
 
     List<Vm> findVmsForCluster(Cluster cluster);

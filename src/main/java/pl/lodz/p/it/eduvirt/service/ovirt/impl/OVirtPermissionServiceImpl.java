@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.service.impl;
+package pl.lodz.p.it.eduvirt.service.ovirt.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
@@ -9,7 +9,7 @@ import org.ovirt.engine.sdk4.types.Permission;
 import org.springframework.stereotype.Service;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.exceptions.permission.*;
-import pl.lodz.p.it.eduvirt.service.OVirtPermissionService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtPermissionService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
 import java.util.List;

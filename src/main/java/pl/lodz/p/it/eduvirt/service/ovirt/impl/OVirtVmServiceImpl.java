@@ -1,23 +1,15 @@
-package pl.lodz.p.it.eduvirt.service.impl;
+package pl.lodz.p.it.eduvirt.service.ovirt.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.internal.containers.NicContainer;
 import org.ovirt.engine.sdk4.internal.containers.VnicProfileContainer;
+import org.ovirt.engine.sdk4.services.EventsService;
 import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.services.VmService;
-import org.ovirt.engine.sdk4.types.CpuTopology;
-import org.ovirt.engine.sdk4.types.Event;
-import org.ovirt.engine.sdk4.types.Nic;
-import org.ovirt.engine.sdk4.types.Qos;
-import org.ovirt.engine.sdk4.types.Statistic;
-import org.ovirt.engine.sdk4.types.Vm;
-import org.ovirt.engine.sdk4.types.VnicProfile;
-import org.ovirt.engine.sdk4.types.Host;
-import org.ovirt.engine.sdk4.types.Cluster;
-import org.ovirt.engine.sdk4.services.EventsService;
 import org.ovirt.engine.sdk4.services.VmsService;
+import org.ovirt.engine.sdk4.types.*;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,16 +20,11 @@ import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.EventNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.VmNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -117,7 +104,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .send()
                     .vm();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new VmNotFoundException("No VM could be found!");
         }
     }
 

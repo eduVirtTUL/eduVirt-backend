@@ -8,7 +8,7 @@ import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.AuthService;
-import pl.lodz.p.it.eduvirt.service.OVirtUserService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtUserService;
 import pl.lodz.p.it.eduvirt.util.jwt.AccessToken;
 import pl.lodz.p.it.eduvirt.util.jwt.JwtHelper;
 
