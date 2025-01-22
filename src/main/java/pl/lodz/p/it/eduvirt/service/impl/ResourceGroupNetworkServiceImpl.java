@@ -61,7 +61,7 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
         if (resourceGroup.isStateless()) {
             course = resourceGroupPoolRepository.findByResourceGroupsContaining(resourceGroup).getCourse();
         } else {
-            course = courseRepository.findByStateFulResourceGroupsContaining(resourceGroup);
+            course = courseRepository.findByStateFullResourceGroupsContaining(resourceGroup);
         }
 
 

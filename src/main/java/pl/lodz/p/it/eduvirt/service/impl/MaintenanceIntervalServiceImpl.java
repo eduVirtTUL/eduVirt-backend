@@ -58,7 +58,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         if (beginAt.isBefore(currentTime.plusHours(maintenanceIntervalMinAhead)))
             throw new MaintenanceIntervalInvalidTimeWindowException(
-                    I18n.MAINTENANCE_INTERVAL_BEGIN_TOO_EARLY);
+                    I18n.MAINTENANCE_INTERVAL_BEGIN_AT_PAST);
 
         UUID clusterId = UUID.fromString(cluster.id());
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
@@ -75,7 +75,29 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         List<Reservation> foundReservations = reservationRepository
                 .findClusterReservations(clusterId, beginAt, endAt);
 
-        handleConflictingReservations(currentTime, maintenanceInterval, foundReservations);
+        foundReservations.stream().filter(reservation -> reservation.getStartTime().isBefore(currentTime)).forEach(reservation -> {
+            List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
+            /* Send e-mail notification*/
+            userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationShortenedEmail(
+                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, user.getTimeZone(), user.getLanguage()
+            )));
+
+            /* Save edited reservation */
+            reservationRepository.saveAndFlush(reservation);
+        });
+
+        foundReservations.stream().filter(reservation -> !reservation.getStartTime().isBefore(currentTime)).forEach(reservation -> {
+            List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
+            /* Send e-mail notification*/
+            userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
+                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, user.getTimeZone(), user.getLanguage()
+            )));
+
+            /* Delete reservation */
+            reservationRepository.delete(reservation);
+        });
+
+        maintenanceIntervalRepository.saveAndFlush(maintenanceInterval);
     }
 
     @PreAuthorize("hasAuthority('administrator')")
@@ -87,7 +109,7 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         if (beginAt.isBefore(currentTime.plusHours(maintenanceIntervalMinAhead)))
             throw new MaintenanceIntervalInvalidTimeWindowException(
-                    I18n.MAINTENANCE_INTERVAL_BEGIN_TOO_EARLY);
+                    I18n.MAINTENANCE_INTERVAL_BEGIN_AT_PAST);
 
         List<MaintenanceInterval> foundIntervals = maintenanceIntervalRepository
                 .findAllIntervalsInGivenTimePeriod(beginAt, endAt, MaintenanceInterval.IntervalType.SYSTEM, null);
@@ -103,23 +125,9 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         List<Reservation> foundReservations = reservationRepository
                 .findSystemReservations(beginAt, endAt);
 
-        handleConflictingReservations(currentTime, maintenanceInterval, foundReservations);
-    }
-
-    private void handleConflictingReservations(LocalDateTime currentTime, MaintenanceInterval maintenanceInterval, List<Reservation> foundReservations) {
-        foundReservations.stream().filter(reservation -> reservation.getStartTime().isBefore(currentTime)).forEach(reservation -> {
+        foundReservations.forEach(reservation -> {
             List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
-            /* Send e-mail notification*/
-            userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationShortenedEmail(
-                    user.getFirstName(), user.getLastName(), user.getEmail(), reservation, user.getTimeZone(), user.getLanguage()
-            )));
 
-            /* Save edited reservation */
-            reservationRepository.saveAndFlush(reservation);
-        });
-
-        foundReservations.stream().filter(reservation -> !reservation.getStartTime().isBefore(currentTime)).forEach(reservation -> {
-            List<UUID> userIds = reservation.getTeam().getUsers().stream().map(User::getId).toList();
             /* Send e-mail notification*/
             userIds.forEach(userId -> userRepository.findById(userId).ifPresent(user -> mailProvider.sendReservationRemovalEmail(
                     user.getFirstName(), user.getLastName(), user.getEmail(), reservation, user.getTimeZone(), user.getLanguage()

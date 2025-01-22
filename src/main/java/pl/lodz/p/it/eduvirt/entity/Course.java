@@ -48,10 +48,7 @@ public class Course extends Updatable {
     private CourseType courseType;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinTable(name = "course_resource_group",
-            joinColumns = @JoinColumn(name = "course_id"),
-            inverseJoinColumns = @JoinColumn(name = "resource_group_id"))
-    private List<ResourceGroup> stateFulResourceGroups = new ArrayList<>();
+    private List<ResourceGroup> stateFullResourceGroups = new ArrayList<>();
 
     @Override
     public final boolean equals(Object o) {

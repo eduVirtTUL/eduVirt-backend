@@ -30,11 +30,6 @@ spring:
     username: ${EDUVIRT_DB_USERNAME}
     password: ${EDUVIRT_DB_PASSWORD}
     driver-class-name: ${EDUVIRT_DB_DRIVER_CLASS:org.postgresql.Driver}
-  liquibase:
-    default-schema: public
-    user: ${LIQUIBASE_USER}
-    password: ${LIQUIBASE_PASSWORD}
-    change-log: classpath:/config/liquibase/master.xml
 
 ovirt:
   engine:

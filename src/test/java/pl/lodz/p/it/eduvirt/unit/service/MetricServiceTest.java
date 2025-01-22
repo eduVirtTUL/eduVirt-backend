@@ -39,7 +39,7 @@ public class MetricServiceTest {
 
     private final String metricName1 = "metric_name_no1";
     private final String metricName2 = "metric_name_no2";
-
+    
     private Metric metric1;
     private Metric metric2;
 
@@ -54,15 +54,15 @@ public class MetricServiceTest {
     /* Tests */
 
     /* CreateNewMetric method test */
-
+    
     @Test
     public void Given_AllTheDataIsValid_When_CreateNewMetric_Then_CreateNewMetricSuccessfully() {
         String metricName = "new_metric_name";
         Metric newMetric = new Metric(metricName, Metric.MetricCategory.COUNTABLE);
-
-        when(metricRepository.saveAndFlush(any())).thenReturn(newMetric);
+        
+        when(metricRepository.saveAndFlush(Mockito.eq(newMetric))).thenReturn(newMetric);
         metricService.createNewMetric(metricName, Metric.MetricCategory.COUNTABLE);
-        verify(metricRepository, times(1)).saveAndFlush(any());
+        verify(metricRepository, times(1)).saveAndFlush(Mockito.eq(newMetric));
     }
 
     /* FindById method test */
@@ -116,7 +116,7 @@ public class MetricServiceTest {
 
         verify(metricRepository, times(1)).findAll(Mockito.eq(pageable));
     }
-
+    
     /* DeleteMetric method test */
 
     @Test
