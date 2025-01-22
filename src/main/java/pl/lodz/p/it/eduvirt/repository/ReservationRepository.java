@@ -119,8 +119,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
     @Query("""
             SELECT DISTINCT r FROM Reservation r
             WHERE :probeTime >= r.startTime AND :probeTimeWithTimeNeededToStop <= r.endTime
-            AND r.status = 'PENDING'
-            AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_INIT' AND et.status != 'FAILED')
+            AND (
+                r.status = 'PENDING'
+                OR (
+                    r.status = 'IN_PROGRESS'
+                    AND
+                    r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_INIT' AND et.status = 'SUCCESSFUL')
+                    )
+                )
             """)
     List<Reservation> findAllReservationsToBegin(@Param("probeTime") LocalDateTime probeTime,
                                                  @Param("probeTimeWithTimeNeededToStop") LocalDateTime probeTimeWithTimeNeededToStop);

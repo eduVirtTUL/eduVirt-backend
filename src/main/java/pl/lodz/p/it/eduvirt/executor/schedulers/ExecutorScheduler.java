@@ -46,6 +46,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // Priority 0
+//IMPROVEMENTS michal: Specified Persistence Unit for executor module (separate connection pool)
+
 //IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
 //IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
 //IMPROVEMENTS michal: Check two conflicting invocation of scheduled method (ex. two pod starts) => set UniqueConstraints (when some tasks wait more then one minute i forEach)
@@ -137,8 +139,10 @@ public class ExecutorScheduler {
         List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationStartExistingSubTasks(reservation);
 
         try {
-            // Mark reservation as started
-            reservationService.startReservation(reservation);
+            // Mark reservation as started (unless its processing has already begun)
+            if (reservation.getStatus() != Reservation.ReservationStatus.IN_PROGRESS) {
+                reservationService.startReservation(reservation);
+            }
 
             ResourceGroup resourceGroup = reservation.getResourceGroup();
             Team team = reservation.getTeam();
@@ -309,6 +313,8 @@ public class ExecutorScheduler {
         }
 
         try {
+            //TODO
+            reservation.setStatus(Reservation.ReservationStatus.PENDING);
             mailNotificationService.sendReservationStartNotification(reservation);
         } catch (Throwable e) {
             log.error("Some error occurred while sending reservation start notifications. Cause: {}", e.getMessage());
