@@ -385,6 +385,7 @@ public class TeamController {
     }
 
     @PostMapping("/{teamId}/add-student")
+    @Transactional
     @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> addStudentToTeam(@PathVariable UUID teamId, @RequestParam String email) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -407,6 +408,7 @@ public class TeamController {
     }
 
     @PostMapping("/{teamId}/remove-student")
+    @Transactional
     @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> removeStudentFromTeam(@PathVariable UUID teamId, @RequestParam String email) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());

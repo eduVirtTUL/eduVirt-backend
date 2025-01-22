@@ -43,7 +43,7 @@ public class I18n {
     public static final String TEAM_USER_ALREADY_MEMBER = "team.user.already.member";
     public static final String TEAM_VALIDATION = "team.validation.exception";
     public static final String INCORRECT_TEAM_TYPE = "incorrect.team.type.exception";
-    public static final String USER_ALREADY_IN_COURSE = "team.size.exception";
+    public static final String USER_ALREADY_IN_COURSE = "user.already.in.course.exception";
     public static final String TEAM_CONFLICT = "team.conflict.exception";
 
     /* Permission keys */
