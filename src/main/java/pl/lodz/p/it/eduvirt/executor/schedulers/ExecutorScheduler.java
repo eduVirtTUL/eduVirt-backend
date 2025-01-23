@@ -524,6 +524,10 @@ public class ExecutorScheduler {
                     .map(Reservation::getId)
                     .filter(id -> !id.equals(processingReservationId))
                     .toArray(UUID[]::new);
+            if (reservationIds.length == 0) {
+                // Protection against throwing RG unavailability error for the reservation currently being processed
+                return;
+            }
             throw new ResourceGroupCurrentlyInUseException(resourceGroup.getId(), reservationIds);
         }
     }
