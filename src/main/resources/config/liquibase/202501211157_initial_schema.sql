@@ -9,9 +9,6 @@ create table if not exists public.access_key
         unique
 );
 
-alter table public.access_key
-    owner to eduvirtadmin;
-
 create table if not exists public.administrative_break
 (
     begin_at    timestamp(6) not null,
@@ -26,9 +23,6 @@ create table if not exists public.administrative_break
     cause       varchar(128) not null,
     description varchar(256)
 );
-
-alter table public.administrative_break
-    owner to eduvirtadmin;
 
 create table if not exists public.course
 (
@@ -46,8 +40,6 @@ create table if not exists public.course
                    ((ARRAY ['TEAM_BASED'::character varying, 'SOLO'::character varying])::text[]))
 );
 
-alter table public.course
-    owner to eduvirtadmin;
 
 create table if not exists public.course_access_key
 (
@@ -60,8 +52,6 @@ create table if not exists public.course_access_key
             references public.access_key
 );
 
-alter table public.course_access_key
-    owner to eduvirtadmin;
 
 create table if not exists public.metric
 (
@@ -75,9 +65,6 @@ create table if not exists public.metric
         unique
 );
 
-alter table public.metric
-    owner to eduvirtadmin;
-
 create table if not exists public.course_metric
 (
     value     double precision not null,
@@ -90,8 +77,6 @@ create table if not exists public.course_metric
     primary key (course_id, metric_id)
 );
 
-alter table public.course_metric
-    owner to eduvirtadmin;
 
 create table if not exists public.metric_cluster
 (
@@ -108,9 +93,6 @@ create table if not exists public.metric_cluster
         unique (cluster_id, metric_id)
 );
 
-alter table public.metric_cluster
-    owner to eduvirtadmin;
-
 create index if not exists cluster_metric_metric_id_idx
     on public.metric_cluster (metric_id);
 
@@ -122,8 +104,6 @@ create table if not exists public.private_vlans_range
         primary key
 );
 
-alter table public.private_vlans_range
-    owner to eduvirtadmin;
 
 create table if not exists public.resource_group
 (
@@ -140,9 +120,6 @@ create table if not exists public.resource_group
     description   varchar(1000)
 );
 
-alter table public.resource_group
-    owner to eduvirtadmin;
-
 create table if not exists public.course_resource_group
 (
     course_id         uuid not null
@@ -154,8 +131,6 @@ create table if not exists public.course_resource_group
             references public.resource_group
 );
 
-alter table public.course_resource_group
-    owner to eduvirtadmin;
 
 create table if not exists public.resource_group_network
 (
@@ -167,8 +142,6 @@ create table if not exists public.resource_group_network
     name              varchar(255)
 );
 
-alter table public.resource_group_network
-    owner to eduvirtadmin;
 
 create table if not exists public.resource_group_pool
 (
@@ -190,8 +163,6 @@ create table if not exists public.resource_group_pool
     unique (name, course_id)
 );
 
-alter table public.resource_group_pool
-    owner to eduvirtadmin;
 
 create table if not exists public.resource_group_pool_resource_groups
 (
@@ -204,8 +175,6 @@ create table if not exists public.resource_group_pool_resource_groups
             references public.resource_group
 );
 
-alter table public.resource_group_pool_resource_groups
-    owner to eduvirtadmin;
 
 create table if not exists public.team
 (
@@ -222,8 +191,6 @@ create table if not exists public.team
         unique (name, course_id)
 );
 
-alter table public.team
-    owner to eduvirtadmin;
 
 create table if not exists public.pod_stateful
 (
@@ -241,8 +208,6 @@ create table if not exists public.pod_stateful
             references public.team
 );
 
-alter table public.pod_stateful
-    owner to eduvirtadmin;
 
 create table if not exists public.pod_stateless
 (
@@ -259,8 +224,6 @@ create table if not exists public.pod_stateless
             references public.team
 );
 
-alter table public.pod_stateless
-    owner to eduvirtadmin;
 
 create table if not exists public.reservation
 (
@@ -287,8 +250,6 @@ create table if not exists public.reservation
                    ((ARRAY ['PENDING'::character varying, 'IN_PROGRESS'::character varying, 'COMPLETED'::character varying])::text[]))
 );
 
-alter table public.reservation
-    owner to eduvirtadmin;
 
 create table if not exists public.executor_task
 (
@@ -311,8 +272,6 @@ create table if not exists public.executor_task
                    ((ARRAY ['POD_INIT'::character varying, 'POD_DESTRUCT'::character varying, 'END_RESERVATION'::character varying])::text[]))
 );
 
-alter table public.executor_task
-    owner to eduvirtadmin;
 
 create table if not exists public.executor_subtask
 (
@@ -334,8 +293,6 @@ create table if not exists public.executor_subtask
                    ((ARRAY ['CHECK_VMS_STATUSES'::character varying, 'ASSIGN_VNIC_PROFILE'::character varying, 'REMOVE_VNIC_PROFILE'::character varying, 'START_VM'::character varying, 'SHUTDOWN_VM'::character varying, 'POWER_OFF'::character varying, 'REBOOT_VM'::character varying, 'ASSIGN_PERMISSION'::character varying, 'REVOKE_PERMISSION'::character varying])::text[]))
 );
 
-alter table public.executor_subtask
-    owner to eduvirtadmin;
 
 create table if not exists public.executor_subtask_permission
 (
@@ -345,8 +302,6 @@ create table if not exists public.executor_subtask_permission
             references public.executor_subtask
 );
 
-alter table public.executor_subtask_permission
-    owner to eduvirtadmin;
 
 create table if not exists public.executor_subtask_preconditions_check
 (
@@ -356,8 +311,6 @@ create table if not exists public.executor_subtask_preconditions_check
             references public.executor_subtask
 );
 
-alter table public.executor_subtask_preconditions_check
-    owner to eduvirtadmin;
 
 create table if not exists public.executor_subtask_vm
 (
@@ -367,8 +320,6 @@ create table if not exists public.executor_subtask_vm
             references public.executor_subtask
 );
 
-alter table public.executor_subtask_vm
-    owner to eduvirtadmin;
 
 create table if not exists public.executor_subtask_vnic_profile
 (
@@ -380,8 +331,6 @@ create table if not exists public.executor_subtask_vnic_profile
     vnic_profile_id uuid
 );
 
-alter table public.executor_subtask_vnic_profile
-    owner to eduvirtadmin;
 
 create index if not exists executor_task_reservation_id_idx
     on public.executor_task (reservation_id);
@@ -401,9 +350,6 @@ create table if not exists public.mail_notification
     constraint reservation_notification_type_unique
         unique (reservation_id, type)
 );
-
-alter table public.mail_notification
-    owner to eduvirtadmin;
 
 create index if not exists mail_notification_reservation_id_idx
     on public.mail_notification (reservation_id);
@@ -429,9 +375,6 @@ create table if not exists public.team_access_key
             references public.team
 );
 
-alter table public.team_access_key
-    owner to eduvirtadmin;
-
 create table if not exists public.users
 (
     ovirt_id   uuid         not null
@@ -447,8 +390,6 @@ create table if not exists public.users
     user_name  varchar(255) not null
 );
 
-alter table public.users
-    owner to eduvirtadmin;
 
 create table if not exists public.course_teachers
 (
@@ -460,9 +401,6 @@ create table if not exists public.course_teachers
             references public.users
 );
 
-alter table public.course_teachers
-    owner to eduvirtadmin;
-
 create table if not exists public.team_users
 (
     team_id uuid not null
@@ -473,9 +411,6 @@ create table if not exists public.team_users
             references public.users
 );
 
-alter table public.team_users
-    owner to eduvirtadmin;
-
 create table if not exists public.user_roles
 (
     user_id uuid not null
@@ -483,9 +418,6 @@ create table if not exists public.user_roles
             references public.users,
     role    varchar(255)
 );
-
-alter table public.user_roles
-    owner to eduvirtadmin;
 
 create table if not exists public.virtual_machine
 (
@@ -497,9 +429,6 @@ create table if not exists public.virtual_machine
         constraint fkq6ya7s5mpg86hsc9b9df7qnt0
             references public.resource_group
 );
-
-alter table public.virtual_machine
-    owner to eduvirtadmin;
 
 create table if not exists public.network_interface
 (
@@ -513,8 +442,6 @@ create table if not exists public.network_interface
             references public.virtual_machine
 );
 
-alter table public.network_interface
-    owner to eduvirtadmin;
 
 create table if not exists public.vnic_profile_pool
 (
@@ -527,7 +454,4 @@ create table if not exists public.vnic_profile_pool
     id          uuid    not null
         primary key
 );
-
-alter table public.vnic_profile_pool
-    owner to eduvirtadmin;
 
