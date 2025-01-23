@@ -46,25 +46,22 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+// Check for final version
+//TO_CHECK michal: improvements for transactions
+//TO_CHECK michal: LoggerInterceptor on other services
+
 // Priority 0
-//IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
-//IMPROVEMENTS michal: block RG cause of previous reservation
-
-//IMPROVEMENTS michal: Check two conflicting invocation of scheduled method (ex. two pod starts) => set UniqueConstraints (when some tasks wait more then one minute i forEach)
-
-//IMPROVEMENTS michal: improvements for transactions
-//IMPROVEMENTS michal: LoggerInterceptor on other services
-
-//IMPROVEMENTS michal: vnic profile in use should not be deleted
+//TO_IMPROVE michal: Check two conflicting invocation of scheduled method (ex. two pod starts) => set UniqueConstraints (when some tasks wait more then one minute i forEach)
+//TO_IMPROVE michal: vnic profile in use should not be deleted
 
 // Priority 1
-//IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
-//IMPROVEMENTS michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems) (probably no limit)
+//TO_IMPROVE michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
+//TO_IMPROVE michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems) (probably no limit)
 
 // Priority 2
-//IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
-//IMPROVEMENTS michal: indexes for sub queries and FK?
-//IMPROVEMENTS michal: Specified Persistence Unit for executor module (separate connection pool)
+//TO_IMPROVE michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
+//TO_IMPROVE michal: indexes for sub queries and FK?
+//TO_IMPROVE michal: Specified Persistence Unit for executor module (separate connection pool)
 
 @Slf4j
 @Service
@@ -90,13 +87,16 @@ public class ExecutorScheduler {
     @Transactional(propagation = Propagation.NEVER)
     public void createPods() {
         reservationService.findReservationsToBegin()
-                //.stream().parallel()
                 .forEach(
                         reservation -> {
                             try {
                                 startUpPod(reservation);
                             } catch (Throwable e) {
-                                e.printStackTrace(System.err); //TODO michal
+                                log.error(
+                                        "An error occurred during the task of creating the POD for reservation {}" +
+                                                " ~ exception: {}: {} ",
+                                        reservation.getId().toString(), e.getClass().getName(), e.getMessage()
+                                );
                             }
                         }
                 );
@@ -106,13 +106,16 @@ public class ExecutorScheduler {
     @Transactional(propagation = Propagation.NEVER)
     public void destroyPods() {
         reservationService.findReservationsToStop()
-                //.stream().parallel()
                 .forEach(
                         reservation -> {
                             try {
                                 stopPod(reservation);
                             } catch (Throwable e) {
-                                e.printStackTrace(System.err); //TODO michal
+                                log.error(
+                                        "An error occurred during the task of destroying the POD for reservation {}" +
+                                                " ~ exception: {}: {} ",
+                                        reservation.getId().toString(), e.getClass().getName(), e.getMessage()
+                                );
                             }
                         }
                 );
@@ -122,13 +125,16 @@ public class ExecutorScheduler {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void endReservations() {
         executorTaskService.getReservationsToEndTasks()
-                //.stream().parallel()
                 .forEach(
                         task -> {
                             try {
                                 finalizePodReservation(task);
                             } catch (Throwable e) {
-                                e.printStackTrace(System.err); //TODO michal
+                                log.error(
+                                        "An error occurred during the task of ending the reservation {}" +
+                                                " ~ exception: {}: {} ",
+                                        task.getReservation().getId().toString(), e.getClass().getName(), e.getMessage()
+                                );
                             }
                         }
                 );
