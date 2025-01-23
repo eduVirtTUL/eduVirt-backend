@@ -68,7 +68,7 @@ public class I18n {
     public static final String MAINTENANCE_INTERVAL_NOT_FOUND = "maintenanceIntervals.error.not.found";
     public static final String MAINTENANCE_INTERVAL_TOO_LONG = "maintenanceIntervals.error.too.long";
     public static final String MAINTENANCE_INTERVAL_INVALID_TIME_WINDOW = "maintenanceIntervals.error.invalid.time.window";
-    public static final String MAINTENANCE_INTERVAL_BEGIN_AT_PAST = "maintenanceIntervals.error.begin.at.past";
+    public static final String MAINTENANCE_INTERVAL_BEGIN_TOO_EARLY = "maintenanceIntervals.error.begin.too.early";
     public static final String MAINTENANCE_INTERVAL_CONFLICT = "maintenanceIntervals.error.conflict";
     public static final String MAINTENANCE_INTERVAL_ALREADY_FINISHED = "maintenanceIntervals.error.already.finished";
 
