@@ -57,6 +57,7 @@ public class PodStatelessController {
             @ApiResponse(responseCode = "403", description = "Insufficient permissions"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
+    @Transactional
     public ResponseEntity<PodStatelessDto> createStatelessPod(@RequestBody @Validated CreatePodStatelessDto createDto) {
         PodStateless podToCreate = podStatelessMapper.createPodStatelessDtoToPodStateless(createDto);
 
