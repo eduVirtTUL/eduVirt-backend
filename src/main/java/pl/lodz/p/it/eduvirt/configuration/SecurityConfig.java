@@ -16,6 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import pl.lodz.p.it.eduvirt.util.RoleConstants;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,15 +36,19 @@ public class SecurityConfig {
         return claims -> {
             final List<SimpleGrantedAuthority> authorities = new ArrayList<>();
             final List<String> groups = (List<String>) claims.get("groups");
-            if (groups.contains("/ovirt-administrator")) {
+            if (groups.contains(RoleConstants.EDUVIRT_ADMINISTRATOR)) {
                 authorities.add(new SimpleGrantedAuthority("administrator"));
             }
 
-            if (groups.contains("/teacher")) {
+            if (groups.contains(RoleConstants.EDUVIRT_TEACHER)) {
                 authorities.add(new SimpleGrantedAuthority("teacher"));
             }
 
-            if (groups.contains("/student")) {
+            if (groups.contains(RoleConstants.EDUVIRT_STUDENT)) {
+                authorities.add(new SimpleGrantedAuthority("student"));
+            }
+
+            if (authorities.isEmpty()) {
                 authorities.add(new SimpleGrantedAuthority("student"));
             }
 
