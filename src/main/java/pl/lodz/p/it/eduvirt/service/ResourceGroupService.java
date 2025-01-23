@@ -1,7 +1,6 @@
 package pl.lodz.p.it.eduvirt.service;
 
 import org.ovirt.engine.sdk4.types.Vm;
-import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDtoWthEtag;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
@@ -25,10 +24,5 @@ public interface ResourceGroupService {
     void deleteResourceGroup(UUID id);
 
     ResourceGroup updateResourceGroup(UUID id, ResourceGroup resourceGroup, String etag);
-
-    void validateResourceGroupOwnership(ResourceGroup resourceGroup);
-
-    @Transactional
-    void validateResourceGroupOwnershipOrAdmin(ResourceGroup resourceGroup);
 }
 

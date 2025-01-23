@@ -1,22 +1,21 @@
 package pl.lodz.p.it.eduvirt.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Builder
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
 @Entity
 @Table(name = "resource_group")
+@AllArgsConstructor
 public class ResourceGroup extends HistoricalData {
     @Column(name = "name", nullable = false, length = 100)
     private String name;

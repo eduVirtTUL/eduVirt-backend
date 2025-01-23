@@ -17,9 +17,9 @@ import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineConflictExc
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
-import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
-import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 import pl.lodz.p.it.eduvirt.service.VirtualMachineService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.priviliges.PrivilegesService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.Objects;
@@ -36,14 +36,17 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
     private final ETagHelper eTagHelper;
     private final CourseService courseService;
 
-    private final ResourceGroupService resourceGroupService;
+    private final PrivilegesService privilegesService;
 
     @Override
     @Transactional
     public void createVirtualMachine(UUID rgId, UUID id, boolean hidden, String etag) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
-        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
+
+        if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
+            throw new ResourceGroupNotFoundException(rgId);
+        }
 
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
             throw new ResourceGroupConflictException();
@@ -75,7 +78,9 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
     @Override
     public void deleteVirtualMachine(UUID id, UUID rgId, String etag) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId).orElseThrow();
-        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
+        if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
+            throw new ResourceGroupNotFoundException(rgId);
+        }
 
 
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
@@ -97,7 +102,10 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
     public void updateVirtualMachine(UUID id, boolean hidden, String etag) {
         VirtualMachine vm = virtualMachineRepository.findById(id).orElseThrow();
         ResourceGroup resourceGroup = vm.getResourceGroup();
-        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
+
+        if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
+            throw new ResourceGroupNotFoundException(resourceGroup.getId());
+        }
 
         if (!eTagHelper.validateEtag(etag, vm.getId(), vm.getVersion())) {
             throw new VirtualMachineConflictException();
