@@ -7,7 +7,7 @@ COPY . .
 
 # Build application
 RUN chmod 500 ./mvnw
-RUN ./mvnw package -DskipTests
+RUN ./mvnw package -Pprod -DskipTests
 
 # Extract built jar
 RUN jar xf target/eduVirt.jar
