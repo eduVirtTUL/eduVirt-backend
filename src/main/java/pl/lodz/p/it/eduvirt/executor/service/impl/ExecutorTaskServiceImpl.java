@@ -90,7 +90,7 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
             case START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM -> new VmTask(task, sanitizedVmId, type);
             case ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE -> new VnicProfileTask(task, sanitizedVmId, type);
             case ASSIGN_PERMISSION, REVOKE_PERMISSION -> new PermissionTask(task, sanitizedVmId, type);
-            case CHECK_VMS_STATUSES -> new PreconditionsCheckTask(task);
+            case CHECK_VMS_STATUSES, CHECK_RG_IN_USE -> new PreconditionsCheckTask(task, type);
         };
 
         return executorSubtaskRepository.saveAndFlush(subtask);

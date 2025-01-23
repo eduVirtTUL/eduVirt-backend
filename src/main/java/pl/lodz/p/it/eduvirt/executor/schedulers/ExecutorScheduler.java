@@ -19,6 +19,7 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.executor.executor.NoAvailableVnicProfileException;
+import pl.lodz.p.it.eduvirt.executor.executor.ResourceGroupCurrentlyInUseException;
 import pl.lodz.p.it.eduvirt.executor.executor.VmInvalidStatusException;
 import pl.lodz.p.it.eduvirt.executor.executor.VmLaunchingStatusException;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
@@ -46,16 +47,13 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // Priority 0
-//IMPROVEMENTS michal: Specified Persistence Unit for executor module (separate connection pool)
-
-//IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
 //IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
+//IMPROVEMENTS michal: block RG cause of previous reservation
+
 //IMPROVEMENTS michal: Check two conflicting invocation of scheduled method (ex. two pod starts) => set UniqueConstraints (when some tasks wait more then one minute i forEach)
 
 //IMPROVEMENTS michal: improvements for transactions
 //IMPROVEMENTS michal: LoggerInterceptor on other services
-
-//IMPROVEMENTS michal: block RG cause of previous reservation
 
 // Priority 1
 //IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
@@ -64,6 +62,7 @@ import java.util.stream.Collectors;
 // Priority 2
 //IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
 //IMPROVEMENTS michal: indexes for sub queries and FK?
+//IMPROVEMENTS michal: Specified Persistence Unit for executor module (separate connection pool)
 
 @Slf4j
 @Service
@@ -150,9 +149,16 @@ public class ExecutorScheduler {
 
             CHECK_CONDITION_ZONE:
             {
-                Predicate<ExecutorSubtask> predicate = st ->
+                // Check if the RG is not used by another RG
+                runAndRegister(
+                        () -> checkIfRgIsInUse(reservation.getId(), resourceGroup),
+                        executorTask, null, ExecutorSubtask.SubtaskType.CHECK_RG_IN_USE
+                );
+
+                // Check if VMs statuses were checked
+                Predicate<ExecutorSubtask> predicateVmsStatuses = st ->
                         st.getType().equals(ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES) && st.getSuccessful();
-                if (existingSubtasks.stream().anyMatch(predicate)) {
+                if (existingSubtasks.stream().anyMatch(predicateVmsStatuses)) {
                     break CHECK_CONDITION_ZONE;
                 }
 
@@ -313,8 +319,6 @@ public class ExecutorScheduler {
         }
 
         try {
-            //TODO
-            reservation.setStatus(Reservation.ReservationStatus.PENDING);
             mailNotificationService.sendReservationStartNotification(reservation);
         } catch (Throwable e) {
             log.error("Some error occurred while sending reservation start notifications. Cause: {}", e.getMessage());
@@ -509,6 +513,18 @@ public class ExecutorScheduler {
         } catch (Throwable e) {
             executorTaskService.finalizeTask(executorTask.getId(), false, e.getMessage());
             throw e;
+        }
+    }
+
+    /* Private methods */
+    private void checkIfRgIsInUse(UUID processingReservationId, ResourceGroup resourceGroup) {
+        List<Reservation> reservations = reservationService.findRgNotCompletedReservations(resourceGroup);
+        if (!reservations.isEmpty()) {
+            UUID[] reservationIds = reservations.stream()
+                    .map(Reservation::getId)
+                    .filter(id -> !id.equals(processingReservationId))
+                    .toArray(UUID[]::new);
+            throw new ResourceGroupCurrentlyInUseException(resourceGroup.getId(), reservationIds);
         }
     }
 

@@ -505,6 +505,11 @@ public class ReservationServiceImpl implements ReservationService {
                 .toList();
     }
 
+    @Override
+    public List<Reservation> findRgNotCompletedReservations(ResourceGroup resourceGroup) {
+        return reservationRepository.findRgReservationsByStatus(resourceGroup, Reservation.ReservationStatus.IN_PROGRESS);
+    }
+
     private static void forceReservationLazyCollections(Reservation reservation) {
         //TODO michal: add comments XDD
 

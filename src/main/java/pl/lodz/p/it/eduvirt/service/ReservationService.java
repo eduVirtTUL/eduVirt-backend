@@ -48,6 +48,7 @@ public interface ReservationService {
     List<Reservation> findReservationsToBegin();
     List<Reservation> findReservationsToStop();
     List<Reservation> findReservationsToSendNotifications();
+    List<Reservation> findRgNotCompletedReservations(ResourceGroup resourceGroup);
 
     /* Update / delete methods */
 

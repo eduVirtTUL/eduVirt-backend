@@ -148,4 +148,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             AND r.id NOT IN (SELECT mn.reservation.id FROM MailNotification mn WHERE mn.type = 'RESERVATION_END')
             """)
     List<Reservation> findAllReservationsToSendNotifications(@Param("probeTime") LocalDateTime probeTime);
+
+    @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :rg AND r.status = :status")
+    List<Reservation> findRgReservationsByStatus(@Param("rg") ResourceGroup resourceGroup,
+                                                 @Param("status") Reservation.ReservationStatus status);
 }
