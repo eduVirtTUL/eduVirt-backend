@@ -7,18 +7,24 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.PodStateless;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
+import pl.lodz.p.it.eduvirt.entity.Reservation.ReservationStatus;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.InvalidPodTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodAlreadyExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.pod.PodDeletionException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.team.*;
 import pl.lodz.p.it.eduvirt.repository.PodStatelessRepository;
+import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.repository.TeamRepository;
 import pl.lodz.p.it.eduvirt.service.PodStatelessService;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +40,7 @@ public class PodStatelessServiceImpl implements PodStatelessService {
     private final PodStatelessRepository podStatelessRepository;
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
     private final TeamRepository teamRepository;
+    private final ReservationRepository reservationRepository;
 
     /* Service methods */
 
@@ -136,12 +143,28 @@ public class PodStatelessServiceImpl implements PodStatelessService {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @PreAuthorize("hasAuthority('teacher')")
+    @Transactional
     public void deleteStatelessPod(UUID podId) {
-        //TODO: come back to this later
-        if (!podStatelessRepository.existsById(podId)) {
-            throw new PodNotFoundException("POD %s could not be found".formatted(podId));
+        PodStateless pod = podStatelessRepository.findById(podId)
+                .orElseThrow(() -> new PodNotFoundException("POD %s could not be found".formatted(podId)));
+
+        List<Reservation> allReservations = reservationRepository
+                .findAllRgPoolReservationsForGivenTeam(pod.getResourceGroupPool(), pod.getTeam());
+
+        boolean hasActiveReservations = allReservations.stream()
+                .anyMatch(r -> r.getStatus() == ReservationStatus.IN_PROGRESS &&
+                        r.getEndTime().isAfter(LocalDateTime.now(ZoneOffset.UTC)));
+
+        if (hasActiveReservations) {
+            throw new PodDeletionException("Pod with id %s has active reservations".formatted(podId));
         }
-        podStatelessRepository.deleteById(podId);
+
+        List<Reservation> futureReservations = allReservations.stream()
+                .filter(r -> r.getStartTime().isAfter(LocalDateTime.now(ZoneOffset.UTC)))
+                .toList();
+        reservationRepository.deleteAll(futureReservations);
+
+        podStatelessRepository.delete(pod);
     }
 }

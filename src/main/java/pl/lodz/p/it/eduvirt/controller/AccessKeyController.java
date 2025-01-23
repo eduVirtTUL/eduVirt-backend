@@ -45,8 +45,8 @@ public class AccessKeyController {
     private final UserRepository userRepository;
 
 
-    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     @Transactional
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     @PostMapping("/course/{courseId}")
     public ResponseEntity<CourseAccessKeyDto> createCourseKey(@PathVariable UUID courseId, @RequestParam String courseKey) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -69,8 +69,8 @@ public class AccessKeyController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    @GetMapping("/course/{courseId}")
     @Transactional
+    @GetMapping("/course/{courseId}")
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public ResponseEntity<CourseAccessKeyDto> getKeyForCourse(@PathVariable UUID courseId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -93,8 +93,8 @@ public class AccessKeyController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/team/{teamId}")
     @Transactional
+    @GetMapping("/team/{teamId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TeamAccessKeyDto> getKeyForTeam(@PathVariable UUID teamId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());

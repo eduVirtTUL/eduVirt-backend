@@ -45,6 +45,7 @@ public class I18n {
     public static final String INCORRECT_TEAM_TYPE = "incorrect.team.type.exception";
     public static final String USER_ALREADY_IN_COURSE = "user.already.in.course.exception";
     public static final String TEAM_CONFLICT = "team.conflict.exception";
+    public static final String TEAM_DELETION = "team.deletion.exception";
 
     /* Permission keys */
 
@@ -76,6 +77,7 @@ public class I18n {
     public static final String POD_NOT_FOUND = "pod.not.found";
     public static final String POD_ALREADY_EXISTS = "pod.already.exists";
     public static final String POD_INVALID_TYPE = "pod.invalid.type";
+    public static final String POD_DELETION_EXCEPTION = "pod.deletion.exception";
 
     /* Reservation keys */
 

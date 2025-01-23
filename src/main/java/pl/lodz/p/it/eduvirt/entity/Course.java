@@ -34,7 +34,12 @@ public class Course extends Updatable {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Team> teams = new ArrayList<>();
 
-    @ManyToMany()
+    @ManyToMany
+    @JoinTable(
+            name = "course_teacher",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns = @JoinColumn(name = "teacher_id")
+    )
     private List<User> teachers = new ArrayList<>();
 
     @Column(name = "cluster_id", nullable = false)

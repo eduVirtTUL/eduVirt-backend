@@ -58,7 +58,7 @@ VALUES ('1acd2865-6cc4-481c-8700-b2df5af24b23', '43c36b21-eed9-4ce4-811d-abc9e22
 --> Roles for users <--
 -----------------------
 
-INSERT INTO public.user_roles
+INSERT INTO public.user_role
 VALUES ('69f850ce-21e1-462b-9c01-0d6437c16f6b', 'administrator'),
        ('69f850ce-21e1-462b-9c01-0d6437c16f6b', 'student'),
        ('69f850ce-21e1-462b-9c01-0d6437c16f6b', 'teacher'),
@@ -170,7 +170,7 @@ VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 'b96844a7-7cb6-48f1-b4e6-1291988
 --- Systemy operacyjne ---
 --------------------------
 
-INSERT INTO public.course_teachers (course_id, teachers_user_id)
+INSERT INTO public.course_teacher (course_id, teacher_id)
 VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '19bc2d1c-57df-454d-9d01-8af04bd02fb9'),
        ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '4f45c1ce-a0e8-4fbd-aca2-ccf598e6faa7'),
        ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', '6704f5c1-8114-4d85-82f0-086e285c7970'),
@@ -221,7 +221,7 @@ VALUES ('72fc908f-5d02-4c81-91a3-2bccaa627946', 0, 'SO-Student001', true, 1, 'b9
        ('a20fa2a9-bf37-4b4f-8da7-304190988b47', 0, 'SO-Student037', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9'),
        ('7d8407f9-cc68-484c-b262-952b9b9db27e', 0, 'SO-Student038', true, 1, 'b99fde5c-8200-4eb5-80e2-1c6b4b6019b9');
 
-INSERT INTO public.team_users (team_id, user_id)
+INSERT INTO public.team_user (team_id, user_id)
 VALUES ('72fc908f-5d02-4c81-91a3-2bccaa627946', 'adecad44-d29a-4c80-81d3-e99e20c288ac'),
        ('cb97b2f0-646f-4876-906f-0fd44cf6d63a', 'f3f1e587-348f-498f-827d-6f44ab3f37e1'),
        ('12ca7f40-c596-44ae-a8d2-671843ecc9e5', 'e89a6623-556e-4248-8072-34c238c4c08b'),
@@ -329,7 +329,7 @@ VALUES (gen_random_uuid(), '4778c01d-4962-4cbd-a653-c90aea9dbddf', 'b99fde5c-820
 --- Infrastruktury środowisk rozwojowych i produkcyjnych ---
 ------------------------------------------------------------
 
-INSERT INTO public.course_teachers (course_id, teachers_user_id)
+INSERT INTO public.course_teacher (course_id, teacher_id)
 VALUES ('a7556146-23a6-4936-903c-c337c794a8c7', '19bc2d1c-57df-454d-9d01-8af04bd02fb9'),
        ('a7556146-23a6-4936-903c-c337c794a8c7', '4f45c1ce-a0e8-4fbd-aca2-ccf598e6faa7'),
        ('a7556146-23a6-4936-903c-c337c794a8c7', 'e94c5920-2925-4def-9ccc-b42504bd18ae'),
@@ -357,7 +357,7 @@ VALUES ('44c2419e-20bc-4dd5-a2e9-e7a44b1e8552', 'f15e7fe3-60a6-4d2c-a124-ad763f6
        ('883f2352-416b-479a-8323-cb62a663fe41', '64da3d79-52be-4936-97e3-b88597bac8b9'),
        ('492c81df-b3c5-44d5-84e6-5d3eb77b4728', '60deabdf-ba7d-482a-b6a5-26e440850496');
 
-INSERT INTO public.team_users (team_id, user_id)
+INSERT INTO public.team_user (team_id, user_id)
 VALUES ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 'adecad44-d29a-4c80-81d3-e99e20c288ac'),
        ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 'f3f1e587-348f-498f-827d-6f44ab3f37e1'),
        ('f15e7fe3-60a6-4d2c-a124-ad763f6869e2', 'e89a6623-556e-4248-8072-34c238c4c08b'),
@@ -429,7 +429,7 @@ VALUES ('a7556146-23a6-4936-903c-c337c794a8c7', '1b0912df-c4c0-4907-9dd4-b09573a
 --- Sieciowe systemy baz danych ---
 -----------------------------------
 
-INSERT INTO public.course_teachers (course_id, teachers_user_id)
+INSERT INTO public.course_teacher (course_id, teacher_id)
 VALUES ('e485ded6-c166-45f6-a924-13ce44666f7a', '19bc2d1c-57df-454d-9d01-8af04bd02fb9'),
        ('e485ded6-c166-45f6-a924-13ce44666f7a', '4f45c1ce-a0e8-4fbd-aca2-ccf598e6faa7'),
        ('e485ded6-c166-45f6-a924-13ce44666f7a', '93b00dda-b5a4-4249-86b4-bcb2cb4d4bc0'),
@@ -454,7 +454,7 @@ VALUES ('18ed4422-1976-4296-9924-56e8a03e59a3', 'f3896c36-2133-4497-965e-0951e1f
        ('a6dcf8e8-c317-4d50-b2f7-41012856918b', '78908655-ee18-4863-9eef-e67519940a0b'),
        ('60ea45d0-f657-4a43-bc45-a4ea6ee6db88', '40517c17-58b9-41ce-b53e-abaf0e7782fd');
 
-INSERT INTO public.team_users (team_id, user_id)
+INSERT INTO public.team_user (team_id, user_id)
 VALUES ('f3896c36-2133-4497-965e-0951e1f5aebf', 'adecad44-d29a-4c80-81d3-e99e20c288ac'),
        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'f3f1e587-348f-498f-827d-6f44ab3f37e1'),
        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'e89a6623-556e-4248-8072-34c238c4c08b'),
@@ -517,7 +517,7 @@ VALUES ('03d31c2f-d300-45af-a8f8-37c894d7a527', '692bde41-c8ca-4873-bbaf-edb789a
 --- Techniki utrzymania aplikacji ---
 -------------------------------------
 
-INSERT INTO public.course_teachers (course_id, teachers_user_id)
+INSERT INTO public.course_teacher (course_id, teacher_id)
 VALUES ('1decd050-1328-4eca-b2de-84793a8474c2', '19bc2d1c-57df-454d-9d01-8af04bd02fb9'),
        ('1decd050-1328-4eca-b2de-84793a8474c2', '4f45c1ce-a0e8-4fbd-aca2-ccf598e6faa7'),
        ('1decd050-1328-4eca-b2de-84793a8474c2', 'e94c5920-2925-4def-9ccc-b42504bd18ae'),
@@ -542,7 +542,7 @@ VALUES ('91f834d9-3c1c-460e-b28d-0e9f46a8b5ac', 'd46387ee-7397-4184-91eb-d01d5f3
        ('c3e69479-681a-4b61-b627-e25f03c72eee', 'e608c9d0-e871-4374-a052-f27ced4a9cec'),
        ('90cf4fdd-53b2-4062-b162-1d3c6f4c3ec0', '18750e93-22a7-4a23-8f8b-e0cabde8f793');
 
-INSERT INTO public.team_users (team_id, user_id)
+INSERT INTO public.team_user (team_id, user_id)
 VALUES ('f3896c36-2133-4497-965e-0951e1f5aebf', 'adecad44-d29a-4c80-81d3-e99e20c288ac'),
        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'f3f1e587-348f-498f-827d-6f44ab3f37e1'),
        ('f3896c36-2133-4497-965e-0951e1f5aebf', 'e89a6623-556e-4248-8072-34c238c4c08b'),

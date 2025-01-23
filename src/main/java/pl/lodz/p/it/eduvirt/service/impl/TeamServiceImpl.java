@@ -26,6 +26,7 @@ import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.AccessKeyService;
 import pl.lodz.p.it.eduvirt.service.KeyGeneratorService;
+import pl.lodz.p.it.eduvirt.service.PodStatelessService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
@@ -60,6 +61,7 @@ public class TeamServiceImpl implements TeamService {
     /* Helper methods */
 
     private final ETagHelper eTagHelper;
+    private final PodStatelessService podStatelessService;
 
     private void validateUserNotInCourse(UUID userId, UUID courseId) {
         if (teamRepository.existsByUserIdAndCourseId(userId, courseId)) {
@@ -116,7 +118,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('administrator')")
     public Page<Team> getAllTeams(Pageable pageable) {
         return teamRepository.findAllWithUsers(pageable);
     }
@@ -139,7 +141,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public Page<Team> getTeamsByCourse(UUID courseId, int page, int size, String search, String searchType, String sortOrder) {
         Sort sort = null;
         if (Objects.equals(sortOrder, "ASC")) {
@@ -156,13 +158,13 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
-    public Page<Team> findTeamsByEmails(UUID courseId, List<String> emailPrefixes, int page, int size, String sortOrder) {
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    public List<Team> findTeamsByEmails(UUID courseId, List<String> emailPrefixes, String sortOrder) {
         Sort sort = Sort.by(sortOrder.equals("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC, "name");
         return teamRepository.findByCourseIdAndEmailPrefixes(
                 courseId,
                 emailPrefixes.stream().map(String::toLowerCase).toList(),
-                PageRequest.of(page, size, sort)
+                sort
         );
     }
 
@@ -191,10 +193,8 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @PreAuthorize("hasAuthority('teacher')")
     public Team createTeam(Team team, Course course, String userKeyValue) {
-        if (userKeyValue != null) {
-            if (teamKeyRepository.existsByKeyValue(userKeyValue)) {
-                throw new DuplicateKeyValueException(userKeyValue);
-            }
+        if (userKeyValue != null && teamKeyRepository.existsByKeyValue(userKeyValue)) {
+            throw new DuplicateKeyValueException(userKeyValue);
         }
 
         validateTeamName(team, course.getId());
@@ -292,7 +292,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('teacher')")
     public void deleteTeam(Team team) {
         if (team.getCourse().getCourseType() != CourseType.TEAM_BASED) {
             throw new IncorrectCourseTypeException("Can only delete teams manually from team-based courses");
@@ -302,22 +302,11 @@ public class TeamServiceImpl implements TeamService {
         team = teamRepository.findById(team.getId())
                 .orElseThrow(() -> new TeamNotFoundException(finalTeam.getId()));
 
-        team.getStatefulPods().forEach(pod -> {
-            pod.setTeam(null);
-            pod.setCourse(null);
-            statefulPodRepository.saveAndFlush(pod);
-        });
+        if (!team.getStatefulPods().isEmpty() || !team.getStatelessPods().isEmpty()) {
+            throw new TeamDeletionException("Team with id %s has associated pods - delete them before deleting the team.".formatted(team.getId()));
+        }
 
-        team.getStatelessPods().forEach(pod -> {
-            pod.setTeam(null);
-            pod.setCourse(null);
-            statelessPodRepository.saveAndFlush(pod);
-        });
-
-        team.getStatefulPods().clear();
-        team.getStatelessPods().clear();
         team.getUsers().clear();
-
         teamRepository.saveAndFlush(team);
 
         TeamAccessKey teamKey = teamKeyRepository.findByTeamId(team.getId())
@@ -380,7 +369,6 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @PreAuthorize("hasAuthority('teacher')")
     public void addStudentToCourse(Course course, String email) {
-
         User student = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UserNotFoundException("Student with email %s could not be found!".formatted(email)));
 
@@ -428,7 +416,6 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @PreAuthorize("hasAuthority('teacher')")
     public void removeStudentFromCourse(Course course, String email) {
-
         User student = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UserNotFoundException("User with email %s could not be found!".formatted(email)));
 

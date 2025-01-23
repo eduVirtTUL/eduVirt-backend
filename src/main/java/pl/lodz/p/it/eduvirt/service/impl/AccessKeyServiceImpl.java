@@ -92,7 +92,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public CourseAccessKey getKeyForCourse(Course course) {
         if (course.getCourseType() == CourseType.TEAM_BASED) {
             throw new InvalidCourseTypeException("Cannot get access key for a team based course");
