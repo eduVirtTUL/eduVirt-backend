@@ -13,7 +13,7 @@ import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictExcep
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineConflictException;
 import pl.lodz.p.it.eduvirt.repository.*;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupNetworkService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;

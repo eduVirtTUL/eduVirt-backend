@@ -25,7 +25,7 @@ import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileEduvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
-import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
 import java.util.ArrayList;

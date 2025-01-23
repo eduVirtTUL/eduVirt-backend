@@ -17,7 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import pl.lodz.p.it.eduvirt.exceptions.EventNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.VmNotFoundException;
-import pl.lodz.p.it.eduvirt.service.impl.OVirtVmServiceImpl;
+import pl.lodz.p.it.eduvirt.service.ovirt.impl.OVirtVmServiceImpl;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 import org.ovirt.engine.sdk4.Error;
 

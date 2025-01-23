@@ -27,7 +27,7 @@ import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.ClusterMetricMapper;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
-import pl.lodz.p.it.eduvirt.service.impl.OVirtClusterServiceImpl;
+import pl.lodz.p.it.eduvirt.service.ovirt.impl.OVirtClusterServiceImpl;
 
 import java.util.UUID;
 
@@ -50,25 +50,25 @@ public class ClusterMetricController {
     /* Create methods */
 
     @Operation(
-        method = "POST", summary = "Create a value for certain metric for cluster",
-        description = "This endpoint can be used by the administrator to create a new metric value for given cluster.",
-        parameters = {
-            @Parameter(name = "clusterId", in = ParameterIn.PATH, description = "Identifier of the cluster, which the value will be created for.", required = true),
-        },
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = """
-            Data transfer object containing essential information about created metric value, which in fact is identifier
-            of the metric, which the value is created for, and the actual value of the metric."""
-        ),
-        responses = {
-            @ApiResponse(responseCode = "204", description = "New metric value was created for given cluster successfully successfully in the database."),
-            @ApiResponse(responseCode = "404", description = "Cluster, which the metric value is to be created for, could not be found.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @ApiResponse(responseCode = "409", description = "Metric has the value already defined for given cluster, and defining the next one is not possible.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
-        }
+            method = "POST", summary = "Create a value for certain metric for cluster",
+            description = "This endpoint can be used by the administrator to create a new metric value for given cluster.",
+            parameters = {
+                    @Parameter(name = "clusterId", in = ParameterIn.PATH, description = "Identifier of the cluster, which the value will be created for.", required = true),
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = """
+                            Data transfer object containing essential information about created metric value, which in fact is identifier
+                            of the metric, which the value is created for, and the actual value of the metric."""
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "New metric value was created for given cluster successfully successfully in the database."),
+                    @ApiResponse(responseCode = "404", description = "Cluster, which the metric value is to be created for, could not be found.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "409", description = "Metric has the value already defined for given cluster, and defining the next one is not possible.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+            }
     )
     @PreAuthorize("hasAuthority('administrator')")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -82,20 +82,20 @@ public class ClusterMetricController {
     /* Read methods */
 
     @Operation(
-        method = "GET", summary = "Get all values of the metrics, that were defined for the given cluster",
-        description = "This endpoint can be used by the administrator to fetch all the metric values defined for given cluster.",
-        parameters = {
-            @Parameter(name = "clusterId", in = ParameterIn.PATH, description = "Identifier of the cluster, which the metric values will be fetched for.", required = true),
-        },
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Non-empty page with metric values were found for given cluster and sent to the client successfully."),
-            @ApiResponse(responseCode = "204", description = "Empty page of metric values were found for given cluster, and as a result, 204 NO CONTENT is returned.",
-                content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "404", description = "Cluster, which the metric value is to be created for, could not be found.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
-        }
+            method = "GET", summary = "Get all values of the metrics, that were defined for the given cluster",
+            description = "This endpoint can be used by the administrator to fetch all the metric values defined for given cluster.",
+            parameters = {
+                    @Parameter(name = "clusterId", in = ParameterIn.PATH, description = "Identifier of the cluster, which the metric values will be fetched for.", required = true),
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Non-empty page with metric values were found for given cluster and sent to the client successfully."),
+                    @ApiResponse(responseCode = "204", description = "Empty page of metric values were found for given cluster, and as a result, 204 NO CONTENT is returned.",
+                            content = @Content(schema = @Schema())),
+                    @ApiResponse(responseCode = "404", description = "Cluster, which the metric value is to be created for, could not be found.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+            }
     )
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -122,26 +122,26 @@ public class ClusterMetricController {
     /* Update methods */
 
     @Operation(
-        method = "PATCH", summary = "Update certain metric value for given cluster",
-        description = "This endpoint can be used by the administrator to update existing metric value defined for given cluster.",
-        parameters = {
-            @Parameter(name = "clusterId", in = ParameterIn.PATH, description = "Identifier of the cluster, which the metric value will be updated for.", required = true),
-            @Parameter(name = "metricId", in = ParameterIn.PATH, description = "Identifier of the metric, which the value will be updated for given cluster.", required = true),
-        },
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = """
-            Data transfer object containing essential information about updated metric value, which in fact is only the new
-            value of the given metric."""
-        ),
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Given metric value was found for given cluster and it was updated successfully."),
-            @ApiResponse(responseCode = "404", description = """
-                Cluster, which the metric value is to be created for, could not be found. Alternatively either metric,
-                with the identifier provided in the request body or actual value of the metric could not be found.""",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
-        }
+            method = "PATCH", summary = "Update certain metric value for given cluster",
+            description = "This endpoint can be used by the administrator to update existing metric value defined for given cluster.",
+            parameters = {
+                    @Parameter(name = "clusterId", in = ParameterIn.PATH, description = "Identifier of the cluster, which the metric value will be updated for.", required = true),
+                    @Parameter(name = "metricId", in = ParameterIn.PATH, description = "Identifier of the metric, which the value will be updated for given cluster.", required = true),
+            },
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = """
+                            Data transfer object containing essential information about updated metric value, which in fact is only the new
+                            value of the given metric."""
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Given metric value was found for given cluster and it was updated successfully."),
+                    @ApiResponse(responseCode = "404", description = """
+                            Cluster, which the metric value is to be created for, could not be found. Alternatively either metric,
+                            with the identifier provided in the request body or actual value of the metric could not be found.""",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+            }
     )
     @PreAuthorize("hasAuthority('administrator')")
     @PatchMapping(path = "/{metricId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -157,21 +157,21 @@ public class ClusterMetricController {
     /* Delete methods */
 
     @Operation(
-        method = "DELETE", summary = "Remove value defined for given metric for cluster",
-        description = """
-            This endpoint can be used by the administrator to remove certain metric value, that was defined for given
-            cluster, which exists in the oVirt system""",
-        parameters = {
-            @Parameter(name = "clusterId", in = ParameterIn.PATH, description = "Identifier of the cluster, which the value to be removed is defined for.", required = true),
-            @Parameter(name = "metricId", in = ParameterIn.PATH, description = "Identifier of the metric, which is value is to be removed for given cluster.", required = true),
-        },
-        responses = {
-            @ApiResponse(responseCode = "204", description = "Metric value, that was defined for given cluster was removed successfully."),
-            @ApiResponse(responseCode = "404", description = "Either cluster identifier with given identifier, or value of the given metric for given cluster could not be found.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
-        }
+            method = "DELETE", summary = "Remove value defined for given metric for cluster",
+            description = """
+                    This endpoint can be used by the administrator to remove certain metric value, that was defined for given
+                    cluster, which exists in the oVirt system""",
+            parameters = {
+                    @Parameter(name = "clusterId", in = ParameterIn.PATH, description = "Identifier of the cluster, which the value to be removed is defined for.", required = true),
+                    @Parameter(name = "metricId", in = ParameterIn.PATH, description = "Identifier of the metric, which is value is to be removed for given cluster.", required = true),
+            },
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Metric value, that was defined for given cluster was removed successfully."),
+                    @ApiResponse(responseCode = "404", description = "Either cluster identifier with given identifier, or value of the given metric for given cluster could not be found.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+            }
     )
     @PreAuthorize("hasAuthority('administrator')")
     @DeleteMapping(path = "/{metricId}")

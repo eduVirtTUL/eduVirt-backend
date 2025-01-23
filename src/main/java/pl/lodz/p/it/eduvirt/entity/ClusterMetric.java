@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Table(
-        name = "metric_cluster",
+        name = "cluster_metric",
         indexes = @Index(name = "cluster_metric_metric_id_idx", columnList = "metric_id"),
         uniqueConstraints = @UniqueConstraint(name = "cluster_metric_cluster_id_unique",
                 columnNames = {"cluster_id", "metric_id"})

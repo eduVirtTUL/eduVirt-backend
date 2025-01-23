@@ -108,11 +108,7 @@ public class CourseServiceImpl implements CourseService {
                     .formatted(teacher.getId()));
         }
 
-        if (course.getTeachers() == null) {
-            course.setTeachers(List.of(teacher));
-        } else {
-            course.getTeachers().add(teacher);
-        }
+        course.setTeachers(List.of(teacher));
 
         return courseRepository.saveAndFlush(course);
     }

@@ -28,6 +28,8 @@ import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.*;
 import pl.lodz.p.it.eduvirt.service.*;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtClusterService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
@@ -36,7 +38,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -431,7 +432,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<ClusterGeneralDto> foundClusters = mapper.readValue(json, new TypeReference<>() {});
+        List<ClusterGeneralDto> foundClusters = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundClusters);
         assertFalse(foundClusters.isEmpty());
@@ -585,7 +587,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<HostDto> foundHosts = mapper.readValue(json, new TypeReference<>() {});
+        List<HostDto> foundHosts = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundHosts);
         assertFalse(foundHosts.isEmpty());
@@ -797,7 +800,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<VmGeneralDto> foundVms = mapper.readValue(json, new TypeReference<>() {});
+        List<VmGeneralDto> foundVms = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundVms);
         assertFalse(foundVms.isEmpty());
@@ -965,7 +969,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<NetworkDto> foundNetworks = mapper.readValue(json, new TypeReference<>() {});
+        List<NetworkDto> foundNetworks = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundNetworks);
         assertFalse(foundNetworks.isEmpty());
@@ -1134,7 +1139,8 @@ public class ClusterControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<EventGeneralDto> foundEvents = mapper.readValue(json, new TypeReference<>() {});
+        List<EventGeneralDto> foundEvents = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundEvents);
         assertFalse(foundEvents.isEmpty());

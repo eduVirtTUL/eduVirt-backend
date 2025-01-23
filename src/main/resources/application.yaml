@@ -19,7 +19,7 @@ spring:
       "mail.smtp.auth": ${MAIL_PROPERTIES_ENABLE_AUTH:true}
       "mail.smtp.starttls.enable": ${MAIL_PROPERTIES_STARTTLS:true}
       "mail.smtp.ssl.enable": ${MAIL_PROPERTIES_SSL_ENABLE:true}
-      "mail.smtp.ssl.trust": ${MAIL_PROPERTIES_SSL_TRUST:${HOST}}
+      "mail.smtp.ssl.trust": ${MAIL_PROPERTIES_SSL_TRUST:${MAIL_HOST}}
   security:
     oauth2:
       resourceserver:
@@ -39,14 +39,6 @@ ovirt:
     jks:
       file: ${JKS_FILE:ovirte-tst-keystore.jks}
       password: ${JKS_PASSWORD:password}
-
-#auth:
-#  keycloack:
-#    tokenUri: ${KEYCLOAK_TOKEN_URI}
-#    url: ${KEYCLOAK_URL}
-#    clientId: ${KEYCLOAK_CLIENT_ID}
-#    clientSecret: ${KEYCLOAK_CLIENT_SECRET}
-#    redirectUri: ${KEYCLOAK_REDIRECT_URI}
 
 auth:
   keycloack:
@@ -68,7 +60,7 @@ frontend:
   callback: ${FRONTEND_CALLBACK}
 
 maintenance-interval:
-  min-ahead: ${MAINTENANCE_INTERVAL_MIN_AHEAD}
+  min-ahead: ${MAINTENANCE_INTERVAL_MIN_AHEAD:6}
 
 window:
   length: ${RESERVATION_WINDOW_LENGTH:15}
@@ -86,4 +78,4 @@ executor:
     grace-time: ${EXECUTOR_VM_SHUTDOWN_GRACE_TIME:2}
   mail:
     urls:
-      reservations: ${FRONTEND_RESERVATIONS_VIEW:http://localhost:5173/reservations}
+      reservations: ${FRONTEND_RESERVATIONS_VIEW:${HOST}/eduVirt/reservations}

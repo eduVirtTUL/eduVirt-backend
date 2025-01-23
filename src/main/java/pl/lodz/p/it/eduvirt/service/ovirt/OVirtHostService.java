@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.service;
+package pl.lodz.p.it.eduvirt.service.ovirt;
 
 import org.ovirt.engine.sdk4.types.Host;
 
