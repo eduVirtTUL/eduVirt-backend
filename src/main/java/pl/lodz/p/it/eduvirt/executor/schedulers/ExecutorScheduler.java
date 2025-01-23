@@ -55,6 +55,8 @@ import java.util.stream.Collectors;
 //IMPROVEMENTS michal: improvements for transactions
 //IMPROVEMENTS michal: LoggerInterceptor on other services
 
+//IMPROVEMENTS michal: vnic profile in use should not be deleted
+
 // Priority 1
 //IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
 //IMPROVEMENTS michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems) (probably no limit)
