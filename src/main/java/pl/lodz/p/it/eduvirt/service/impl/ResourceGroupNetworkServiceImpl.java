@@ -13,9 +13,9 @@ import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictExcep
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineConflictException;
 import pl.lodz.p.it.eduvirt.repository.*;
-import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupNetworkService;
-import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.priviliges.PrivilegesService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
 
     private final EntityManager entityManager;
     private final ETagHelper eTagHelper;
-    private final ResourceGroupService resourceGroupService;
+    private final PrivilegesService privilegesService;
 
     @Override
     @Transactional
@@ -46,7 +46,9 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
 
-        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
+        if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
+            throw new ResourceGroupNotFoundException(rgId);
+        }
 
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
             throw new ResourceGroupConflictException();
@@ -90,7 +92,10 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     public List<ResourceGroupNetwork> getResourceGroupNetworks(UUID rgId) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
-        resourceGroupService.validateResourceGroupOwnershipOrAdmin(resourceGroup);
+
+        if (!privilegesService.validateResourceGroupOwnershipOrAdmin(resourceGroup)) {
+            throw new ResourceGroupNotFoundException(rgId);
+        }
 
         return resourceGroupNetworkRepository.getAllByResourceGroupId(rgId);
     }
@@ -104,7 +109,9 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
                 .orElseThrow();
 
         ResourceGroup resourceGroup = resourceGroupNetwork.getResourceGroup();
-        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
+        if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
+            throw new ResourceGroupNotFoundException(resourceGroup.getId());
+        }
 
         VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
 
@@ -139,7 +146,10 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
         VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
         ResourceGroup resourceGroup = virtualMachine.getResourceGroup();
 
-        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
+        if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
+            throw new ResourceGroupNotFoundException(resourceGroup.getId());
+        }
+
         NetworkInterface networkInterface = networkInterfaceRepository.findById(nicId).orElseThrow();
 
         if (!networkInterface.getVirtualMachine().getId().equals(vmId)) {
@@ -162,7 +172,9 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
         ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
 
-        resourceGroupService.validateResourceGroupOwnership(resourceGroup);
+        if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
+            throw new ResourceGroupNotFoundException(rgId);
+        }
 
         if (!eTagHelper.validateEtag(etag, resourceGroup)) {
             throw new ResourceGroupConflictException();
