@@ -128,14 +128,6 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
         return resourceGroup;
     }
 
-    @Override
-    public List<ResourceGroup> getAssignedStatefulResourceGroups() {
-        List<UUID> assignedResourceGroupIds = podStatefulRepository.findAll().stream()
-                .map(pod -> pod.getResourceGroup().getId())
-                .toList();
-        return resourceGroupRepository.findAllById(assignedResourceGroupIds);
-    }
-
     @Transactional
     @Override
     public List<Vm> findAvailableVms(UUID rgId) {

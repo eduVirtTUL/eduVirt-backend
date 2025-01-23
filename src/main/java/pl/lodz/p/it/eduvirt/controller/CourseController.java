@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
+import pl.lodz.p.it.eduvirt.dto.EmailDto;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.UpdateCourseDto;
@@ -39,6 +40,7 @@ import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.exceptions.TeacherSelfModificationException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
@@ -227,25 +229,25 @@ public class CourseController {
     }
 
     @Operation(
-        method = "GET", summary = "Check availability of certain resource group in given course during specified time window",
-        description = """
-            This endpoint can be used to establish availability of certain resource group in given course during
-            specified time window. That endpoint is specifically used by the calendar component in the UI.""",
-        parameters = {
-            @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the course, which contains the resource group, which availability is to be established.", required = true),
-            @Parameter(name = "rgId", in = ParameterIn.PATH, description = "Identifier of the resource group, which availability is to be established by the web application.", required = true),
-            @Parameter(name = "start", in = ParameterIn.QUERY, description = "Start of the time window, which the availability will be established for.", required = true),
-            @Parameter(name = "end", in = ParameterIn.QUERY, description = "End of the time window, which the availability will be established for.", required = true),
-        },
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Availability of given resource group from given course was established for certain timestamp, each time window apart from each other."),
-            @ApiResponse(responseCode = "204", description = "Specified time window length is shorter than the required minimum of window length.",
-                content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "404", description = "Course identified with given identifier or resource group could not be found, or currently authenticated user did not have privileges to access it.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
-        }
+            method = "GET", summary = "Check availability of certain resource group in given course during specified time window",
+            description = """
+                    This endpoint can be used to establish availability of certain resource group in given course during
+                    specified time window. That endpoint is specifically used by the calendar component in the UI.""",
+            parameters = {
+                    @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the course, which contains the resource group, which availability is to be established.", required = true),
+                    @Parameter(name = "rgId", in = ParameterIn.PATH, description = "Identifier of the resource group, which availability is to be established by the web application.", required = true),
+                    @Parameter(name = "start", in = ParameterIn.QUERY, description = "Start of the time window, which the availability will be established for.", required = true),
+                    @Parameter(name = "end", in = ParameterIn.QUERY, description = "End of the time window, which the availability will be established for.", required = true),
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Availability of given resource group from given course was established for certain timestamp, each time window apart from each other."),
+                    @ApiResponse(responseCode = "204", description = "Specified time window length is shorter than the required minimum of window length.",
+                            content = @Content(schema = @Schema())),
+                    @ApiResponse(responseCode = "404", description = "Course identified with given identifier or resource group could not be found, or currently authenticated user did not have privileges to access it.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+            }
     )
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/resource-groups/{rgId}/availability")
@@ -284,25 +286,25 @@ public class CourseController {
     }
 
     @Operation(
-        method = "GET", summary = "Check availability of certain resource group pool in given course during specified time window",
-        description = """
-            This endpoint can be used to establish availability of certain resource group pool in given course during
-            specified time window. That endpoint is specifically used by the calendar component in the UI.""",
-        parameters = {
-            @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the course, which contains the resource group pool, which availability is to be established.", required = true),
-            @Parameter(name = "rgId", in = ParameterIn.PATH, description = "Identifier of the resource group pool, which availability is to be established by the web application.", required = true),
-            @Parameter(name = "start", in = ParameterIn.QUERY, description = "Start of the time window, which the availability will be established for.", required = true),
-            @Parameter(name = "end", in = ParameterIn.QUERY, description = "End of the time window, which the availability will be established for.", required = true),
-        },
-        responses = {
-            @ApiResponse(responseCode = "200", description = "Availability of given resource group pool from given course was established for certain timestamp, each time window apart from each other."),
-            @ApiResponse(responseCode = "204", description = "Specified time window length is shorter than the required minimum of window length.",
-                content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "404", description = "Course identified with given identifier or resource group pool could not be found, or currently authenticated user did not have privileges to access it.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
-                content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
-        }
+            method = "GET", summary = "Check availability of certain resource group pool in given course during specified time window",
+            description = """
+                    This endpoint can be used to establish availability of certain resource group pool in given course during
+                    specified time window. That endpoint is specifically used by the calendar component in the UI.""",
+            parameters = {
+                    @Parameter(name = "id", in = ParameterIn.PATH, description = "Identifier of the course, which contains the resource group pool, which availability is to be established.", required = true),
+                    @Parameter(name = "rgId", in = ParameterIn.PATH, description = "Identifier of the resource group pool, which availability is to be established by the web application.", required = true),
+                    @Parameter(name = "start", in = ParameterIn.QUERY, description = "Start of the time window, which the availability will be established for.", required = true),
+                    @Parameter(name = "end", in = ParameterIn.QUERY, description = "End of the time window, which the availability will be established for.", required = true),
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Availability of given resource group pool from given course was established for certain timestamp, each time window apart from each other."),
+                    @ApiResponse(responseCode = "204", description = "Specified time window length is shorter than the required minimum of window length.",
+                            content = @Content(schema = @Schema())),
+                    @ApiResponse(responseCode = "404", description = "Course identified with given identifier or resource group pool could not be found, or currently authenticated user did not have privileges to access it.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+            }
     )
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{id}/resource-group-pools/{rgPoolId}/availability")
@@ -341,8 +343,11 @@ public class CourseController {
     }
 
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @Transactional
     @PostMapping("/{courseId}/add-student")
-    public ResponseEntity<Void> addStudentToCourse(@PathVariable UUID courseId, @RequestParam String email) {
+    public ResponseEntity<Void> addStudentToCourse(
+            @PathVariable UUID courseId,
+            @RequestBody @Validated EmailDto emailDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
@@ -355,17 +360,18 @@ public class CourseController {
 
         if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
                 (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
-            teamService.addStudentToCourse(course, email);
+            teamService.addStudentToCourse(course, emailDto.getEmail());
             return ResponseEntity.noContent().build();
         }
-
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     @Transactional
     @PostMapping("/{courseId}/remove-student")
-    public ResponseEntity<Void> removeStudentFromCourse(@PathVariable UUID courseId, @RequestParam String email) {
+    public ResponseEntity<Void> removeStudentFromCourse(
+            @PathVariable UUID courseId,
+            @RequestBody @Validated EmailDto emailDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
@@ -378,19 +384,26 @@ public class CourseController {
 
         if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
                 (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
-            teamService.removeStudentFromCourse(course, email);
+            teamService.removeStudentFromCourse(course, emailDto.getEmail());
             return ResponseEntity.noContent().build();
         }
-
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @Transactional
     @PostMapping("/{courseId}/add-teacher")
-    public ResponseEntity<Void> addTeacherToCourse(@PathVariable UUID courseId, @RequestParam String email) {
+    public ResponseEntity<Void> addTeacherToCourse(
+            @PathVariable UUID courseId,
+            @RequestBody @Validated EmailDto emailDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        if (user.getEmail().equals(emailDto.getEmail())) {
+            throw new TeacherSelfModificationException("Teacher cannot add themselves to a course");
+        }
+        
         Course course = courseService.getCourse(courseId);
 
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
@@ -400,19 +413,26 @@ public class CourseController {
 
         if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
                 (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
-            courseService.addTeacherToCourse(course, email);
+            courseService.addTeacherToCourse(course, emailDto.getEmail());
             return ResponseEntity.noContent().build();
         }
-
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @Transactional
     @PostMapping("/{courseId}/remove-teacher")
-    public ResponseEntity<Void> removeTeacherFromCourse(@PathVariable UUID courseId, @RequestParam String email) {
+    public ResponseEntity<Void> removeTeacherFromCourse(
+            @PathVariable UUID courseId,
+            @RequestBody @Validated EmailDto emailDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        if (user.getEmail().equals(emailDto.getEmail())) {
+            throw new TeacherSelfModificationException("Teacher cannot remove themselves from a course");
+        }
+
         Course course = courseService.getCourse(courseId);
 
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
@@ -422,10 +442,9 @@ public class CourseController {
 
         if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
                 (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
-            courseService.removeTeacherFromCourse(course, email);
+            courseService.removeTeacherFromCourse(course, emailDto.getEmail());
             return ResponseEntity.noContent().build();
         }
-
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 

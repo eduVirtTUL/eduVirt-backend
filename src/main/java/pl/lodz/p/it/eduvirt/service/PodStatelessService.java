@@ -1,5 +1,6 @@
 package pl.lodz.p.it.eduvirt.service;
 
+import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatelessDto;
 import pl.lodz.p.it.eduvirt.entity.PodStateless;
 import java.util.List;
 import java.util.UUID;
@@ -7,6 +8,10 @@ import java.util.UUID;
 public interface PodStatelessService {
 
     PodStateless createStatelessPod(PodStateless pod, UUID teamId, UUID resourceGroupPoolId);
+
+    List<PodStateless> createStatelessPodsBatch(List<PodStateless> pods, List<UUID> teamIds, List<UUID> resourceGroupPoolIds);
+    
+    void deleteStatelessPodsBatch(List<UUID> podIds);
 
     void deleteStatelessPod(UUID podId);
 

@@ -2,6 +2,7 @@ package pl.lodz.p.it.eduvirt.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -67,7 +68,23 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
     @Query("SELECT DISTINCT t FROM Team t JOIN t.users u " +
             "WHERE t.course.id = :courseId AND " +
             "LOWER(SUBSTRING(u.email, 1, LOCATE('@', u.email) - 1)) IN :emailPrefixes")
-    Page<Team> findByCourseIdAndEmailPrefixes(@Param("courseId") UUID courseId,
-                                              @Param("emailPrefixes") List<String> emailPrefixes,
-                                              Pageable pageable);
+    List<Team> findByCourseIdAndEmailPrefixes(
+            @Param("courseId") UUID courseId,
+            @Param("emailPrefixes") List<String> emailPrefixes,
+            Sort sort);
+
+    @Query("SELECT CAST(SUBSTRING(t.name, LENGTH(:prefix) + 1) AS integer) " +
+            "FROM Team t " +
+            "WHERE t.course.id = :courseId " +
+            "AND t.name LIKE CONCAT(:prefix, '%') " +
+            "ORDER BY CAST(SUBSTRING(t.name, LENGTH(:prefix) + 1) AS integer)")
+    List<Integer> findTeamNumbersByCourseIdAndPrefix(@Param("courseId") UUID courseId,
+                                                     @Param("prefix") String prefix);
+
+    @Query("SELECT CAST(SUBSTRING(t.name, LENGTH(:prefix) + 1) AS integer) " +
+            "FROM Team t " +
+            "WHERE t.course.id = :courseId " +
+            "AND t.name LIKE CONCAT(:prefix, '%') " +
+            "ORDER BY CAST(SUBSTRING(t.name, LENGTH(:prefix) + 1) AS integer)")
+    List<Integer> findTeamNumbersByPrefix(@Param("courseId") UUID courseId, @Param("prefix") String prefix);
 }

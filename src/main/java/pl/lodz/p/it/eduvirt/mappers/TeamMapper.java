@@ -25,7 +25,6 @@ public interface TeamMapper {
         return new TeamWithCourseDto(
                 team.getId(),
                 team.getName(),
-                team.isActive(),
                 team.getMaxSize(),
                 team.getUsers().stream().map(user -> new UserDto(
                         user.getId().toString(),
@@ -43,7 +42,6 @@ public interface TeamMapper {
         return new TeamDto(
                 team.getId(),
                 team.getName(),
-                team.isActive(),
                 team.getMaxSize(),
                 team.getUsers().stream().map(user -> new UserDto(
                         user.getId().toString(),
@@ -68,7 +66,6 @@ public interface TeamMapper {
         return Team.builder()
                 .name(dto.name())
                 .maxSize(dto.maxSize())
-                .active(dto.active())
                 .build();
     }
     

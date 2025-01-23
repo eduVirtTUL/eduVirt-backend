@@ -26,7 +26,7 @@ public class User {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column(name = "user_name", nullable = false)
+    @Column(name = "user_name", unique = true, nullable = false)
     private String userName;
 
     @Column(name = "first_name")
@@ -42,7 +42,7 @@ public class User {
     private String timeZone;
 
     @ElementCollection
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     private List<String> roles = new ArrayList<>();
 

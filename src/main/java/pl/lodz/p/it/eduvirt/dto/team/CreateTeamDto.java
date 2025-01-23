@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Value;
+import pl.lodz.p.it.eduvirt.validation.team.TeamKeyFormat;
 
 import java.util.UUID;
 
@@ -15,7 +16,7 @@ public class CreateTeamDto {
     @Size(min=1, max=50, message = "teams.validation.name.invalid")
     String name;
 
-    @Size(min=4, max=20, message = "teams.validation.key.value.invalid")
+    @TeamKeyFormat
     String keyValue;
 
     @NotNull(message = "teams.validation.null.rg.id")

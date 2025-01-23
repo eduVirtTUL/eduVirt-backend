@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Builder
-public record TeamWithCourseDto(UUID id, String name, boolean active, int maxSize, List<UserDto> users,
+public record TeamWithCourseDto(UUID id, String name, int maxSize, List<UserDto> users,
                                 CourseBasicDto course) {
 }
