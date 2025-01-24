@@ -42,8 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({
         CourseController.class, GeneralControllerExceptionResolver.class,
         CourseMapperImpl.class, ResourceGroupMapperImpl.class,
-        UserMapperImpl.class, RGPoolMapperImpl.class,
-        ReservationMapperImpl.class
+        UserMapperImpl.class, RGPoolMapperImpl.class
 })
 @WebMvcTest(controllers = {CourseController.class}, useDefaultFilters = false)
 public class CourseControllerTest {

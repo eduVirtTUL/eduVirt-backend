@@ -89,7 +89,7 @@ public class CourseController {
     private final RGPoolMapper rgPoolMapper;
     private final ResourceGroupMapper resourceGroupMapper;
     private final UserMapper userMapper;
-    private final ReservationMapper reservationMapper;
+//    private final ReservationMapper reservationMapper;
 
     /* Repositories */
 
