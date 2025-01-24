@@ -382,6 +382,12 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findAllHistoricalReservations(foundTeam, currentTime, pageable);
     }
 
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @Override
+    public Page<Reservation> findOngoingCourseReservations(Course course, Pageable pageable) {
+        return reservationRepository.findAllOngoingCourseReservations(course, pageable);
+    }
+
     @PreAuthorize("isAuthenticated()")
     @Override
     public Map<LocalDateTime, Boolean> checkResourceGroupAvailability(ResourceGroup resourceGroup, Course course,

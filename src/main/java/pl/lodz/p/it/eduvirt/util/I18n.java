@@ -114,6 +114,8 @@ public class I18n {
     /* Vnic profile keys */
 
     public static final String VNIC_PROFILE_ALREADY_EXISTS = "vnic.profile.already.exists";
+    public static final String VNIC_PROFILE_CURRENTLY_IN_USE = "ovirt.vnic.profile.currently.in.use";
+
     public static final String VNIC_PROFILE_EDUVIRT_NOT_FOUND = "eduvirt.vnic.profile.not.found";
     public static final String VNIC_PROFILE_OVIRT_NOT_FOUND = "ovirt.vnic.profile.not.found";
 

@@ -52,7 +52,6 @@ import java.util.stream.Collectors;
 
 // Priority 0
 //TO_IMPROVE michal: Check two conflicting invocation of scheduled method (ex. two pod starts) => set UniqueConstraints (when some tasks wait more then one minute i forEach)
-//TO_IMPROVE michal: vnic profile in use should not be deleted
 
 // Priority 1
 //TO_IMPROVE michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
@@ -68,6 +67,7 @@ import java.util.stream.Collectors;
 @LoggerInterceptor
 @RequiredArgsConstructor
 @Profile({"prod", "dev"})
+//@Profile("prod")
 @Transactional(propagation = Propagation.NEVER)
 public class ExecutorScheduler {
 
@@ -333,7 +333,6 @@ public class ExecutorScheduler {
         }
     }
 
-    //TODO michal: if pod doesnt start should we invoke stopping it??? - now stopping is invoking in any cases
     private void stopPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodDestroyTask(reservation);
         List<ExecutorSubtask> existingSubtasks = executorTaskService.getStopPodExistingSubTasks(reservation);
@@ -469,7 +468,7 @@ public class ExecutorScheduler {
         }
     }
 
-    //todo test
+    //todo to_test
     private void finalizePodReservation(ExecutorTask task) {
         ExecutorTask executorTask = executorTaskService.registerEndReservationTask(task.getReservation());
         List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationEndExistingSubTasks(task.getReservation());
@@ -485,6 +484,7 @@ public class ExecutorScheduler {
                 );
             }
 
+            // Remove already shut down VMs from the list
             ovirtVms.removeIf(vm -> vm.status().equals(VmStatus.DOWN));
 
             if (!ovirtVms.isEmpty()) {
