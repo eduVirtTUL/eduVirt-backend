@@ -66,8 +66,8 @@ import java.util.stream.Collectors;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-@Profile({"prod", "dev"})
-//@Profile("prod")
+//@Profile({"prod", "dev"})
+@Profile("prod")
 @Transactional(propagation = Propagation.NEVER)
 public class ExecutorScheduler {
 
