@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 @LoggerInterceptor
 @RequiredArgsConstructor
 @Profile({"prod", "dev"})
+//@Profile("prod")
 @Transactional(propagation = Propagation.NEVER)
 public class NotificationScheduler {
 
