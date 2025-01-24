@@ -36,7 +36,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
 
     /* Constants */
 
-    private static final String KEY_FORMAT_REGEX = "^[a-zA-Z0-9-_]{5,50}$";
+    private static final String KEY_FORMAT_REGEX = "^[a-zA-Z0-9-_]{4,20}$";
 
 
     /* Helper methods */

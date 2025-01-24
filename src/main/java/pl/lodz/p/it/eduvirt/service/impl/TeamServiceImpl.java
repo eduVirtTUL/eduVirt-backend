@@ -26,7 +26,6 @@ import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.AccessKeyService;
 import pl.lodz.p.it.eduvirt.service.KeyGeneratorService;
-import pl.lodz.p.it.eduvirt.service.PodStatelessService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
@@ -55,13 +54,10 @@ public class TeamServiceImpl implements TeamService {
     private final TeamAccessKeyRepository teamKeyRepository;
     private final CourseAccessKeyRepository courseKeyRepository;
     private final UserRepository userRepository;
-    private final PodStatefulRepository statefulPodRepository;
-    private final PodStatelessRepository statelessPodRepository;
 
     /* Helper methods */
 
     private final ETagHelper eTagHelper;
-    private final PodStatelessService podStatelessService;
 
     private void validateUserNotInCourse(UUID userId, UUID courseId) {
         if (teamRepository.existsByUserIdAndCourseId(userId, courseId)) {
