@@ -6,12 +6,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
+import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.PodStateless;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.entity.Reservation.ReservationStatus;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
 import pl.lodz.p.it.eduvirt.entity.Team;
+import pl.lodz.p.it.eduvirt.entity.key.CourseType;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.course.IncorrectCourseTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.InvalidPodTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodDeletionException;
@@ -76,15 +79,35 @@ public class PodStatelessServiceImpl implements PodStatelessService {
             throw new IllegalArgumentException("Lists must be of equal size");
         }
 
+        Team firstTeam = teamRepository.findById(teamIds.getFirst())
+                .orElseThrow(() -> new TeamNotFoundException(teamIds.getFirst()));
+
+        if (firstTeam.getCourse().getCourseType() != CourseType.SOLO) {
+            throw new IncorrectCourseTypeException("Batch operations only allowed for SOLO courses");
+        }
+
+        UUID courseId = firstTeam.getCourse().getId();
+        if (!teamIds.stream()
+                .map(id -> teamRepository.findById(id)
+                        .orElseThrow(() -> new TeamNotFoundException(id)))
+                .allMatch(team -> team.getCourse().getId().equals(courseId))) {
+            throw new IllegalArgumentException("All teams must belong to the same course");
+        }
+
+        if (teamIds.stream().distinct().count() != teamIds.size()) {
+            throw new PodAlreadyExistsException("Cannot create multiple pods for the same team");
+        }
+
         List<PodStateless> createdPods = new ArrayList<>();
 
         for (int i = 0; i < pods.size(); i++) {
-            final int index = i;
-            Team team = teamRepository.findById(teamIds.get(index))
-                    .orElseThrow(() -> new TeamNotFoundException(teamIds.get(index)));
+            int finalI = i;
+            Team team = teamRepository.findById(teamIds.get(i))
+                    .orElseThrow(() -> new TeamNotFoundException(teamIds.get(finalI)));
 
+            int finalI1 = i;
             ResourceGroupPool resourceGroupPool = resourceGroupPoolRepository.findById(resourceGroupPoolIds.get(i))
-                    .orElseThrow(() -> new CourseNotFoundException(resourceGroupPoolIds.get(index)));
+                    .orElseThrow(() -> new CourseNotFoundException(resourceGroupPoolIds.get(finalI1)));
 
             if (resourceGroupPool.getCourse() != team.getCourse()) {
                 throw new InvalidPodTypeException("Resource group pool does not belong to the course the team is in");
@@ -110,10 +133,25 @@ public class PodStatelessServiceImpl implements PodStatelessService {
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Transactional
     public void deleteStatelessPodsBatch(List<UUID> podIds) {
+        if (podIds.isEmpty()) {
+            return;
+        }
+
         List<PodStateless> pods = podStatelessRepository.findAllById(podIds);
         if (pods.size() != podIds.size()) {
             throw new PodNotFoundException("One or more pods not found");
         }
+
+        Course course = pods.getFirst().getCourse();
+        if (course.getCourseType() != CourseType.SOLO) {
+            throw new IncorrectCourseTypeException("Batch operations only allowed for SOLO courses");
+        }
+
+        if (!pods.stream()
+                .allMatch(pod -> pod.getCourse().getId().equals(course.getId()))) {
+            throw new IllegalArgumentException("All pods must belong to the same course");
+        }
+
         podStatelessRepository.deleteAllById(podIds);
     }
 
