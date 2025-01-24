@@ -7,6 +7,6 @@
     <include file="classpath:config/liquibase/202501211253_permissions.sql" relativeToChangelogFile="false"/>
 
     <!--Changelogs-->
-    <include file="classpath:config/liquibase/202501230907_changelog.sql" relativeToChangelogFile="false"/>
+    <includeAll path="config/liquibase/changelogs" />
 
 </databaseChangeLog>
