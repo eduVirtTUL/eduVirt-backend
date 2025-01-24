@@ -34,6 +34,8 @@ public interface ReservationService {
     Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable);
     Page<Reservation> findHistoricalReservations(UUID teamId, Pageable pageable);
 
+    Page<Reservation> findOngoingCourseReservations(Course course, Pageable pageable);
+
     Map<LocalDateTime, Boolean> checkResourceGroupAvailability(
             ResourceGroup resourceGroup, Course course,
             int windowLength, LocalDateTime start, LocalDateTime end);
@@ -48,6 +50,7 @@ public interface ReservationService {
     List<Reservation> findReservationsToBegin();
     List<Reservation> findReservationsToStop();
     List<Reservation> findReservationsToSendNotifications();
+    List<Reservation> findRgNotCompletedReservations(ResourceGroup resourceGroup);
 
     /* Update / delete methods */
 

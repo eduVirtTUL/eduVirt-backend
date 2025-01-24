@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Propagation;
@@ -49,7 +50,9 @@ public class PodStatelessController {
     private final PodStatelessMapper podStatelessMapper;
 
 
+    @Transactional
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('teacher')")
     @Operation(summary = "Create new stateless pod", description = "Creates a new stateless pod for the specified team and resource group pool")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pod created successfully"),
@@ -71,8 +74,7 @@ public class PodStatelessController {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
-                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+        if ((authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
 
             PodStateless createdPod = podStatelessService.createStatelessPod(
                     podToCreate,
@@ -85,14 +87,86 @@ public class PodStatelessController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    @Transactional
+    @PostMapping("/batch")
+    @Operation(summary = "Create pods batch", description = "Creates multiple stateless pods")
+    @PreAuthorize("hasAuthority('teacher')")
+    public ResponseEntity<List<PodStatelessDto>> createStatelessPodsBatch(
+            @RequestBody @Validated List<CreatePodStatelessDto> createDtos) {
+
+        if (createDtos.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Team team = teamService.getTeamById(createDtos.get(0).teamId());
+        Course course = team.getCourse();
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if ((authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+            List<PodStateless> pods = createDtos.stream()
+                    .map(podStatelessMapper::createPodStatelessDtoToPodStateless)
+                    .toList();
+            List<UUID> teamIds = createDtos.stream()
+                    .map(CreatePodStatelessDto::teamId)
+                    .toList();
+            List<UUID> poolIds = createDtos.stream()
+                    .map(CreatePodStatelessDto::resourceGroupPoolId)
+                    .toList();
+
+            List<PodStateless> created = podStatelessService.createStatelessPodsBatch(pods, teamIds, poolIds);
+            return ResponseEntity.ok(created.stream()
+                    .map(podStatelessMapper::podStatelessToDto)
+                    .toList());
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @Transactional
+    @DeleteMapping("/batch")
+    @Operation(summary = "Delete pods batch", description = "Deletes multiple stateless pods")
+    @PreAuthorize("hasAuthority('teacher')")
+    public ResponseEntity<Void> deleteStatelessPodsBatch(@RequestBody List<UUID> podIds) {
+        if (podIds.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        PodStateless firstPod = podStatelessService.getStatelessPodById(podIds.get(0));
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && firstPod.getCourse().getTeachers().contains(user))) {
+
+            podStatelessService.deleteStatelessPodsBatch(podIds);
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @GetMapping(path = "/team/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Get team pods", description = "Retrieves all stateless pods for a specific team")
+    @PreAuthorize("isAuthenticated()")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pods retrieved successfully"),
             @ApiResponse(responseCode = "204", description = "No pods found"),
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<PodStatelessDetailsDto>> getStatelessPodsByTeam(@PathVariable UUID teamId) {
         List<PodStatelessDetailsDto> listOfDTOs = podStatelessService.getStatelessPodsByTeam(teamId).stream()
                 .map(podStatelessMapper::podStatelessToDetailsDto)
@@ -119,8 +193,10 @@ public class PodStatelessController {
         return ResponseEntity.noContent().build();
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @GetMapping(path = "/course/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Get course pods", description = "Retrieves all stateless pods for a specific course")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pods retrieved successfully"),
             @ApiResponse(responseCode = "204", description = "No pods found"),
@@ -152,6 +228,7 @@ public class PodStatelessController {
 
     @GetMapping(path = "/resource-group-pool/{poolId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Get resource group pool pods", description = "Retrieves all stateless pods for a specific resource group pool")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pods retrieved successfully"),
             @ApiResponse(responseCode = "204", description = "No pods found"),
@@ -183,13 +260,14 @@ public class PodStatelessController {
     }
 
     @DeleteMapping("/{podId}")
+    @Transactional
     @Operation(summary = "Delete pod", description = "Deletes a specific stateless pod")
+    @PreAuthorize("hasAuthority('teacher')")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Pod deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Pod not found"),
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
-
     public ResponseEntity<Void> deleteStatelessPod(@PathVariable UUID podId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)

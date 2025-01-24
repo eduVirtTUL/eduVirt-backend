@@ -1,21 +1,93 @@
 spring:
+  host: "localhost:8080"
+  profiles:
+    active: test
+  sql:
+    init:
+      mode: always
+  jpa:
+    defer-datasource-initialization: false
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate
+        show_sql: true
+        format_sql: true
+  mail: # Port 587
+    host: test
+    port: 587
+    username: test
+    password: test
+    sender: test
+    protocol: smtp
+    properties:
+      "mail.smtp.auth": true
+      "mail.smtp.starttls.enable": true
+      "mail.debug": true
+      "mail.smtp.ssl.enable": false
+      "mail.smtp.ssl.trust": ${spring.mail.host}
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: test
+  datasource:
+    url: jdbc:postgresql://localhost:5432/eduvirt
+    username: eduvirt
+    password: eduvirt
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    change-log: classpath:/config/liquibase/master.xml
+    user: eduvirtadmin
+    password: eduvirtadmin
+    default-schema: public
 
-maintenance-interval:
-  min-ahead: 3
+ovirt:
+  engine:
+    url: test
+    username: test
+    password: test
+    jks:
+      file: test
+      password: test
 
-window:
-  length: 15
+auth:
+  keycloack:
+    login-url: test
+    logout-url: test
+    login-redirect-url: test
+    logout-redirect-url: test
+    clientId: test
+    token-url: test
+    clientSecret: test
+
+jws:
+  secret: test
 
 resource:
   warning:
     mail: true
 
+window:
+  length: 15
+
+mail:
+  default:
+    timezone: CET
+    language: pl
+
+frontend:
+  login: test
+  callback: test
+
+maintenance-interval:
+  min-ahead: 6
+
 executor:
-  task-time-tolerance: 3
+  task-time-tolerance: ${EXECUTOR_TASK_TIME_TOLERANCE:3}
   vm:
-    grace-time: 2
+    grace-time: ${EXECUTOR_VM_SHUTDOWN_GRACE_TIME:2}
+  mail:
+    urls:
+      reservations: ${FRONTEND_RESERVATIONS_VIEW:http://localhost:5173/reservations}
+

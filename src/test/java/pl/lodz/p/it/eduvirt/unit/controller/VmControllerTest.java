@@ -29,9 +29,9 @@ import pl.lodz.p.it.eduvirt.mappers.EventMapper;
 import pl.lodz.p.it.eduvirt.mappers.EventMapperImpl;
 import pl.lodz.p.it.eduvirt.mappers.VmMapper;
 import pl.lodz.p.it.eduvirt.mappers.VmMapperImpl;
-import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
-import pl.lodz.p.it.eduvirt.service.OVirtVnicProfileService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtClusterService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -229,7 +229,8 @@ public class VmControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<VmDto> foundVms = mapper.readValue(json, new TypeReference<>() {});
+        List<VmDto> foundVms = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundVms);
         assertFalse(foundVms.isEmpty());
@@ -327,7 +328,8 @@ public class VmControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<EventGeneralDto> listOfDtos = mapper.readValue(json, new TypeReference<>() {});
+        List<EventGeneralDto> listOfDtos = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(listOfDtos);
         assertFalse(listOfDtos.isEmpty());

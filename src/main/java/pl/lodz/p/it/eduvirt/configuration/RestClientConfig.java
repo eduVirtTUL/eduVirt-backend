@@ -17,7 +17,7 @@ import java.security.cert.X509Certificate;
 public class RestClientConfig {
 
     @Bean
-    @Profile("dev")
+    @Profile({"dev", "test"})
     public RestTemplate restTemplateDev() throws Exception {
         TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
             @Override

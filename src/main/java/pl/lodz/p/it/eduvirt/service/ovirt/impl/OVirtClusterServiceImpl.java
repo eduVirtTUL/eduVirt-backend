@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.service.impl;
+package pl.lodz.p.it.eduvirt.service.ovirt.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.Connection;
@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.exceptions.*;
-import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.util.PaginationUtil;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 

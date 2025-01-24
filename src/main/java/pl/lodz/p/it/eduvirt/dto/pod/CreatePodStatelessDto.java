@@ -6,7 +6,6 @@ import java.util.UUID;
 
 public record CreatePodStatelessDto(
         @NotNull(message = "pods.validation.null.team.id")
-
         UUID teamId,
 
         @NotNull(message = "pods.validation.null.rg.id")

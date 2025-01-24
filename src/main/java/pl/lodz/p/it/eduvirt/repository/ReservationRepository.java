@@ -115,12 +115,28 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                                                     @Param("probeTime") LocalDateTime probeTime,
                                                     Pageable pageable);
 
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @Query("""
+            SELECT DISTINCT r FROM Reservation r
+            LEFT JOIN r.team t
+            WHERE t.course = :course
+            AND r.status = 'IN_PROGRESS'
+            """)
+    Page<Reservation> findAllOngoingCourseReservations(@Param("course") Course course,
+                                                       Pageable pageable);
+
     //probeTimeWithTimeNeededToStop == (probeTime + taskTolerance + vmGraceTime)
     @Query("""
             SELECT DISTINCT r FROM Reservation r
             WHERE :probeTime >= r.startTime AND :probeTimeWithTimeNeededToStop <= r.endTime
-            AND r.status = 'PENDING'
-            AND r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_INIT' AND et.status != 'FAILED')
+            AND (
+                r.status = 'PENDING'
+                OR (
+                    r.status = 'IN_PROGRESS'
+                    AND
+                    r.id NOT IN (SELECT et.reservation.id FROM ExecutorTask et WHERE et.type = 'POD_INIT' AND et.status = 'SUCCESSFUL')
+                    )
+                )
             """)
     List<Reservation> findAllReservationsToBegin(@Param("probeTime") LocalDateTime probeTime,
                                                  @Param("probeTimeWithTimeNeededToStop") LocalDateTime probeTimeWithTimeNeededToStop);
@@ -142,4 +158,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             AND r.id NOT IN (SELECT mn.reservation.id FROM MailNotification mn WHERE mn.type = 'RESERVATION_END')
             """)
     List<Reservation> findAllReservationsToSendNotifications(@Param("probeTime") LocalDateTime probeTime);
+
+    @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :rg AND r.status = :status")
+    List<Reservation> findRgReservationsByStatus(@Param("rg") ResourceGroup resourceGroup,
+                                                 @Param("status") Reservation.ReservationStatus status);
 }

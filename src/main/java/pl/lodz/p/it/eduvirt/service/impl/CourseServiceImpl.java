@@ -108,11 +108,7 @@ public class CourseServiceImpl implements CourseService {
                     .formatted(teacher.getId()));
         }
 
-        if (course.getTeachers() == null) {
-            course.setTeachers(List.of(teacher));
-        } else {
-            course.getTeachers().add(teacher);
-        }
+        course.setTeachers(List.of(teacher));
 
         return courseRepository.saveAndFlush(course);
     }
@@ -174,7 +170,7 @@ public class CourseServiceImpl implements CourseService {
     public void addTeacherToCourse(Course course, String email) {
         User user = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User with email %s not found".formatted(email)));
 
-        if (user.getRoles().contains("/teacher")) {
+        if (user.getRoles().contains(RoleConstants.TEACHER)) {
             if (!course.getTeachers().contains(user)) {
                 course.getTeachers().add(user);
                 courseRepository.saveAndFlush(course);
@@ -193,7 +189,7 @@ public class CourseServiceImpl implements CourseService {
     public void removeTeacherFromCourse(Course course, String email) {
         User user = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new UserNotFoundException("User with email %s not found".formatted(email)));
 
-        if (user.getRoles().contains("/teacher")) {
+        if (user.getRoles().contains(RoleConstants.TEACHER)) {
             if (course.getTeachers().contains(user)) {
                 if (course.getTeachers().size() > 1) {
                     course.getTeachers().remove(user);

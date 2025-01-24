@@ -19,7 +19,7 @@ import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.*;
-import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.impl.ReservationServiceImpl;
 import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.MetricUtil;

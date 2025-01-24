@@ -7,20 +7,22 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.PodStateful;
+import pl.lodz.p.it.eduvirt.entity.Reservation;
+import pl.lodz.p.it.eduvirt.entity.Reservation.ReservationStatus;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.exceptions.course.*;
 import pl.lodz.p.it.eduvirt.exceptions.pod.InvalidPodTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodAlreadyExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.pod.PodDeletionException;
 import pl.lodz.p.it.eduvirt.exceptions.pod.PodNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.team.*;
-import pl.lodz.p.it.eduvirt.repository.CourseRepository;
-import pl.lodz.p.it.eduvirt.repository.PodStatefulRepository;
-import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
-import pl.lodz.p.it.eduvirt.repository.TeamRepository;
+import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.PodStatefulService;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,11 +38,12 @@ public class PodStatefulServiceImpl implements PodStatefulService {
     private final ResourceGroupRepository resourceGroupRepository;
     private final TeamRepository teamRepository;
     private final CourseRepository courseRepository;
+    private final ReservationRepository reservationRepository;
 
     /* Service methods */
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('teacher')")
     public PodStateful createStatefulPod(PodStateful pod, UUID teamId, UUID resourceGroupId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException(teamId));
@@ -92,10 +95,30 @@ public class PodStatefulServiceImpl implements PodStatefulService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('teacher')")
+    @Transactional
     public void deleteStatefulPod(UUID podId) {
-        //TODO: come back here later
-        podStatefulRepository.deleteById(podId);
+        PodStateful pod = podStatefulRepository.findById(podId)
+                .orElseThrow(() -> new PodNotFoundException("Stateful pod with id %s not found"
+                        .formatted(podId)));
+
+        List<Reservation> allReservations = reservationRepository
+                .findAllRgReservationsForGivenTeam(pod.getResourceGroup(), pod.getTeam());
+
+        boolean hasActiveReservations = allReservations.stream()
+                .anyMatch(r -> r.getStatus() == ReservationStatus.IN_PROGRESS &&
+                        r.getEndTime().isAfter(LocalDateTime.now(ZoneOffset.UTC)));
+
+        if (hasActiveReservations) {
+            throw new PodDeletionException("Pod with id %s has active reservations".formatted(podId));
+        }
+
+        List<Reservation> futureReservations = allReservations.stream()
+                .filter(r -> r.getStartTime().isAfter(LocalDateTime.now(ZoneOffset.UTC)))
+                .toList();
+        reservationRepository.deleteAll(futureReservations);
+
+        podStatefulRepository.delete(pod);
     }
 
 }

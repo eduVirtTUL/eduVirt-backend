@@ -35,7 +35,7 @@ public class Team extends Updatable {
 
     @ManyToMany
     @JoinTable(
-            name = "team_users",
+            name = "team_user",
             joinColumns = @JoinColumn(name = "team_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )

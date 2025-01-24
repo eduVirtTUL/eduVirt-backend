@@ -7,9 +7,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import pl.lodz.p.it.eduvirt.dto.access_key.CourseAccessKeyDto;
+import pl.lodz.p.it.eduvirt.dto.access_key.CreateCourseKeyDto;
 import pl.lodz.p.it.eduvirt.dto.access_key.TeamAccessKeyDto;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Team;
@@ -45,10 +47,12 @@ public class AccessKeyController {
     private final UserRepository userRepository;
 
 
-    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     @Transactional
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     @PostMapping("/course/{courseId}")
-    public ResponseEntity<CourseAccessKeyDto> createCourseKey(@PathVariable UUID courseId, @RequestParam String courseKey) {
+    public ResponseEntity<CourseAccessKeyDto> createCourseKey(
+            @PathVariable UUID courseId,
+            @RequestBody @Validated CreateCourseKeyDto createDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
@@ -63,14 +67,14 @@ public class AccessKeyController {
                 (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
             return ResponseEntity.ok(accessKeyMapper
                     .toCourseKeyDto(accessKeyService
-                            .createCourseKey(course, courseKey)));
+                            .createCourseKey(course, createDto.getKeyValue())));
         }
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    @GetMapping("/course/{courseId}")
     @Transactional
+    @GetMapping("/course/{courseId}")
     @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public ResponseEntity<CourseAccessKeyDto> getKeyForCourse(@PathVariable UUID courseId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -93,8 +97,8 @@ public class AccessKeyController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/team/{teamId}")
     @Transactional
+    @GetMapping("/team/{teamId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TeamAccessKeyDto> getKeyForTeam(@PathVariable UUID teamId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());

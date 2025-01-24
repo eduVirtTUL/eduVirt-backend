@@ -35,7 +35,7 @@ import java.util.UUID;
 public abstract class ExecutorSubtask extends Updatable {
 
     public enum SubtaskType {
-        CHECK_VMS_STATUSES,
+        CHECK_VMS_STATUSES, CHECK_RG_IN_USE,
         ASSIGN_VNIC_PROFILE, REMOVE_VNIC_PROFILE,
         START_VM, SHUTDOWN_VM, POWER_OFF, REBOOT_VM,
         ASSIGN_PERMISSION, REVOKE_PERMISSION

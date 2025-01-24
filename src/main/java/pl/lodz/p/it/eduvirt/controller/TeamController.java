@@ -20,10 +20,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
+import pl.lodz.p.it.eduvirt.dto.EmailDto;
 import pl.lodz.p.it.eduvirt.dto.access_key.JoinTeamKeyDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
+import pl.lodz.p.it.eduvirt.dto.team.CreateTeamBatchDto;
 import pl.lodz.p.it.eduvirt.dto.team.CreateTeamDto;
+import pl.lodz.p.it.eduvirt.dto.team.LeaveTeamDto;
+import pl.lodz.p.it.eduvirt.dto.team.SearchTeamsByEmailsDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithCourseDto;
 import pl.lodz.p.it.eduvirt.dto.team.TeamWithKeyDto;
 import pl.lodz.p.it.eduvirt.dto.team.UpdateTeamDto;
@@ -45,6 +49,7 @@ import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -74,8 +79,8 @@ public class TeamController {
 
     private final ETagHelper etagHelper;
 
-    @PostMapping
     @Transactional
+    @PostMapping
     @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<TeamWithCourseDto> createTeam(@RequestBody @Validated CreateTeamDto createTeamDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -89,19 +94,58 @@ public class TeamController {
                 .toList();
 
         if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
-            return ResponseEntity.ok(teamMapper
-                    .teamToTeamWithCourseDto(teamService
-                            .createTeam(teamMapper
-                                            .fromCreateDto(createTeamDto),
-                                    course,
-                                    createTeamDto.getKeyValue())));
+            Team team = teamMapper.fromCreateDto(createTeamDto);
+            Team created = teamService.createTeam(team, course, createTeamDto.getKeyValue());
+            return ResponseEntity.ok(teamMapper.teamToTeamWithCourseDto(created));
         }
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    @PutMapping("/{id}")
     @Transactional
+    @PostMapping("/batch")
+    @PreAuthorize("hasAuthority('teacher')")
+    public ResponseEntity<List<TeamWithKeyDto>> createTeamsBatch(@RequestBody @Validated CreateTeamBatchDto createTeamBatchDto) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+        Course course = courseService.getCourse(createTeamBatchDto.getCourseId());
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
+            List<Team> createdTeams = teamService.createTeamsBatch(
+                    course,
+                    createTeamBatchDto.getPrefix(),
+                    createTeamBatchDto.getTeamSize(),
+                    createTeamBatchDto.getNumberOfTeams()
+            );
+
+            List<TeamWithKeyDto> teamDtos = createdTeams.stream()
+                    .map(team -> {
+                        String keyValue = teamAccessKeyRepository.findByTeamId(team.getId())
+                                .map(TeamAccessKey::getKeyValue)
+                                .orElse(null);
+                        return TeamWithKeyDto.builder()
+                                .id(team.getId())
+                                .name(team.getName())
+                                .maxSize(team.getMaxSize())
+                                .users(Collections.emptyList())
+                                .keyValue(keyValue)
+                                .build();
+                    })
+                    .toList();
+
+            return ResponseEntity.ok(teamDtos);
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    @Transactional
+    @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<TeamWithCourseDto> updateTeam(
             @PathVariable UUID id,
@@ -148,8 +192,8 @@ public class TeamController {
         return ResponseEntity.ok(pageDto);
     }
 
-    @GetMapping("/{teamId}")
     @Transactional
+    @GetMapping("/{teamId}")
     @PreAuthorize("isAuthenticated()")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
@@ -171,7 +215,8 @@ public class TeamController {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user) ||
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user) ||
                 authorities.contains(RoleConstants.STUDENT) && team.getUsers().contains(user)) {
 
             String etag = etagHelper.generateEtag(team);
@@ -183,8 +228,8 @@ public class TeamController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/student")
     @Transactional
+    @GetMapping("/student")
     @PreAuthorize("hasAuthority('student')")
     public ResponseEntity<PageDto<TeamWithCourseDto>> getTeamsByStudent(
             @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
@@ -211,9 +256,9 @@ public class TeamController {
         return ResponseEntity.ok(pageDto);
     }
 
-    @GetMapping("/course/{courseId}")
     @Transactional
-    @PreAuthorize("hasAuthority('teacher')")
+    @GetMapping("/course/{courseId}")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public ResponseEntity<PageDto<TeamWithKeyDto>> getTeamsByCourse(
             @PathVariable UUID courseId,
             @RequestParam(name = "pageNumber", defaultValue = "0", required = false) int pageNumber,
@@ -235,7 +280,13 @@ public class TeamController {
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
         Course course = courseService.getCourse(courseId);
 
-        if (course.getTeachers().contains(user)) {
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
             Page<Team> teamsPage = teamService.getTeamsByCourse(courseId, pageNumber, pageSize, search, searchType, sortOrder);
 
             List<TeamWithKeyDto> listOfDTOs = teamsPage.getContent().stream()
@@ -249,7 +300,6 @@ public class TeamController {
                         return TeamWithKeyDto.builder()
                                 .id(team.getId())
                                 .name(team.getName())
-                                .active(team.isActive())
                                 .maxSize(team.getMaxSize())
                                 .users(team.getUsers().stream()
                                         .map(u -> new UserDto(
@@ -274,28 +324,28 @@ public class TeamController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/course/{courseId}/search-emails")
     @Transactional
-    @PreAuthorize("hasAuthority('teacher')")
-    public ResponseEntity<PageDto<TeamWithKeyDto>> searchTeamsByEmails(
+    @PostMapping("/course/{courseId}/search-emails")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    public ResponseEntity<List<TeamWithKeyDto>> searchTeamsByEmails(
             @PathVariable UUID courseId,
-            @RequestParam List<String> emailPrefixes,
-            @RequestParam(defaultValue = "0") int pageNumber,
-            @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(name = "sort", defaultValue = "ASC") String sortOrder) {
-
-        if (!(sortOrder.equals("ASC") || sortOrder.equals("DESC"))) {
-            sortOrder = "ASC";
-        }
+            @RequestBody @Validated SearchTeamsByEmailsDto searchDto) {
 
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
         Course course = courseService.getCourse(courseId);
 
-        if (course.getTeachers().contains(user)) {
-            Page<Team> teamsPage = teamService.findTeamsByEmails(courseId, emailPrefixes, pageNumber, pageSize, sortOrder);
-            List<TeamWithKeyDto> listOfDTOs = teamsPage.getContent().stream()
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
+
+            List<Team> teams = teamService.findTeamsByEmails(courseId, searchDto.getEmailPrefixes(), searchDto.getSort());
+            List<TeamWithKeyDto> teamDtos = teams.stream()
                     .map(team -> {
                         String keyValue = null;
                         if (course.getCourseType() == CourseType.TEAM_BASED) {
@@ -306,7 +356,6 @@ public class TeamController {
                         return TeamWithKeyDto.builder()
                                 .id(team.getId())
                                 .name(team.getName())
-                                .active(team.isActive())
                                 .maxSize(team.getMaxSize())
                                 .users(team.getUsers().stream()
                                         .map(u -> new UserDto(
@@ -322,11 +371,7 @@ public class TeamController {
                     })
                     .toList();
 
-            PageDto<TeamWithKeyDto> pageDto = new PageDto<>(listOfDTOs,
-                    new PageInfoDto(teamsPage.getNumber(), teamsPage.getNumberOfElements(),
-                            teamsPage.getTotalPages(), teamsPage.getTotalElements()));
-
-            if (!listOfDTOs.isEmpty()) return ResponseEntity.ok(pageDto);
+            if (!teamDtos.isEmpty()) return ResponseEntity.ok(teamDtos);
         }
         return ResponseEntity.noContent().build();
     }
@@ -344,15 +389,18 @@ public class TeamController {
 
     @PostMapping("/leave")
     @PreAuthorize("hasAuthority('student')")
-    public ResponseEntity<Void> leaveTeam(@RequestParam UUID teamId) {
+    public ResponseEntity<Void> leaveTeam(@RequestBody @Validated LeaveTeamDto leaveTeamDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        teamService.leaveTeam(teamId, userId);
+        teamService.leaveTeam(leaveTeamDto.getTeamId(), userId);
         return ResponseEntity.noContent().build();
     }
 
+    @Transactional
     @PostMapping("/{teamId}/add-student")
     @PreAuthorize("hasAuthority('teacher')")
-    public ResponseEntity<Void> addStudentToTeam(@PathVariable UUID teamId, @RequestParam String email) {
+    public ResponseEntity<Void> addStudentToTeam(
+            @PathVariable UUID teamId,
+            @RequestBody @Validated EmailDto emailDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
@@ -365,16 +413,19 @@ public class TeamController {
                 .toList();
 
         if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
-            teamService.addStudentToTeam(team, email);
+            teamService.addStudentToTeam(team, emailDto.getEmail());
             return ResponseEntity.noContent().build();
         }
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    @Transactional
     @PostMapping("/{teamId}/remove-student")
     @PreAuthorize("hasAuthority('teacher')")
-    public ResponseEntity<Void> removeStudentFromTeam(@PathVariable UUID teamId, @RequestParam String email) {
+    public ResponseEntity<Void> removeStudentFromTeam(
+            @PathVariable UUID teamId,
+            @RequestBody @Validated EmailDto emailDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId.toString()));
@@ -387,15 +438,15 @@ public class TeamController {
                 .toList();
 
         if (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) {
-            teamService.removeStudentFromTeam(team, email);
+            teamService.removeStudentFromTeam(team, emailDto.getEmail());
             return ResponseEntity.noContent().build();
         }
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    @DeleteMapping("/{teamId}")
     @Transactional
+    @DeleteMapping("/{teamId}")
     @PreAuthorize("hasAuthority('teacher')")
     public ResponseEntity<Void> deleteTeam(@PathVariable UUID teamId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());

@@ -17,7 +17,7 @@ import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.*;
-import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
 import pl.lodz.p.it.eduvirt.util.I18n;
@@ -382,6 +382,12 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findAllHistoricalReservations(foundTeam, currentTime, pageable);
     }
 
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @Override
+    public Page<Reservation> findOngoingCourseReservations(Course course, Pageable pageable) {
+        return reservationRepository.findAllOngoingCourseReservations(course, pageable);
+    }
+
     @PreAuthorize("isAuthenticated()")
     @Override
     public Map<LocalDateTime, Boolean> checkResourceGroupAvailability(ResourceGroup resourceGroup, Course course,
@@ -503,6 +509,11 @@ public class ReservationServiceImpl implements ReservationService {
                         }
                 )
                 .toList();
+    }
+
+    @Override
+    public List<Reservation> findRgNotCompletedReservations(ResourceGroup resourceGroup) {
+        return reservationRepository.findRgReservationsByStatus(resourceGroup, Reservation.ReservationStatus.IN_PROGRESS);
     }
 
     private static void forceReservationLazyCollections(Reservation reservation) {

@@ -33,7 +33,7 @@ import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalInvalidTimeWindowExcep
 import pl.lodz.p.it.eduvirt.exceptions.MaintenanceIntervalNotFound;
 import pl.lodz.p.it.eduvirt.mappers.MaintenanceIntervalMapper;
 import pl.lodz.p.it.eduvirt.service.MaintenanceIntervalService;
-import pl.lodz.p.it.eduvirt.service.OVirtClusterService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtClusterService;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -475,7 +475,8 @@ public class MaintenanceIntervalControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {});
+        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundPage);
         assertNotNull(foundPage.page());
@@ -565,7 +566,8 @@ public class MaintenanceIntervalControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {});
+        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundPage);
         assertNotNull(foundPage.page());
@@ -657,7 +659,8 @@ public class MaintenanceIntervalControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {});
+        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundPage);
         assertNotNull(foundPage.page());
@@ -747,7 +750,8 @@ public class MaintenanceIntervalControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {});
+        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundPage);
         assertNotNull(foundPage.page());
@@ -861,7 +865,8 @@ public class MaintenanceIntervalControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<MaintenanceIntervalDto> foundMaintenanceIntervals = mapper.readValue(json, new TypeReference<>() {});
+        List<MaintenanceIntervalDto> foundMaintenanceIntervals = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(foundMaintenanceIntervals);
         assertFalse(foundMaintenanceIntervals.isEmpty());

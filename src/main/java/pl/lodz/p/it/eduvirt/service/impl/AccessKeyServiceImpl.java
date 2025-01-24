@@ -36,7 +36,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
 
     /* Constants */
 
-    private static final String KEY_FORMAT_REGEX = "^[a-zA-Z0-9-_]{5,50}$";
+    private static final String KEY_FORMAT_REGEX = "^[a-zA-Z0-9-_]{4,20}$";
 
 
     /* Helper methods */
@@ -92,7 +92,7 @@ public class AccessKeyServiceImpl implements AccessKeyService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
     public CourseAccessKey getKeyForCourse(Course course) {
         if (course.getCourseType() == CourseType.TEAM_BASED) {
             throw new InvalidCourseTypeException("Cannot get access key for a team based course");

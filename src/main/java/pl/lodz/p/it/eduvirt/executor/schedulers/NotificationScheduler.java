@@ -5,9 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
-import org.springframework.transaction.annotation.Propagation;
 import pl.lodz.p.it.eduvirt.executor.service.MailNotificationService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 
@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 @LoggerInterceptor
 @RequiredArgsConstructor
 @Profile({"prod", "dev"})
+//@Profile("prod")
 @Transactional(propagation = Propagation.NEVER)
 public class NotificationScheduler {
 
@@ -28,13 +29,16 @@ public class NotificationScheduler {
     @Transactional(propagation = Propagation.NEVER)
     public void sendNotifications() {
         reservationService.findReservationsToSendNotifications()
-                //.stream().parallel()
                 .forEach(
                         reservation -> {
                             try {
                                 mailNotificationService.sendReservationEndNotification(reservation);
                             } catch (Throwable e) {
-                                e.printStackTrace(System.err); //TODO michal
+                                log.error(
+                                        "An error occurred during the task of ending the reservation {}" +
+                                                " ~ exception: {}: {} ",
+                                        reservation.getId().toString(), e.getClass().getName(), e.getMessage()
+                                );
                             }
                         }
                 );

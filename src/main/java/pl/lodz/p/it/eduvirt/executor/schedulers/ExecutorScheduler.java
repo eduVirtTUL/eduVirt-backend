@@ -18,17 +18,18 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
-import pl.lodz.p.it.eduvirt.exceptions.executor.NoAvailableVnicProfileException;
-import pl.lodz.p.it.eduvirt.exceptions.executor.VmInvalidStatusException;
-import pl.lodz.p.it.eduvirt.exceptions.executor.VmLaunchingStatusException;
+import pl.lodz.p.it.eduvirt.executor.executor.NoAvailableVnicProfileException;
+import pl.lodz.p.it.eduvirt.executor.executor.ResourceGroupCurrentlyInUseException;
+import pl.lodz.p.it.eduvirt.executor.executor.VmInvalidStatusException;
+import pl.lodz.p.it.eduvirt.executor.executor.VmLaunchingStatusException;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.AdditionalId;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 import pl.lodz.p.it.eduvirt.executor.service.MailNotificationService;
-import pl.lodz.p.it.eduvirt.service.OVirtPermissionService;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtPermissionService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 
@@ -45,28 +46,28 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+// Check for final version
+//TO_CHECK michal: improvements for transactions
+//TO_CHECK michal: LoggerInterceptor on other services
+
 // Priority 0
-//IMPROVEMENTS michal: IF NETWORK SEGMENTS ARE DEFINED PER CLUSTER OR THEY ARE COMMON IN THE DATA CENTER
-//IMPROVEMENTS michal: check system behavior if system was down for few hours (conflicting reservations to end and start)
-
-//IMPROVEMENTS michal: improvements for transactions
-//IMPROVEMENTS michal: LoggerInterceptor on other services
-
-//IMPROVEMENTS michal: block RG cause of previous reservation
+//TO_IMPROVE michal: Check two conflicting invocation of scheduled method (ex. two pod starts) => set UniqueConstraints (when some tasks wait more then one minute i forEach)
 
 // Priority 1
-//IMPROVEMENTS michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
-//IMPROVEMENTS michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems) (probably no limit)
+//TO_IMPROVE michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
+//TO_IMPROVE michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems) (probably no limit)
 
 // Priority 2
-//IMPROVEMENTS michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
-//IMPROVEMENTS michal: indexes for sub queries and FK?
+//TO_IMPROVE michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
+//TO_IMPROVE michal: indexes for sub queries and FK?
+//TO_IMPROVE michal: Specified Persistence Unit for executor module (separate connection pool)
 
 @Slf4j
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
 @Profile({"prod", "dev"})
+//@Profile("prod")
 @Transactional(propagation = Propagation.NEVER)
 public class ExecutorScheduler {
 
@@ -86,13 +87,16 @@ public class ExecutorScheduler {
     @Transactional(propagation = Propagation.NEVER)
     public void createPods() {
         reservationService.findReservationsToBegin()
-                //.stream().parallel()
                 .forEach(
                         reservation -> {
                             try {
                                 startUpPod(reservation);
                             } catch (Throwable e) {
-                                e.printStackTrace(System.err); //TODO michal
+                                log.error(
+                                        "An error occurred during the task of creating the POD for reservation {}" +
+                                                " ~ exception: {}: {} ",
+                                        reservation.getId().toString(), e.getClass().getName(), e.getMessage()
+                                );
                             }
                         }
                 );
@@ -102,13 +106,16 @@ public class ExecutorScheduler {
     @Transactional(propagation = Propagation.NEVER)
     public void destroyPods() {
         reservationService.findReservationsToStop()
-                //.stream().parallel()
                 .forEach(
                         reservation -> {
                             try {
                                 stopPod(reservation);
                             } catch (Throwable e) {
-                                e.printStackTrace(System.err); //TODO michal
+                                log.error(
+                                        "An error occurred during the task of destroying the POD for reservation {}" +
+                                                " ~ exception: {}: {} ",
+                                        reservation.getId().toString(), e.getClass().getName(), e.getMessage()
+                                );
                             }
                         }
                 );
@@ -118,13 +125,16 @@ public class ExecutorScheduler {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void endReservations() {
         executorTaskService.getReservationsToEndTasks()
-                //.stream().parallel()
                 .forEach(
                         task -> {
                             try {
                                 finalizePodReservation(task);
                             } catch (Throwable e) {
-                                e.printStackTrace(System.err); //TODO michal
+                                log.error(
+                                        "An error occurred during the task of ending the reservation {}" +
+                                                " ~ exception: {}: {} ",
+                                        task.getReservation().getId().toString(), e.getClass().getName(), e.getMessage()
+                                );
                             }
                         }
                 );
@@ -136,8 +146,10 @@ public class ExecutorScheduler {
         List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationStartExistingSubTasks(reservation);
 
         try {
-            // Mark reservation as started
-            reservationService.startReservation(reservation);
+            // Mark reservation as started (unless its processing has already begun)
+            if (reservation.getStatus() != Reservation.ReservationStatus.IN_PROGRESS) {
+                reservationService.startReservation(reservation);
+            }
 
             ResourceGroup resourceGroup = reservation.getResourceGroup();
             Team team = reservation.getTeam();
@@ -145,9 +157,16 @@ public class ExecutorScheduler {
 
             CHECK_CONDITION_ZONE:
             {
-                Predicate<ExecutorSubtask> predicate = st ->
+                // Check if the RG is not used by another RG
+                runAndRegister(
+                        () -> checkIfRgIsInUse(reservation.getId(), resourceGroup),
+                        executorTask, null, ExecutorSubtask.SubtaskType.CHECK_RG_IN_USE
+                );
+
+                // Check if VMs statuses were checked
+                Predicate<ExecutorSubtask> predicateVmsStatuses = st ->
                         st.getType().equals(ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES) && st.getSuccessful();
-                if (existingSubtasks.stream().anyMatch(predicate)) {
+                if (existingSubtasks.stream().anyMatch(predicateVmsStatuses)) {
                     break CHECK_CONDITION_ZONE;
                 }
 
@@ -314,7 +333,6 @@ public class ExecutorScheduler {
         }
     }
 
-    //TODO michal: if pod doesnt start should we invoke stopping it??? - now stopping is invoking in any cases
     private void stopPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodDestroyTask(reservation);
         List<ExecutorSubtask> existingSubtasks = executorTaskService.getStopPodExistingSubTasks(reservation);
@@ -450,7 +468,7 @@ public class ExecutorScheduler {
         }
     }
 
-    //todo test
+    //todo to_test
     private void finalizePodReservation(ExecutorTask task) {
         ExecutorTask executorTask = executorTaskService.registerEndReservationTask(task.getReservation());
         List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationEndExistingSubTasks(task.getReservation());
@@ -466,6 +484,7 @@ public class ExecutorScheduler {
                 );
             }
 
+            // Remove already shut down VMs from the list
             ovirtVms.removeIf(vm -> vm.status().equals(VmStatus.DOWN));
 
             if (!ovirtVms.isEmpty()) {
@@ -505,6 +524,22 @@ public class ExecutorScheduler {
         }
     }
 
+    /* Private methods */
+    private void checkIfRgIsInUse(UUID processingReservationId, ResourceGroup resourceGroup) {
+        List<Reservation> reservations = reservationService.findRgNotCompletedReservations(resourceGroup);
+        if (!reservations.isEmpty()) {
+            UUID[] reservationIds = reservations.stream()
+                    .map(Reservation::getId)
+                    .filter(id -> !id.equals(processingReservationId))
+                    .toArray(UUID[]::new);
+            if (reservationIds.length == 0) {
+                // Protection against throwing RG unavailability error for the reservation currently being processed
+                return;
+            }
+            throw new ResourceGroupCurrentlyInUseException(resourceGroup.getId(), reservationIds);
+        }
+    }
+
     /* Methods related to oVirt Api calls */
     private List<Vm> fetchOvirtVms(List<VirtualMachine> virtualMachines) {
         Set<String> vmIdsStr = virtualMachines.stream()
@@ -519,7 +554,8 @@ public class ExecutorScheduler {
 
         vms.forEach(vm -> {
                     switch (vm.status()) {
-                        case DOWN, POWERING_DOWN, IMAGE_LOCKED -> {}
+                        case DOWN, POWERING_DOWN, IMAGE_LOCKED -> {
+                        }
                         case UP, MIGRATING, RESTORING_STATE,
                              SAVING_STATE, SUSPENDED, PAUSED,
                              NOT_RESPONDING, UNASSIGNED, UNKNOWN -> invalidStatuses.add(vm);

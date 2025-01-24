@@ -8,7 +8,8 @@ import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.AuthService;
-import pl.lodz.p.it.eduvirt.service.OVirtUserService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtUserService;
+import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.jwt.AccessToken;
 import pl.lodz.p.it.eduvirt.util.jwt.JwtHelper;
 
@@ -85,9 +86,9 @@ public class AuthServiceImpl implements AuthService {
 
     private List<String> parseGroups(List<String> groups) {
         var roles = groups.stream().map(group -> switch (group) {
-                    case "/teacher" -> "teacher";
-                    case "/student" -> "student";
-                    case "/ovirt-administrator" -> "administrator";
+                    case RoleConstants.EDUVIRT_TEACHER -> "teacher";
+                    case RoleConstants.EDUVIRT_STUDENT -> "student";
+                    case RoleConstants.EDUVIRT_ADMINISTRATOR -> "administrator";
                     default -> "user";
                 }).filter(role -> !role.equals("user"))
                 .toList();

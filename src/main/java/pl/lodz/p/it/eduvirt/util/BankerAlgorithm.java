@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
-import pl.lodz.p.it.eduvirt.service.OVirtVmService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 
 import java.util.LinkedList;
 import java.util.List;

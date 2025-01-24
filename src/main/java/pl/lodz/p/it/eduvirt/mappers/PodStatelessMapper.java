@@ -14,7 +14,6 @@ import pl.lodz.p.it.eduvirt.entity.PodStateless;
 @Mapper(componentModel = "spring")
 public interface PodStatelessMapper {
 
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "team", ignore = true)
     @Mapping(target = "course", ignore = true)
     @Mapping(target = "resourceGroupPool", ignore = true)
@@ -44,7 +43,6 @@ public interface PodStatelessMapper {
                 new TeamDto(
                         pod.getTeam().getId(),
                         pod.getTeam().getName(),
-                        pod.getTeam().isActive(),
                         pod.getTeam().getMaxSize(),
                         pod.getTeam().getUsers().stream().map(user -> new UserDto(
                                 user.getId().toString(),

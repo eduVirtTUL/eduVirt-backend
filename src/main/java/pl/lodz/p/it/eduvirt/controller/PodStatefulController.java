@@ -52,8 +52,9 @@ public class PodStatefulController {
     private final ResourceGroupService resourceGroupService;
 
 
+    @Transactional
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('administrator', 'teacher')")
+    @PreAuthorize("hasAuthority('teacher')")
     @Operation(summary = "Create new stateful pod", description = "Creates a new stateful pod for the specified team and resource group")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pod created successfully"),
@@ -75,9 +76,7 @@ public class PodStatefulController {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
-                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
-
+        if ((authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
             PodStateful createdPod = podStatefulService.createStatefulPod(
                     podToCreate,
                     createDto.teamId(),
@@ -89,6 +88,7 @@ public class PodStatefulController {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @GetMapping(path = "/team/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get team pods", description = "Retrieves all stateful pods for a specific team")
@@ -97,7 +97,6 @@ public class PodStatefulController {
             @ApiResponse(responseCode = "204", description = "No pods found"),
             @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<PodStatefulDetailsDto>> getStatefulPodsByTeam(@PathVariable UUID teamId) {
         List<PodStatefulDetailsDto> listOfDTOs = podStatefulService.getStatefulPodsByTeam(teamId).stream()
                 .map(podStatefulMapper::podStatefulToDetailsDto)
@@ -124,6 +123,7 @@ public class PodStatefulController {
         return ResponseEntity.noContent().build();
     }
 
+    @Transactional
     @GetMapping(path = "/course/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Operation(summary = "Get course pods", description = "Retrieves all stateful pods for a specific course")
@@ -156,9 +156,10 @@ public class PodStatefulController {
         return ResponseEntity.noContent().build();
     }
 
+    @Transactional
     @DeleteMapping("/{podId}")
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
-    @Operation(summary = "Delete pod", description = "Deletes a specific stateful pod")
+    @PreAuthorize("hasAuthority('teacher')")
+    @Operation(summary = "Delete stateful pod", description = "Deletes a specific stateful pod")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Pod deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Pod not found"),
@@ -176,8 +177,7 @@ public class PodStatefulController {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
-                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+        if ((authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
             podStatefulService.deleteStatefulPod(podId);
             return ResponseEntity.noContent().build();
         }

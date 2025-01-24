@@ -17,6 +17,7 @@ import pl.lodz.p.it.eduvirt.entity.key.CourseAccessKey;
 import pl.lodz.p.it.eduvirt.entity.key.CourseType;
 import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.access_key.AccessKeyNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.access_key.DuplicateKeyValueException;
 import pl.lodz.p.it.eduvirt.exceptions.course.IncorrectCourseTypeException;
 import pl.lodz.p.it.eduvirt.exceptions.team.*;
 import pl.lodz.p.it.eduvirt.exceptions.user.*;
@@ -24,12 +25,16 @@ import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.repository.key.CourseAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.AccessKeyService;
+import pl.lodz.p.it.eduvirt.service.KeyGeneratorService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +45,8 @@ public class TeamServiceImpl implements TeamService {
     /* Services */
 
     private final AccessKeyService accessKeyService;
+    private final KeyGeneratorService keyGeneratorService;
+
 
     /* Repositories */
 
@@ -47,8 +54,6 @@ public class TeamServiceImpl implements TeamService {
     private final TeamAccessKeyRepository teamKeyRepository;
     private final CourseAccessKeyRepository courseKeyRepository;
     private final UserRepository userRepository;
-    private final PodStatefulRepository statefulPodRepository;
-    private final PodStatelessRepository statelessPodRepository;
 
     /* Helper methods */
 
@@ -75,6 +80,28 @@ public class TeamServiceImpl implements TeamService {
         }
     }
 
+    private String generateTeamNamePrefix(String courseName) {
+        return Arrays.stream(courseName.split("\\s+"))
+                .filter(word -> !word.isEmpty())
+                .map(word -> word.substring(0, 1).toUpperCase())
+                .collect(Collectors.joining()) + "-Student";
+    }
+
+    private int findFirstAvailableNumber(List<Integer> existingNumbers) {
+        if (existingNumbers.isEmpty()) {
+            return 1;
+        }
+
+        int expected = 1;
+        for (int actual : existingNumbers) {
+            if (actual != expected) {
+                return expected;
+            }
+            expected++;
+        }
+        return expected;
+    }
+
     /* Service methods */
 
     /* Get methods */
@@ -87,7 +114,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('administrator')")
     public Page<Team> getAllTeams(Pageable pageable) {
         return teamRepository.findAllWithUsers(pageable);
     }
@@ -110,7 +137,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     public Page<Team> getTeamsByCourse(UUID courseId, int page, int size, String search, String searchType, String sortOrder) {
         Sort sort = null;
         if (Objects.equals(sortOrder, "ASC")) {
@@ -127,13 +154,13 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    @PreAuthorize("isAuthenticated()")
-    public Page<Team> findTeamsByEmails(UUID courseId, List<String> emailPrefixes, int page, int size, String sortOrder) {
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    public List<Team> findTeamsByEmails(UUID courseId, List<String> emailPrefixes, String sortOrder) {
         Sort sort = Sort.by(sortOrder.equals("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC, "name");
         return teamRepository.findByCourseIdAndEmailPrefixes(
                 courseId,
                 emailPrefixes.stream().map(String::toLowerCase).toList(),
-                PageRequest.of(page, size, sort)
+                sort
         );
     }
 
@@ -162,8 +189,8 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @PreAuthorize("hasAuthority('teacher')")
     public Team createTeam(Team team, Course course, String userKeyValue) {
-        if (course.getCourseType() == CourseType.SOLO) {
-            throw new IncorrectCourseTypeException("Cannot manually create a team in a solo course");
+        if (userKeyValue != null && teamKeyRepository.existsByKeyValue(userKeyValue)) {
+            throw new DuplicateKeyValueException(userKeyValue);
         }
 
         validateTeamName(team, course.getId());
@@ -171,15 +198,52 @@ public class TeamServiceImpl implements TeamService {
         team.setActive(true);
         team = teamRepository.saveAndFlush(team);
 
-        accessKeyService.createTeamKey(team.getId(), userKeyValue);
+        String keyValue = userKeyValue != null ? userKeyValue : keyGeneratorService.generateUniqueTeamKey(course);
+        accessKeyService.createTeamKey(team.getId(), keyValue);
         return team;
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('teacher')")
+    public List<Team> createTeamsBatch(Course course, String prefix, int teamSize, int numberOfTeams) {
+        if (course.getCourseType() != CourseType.TEAM_BASED) {
+            throw new IncorrectCourseTypeException("Can only create batch teams for team-based courses");
+        }
+
+        List<Integer> existingNumbers = teamRepository.findTeamNumbersByPrefix(course.getId(), prefix + "-");
+        int startNumber = findFirstAvailableNumber(existingNumbers);
+        List<Team> teams = new ArrayList<>();
+
+        for (int i = 0; i < numberOfTeams; i++) {
+            String teamName = prefix + "-" + (startNumber + i);
+            Team team = Team.builder()
+                    .name(teamName)
+                    .course(course)
+                    .maxSize(teamSize)
+                    .active(true)
+                    .users(new ArrayList<>())
+                    .build();
+
+            team = teamRepository.saveAndFlush(team);
+            String keyValue = keyGeneratorService.generateUniqueTeamKey(course);
+            accessKeyService.createTeamKey(team.getId(), keyValue);
+            teams.add(team);
+        }
+
+        return teams;
     }
 
     @Override
     @PreAuthorize("isAuthenticated()")
     public void createSoloTeam(Course course, User user) {
-        Long soloTeamCount = teamRepository.countByCourseId(course.getId());
-        String teamName = course.getName() + " - Solo " + (soloTeamCount + 1);
+        String namePrefix = generateTeamNamePrefix(course.getName());
+        List<Integer> existingNumbers = teamRepository.findTeamNumbersByCourseIdAndPrefix(
+                course.getId(),
+                namePrefix
+        );
+
+        int teamNumber = findFirstAvailableNumber(existingNumbers);
+        String teamName = namePrefix + teamNumber;
 
         Team team = Team.builder()
                 .name(teamName)
@@ -194,7 +258,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('teacher')")
     public Team updateTeam(Team updatedTeam, UUID teamId, String etag) {
         Team existingTeam = teamRepository.findById(teamId)
                 .orElseThrow(() -> new TeamNotFoundException(teamId));
@@ -203,9 +267,8 @@ public class TeamServiceImpl implements TeamService {
             throw new TeamConflictException();
         }
 
-        if (existingTeam.getCourse().getCourseType() == CourseType.SOLO) {
-            existingTeam.setActive(updatedTeam.isActive());
-            return teamRepository.saveAndFlush(existingTeam);
+        if (existingTeam.getCourse().getCourseType() != CourseType.TEAM_BASED) {
+            throw new IncorrectCourseTypeException("Can only update teams in team-based courses");
         }
 
         if (!existingTeam.getName().equals(updatedTeam.getName()) &&
@@ -219,36 +282,35 @@ public class TeamServiceImpl implements TeamService {
 
         existingTeam.setName(updatedTeam.getName());
         existingTeam.setMaxSize(updatedTeam.getMaxSize());
-        existingTeam.setActive(updatedTeam.isActive());
 
         return teamRepository.saveAndFlush(existingTeam);
     }
 
     @Override
     @Transactional
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('teacher')")
     public void deleteTeam(Team team) {
         if (team.getCourse().getCourseType() != CourseType.TEAM_BASED) {
             throw new IncorrectCourseTypeException("Can only delete teams manually from team-based courses");
         }
 
-        teamKeyRepository.deleteByTeamId(team.getId());
+        Team finalTeam = team;
+        team = teamRepository.findById(team.getId())
+                .orElseThrow(() -> new TeamNotFoundException(finalTeam.getId()));
 
-        team.getStatefulPods().forEach(pod -> {
-            pod.setTeam(null);
-            pod.setCourse(null);
-            statefulPodRepository.delete(pod);
-        });
+        if (!team.getStatefulPods().isEmpty() || !team.getStatelessPods().isEmpty()) {
+            throw new TeamDeletionException("Team with id %s has associated pods - delete them before deleting the team.".formatted(team.getId()));
+        }
 
-        team.getStatelessPods().forEach(pod -> {
-            pod.setTeam(null);
-            pod.setCourse(null);
-            statelessPodRepository.delete(pod);
-        });
-
-        team.getStatefulPods().clear();
-        team.getStatelessPods().clear();
         team.getUsers().clear();
+        teamRepository.saveAndFlush(team);
+
+        TeamAccessKey teamKey = teamKeyRepository.findByTeamId(team.getId())
+                .orElse(null);
+        if (teamKey != null) {
+            teamKeyRepository.delete(teamKey);
+            teamKeyRepository.flush();
+        }
 
         teamRepository.delete(team);
         teamRepository.flush();
@@ -303,7 +365,6 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @PreAuthorize("hasAuthority('teacher')")
     public void addStudentToCourse(Course course, String email) {
-
         User student = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UserNotFoundException("Student with email %s could not be found!".formatted(email)));
 
@@ -351,7 +412,6 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @PreAuthorize("hasAuthority('teacher')")
     public void removeStudentFromCourse(Course course, String email) {
-
         User student = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UserNotFoundException("User with email %s could not be found!".formatted(email)));
 

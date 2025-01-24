@@ -10,7 +10,7 @@ import org.ovirt.engine.sdk4.services.HostService;
 import org.ovirt.engine.sdk4.services.HostsService;
 import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.types.Host;
-import pl.lodz.p.it.eduvirt.service.impl.OVirtHostServiceImpl;
+import pl.lodz.p.it.eduvirt.service.ovirt.impl.OVirtHostServiceImpl;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 import org.ovirt.engine.sdk4.Connection;
 
