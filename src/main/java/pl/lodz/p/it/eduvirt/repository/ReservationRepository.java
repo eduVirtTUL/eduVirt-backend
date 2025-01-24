@@ -118,7 +118,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @Query("""
             SELECT DISTINCT r FROM Reservation r
-            LEFT JOIN r.team t
+            LEFT JOIN FETCH r.resourceGroup rg
+            LEFT JOIN FETCH r.team t
             WHERE t.course = :course
             AND r.status = 'IN_PROGRESS'
             """)
