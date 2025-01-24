@@ -1,6 +1,5 @@
 package pl.lodz.p.it.eduvirt.service;
 
-import pl.lodz.p.it.eduvirt.dto.pod.CreatePodStatelessDto;
 import pl.lodz.p.it.eduvirt.entity.PodStateless;
 import java.util.List;
 import java.util.UUID;
