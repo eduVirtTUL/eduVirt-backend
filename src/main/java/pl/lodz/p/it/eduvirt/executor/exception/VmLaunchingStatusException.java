@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.executor.executor;
+package pl.lodz.p.it.eduvirt.executor.exception;
 
 public class VmLaunchingStatusException extends ExecutorBaseException {
 

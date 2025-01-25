@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
+import pl.lodz.p.it.eduvirt.exceptions.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
@@ -28,9 +29,8 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
                     .get()
                     .send()
                     .profile();
-        } catch (Exception e) {
-            //todo: error handling
-            throw new RuntimeException(e);
+        } catch (Throwable e) {
+            throw new VnicProfileOvirtNotFoundException(e.getMessage());
         }
     }
 
@@ -44,7 +44,7 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
                     .send()
                     .profiles();
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw new VnicProfileOvirtNotFoundException(e.getMessage());
         }
     }
 }

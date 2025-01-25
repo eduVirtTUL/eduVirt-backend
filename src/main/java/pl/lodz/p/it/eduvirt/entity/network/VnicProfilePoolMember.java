@@ -9,17 +9,18 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.proxy.HibernateProxy;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,11 +28,9 @@ import java.util.UUID;
 @Table(name = "vnic_profile_pool")
 @Getter
 @ToString
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 public class VnicProfilePoolMember {
 
-    @EqualsAndHashCode.Include
     @Id
     @Column(name = "id", unique = true, nullable = false, updatable = false)
     private UUID id;
@@ -70,5 +69,21 @@ public class VnicProfilePoolMember {
                 .map(Principal::getName).orElse("00000000-0000-0000-0000-000000000000");
         this.createdBy = UUID.fromString(performerId);
         this.createdAt = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass()) return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) return false;
+        VnicProfilePoolMember that = (VnicProfilePoolMember) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return this instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
     }
 }

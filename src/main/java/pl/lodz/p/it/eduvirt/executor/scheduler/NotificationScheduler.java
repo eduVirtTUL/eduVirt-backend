@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.executor.schedulers;
+package pl.lodz.p.it.eduvirt.executor.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +17,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-//@Profile({"prod", "dev"})
-@Profile("prod")
+@Profile({"prod", "dev"})
 @Transactional(propagation = Propagation.NEVER)
 public class NotificationScheduler {
 

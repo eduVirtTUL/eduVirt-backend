@@ -18,7 +18,8 @@ import java.util.List;
         name = "reservation",
         indexes = {
                 @Index(name = "reservation_rg_id_idx", columnList = "rg_id"),
-                @Index(name = "reservation_team_id_idx", columnList = "team_id")
+                @Index(name = "reservation_team_id_idx", columnList = "team_id"),
+                @Index(name = "reservation_status_idx", columnList = "status"),
         }
 )
 @Getter
