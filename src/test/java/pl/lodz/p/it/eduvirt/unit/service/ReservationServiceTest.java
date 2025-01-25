@@ -497,11 +497,6 @@ public class ReservationServiceTest {
 
         when(reservationRepository.findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1)))
                 .thenReturn(List.of());
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
 
         when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
@@ -535,11 +530,7 @@ public class ReservationServiceTest {
 
         verify(reservationRepository, times(1))
                 .findAllRgReservationsForGivenTeam(Mockito.eq(resourceGroup1), Mockito.eq(team1));
-        /*
-         * TODO:
-         *      Add missing checks for max reservation count and grace time (which could not be)
-         *      check as of now (that is 2025-01-12T16:41:00).
-         */
+
         verify(maintenanceIntervalRepository, times(1)).findAllIntervalsInGivenTimePeriod(
                 Mockito.eq(existingClusterId), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
         verify(reservationRepository, times(1)).findRgReservations(

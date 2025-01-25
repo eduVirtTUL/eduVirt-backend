@@ -85,15 +85,14 @@ public class ReservationServiceImpl implements ReservationService {
         Cluster courseCluster = clusterService.findClusterById(course.getClusterId());
         List<Host> clusterHosts = clusterService.findAllHostsInCluster(courseCluster);
 
-        // TODO: Uncomment after the stateless pod is done
-        /* TODO: Check all the required conditions
-         *        [V] Minimum reservation length (that is 2 * window length)
-         *        [V] Maximum reservation length
-         *        [V] Maximum number of reservations for given resource group
-         *        [V] Maintenance interval exists during selected time period
-         *        [V] Resource group availability
-         *        [V] Required resource availability for course
-         *        [V] Required resource availability for cluster
+        /* Check all the required conditions
+         *  [V] Minimum reservation length (that is 2 * window length)
+         *  [V] Maximum reservation length
+         *  [V] Maximum number of reservations for given resource group
+         *  [V] Maintenance interval exists during selected time period
+         *  [V] Resource group availability
+         *  [V] Required resource availability for course
+         *  [V] Required resource availability for cluster
          * */
 
         /* [V]  General data validation */
@@ -173,7 +172,7 @@ public class ReservationServiceImpl implements ReservationService {
                 foundClusterReservations, resourceGroup, courseCluster, clusterHosts))
             throw new ClusterInsufficientResourcesException(UUID.fromString(courseCluster.id()));
 
-        /* TODO: Condition check end */
+        /* Condition check end */
 
         Reservation newReservation = new Reservation(
                 resourceGroup, team, start, end,
@@ -193,16 +192,15 @@ public class ReservationServiceImpl implements ReservationService {
         Cluster courseCluster = clusterService.findClusterById(course.getClusterId());
         List<Host> clusterHosts = clusterService.findAllHostsInCluster(courseCluster);
 
-        // TODO: Finish implementing when stateless pod is done
-        /* TODO: Check all the required conditions
-         *        [V] Minimum reservation length (that is 2 * window length)
-         *        [V] Maximum reservation length
-         *        [V] Maximum number of reservations for given resource group
-         *        [V] Grace period for next reservation of the same resource group
-         *        [V] Required resource availability for course
-         *        [V] Required resource availability for cluster
-         *        [V] Resource group availability
-         *        [V] Maintenance interval exists during selected time period
+        /* Check all the required conditions
+         *  [V] Minimum reservation length (that is 2 * window length)
+         *  [V] Maximum reservation length
+         *  [V] Maximum number of reservations for given resource group
+         *  [V] Grace period for next reservation of the same resource group
+         *  [V] Required resource availability for course
+         *  [V] Required resource availability for cluster
+         *  [V] Resource group availability
+         *  [V] Maintenance interval exists during selected time period
          * */
 
         /* [V]  General data validation */
@@ -305,7 +303,7 @@ public class ReservationServiceImpl implements ReservationService {
             break;
         }
 
-        /* TODO: Condition check end */
+        /* Condition check end */
 
         if (chosenResourceGroup == null)
             throw new ReservationCreationException("Reservation of one of the resource groups inside resource group pool %s is not possible"
