@@ -6,9 +6,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +43,7 @@ import java.util.UUID;
 @RequestMapping("/resources/vnic-profiles")
 @PreAuthorize("hasAuthority('administrator')")
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NEVER)
 public class VnicProfileController {
 
     private final OVirtVnicProfileService oVirtVnicProfileService;
@@ -51,13 +57,16 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
-    public ResponseEntity<List<VnicProfileDto>> getSynchronizedVnicProfiles() {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ResponseEntity<List<VnicProfileDto>> getSynchronizedVnicProfiles(@PageableDefault(sort = "vlanid", direction = Sort.Direction.ASC) Pageable pageable) {
         List<VnicProfileDto> vnicProfileDtoList = new ArrayList<>();
-        vnicProfileService.getSynchronizedVnicProfiles()
+        vnicProfileService.getSynchronizedVnicProfiles(pageable)
                 .forEach((key, value) -> value.forEach(
                         vnicProfile -> vnicProfileDtoList.add(vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, key))
                 ));
 
+        //TODO przez mapę jest popsute sortowanie -> pilnie do naprawienia
+//        vnicProfileDtoList.sort();
 
         if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(vnicProfileDtoList);
@@ -70,8 +79,8 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
-    public ResponseEntity<List<VnicProfileDto>> getOvirtVnicProfiles() {
-        List<VnicProfileDto> vnicProfileDtoList = oVirtVnicProfileService.getVnicProfiles().stream()
+    public ResponseEntity<List<VnicProfileDto>> getOvirtVnicProfiles(@PageableDefault(sort = "vlanid", direction = Sort.Direction.ASC) Pageable pageable) {
+        List<VnicProfileDto> vnicProfileDtoList = oVirtVnicProfileService.getVnicProfiles(pageable).stream()
                 .map(vnicProfile -> vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, null))
                 .toList();
 
@@ -86,14 +95,18 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "204", content = {@Content(schema = @Schema(implementation = Void.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<List<VnicProfilePoolMemberDto>> getVnicProfilesFromPool() {
-        List<VnicProfilePoolMemberDto> vnicProfileDtoList = vnicProfileService.getVnicProfilesPool()
-                .stream()
-                .map(vnicProfileMapper::vnicProfileToDto)
-                .toList();
+        //todo pageable
+//        List<VnicProfilePoolMemberDto> vnicProfileDtoList = vnicProfileService.getVnicProfilesPool()
+//                .stream()
+//                .map(vnicProfileMapper::vnicProfileToDto)
+//                .toList();
+//
+//        if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();
+//        return ResponseEntity.ok(vnicProfileDtoList);
 
-        if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(vnicProfileDtoList);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(path = "/eduvirt/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -103,16 +116,11 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "404", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<VnicProfilePoolMemberDto> getVnicProfileFromPool(@PathVariable("id") UUID id) {
-        //TODO michal maybe optimize
-        VnicProfilePoolMemberDto vnicProfileDto = vnicProfileService.getVnicProfilesPool()
-                .stream()
-                .filter(vnicProfile -> vnicProfile.getId().equals(id))
-                .map(vnicProfileMapper::vnicProfileToDto)
-                .findFirst()
-                .orElseThrow(() -> new VnicProfileEduvirtNotFoundException(id));
+        VnicProfilePoolMember vnicProfileFromPool = vnicProfileService.getVnicProfileFromPool(id);
 
-        return ResponseEntity.ok(vnicProfileDto);
+        return ResponseEntity.ok(vnicProfileMapper.vnicProfileToDto(vnicProfileFromPool));
     }
 
     @PostMapping(path = "/eduvirt/add-to-pool/{vnicProfileId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -123,6 +131,7 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "409", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<VnicProfilePoolMemberDto> extendVnicProfilesPool(@PathVariable("vnicProfileId") UUID vnicProfileId) {
         VnicProfilePoolMember vnicProfile;
         try {
@@ -143,6 +152,7 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "400", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))}),
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public ResponseEntity<Void> reduceVnicProfilesPool(@PathVariable("vnicProfileId") UUID vnicProfileId) {
         try {
             vnicProfileService.removeVnicProfileFromPool(vnicProfileId);
