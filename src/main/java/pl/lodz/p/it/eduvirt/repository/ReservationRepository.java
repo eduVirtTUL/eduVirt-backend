@@ -152,4 +152,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
     @Query("SELECT r FROM Reservation r WHERE r.resourceGroup = :rg AND r.status = :status")
     List<Reservation> findRgReservationsByStatus(@Param("rg") ResourceGroup resourceGroup,
                                                  @Param("status") Reservation.ReservationStatus status);
+
+    /* Reservation statistics */
+
+    @Query("SELECT r FROM Reservation r WHERE r.team.course.id = :courseId")
+    List<Reservation> findAllByCourseId(@Param("courseId") UUID courseId);
+
+    @Query("SELECT r FROM Reservation r WHERE r.team.id = :teamId")
+    List<Reservation> findAllByTeamId(@Param("teamId") UUID teamId);
+
+    @Query("SELECT r FROM Reservation r WHERE r.resourceGroup.id = :resourceId")
+    List<Reservation> findAllByResourceGroupId(@Param("resourceId") UUID resourceId);
+
 }

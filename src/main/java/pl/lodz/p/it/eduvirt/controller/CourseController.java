@@ -38,6 +38,9 @@ import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
+import pl.lodz.p.it.eduvirt.dto.statistics.CourseStatsDto;
+import pl.lodz.p.it.eduvirt.dto.statistics.ResourceStatsDto;
+import pl.lodz.p.it.eduvirt.dto.statistics.TeamStatsDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.TeacherSelfModificationException;
@@ -78,6 +81,7 @@ public class CourseController {
     private final ResourceGroupPoolService resourceGroupPoolService;
     private final TeamService teamService;
     private final CourseService courseService;
+    private final ReservationStatisticsService reservationStatisticsService;
 
     /* Mappers */
 
@@ -403,7 +407,7 @@ public class CourseController {
         if (user.getEmail().equals(emailDto.getEmail())) {
             throw new TeacherSelfModificationException("Teacher cannot add themselves to a course");
         }
-        
+
         Course course = courseService.getCourse(courseId);
 
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
@@ -513,5 +517,31 @@ public class CourseController {
     public ResponseEntity<Void> resetCourse(@PathVariable UUID courseId) {
         courseService.resetCourse(courseId);
         return ResponseEntity.noContent().build();
+    }
+
+    /* Statistics */
+
+    @GetMapping(path = "/{courseId}/statistics")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    public ResponseEntity<CourseStatsDto> getCourseStatistics(@PathVariable UUID courseId) {
+        return ResponseEntity.ok(reservationStatisticsService.getCourseStatistics(courseId));
+    }
+
+    @GetMapping(path = "/{courseId}/teams/{teamId}/statistics")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    public ResponseEntity<TeamStatsDto> getTeamStatistics(
+            @PathVariable UUID courseId,
+            @PathVariable UUID teamId) {
+        return ResponseEntity.ok(reservationStatisticsService.getTeamStatistics(courseId, teamId));
+    }
+
+    @GetMapping(path = "/{courseId}/resources/{resourceId}/statistics")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    public ResponseEntity<ResourceStatsDto> getResourceStatistics(
+            @PathVariable UUID courseId,
+            @PathVariable UUID resourceId,
+            @RequestParam boolean isPool) {
+        return ResponseEntity.ok(
+                reservationStatisticsService.getResourceStatistics(courseId, resourceId, isPool));
     }
 }
