@@ -5,22 +5,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupPool;
-import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
-import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupPoolNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group_pool.ResourceGroupPoolAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group_pool.ResourceGroupPoolConflictException;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
-import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupPoolService;
+import pl.lodz.p.it.eduvirt.service.priviliges.PrivilegesService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
@@ -33,14 +30,17 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
     private final CourseRepository courseRepository;
     private final ETagHelper eTagHelper;
-    private final UserRepository userRepository;
+    private final PrivilegesService privilegesService;
 
     @Override
     @Transactional
     public ResourceGroupPool addResourceGroupPool(ResourceGroupPool resourceGroupPool, UUID courseId) {
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        Course course = courseRepository.findByIdAndTeachersContaining(courseId, user).orElseThrow(() -> new CourseNotFoundException(courseId));
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        if (!privilegesService.validateCourseOwnership(course)) {
+            throw new CourseNotFoundException(courseId);
+        }
 
         boolean nameTaken = course.getResourceGroupPools().stream().anyMatch(rgp -> rgp.getName().equals(resourceGroupPool.getName()));
         if (nameTaken) {
@@ -62,14 +62,17 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
     @Transactional
     public List<ResourceGroupPool> getResourceGroupPoolsByCourse(UUID courseId) {
         Course course = courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException(courseId));
-        checkTeacherOrAdministratorInCourse(courseId);
+        if (!privilegesService.validateCourseOwnershipOrAdmin(course)) {
+            throw new CourseNotFoundException(courseId);
+        }
         return course.getResourceGroupPools();
     }
 
     @Override
     @Transactional
     public ResourceGroupPool getResourceGroupPool(UUID id) {
-        ResourceGroupPool pool = resourceGroupPoolRepository.findById(id).orElseThrow(() -> new ResourceGroupPoolNotFoundException(id));
+        ResourceGroupPool pool = resourceGroupPoolRepository.findById(id)
+                .orElseThrow(() -> new ResourceGroupPoolNotFoundException(id));
         // TODO: Fix for student
         // checkTeacherOrAdministratorInCourse(pool.getCourse().getId());
         return pool;
@@ -78,8 +81,12 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
     @Override
     @Transactional
     public void addResourceGroupToPool(UUID poolId, ResourceGroup resourceGroup) {
-        ResourceGroupPool pool = resourceGroupPoolRepository.findById(poolId).orElseThrow(() -> new ResourceGroupPoolNotFoundException(poolId));
-        checkTeacherIsInCourse(pool.getCourse().getId());
+        ResourceGroupPool pool = resourceGroupPoolRepository.findById(poolId)
+                .orElseThrow(() -> new ResourceGroupPoolNotFoundException(poolId));
+
+        if (!privilegesService.validateCourseOwnership(pool.getCourse())) {
+            throw new CourseNotFoundException(pool.getCourse().getId());
+        }
 
         resourceGroup.setDescription(pool.getDescription());
         resourceGroup.setMaxRentTime(pool.getMaxRentTime());
@@ -90,8 +97,12 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
 
     @Override
     public void deleteResourceGroupPool(UUID id) {
-        ResourceGroupPool pool = resourceGroupPoolRepository.findById(id).orElseThrow(() -> new ResourceGroupPoolNotFoundException(id));
-        checkTeacherIsInCourse(pool.getCourse().getId());
+        ResourceGroupPool pool = resourceGroupPoolRepository.findById(id)
+                .orElseThrow(() -> new ResourceGroupPoolNotFoundException(id));
+
+        if (!privilegesService.validateCourseOwnership(pool.getCourse())) {
+            throw new CourseNotFoundException(pool.getCourse().getId());
+        }
         resourceGroupPoolRepository.delete(pool);
     }
 
@@ -101,7 +112,10 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
         ResourceGroupPool pool = resourceGroupPoolRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceGroupPoolNotFoundException(resourceGroupPool.getId()));
-        checkTeacherIsInCourse(pool.getCourse().getId());
+
+        if (!privilegesService.validateCourseOwnership(pool.getCourse())) {
+            throw new CourseNotFoundException(pool.getCourse().getId());
+        }
 
         if (!eTagHelper.validateEtag(ifMatch, pool)) {
             throw new ResourceGroupPoolConflictException();
@@ -130,25 +144,5 @@ public class ResourceGroupPoolServiceImpl implements ResourceGroupPoolService {
 
         return resourceGroupPoolRepository.save(pool);
 
-    }
-
-    private void checkTeacherIsInCourse(UUID courseId) {
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        boolean exists = courseRepository.existsCourseForTeacher(courseId, userId);
-        if (!exists) {
-            throw new CourseNotFoundException(courseId);
-        }
-    }
-
-    private void checkTeacherOrAdministratorInCourse(UUID courseId) {
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        boolean isAdmin = user.getRoles().contains("administrator");
-        if (!isAdmin) {
-            boolean exists = courseRepository.existsCourseForTeacher(courseId, userId);
-            if (!exists) {
-                throw new CourseNotFoundException(courseId);
-            }
-        }
     }
 }

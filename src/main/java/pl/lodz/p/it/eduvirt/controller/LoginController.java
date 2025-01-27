@@ -21,10 +21,10 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import pl.lodz.p.it.eduvirt.configuration.KeycloackConfig;
 import pl.lodz.p.it.eduvirt.entity.User;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.model.OAuthResult;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.AuthService;
-import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 
 import java.util.UUID;
 
@@ -74,6 +74,8 @@ public class LoginController {
                 .body(values)
                 .retrieve()
                 .toEntity(OAuthResult.class);
+
+        log.error("{}, {}", keycloackConfig.getTokenUrl(), values);
 
         if (result.getBody() == null) {
             log.error("Error while logging in");
