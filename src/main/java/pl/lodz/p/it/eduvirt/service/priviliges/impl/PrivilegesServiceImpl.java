@@ -13,6 +13,7 @@ import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
 import pl.lodz.p.it.eduvirt.service.priviliges.PrivilegesService;
+import pl.lodz.p.it.eduvirt.util.RoleConstants;
 
 import java.util.UUID;
 
@@ -51,6 +52,30 @@ public class PrivilegesServiceImpl implements PrivilegesService {
 
         boolean isOwner = isResourceGroupOwner(resourceGroup, userId);
 
-        return isOwner || user.getRoles().contains("administrator");
+        return isOwner || user.getRoles().contains(RoleConstants.ADMINISTRATOR);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public boolean validateCourseOwnership(Course course) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        return courseRepository.existsCourseForTeacher(course.getId(), userId);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public boolean validateCourseOwnershipOrAdmin(Course course) {
+        UUID userId = getUserId();
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        boolean isAdmin = user.getRoles().contains(RoleConstants.ADMINISTRATOR);
+        if (!isAdmin) {
+            return courseRepository.existsCourseForTeacher(course.getId(), userId);
+        }
+
+        return true;
+    }
+
+    private UUID getUserId() {
+        return UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 }
