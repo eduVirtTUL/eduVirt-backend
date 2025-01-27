@@ -3,6 +3,7 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.RollbackOn;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
@@ -139,6 +140,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Transactional
     public void markVnicProfileAsOccupied(UUID vnicProfileId) {
         changeVnicProfilePoolMemberStatus(vnicProfileId, true);
+
     }
 
     @Override

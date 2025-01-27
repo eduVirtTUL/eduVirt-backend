@@ -19,16 +19,14 @@ import java.util.UUID;
 @Table(name = "executor_subtask_vnic_profile")
 @PrimaryKeyJoinColumn(foreignKey = @ForeignKey(name = "executor_subtask_vnic_profile_fk"))
 @DiscriminatorValue("VNIC_PROFILE")
-@Getter
+@Getter @Setter
 @NoArgsConstructor
 public class VnicProfileTask extends ExecutorSubtask {
 
     @Column(name = "vnic_profile_id", updatable = true, nullable = true)
-    @Setter
     private UUID vnicProfileId;
 
     @Column(name = "nic_id", updatable = true, nullable = true)
-    @Setter
     private UUID nicId;
 
     /* Constructors */

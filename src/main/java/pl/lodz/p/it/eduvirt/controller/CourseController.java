@@ -57,7 +57,11 @@ import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -89,7 +93,7 @@ public class CourseController {
     private final RGPoolMapper rgPoolMapper;
     private final ResourceGroupMapper resourceGroupMapper;
     private final UserMapper userMapper;
-//    private final ReservationMapper reservationMapper;
+    private final ReservationMapper reservationMapper;
 
     /* Repositories */
 
@@ -520,32 +524,40 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
-//    @PreAuthorize("hasAuthority('teacher')")
-//    @GetMapping(path = "/{courseId}/reservations", produces = MediaType.APPLICATION_JSON_VALUE)
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
-//    ResponseEntity<PageDto<ReservationDto>> getAllOngoingCourseReservations(
-//            @PathVariable("courseId") UUID courseId, @PageableDefault Pageable pageable) {
-//        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
-//
-//        Course course = courseService.getCourse(courseId);
-//
-//        // Check if teacher is in this course
-//        course.getTeachers()
-//                .stream()
-//                .filter(u -> u.getId().equals(userId))
-//                .findAny()
-//                .orElseThrow(() -> new AccessDeniedException("Currently logged in teacher does not participate in the selected course"));
-//
-//        Page<Reservation> reservationPage = reservationService.findOngoingCourseReservations(course, pageable);
-//
-//        List<ReservationDto> listOfDTOs = reservationPage.getContent().stream()
-//                .map(reservationMapper::reservationToDto).toList();
-//
-//        PageDto<ReservationDto> outputDto = new PageDto<>(listOfDTOs,
-//                new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
-//                        reservationPage.getTotalPages(), reservationPage.getTotalElements()));
-//
-//        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
-//        return ResponseEntity.ok(outputDto);
-//    }
+    @PreAuthorize("hasAuthority('teacher')")
+    @GetMapping(path = "/{courseId}/reservations", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    ResponseEntity<PageDto<ReservationDto>> getAllOngoingCourseReservations(
+            @PathVariable("courseId") UUID courseId, @PageableDefault Pageable pageable) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        Course course = courseService.getCourse(courseId);
+
+        boolean checkIsAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream()
+                .anyMatch(grantedAuthority ->
+                        grantedAuthority.getAuthority().equals(RoleConstants.ADMINISTRATOR));
+
+        // Bypass for administrators
+        if (!checkIsAdmin) {
+            // Check if teacher is in this course
+            course.getTeachers()
+                    .stream()
+                    .filter(u -> u.getId().equals(userId))
+                    .findAny()
+                    .orElseThrow(() -> new AccessDeniedException("Currently logged in teacher does not participate in the selected course"));
+        }
+
+        Page<Reservation> reservationPage = reservationService.findOngoingCourseReservations(course, pageable);
+
+        List<ReservationDto> listOfDTOs = reservationPage.getContent().stream()
+                .map(reservationMapper::reservationToDto).toList();
+
+        PageDto<ReservationDto> outputDto = new PageDto<>(listOfDTOs,
+                new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
+                        reservationPage.getTotalPages(), reservationPage.getTotalElements()));
+
+        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(outputDto);
+    }
 }
