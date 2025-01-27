@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.executor.schedulers;
+package pl.lodz.p.it.eduvirt.executor.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -9,3 +9,6 @@ alter table public.team_users
 
 alter table public.user_roles
     rename to user_role;
+
+alter table public.users
+    add unique (user_name);

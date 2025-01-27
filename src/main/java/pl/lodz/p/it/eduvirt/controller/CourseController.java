@@ -15,11 +15,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,6 +36,7 @@ import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.UpdateCourseDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
+import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
@@ -48,6 +51,7 @@ import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.CourseMapper;
 import pl.lodz.p.it.eduvirt.mappers.RGPoolMapper;
+import pl.lodz.p.it.eduvirt.mappers.ReservationMapper;
 import pl.lodz.p.it.eduvirt.mappers.ResourceGroupMapper;
 import pl.lodz.p.it.eduvirt.mappers.UserMapper;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
@@ -56,7 +60,11 @@ import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -89,6 +97,7 @@ public class CourseController {
     private final RGPoolMapper rgPoolMapper;
     private final ResourceGroupMapper resourceGroupMapper;
     private final UserMapper userMapper;
+    private final ReservationMapper reservationMapper;
 
     /* Repositories */
 
@@ -517,6 +526,43 @@ public class CourseController {
     public ResponseEntity<Void> resetCourse(@PathVariable UUID courseId) {
         courseService.resetCourse(courseId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAuthority('teacher')")
+    @GetMapping(path = "/{courseId}/reservations", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    ResponseEntity<PageDto<ReservationDto>> getAllOngoingCourseReservations(
+            @PathVariable("courseId") UUID courseId, @PageableDefault Pageable pageable) {
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        Course course = courseService.getCourse(courseId);
+
+        boolean checkIsAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                .stream()
+                .anyMatch(grantedAuthority ->
+                        grantedAuthority.getAuthority().equals(RoleConstants.ADMINISTRATOR));
+
+        // Bypass for administrators
+        if (!checkIsAdmin) {
+            // Check if teacher is in this course
+            course.getTeachers()
+                    .stream()
+                    .filter(u -> u.getId().equals(userId))
+                    .findAny()
+                    .orElseThrow(() -> new AccessDeniedException("Currently logged in teacher does not participate in the selected course"));
+        }
+
+        Page<Reservation> reservationPage = reservationService.findOngoingCourseReservations(course, pageable);
+
+        List<ReservationDto> listOfDTOs = reservationPage.getContent().stream()
+                .map(reservationMapper::reservationToDto).toList();
+
+        PageDto<ReservationDto> outputDto = new PageDto<>(listOfDTOs,
+                new PageInfoDto(reservationPage.getNumber(), reservationPage.getNumberOfElements(),
+                        reservationPage.getTotalPages(), reservationPage.getTotalElements()));
+
+        if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(outputDto);
     }
 
     /* Statistics */

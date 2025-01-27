@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.executor.executor;
+package pl.lodz.p.it.eduvirt.executor.exception;
 
 import java.util.Arrays;
 import java.util.UUID;

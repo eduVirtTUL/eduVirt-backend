@@ -115,6 +115,17 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                                                     @Param("probeTime") LocalDateTime probeTime,
                                                     Pageable pageable);
 
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @Query("""
+            SELECT DISTINCT r FROM Reservation r
+            LEFT JOIN FETCH r.resourceGroup rg
+            LEFT JOIN FETCH r.team t
+            WHERE t.course = :course
+            AND r.status = 'IN_PROGRESS'
+            """)
+    Page<Reservation> findAllOngoingCourseReservations(@Param("course") Course course,
+                                                       Pageable pageable);
+
     //probeTimeWithTimeNeededToStop == (probeTime + taskTolerance + vmGraceTime)
     @Query("""
             SELECT DISTINCT r FROM Reservation r

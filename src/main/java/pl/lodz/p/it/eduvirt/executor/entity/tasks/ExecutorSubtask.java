@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
@@ -27,7 +28,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Entity
-@Table(name = "executor_subtask")
+@Table(
+        name = "executor_subtask",
+        indexes = @Index(name = "executor_subtask_task_id_idx", columnList = "task_id")
+)
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "kind")
 @Getter
@@ -60,7 +64,7 @@ public abstract class ExecutorSubtask extends Updatable {
     @Column(name = "successful", updatable = true, nullable = true)
     private Boolean successful;
 
-    @Column(name = "description", updatable = true, nullable = true, length = 200)
+    @Column(name = "description", updatable = true, nullable = true, length = 500)
     private String description;
 
     @Column(name = "_created_at", updatable = false)

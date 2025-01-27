@@ -382,6 +382,12 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findAllHistoricalReservations(foundTeam, currentTime, pageable);
     }
 
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @Override
+    public Page<Reservation> findOngoingCourseReservations(Course course, Pageable pageable) {
+        return reservationRepository.findAllOngoingCourseReservations(course, pageable);
+    }
+
     @PreAuthorize("isAuthenticated()")
     @Override
     public Map<LocalDateTime, Boolean> checkResourceGroupAvailability(ResourceGroup resourceGroup, Course course,
@@ -510,23 +516,36 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.findRgReservationsByStatus(resourceGroup, Reservation.ReservationStatus.IN_PROGRESS);
     }
 
-    private static void forceReservationLazyCollections(Reservation reservation) {
-        //TODO michal: add comments XDD
 
+    /***
+     * A method to retrieve nested collections within the root element,
+     * so that they can be used outside the context of the transaction.
+     */
+    private static void forceReservationLazyCollections(Reservation reservation) {
+        // Get resource group from reservation
         ResourceGroup resourceGroup = reservation.getResourceGroup();
 
+        // Get VMs from resource group
         List<VirtualMachine> vms = resourceGroup.getVms();
+        // Clone vm network interfaces lists (and then set them for VMs)
         vms.forEach(vm -> vm.setNetworkInterfaces(new ArrayList<>(vm.getNetworkInterfaces())));
 
+        // Get private networks from resource group
         List<ResourceGroupNetwork> networks = resourceGroup.getNetworks();
+        // Clone vm network interfaces lists (and then set them for private networks)
         networks.forEach(network -> network.setInterfaces(new ArrayList<>(network.getInterfaces())));
 
+        // Set VMs (with cloned interfaces list) for resource group
         resourceGroup.setVms(new ArrayList<>(vms));
+        // Set private networks (with cloned interfaces list) for resource group
         resourceGroup.setNetworks(new ArrayList<>(networks));
 
+        // Get team from reservation
         Team team = reservation.getTeam();
+        // Clone team users list (and then set it for team)
         team.setUsers(new ArrayList<>(team.getUsers()));
 
+        // Set resource group and team (with cloned properties) for reservation
         reservation.setResourceGroup(resourceGroup);
         reservation.setTeam(team);
     }

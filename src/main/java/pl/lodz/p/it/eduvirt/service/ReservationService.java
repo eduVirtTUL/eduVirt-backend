@@ -34,6 +34,8 @@ public interface ReservationService {
     Page<Reservation> findActiveReservations(UUID teamId, Pageable pageable);
     Page<Reservation> findHistoricalReservations(UUID teamId, Pageable pageable);
 
+    Page<Reservation> findOngoingCourseReservations(Course course, Pageable pageable);
+
     Map<LocalDateTime, Boolean> checkResourceGroupAvailability(
             ResourceGroup resourceGroup, Course course,
             int windowLength, LocalDateTime start, LocalDateTime end);

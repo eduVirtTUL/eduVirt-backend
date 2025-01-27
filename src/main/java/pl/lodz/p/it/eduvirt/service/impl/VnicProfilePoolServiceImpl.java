@@ -3,10 +3,12 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.RollbackOn;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileAlreadyExistsException;
+import pl.lodz.p.it.eduvirt.exceptions.VnicProfileCurrentlyInUseException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileEduvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.VlansRangeRepository;
@@ -122,8 +124,13 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Override
     @Transactional
     public void removeVnicProfileFromPool(UUID vnicProfileId) {
-        if (vnicProfileRepository.findById(vnicProfileId).isEmpty()) {
+        Optional<VnicProfilePoolMember> vnicProfileOpt = vnicProfileRepository.findById(vnicProfileId);
+        if (vnicProfileOpt.isEmpty()) {
             throw new VnicProfileEduvirtNotFoundException(vnicProfileId);
+        }
+
+        if (vnicProfileOpt.get().getInUse()) {
+            throw new VnicProfileCurrentlyInUseException(vnicProfileId);
         }
 
         vnicProfileRepository.deleteById(vnicProfileId);
@@ -133,6 +140,7 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     @Transactional
     public void markVnicProfileAsOccupied(UUID vnicProfileId) {
         changeVnicProfilePoolMemberStatus(vnicProfileId, true);
+
     }
 
     @Override
@@ -146,6 +154,11 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
         if (vnicProfileOpt.isEmpty()) throw new VnicProfileEduvirtNotFoundException(vnicProfileId);
 
         VnicProfilePoolMember vnicProfile = vnicProfileOpt.get();
+
+        //todo
+//        if (vnicProfile.getInUse()) {
+//            throw new VnicProfileCurrentlyInUseException(vnicProfileId);
+//        }
 
         vnicProfile.setInUse(setInUser);
 

@@ -114,6 +114,8 @@ public class I18n {
     /* Vnic profile keys */
 
     public static final String VNIC_PROFILE_ALREADY_EXISTS = "vnic.profile.already.exists";
+    public static final String VNIC_PROFILE_CURRENTLY_IN_USE = "ovirt.vnic.profile.currently.in.use";
+
     public static final String VNIC_PROFILE_EDUVIRT_NOT_FOUND = "eduvirt.vnic.profile.not.found";
     public static final String VNIC_PROFILE_OVIRT_NOT_FOUND = "ovirt.vnic.profile.not.found";
 
@@ -126,6 +128,8 @@ public class I18n {
     public static final String OPTIMISTIC_LOCK_EXCEPTION = "general.error.optimistic.lock.exception";
     public static final String INTERNAL_SERVER_ERROR = "general.error.internal.server.error";
     public static final String PATH_NOT_FOUND = "general.error.path.not.found.error";
+
+    public static final String VM_OVIRT_OPERATION_EXCEPTION = "vm.ovirt.operation.exception";
 
     /* AccessKey keys */
 
