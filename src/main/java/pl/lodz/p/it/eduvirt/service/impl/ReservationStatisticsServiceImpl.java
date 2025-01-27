@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Propagation;
 
 import pl.lodz.p.it.eduvirt.dto.statistics.*;
 import pl.lodz.p.it.eduvirt.entity.*;
+import pl.lodz.p.it.eduvirt.entity.key.CourseType;
 import pl.lodz.p.it.eduvirt.exceptions.team.TeamNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.ReservationRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
@@ -32,9 +33,24 @@ public class ReservationStatisticsServiceImpl implements ReservationStatisticsSe
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
-    public CourseStatsDto getCourseStatistics(UUID courseId) {
+    public BaseCourseStatsDto getCourseStatistics(UUID courseId) {
         Course course = courseService.getCourse(courseId);
-        List<Reservation> reservations = reservationRepository.findAllByCourseId(courseId);
+        List<Reservation> reservations = filterHistoricalReservations(
+                reservationRepository.findAllByCourseId(courseId)
+        );
+
+        if (course.getCourseType() == CourseType.SOLO) {
+            return new SoloCourseStatsDto(
+                    course.getId(),
+                    course.getName(),
+                    reservations.size(),
+                    reservations.stream()
+                            .mapToDouble(r -> calculateHoursWithPrecision(r.getStartTime(), r.getEndTime()))
+                            .sum(),
+                    calculateAverageLength(reservations),
+                    (int) reservations.stream().map(r -> r.getTeam().getId()).distinct().count()
+            );
+        }
 
         Map<String, Integer> reservationsPerTeam = reservations.stream()
                 .collect(Collectors.groupingBy(
@@ -42,17 +58,18 @@ public class ReservationStatisticsServiceImpl implements ReservationStatisticsSe
                         Collectors.summingInt(r -> 1)
                 ));
 
-        Map<String, Long> hoursPerTeam = reservations.stream()
+        Map<String, Double> hoursPerTeam = reservations.stream()
                 .collect(Collectors.groupingBy(
                         r -> r.getTeam().getName(),
-                        Collectors.summingLong(r -> Duration.between(r.getStartTime(), r.getEndTime()).toHours())
+                        Collectors.summingDouble(r ->
+                                calculateHoursWithPrecision(r.getStartTime(), r.getEndTime()))
                 ));
 
         return new CourseStatsDto(
                 course.getId(),
                 course.getName(),
                 reservations.size(),
-                hoursPerTeam.values().stream().mapToLong(Long::longValue).sum(),
+                hoursPerTeam.values().stream().mapToDouble(Double::doubleValue).sum(),
                 calculateAverageLength(reservations),
                 (int) reservations.stream().map(r -> r.getTeam().getId()).distinct().count(),
                 reservationsPerTeam,
@@ -114,65 +131,7 @@ public class ReservationStatisticsServiceImpl implements ReservationStatisticsSe
         );
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
-    public ResourceStatsDto getResourceStatistics(UUID courseId, UUID resourceId, boolean isPool) {
-        List<Reservation> resourceReservations;
-        String name;
-
-        if (isPool) {
-            ResourceGroupPool pool = resourceGroupPoolRepository.findById(resourceId).orElse(null);
-            if (pool == null) {
-                return null;
-            }
-            resourceReservations = pool.getResourceGroups().stream()
-                    .flatMap(rg -> reservationRepository.findAllByResourceGroupId(rg.getId()).stream())
-                    .toList();
-            name = pool.getName();
-        } else {
-            resourceReservations = reservationRepository.findAllByResourceGroupId(resourceId);
-            name = resourceReservations.isEmpty() ? "" : resourceReservations.get(0).getResourceGroup().getName();
-        }
-
-        if (resourceReservations.isEmpty()) {
-            return null;
-        }
-
-        Map<String, Integer> reservationsPerTeam = resourceReservations.stream()
-                .collect(Collectors.groupingBy(
-                        r -> r.getTeam().getName(),
-                        Collectors.summingInt(r -> 1)
-                ));
-
-        Map<String, Long> hoursPerTeam = resourceReservations.stream()
-                .collect(Collectors.groupingBy(
-                        r -> r.getTeam().getName(),
-                        Collectors.summingLong(r -> Duration.between(r.getStartTime(), r.getEndTime()).toHours())
-                ));
-
-        List<ReservationTimelineDto> timeline = resourceReservations.stream()
-                .map(r -> new ReservationTimelineDto(
-                        r.getStartTime(),
-                        r.getEndTime(),
-                        r.getTeam().getName(),
-                        Duration.between(r.getStartTime(), r.getEndTime()).toHours()
-                ))
-                .sorted(Comparator.comparing(ReservationTimelineDto::getStartTime))
-                .toList();
-
-        return new ResourceStatsDto(
-                resourceId,
-                name,
-                !isPool,
-                resourceReservations.size(),
-                calculateTotalHours(resourceReservations),
-                (int) resourceReservations.stream().map(r -> r.getTeam().getId()).distinct().count(),
-                reservationsPerTeam,
-                hoursPerTeam,
-                timeline
-        );
-    }
+    /* Helper methods */
 
     private List<Reservation> filterHistoricalReservations(List<Reservation> reservations) {
         return reservations.stream()

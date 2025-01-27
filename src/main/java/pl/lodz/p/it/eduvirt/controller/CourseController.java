@@ -41,8 +41,7 @@ import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
-import pl.lodz.p.it.eduvirt.dto.statistics.CourseStatsDto;
-import pl.lodz.p.it.eduvirt.dto.statistics.ResourceStatsDto;
+import pl.lodz.p.it.eduvirt.dto.statistics.BaseCourseStatsDto;
 import pl.lodz.p.it.eduvirt.dto.statistics.TeamStatsDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.*;
@@ -567,27 +566,47 @@ public class CourseController {
 
     /* Statistics */
 
+    @Transactional
     @GetMapping(path = "/{courseId}/statistics")
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
-    public ResponseEntity<CourseStatsDto> getCourseStatistics(@PathVariable UUID courseId) {
-        return ResponseEntity.ok(reservationStatisticsService.getCourseStatistics(courseId));
+    public ResponseEntity<BaseCourseStatsDto> getCourseStatistics(@PathVariable UUID courseId) {
+        Course course = courseService.getCourse(courseId);
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+            return ResponseEntity.ok(reservationStatisticsService.getCourseStatistics(courseId));
+        }
+        return ResponseEntity.noContent().build();
     }
 
+    @Transactional
     @GetMapping(path = "/{courseId}/teams/{teamId}/statistics")
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
-    public ResponseEntity<TeamStatsDto> getTeamStatistics(
-            @PathVariable UUID courseId,
-            @PathVariable UUID teamId) {
-        return ResponseEntity.ok(reservationStatisticsService.getTeamStatistics(courseId, teamId));
-    }
+    public ResponseEntity<TeamStatsDto> getTeamStatistics(@PathVariable UUID courseId, @PathVariable UUID teamId) {
+        Course course = courseService.getCourse(courseId);
 
-    @GetMapping(path = "/{courseId}/resources/{resourceId}/statistics")
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
-    public ResponseEntity<ResourceStatsDto> getResourceStatistics(
-            @PathVariable UUID courseId,
-            @PathVariable UUID resourceId,
-            @RequestParam boolean isPool) {
-        return ResponseEntity.ok(
-                reservationStatisticsService.getResourceStatistics(courseId, resourceId, isPool));
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+            return ResponseEntity.ok(reservationStatisticsService.getTeamStatistics(courseId, teamId));
+        }
+        return ResponseEntity.noContent().build();
     }
 }

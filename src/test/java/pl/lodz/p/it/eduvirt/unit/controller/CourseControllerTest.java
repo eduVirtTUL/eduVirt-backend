@@ -70,6 +70,9 @@ public class CourseControllerTest {
     @MockitoBean
     private CourseService courseService;
 
+    @MockitoBean
+    private ReservationStatisticsService reservationStatisticsService;
+
     /* Repositories */
 
     @MockitoBean

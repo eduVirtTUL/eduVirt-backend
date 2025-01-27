@@ -1,18 +1,14 @@
 package pl.lodz.p.it.eduvirt.dto.statistics;
 
-import java.util.Map;
+import lombok.Value;
 import java.util.UUID;
 
-import lombok.Value;
-
 @Value
-public class CourseStatsDto implements BaseCourseStatsDto {
+public class SoloCourseStatsDto implements BaseCourseStatsDto {
     UUID courseId;
     String courseName;
     int totalReservations;
     double totalHours;
     double averageLength;
     int totalTeams;
-    Map<String, Integer> reservationsPerTeam;
-    Map<String, Double> hoursPerTeam;
 }
