@@ -1,7 +1,6 @@
 package pl.lodz.p.it.eduvirt.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricValueDto;
@@ -142,7 +141,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      */
     // @Test
     public void Given_ExistingClusterAndMetricIdentifierArePassedAndMetricValueAssociatedWithGivenClusterExists_When_UpdateMetricValue_Then_UpdatesGivenMetricValueSuccessfully() throws Exception {
-        ValueDto newValueDto = new ValueDto(100.0);
+        ValueDto newValueDto = new ValueDto(existingClusterMetricId, 0L, 100.0);
 
         MvcResult result = mockMvc.perform(patch("/clusters/{clusterId}/metrics/{metricId}", existingClusterId, existingMetricId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -166,7 +165,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      */
     // @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_UpdateMetricValue_Then_UpdatesGivenMetricValueSuccessfully() throws Exception {
-        ValueDto newValueDto = new ValueDto(100.0);
+        ValueDto newValueDto = new ValueDto(existingClusterMetricId, 0L, 100.0);
 
         mockMvc.perform(patch("/clusters/{clusterId}/metrics/{metricId}", nonExistentClusterId, nonExistentMetricId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -182,7 +181,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      */
     // @Test
     public void Given_NonExistentMetricIdentifierIsPassed_When_UpdateMetricValue_Then_UpdatesGivenMetricValueSuccessfully() throws Exception {
-        ValueDto newValueDto = new ValueDto(100.0);
+        ValueDto newValueDto = new ValueDto(existingClusterMetricId, 0L, 100.0);
 
         mockMvc.perform(patch("/clusters/{clusterId}/metrics/{metricId}", existingClusterId, nonExistentMetricId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -200,7 +199,7 @@ public class ClusterMetricControllerIT extends IntegrationTestBase {
      */
     // @Test
     public void Given_GivenMetricDoesNotHaveValueAssociatedWithGivenCluster_When_UpdateMetricValue_Then_UpdatesGivenMetricValueSuccessfully() throws Exception {
-        ValueDto newValueDto = new ValueDto(100.0);
+        ValueDto newValueDto = new ValueDto(existingClusterMetricId, 0L, 100.0);
 
         mockMvc.perform(patch("/clusters/{clusterId}/metrics/{metricId}", existingClusterId, existingClusterId)
                         .contentType(MediaType.APPLICATION_JSON)

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -46,6 +47,17 @@ public class ClusterMetric extends Updatable {
     public ClusterMetric(UUID clusterId,
                          Metric metric,
                          Double value) {
+        this.clusterId = clusterId;
+        this.metric = metric;
+        this.value = value;
+    }
+
+    @Builder
+    public ClusterMetric(Long version,
+                         UUID clusterId,
+                         Metric metric,
+                         Double value) {
+        super(version);
         this.clusterId = clusterId;
         this.metric = metric;
         this.value = value;

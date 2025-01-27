@@ -12,9 +12,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.aspect.exception.GeneralControllerExceptionResolver;
@@ -27,13 +29,19 @@ import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.Updatable;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.ClusterMetricMapper;
+import pl.lodz.p.it.eduvirt.mappers.ClusterMetricMapperImpl;
+import pl.lodz.p.it.eduvirt.mappers.MetricMapper;
+import pl.lodz.p.it.eduvirt.mappers.MetricMapperImpl;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
+import pl.lodz.p.it.eduvirt.service.MetricService;
 import pl.lodz.p.it.eduvirt.service.ovirt.impl.OVirtClusterServiceImpl;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -49,6 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({
         ClusterMetricController.class,
         GeneralControllerExceptionResolver.class,
+        ClusterMetricMapperImpl.class, MetricMapperImpl.class
 })
 @WebMvcTest(controllers = {ClusterMetricController.class}, useDefaultFilters = false)
 public class ClusterMetricControllerTest {
@@ -57,12 +66,21 @@ public class ClusterMetricControllerTest {
     private ClusterMetricService clusterMetricService;
 
     @MockitoBean
+    private MetricService metricService;
+
+    @MockitoBean
     private OVirtClusterServiceImpl oVirtClusterServiceImpl;
+
+    @MockitoBean
+    private ETagHelper eTagHelper;
 
     /* Mappers */
 
-    @MockitoBean
+    @MockitoSpyBean
     private ClusterMetricMapper clusterMetricMapper;
+
+    @MockitoSpyBean
+    private MetricMapper metricMapper;
 
     /* Other */
 
@@ -91,6 +109,7 @@ public class ClusterMetricControllerTest {
     @BeforeEach
     public void prepareTestData() throws Exception {
         Field id = AbstractEntity.class.getDeclaredField("id");
+        Field version = Updatable.class.getDeclaredField("version");
 
         metric1 = new Metric(metricName1, Metric.MetricCategory.COUNTABLE);
         metric2 = new Metric(metricName2, Metric.MetricCategory.MEMORY);
@@ -104,7 +123,17 @@ public class ClusterMetricControllerTest {
         id.set(metric1, UUID.randomUUID());
         id.set(metric2, UUID.randomUUID());
         id.set(metric3, UUID.randomUUID());
+
+        id.set(clusterMetric1, UUID.randomUUID());
+        id.set(clusterMetric2, UUID.randomUUID());
+        id.set(clusterMetric3, UUID.randomUUID());
         id.setAccessible(false);
+
+        version.setAccessible(true);
+        version.set(clusterMetric1, 0L);
+        version.set(clusterMetric2, 0L);
+        version.set(clusterMetric3, 0L);
+        version.setAccessible(false);
     }
 
     /* Tests */
@@ -356,7 +385,9 @@ public class ClusterMetricControllerTest {
     @WithMockUser
     @Test
     public void Given_ExistingClusterAndMetricIdentifiersArePassed_When_UpdateMetricValue_Then_UpdatesMetricValueSuccessfully() throws Exception {
-        ValueDto newValueDto = new ValueDto(100.00);
+        String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
+        clusterMetric1.setValue(100.0);
+        ValueDto newValueDto = new ValueDto(clusterMetric1.getId(), clusterMetric1.getVersion(), 100.0);
 
         ClusterMetric newMetric1 = new ClusterMetric(
                 metric1.getId(),
@@ -371,11 +402,18 @@ public class ClusterMetricControllerTest {
                 newValueDto.value()
         );
 
-        Cluster cluster = mock(Cluster.class);
-        when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId)))
-                .thenReturn(cluster);
+        ClusterMetric updateClusterMetric = new ClusterMetric(
+                clusterMetric1.getClusterId(),
+                clusterMetric1.getMetric(),
+                clusterMetric1.getValue()
+        );
 
-        when(clusterMetricService.updateMetricValue(Mockito.eq(cluster), Mockito.eq(metric1.getId()), Mockito.eq(newValueDto.value())))
+        Cluster cluster = mock(Cluster.class);
+        when(cluster.id()).thenReturn(existingClusterId.toString());
+        when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
+        when(metricService.findById(Mockito.eq(metric1.getId()))).thenReturn(metric1);
+
+        when(clusterMetricService.updateMetricValue(Mockito.eq(clusterMetric1.getId()), Mockito.any(ClusterMetric.class), Mockito.eq(ifMatch)))
                 .thenReturn(newMetric1);
 
         when(clusterMetricMapper.clusterMetricToDto(Mockito.eq(newMetric1))).thenReturn(metricValueDto);
@@ -383,6 +421,7 @@ public class ClusterMetricControllerTest {
         MvcResult result = mockMvc.perform(patch("/clusters/{clusterId}/metrics/{metricIUd}", existingClusterId, metric1.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(newValueDto))
+                        .header(HttpHeaders.IF_MATCH, ifMatch)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -398,10 +437,12 @@ public class ClusterMetricControllerTest {
         assertEquals(foundMetricValue.name(), metric1.getName());
         assertEquals(foundMetricValue.value(), newValueDto.value());
 
+        verify(cluster, times(1)).id();
         verify(oVirtClusterServiceImpl, times(1)).findClusterById(Mockito.eq(existingClusterId));
+        verify(metricService, times(1)).findById(Mockito.eq(metric1.getId()));
 
         verify(clusterMetricService, times(1))
-                .updateMetricValue(Mockito.eq(cluster), Mockito.eq(metric1.getId()), Mockito.eq(newValueDto.value()));
+                .updateMetricValue(Mockito.eq(clusterMetric1.getId()), Mockito.any(ClusterMetric.class), Mockito.eq(ifMatch));
 
         verify(clusterMetricMapper, times(1)).clusterMetricToDto(Mockito.eq(newMetric1));
     }
@@ -409,7 +450,8 @@ public class ClusterMetricControllerTest {
     @WithMockUser
     @Test
     public void Given_NonExistentClusterIdentifierIsPassed_When_UpdateMetricValue_Then_Returns400BadRequest() throws Exception {
-        ValueDto newValueDto = new ValueDto(100.00);
+        String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
+        ValueDto newValueDto = new ValueDto(clusterMetric1.getId(), clusterMetric1.getVersion(), 100.0);
 
         when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(nonExistentClusterId)))
                 .thenThrow(ClusterNotFoundException.class);
@@ -417,6 +459,7 @@ public class ClusterMetricControllerTest {
         mockMvc.perform(patch("/clusters/{clusterId}/metrics/{metricIUd}", nonExistentClusterId, metric1.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(newValueDto))
+                        .header(HttpHeaders.IF_MATCH, ifMatch)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
@@ -428,51 +471,60 @@ public class ClusterMetricControllerTest {
     @Test
     public void Given_NonExistentMetricIdentifierIsPassed_When_UpdateMetricValue_Then_Returns400BadRequest() throws Exception {
         UUID randomUUID = UUID.randomUUID();
-        ValueDto newValueDto = new ValueDto(100.00);
+        String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
+        ValueDto newValueDto = new ValueDto(clusterMetric1.getId(), clusterMetric1.getVersion(), 100.0);
 
         Cluster cluster = mock(Cluster.class);
-        when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId)))
-                .thenReturn(cluster);
-
-        when(clusterMetricService.updateMetricValue(Mockito.eq(cluster), Mockito.eq(randomUUID), Mockito.eq(newValueDto.value())))
-                .thenThrow(MetricNotFoundException.class);
+        when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
+        when(metricService.findById(Mockito.eq(randomUUID))).thenThrow(MetricNotFoundException.class);
 
         mockMvc.perform(patch("/clusters/{clusterId}/metrics/{metricIUd}", existingClusterId, randomUUID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(newValueDto))
+                        .header(HttpHeaders.IF_MATCH, ifMatch)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
         verify(oVirtClusterServiceImpl, times(1)).findClusterById(Mockito.eq(existingClusterId));
-
-        verify(clusterMetricService, times(1))
-                .updateMetricValue(Mockito.eq(cluster), Mockito.eq(randomUUID), Mockito.eq(newValueDto.value()));
+        verify(metricService, times(1)).findById(Mockito.eq(randomUUID));
     }
 
     @WithMockUser
     @Test
-    public void Given_ClusterMetricValueIsNotDefinedForGivenCluster_When_UpdateMetricValue_Then_Returns400BadRequest() throws Exception {
-        ValueDto newValueDto = new ValueDto(100.00);
+    public void Given_ClusterMetricValueCouldNotBeFound_When_UpdateMetricValue_Then_Returns400BadRequest() throws Exception {
+        UUID nonExistentClusterMetricId = UUID.randomUUID();
+        String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
+        ValueDto newValueDto = new ValueDto(nonExistentClusterMetricId, clusterMetric1.getVersion(), 100.0);
+
+        ClusterMetric updateClusterMetric = new ClusterMetric(
+                clusterMetric1.getClusterId(),
+                clusterMetric1.getMetric(),
+                clusterMetric1.getValue()
+        );
 
         Cluster cluster = mock(Cluster.class);
-        when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId)))
-                .thenReturn(cluster);
+        when(cluster.id()).thenReturn(existingClusterId.toString());
+        when(oVirtClusterServiceImpl.findClusterById(Mockito.eq(existingClusterId))).thenReturn(cluster);
+        when(metricService.findById(Mockito.eq(metric1.getId()))).thenReturn(metric1);
 
-        when(clusterMetricService.updateMetricValue(Mockito.eq(cluster), Mockito.eq(metric1.getId()), Mockito.eq(newValueDto.value())))
-                .thenThrow(ClusterMetricNotFoundException.class);
+        when(clusterMetricService.updateMetricValue(Mockito.eq(nonExistentClusterMetricId), Mockito.any(ClusterMetric.class),
+                Mockito.eq(ifMatch))).thenThrow(ClusterMetricNotFoundException.class);
 
         mockMvc.perform(patch("/clusters/{clusterId}/metrics/{metricIUd}", existingClusterId, metric1.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(newValueDto))
+                        .header(HttpHeaders.IF_MATCH, ifMatch)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
+        verify(cluster, times(1)).id();
         verify(oVirtClusterServiceImpl, times(1)).findClusterById(Mockito.eq(existingClusterId));
+        verify(metricService, times(1)).findById(Mockito.eq(metric1.getId()));
 
         verify(clusterMetricService, times(1))
-                .updateMetricValue(Mockito.eq(cluster), Mockito.eq(metric1.getId()), Mockito.eq(newValueDto.value()));
+                .updateMetricValue(Mockito.eq(nonExistentClusterMetricId), Mockito.any(ClusterMetric.class), Mockito.eq(ifMatch));
     }
 
     /* DeleteMetric method tests */

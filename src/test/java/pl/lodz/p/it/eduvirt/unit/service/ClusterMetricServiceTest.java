@@ -21,6 +21,7 @@ import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.ClusterMetricRepository;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.impl.ClusterMetricServiceImpl;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -38,6 +39,9 @@ public class ClusterMetricServiceTest {
 
     @Mock
     private ClusterMetricRepository clusterMetricRepository;
+
+    @Mock
+    private ETagHelper eTagHelper;
 
     @InjectMocks
     private ClusterMetricServiceImpl clusterMetricService;
@@ -281,17 +285,16 @@ public class ClusterMetricServiceTest {
     @Test
     public void Given_ExistingClusterAndMetricIdentifiersArePassed_When_UpdateMetricValue_Then_UpdatesValueOfGivenMetricSuccessfully() {
         double newMetricValue = 199.99;
+        String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
 
         assertEquals(clusterMetric1.getValue(), 99.9999);
-
         clusterMetric1.setValue(newMetricValue);
 
-        when(cluster.id()).thenReturn(existingClusterId.toString());
-        when(metricRepository.findById(Mockito.eq(metric1.getId()))).thenReturn(Optional.of(metric1));
-        when(clusterMetricRepository.findByClusterIdAndMetric(Mockito.eq(existingClusterId), Mockito.eq(metric1))).thenReturn(Optional.of(clusterMetric1));
+        when(clusterMetricRepository.findById(clusterMetric1.getId())).thenReturn(Optional.of(clusterMetric1));
+        when(eTagHelper.validateEtag(ifMatch, clusterMetric1)).thenReturn(true);
         when(clusterMetricRepository.saveAndFlush(Mockito.eq(clusterMetric1))).thenReturn(clusterMetric1);
 
-        ClusterMetric updatedValue = clusterMetricService.updateMetricValue(cluster, metric1.getId(), newMetricValue);
+        ClusterMetric updatedValue = clusterMetricService.updateMetricValue(clusterMetric1.getId(), clusterMetric1, ifMatch);
 
         assertNotNull(updatedValue);
         assertNotNull(updatedValue.getClusterId());
@@ -300,49 +303,32 @@ public class ClusterMetricServiceTest {
 
         assertEquals(newMetricValue, updatedValue.getValue());
 
-        verify(cluster, times(1)).id();
-        verify(metricRepository, times(1)).findById(Mockito.eq(metric1.getId()));
-        verify(clusterMetricRepository, times(1)).findByClusterIdAndMetric(Mockito.eq(existingClusterId), Mockito.eq(metric1));
+        verify(clusterMetricRepository, times(1)).findById(Mockito.eq(clusterMetric1.getId()));
+        verify(eTagHelper, times(1)).validateEtag(Mockito.eq(ifMatch), Mockito.eq(clusterMetric1));
         verify(clusterMetricRepository, times(1)).saveAndFlush(Mockito.eq(clusterMetric1));
     }
 
     @Test
-    public void Given_NonExistentMetricIdentifiersIsPassed_When_UpdateMetricValue_Then_ThrowsException() {
-        UUID randomUUID = UUID.randomUUID();
-        double newMetricValue = 199.99;
-
-        assertEquals(clusterMetric1.getValue(), 99.9999);
-
-        clusterMetric1.setValue(newMetricValue);
-
-        when(cluster.id()).thenReturn(existingClusterId.toString());
-        when(metricRepository.findById(Mockito.eq(randomUUID))).thenReturn(Optional.empty());
-
-        assertThrows(MetricNotFoundException.class,
-                () -> clusterMetricService.updateMetricValue(cluster, randomUUID, newMetricValue));
-
-        verify(cluster, times(1)).id();
-        verify(metricRepository, times(1)).findById(Mockito.eq(randomUUID));
-    }
-
-    @Test
     public void Given_ClusterMetricIsNotFound_When_UpdateMetricValue_Then_ThrowsException() {
+        UUID nonExistentClusterMetricId = UUID.randomUUID();
         double newMetricValue = 199.99;
+        String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
 
         assertEquals(clusterMetric1.getValue(), 99.9999);
-
         clusterMetric1.setValue(newMetricValue);
 
-        when(cluster.id()).thenReturn(existingClusterId.toString());
-        when(metricRepository.findById(Mockito.eq(metric1.getId()))).thenReturn(Optional.of(metric1));
-        when(clusterMetricRepository.findByClusterIdAndMetric(Mockito.eq(existingClusterId), Mockito.eq(metric1))).thenReturn(Optional.empty());
+        ClusterMetric updateClusterMetric = new ClusterMetric(
+                clusterMetric1.getClusterId(),
+                clusterMetric1.getMetric(),
+                clusterMetric1.getValue()
+        );
+
+        when(clusterMetricRepository.findById(nonExistentClusterMetricId)).thenReturn(Optional.empty());
 
         assertThrows(ClusterMetricNotFoundException.class,
-                () -> clusterMetricService.updateMetricValue(cluster, metric1.getId(), newMetricValue));
+                () -> clusterMetricService.updateMetricValue(nonExistentClusterMetricId, updateClusterMetric, ifMatch));
 
-        verify(cluster, times(1)).id();
-        verify(metricRepository, times(1)).findById(Mockito.eq(metric1.getId()));
-        verify(clusterMetricRepository, times(1)).findByClusterIdAndMetric(Mockito.eq(existingClusterId), Mockito.eq(metric1));
+        verify(clusterMetricRepository, times(1)).findById(Mockito.eq(nonExistentClusterMetricId));
     }
 
     /* DeleteMetricValue method test */

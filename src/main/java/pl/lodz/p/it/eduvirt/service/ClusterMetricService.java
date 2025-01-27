@@ -24,7 +24,7 @@ public interface ClusterMetricService {
 
     /* Update methods */
 
-    ClusterMetric updateMetricValue(Cluster cluster, UUID metricId, double newValue);
+    ClusterMetric updateMetricValue(UUID clusterMetricId, ClusterMetric clusterMetric, String ifMatch);
 
     /* Delete methods */
 

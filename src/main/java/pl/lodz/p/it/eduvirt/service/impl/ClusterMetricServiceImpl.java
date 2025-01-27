@@ -11,12 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
 import pl.lodz.p.it.eduvirt.entity.Metric;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.ClusterMetricRepository;
 import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +34,10 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     private final MetricRepository metricRepository;
     private final ClusterMetricRepository clusterMetricRepository;
+
+    /* Util */
+
+    private final ETagHelper eTagHelper;
 
     /* Create methods */
 
@@ -78,16 +84,15 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
 
     @PreAuthorize("hasAuthority('administrator')")
     @Override
-    public ClusterMetric updateMetricValue(Cluster cluster, UUID metricId, double newValue) {
-        UUID clusterId = UUID.fromString(cluster.id());
-        Metric metric = metricRepository.findById(metricId)
-                .orElseThrow(() -> new MetricNotFoundException(metricId));
+    public ClusterMetric updateMetricValue(UUID clusterMetricId, ClusterMetric clusterMetric, String ifMatch) {
+        ClusterMetric metricValue = clusterMetricRepository.findById(clusterMetricId)
+                .orElseThrow(() -> new ClusterMetricNotFoundException(
+                        "Cluster metric value %s could not be found in the database!".formatted(clusterMetricId)));
 
-        ClusterMetric metricValue = clusterMetricRepository
-                .findByClusterIdAndMetric(clusterId, metric)
-                .orElseThrow(() -> new ClusterMetricNotFoundException(clusterId, metricId));
+        if (!eTagHelper.validateEtag(ifMatch, metricValue))
+            throw new ClusterMetricConflictException();
 
-        metricValue.setValue(newValue);
+        metricValue.setValue(clusterMetric.getValue());
         return clusterMetricRepository.saveAndFlush(metricValue);
     }
 

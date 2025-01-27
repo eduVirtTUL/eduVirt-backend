@@ -11,6 +11,7 @@ import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,7 +32,6 @@ import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.ClusterMetricMapper;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 import pl.lodz.p.it.eduvirt.service.MetricService;
-import pl.lodz.p.it.eduvirt.service.impl.MetricServiceImpl;
 import pl.lodz.p.it.eduvirt.service.ovirt.impl.OVirtClusterServiceImpl;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
@@ -169,12 +169,16 @@ public class ClusterMetricController {
     )
     @PreAuthorize("hasAuthority('administrator')")
     @PatchMapping(path = "/{metricId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<MetricValueDto> updateMetricValue(@PathVariable("clusterId") UUID clusterId,
-                                                            @PathVariable("metricId") UUID metricId,
-                                                            @RequestBody @Validated ValueDto valueDto) {
+    public ResponseEntity<MetricValueDto> updateMetricValue(
+            @PathVariable("clusterId") UUID clusterId, @PathVariable("metricId") UUID metricId,
+            @RequestBody @Validated ValueDto valueDto, @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
         Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
-        ClusterMetric updatedMetric = clusterMetricService.updateMetricValue(cluster, metricId, valueDto.value());
+        Metric metric = metricService.findById(metricId);
+
+        ClusterMetric newMetricValue = clusterMetricMapper.valueDtoToClusterMetric(valueDto, UUID.fromString(cluster.id()), metric);
+        ClusterMetric updatedMetric = clusterMetricService.updateMetricValue(valueDto.metricValueId(), newMetricValue, ifMatch);
         MetricValueDto dto = clusterMetricMapper.clusterMetricToDto(updatedMetric);
+
         return ResponseEntity.ok(dto);
     }
 
