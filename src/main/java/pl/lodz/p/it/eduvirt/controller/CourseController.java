@@ -41,6 +41,8 @@ import pl.lodz.p.it.eduvirt.dto.resource_group.CreateResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group.ResourceGroupDto;
 import pl.lodz.p.it.eduvirt.dto.resource_group_pool.ResourceGroupPoolDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
+import pl.lodz.p.it.eduvirt.dto.statistics.BaseCourseStatsDto;
+import pl.lodz.p.it.eduvirt.dto.statistics.TeamStatsDto;
 import pl.lodz.p.it.eduvirt.dto.user.UserDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.TeacherSelfModificationException;
@@ -86,6 +88,7 @@ public class CourseController {
     private final ResourceGroupPoolService resourceGroupPoolService;
     private final TeamService teamService;
     private final CourseService courseService;
+    private final ReservationStatisticsService reservationStatisticsService;
 
     /* Mappers */
 
@@ -412,7 +415,7 @@ public class CourseController {
         if (user.getEmail().equals(emailDto.getEmail())) {
             throw new TeacherSelfModificationException("Teacher cannot add themselves to a course");
         }
-        
+
         Course course = courseService.getCourse(courseId);
 
         List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
@@ -559,5 +562,51 @@ public class CourseController {
 
         if (listOfDTOs.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(outputDto);
+    }
+
+    /* Statistics */
+
+    @Transactional
+    @GetMapping(path = "/{courseId}/statistics")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    public ResponseEntity<BaseCourseStatsDto> getCourseStatistics(@PathVariable UUID courseId) {
+        Course course = courseService.getCourse(courseId);
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+            return ResponseEntity.ok(reservationStatisticsService.getCourseStatistics(courseId));
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @Transactional
+    @GetMapping(path = "/{courseId}/teams/{teamId}/statistics")
+    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    public ResponseEntity<TeamStatsDto> getTeamStatistics(@PathVariable UUID courseId, @PathVariable UUID teamId) {
+        Course course = courseService.getCourse(courseId);
+
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+
+        List<String> authorities = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
+                (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
+            return ResponseEntity.ok(reservationStatisticsService.getTeamStatistics(courseId, teamId));
+        }
+        return ResponseEntity.noContent().build();
     }
 }
