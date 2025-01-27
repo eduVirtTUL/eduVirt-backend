@@ -1,7 +1,3 @@
----------------------
---> Example users <--
----------------------
-
 INSERT INTO public.users (ovirt_id, user_id, email, first_name, last_name, user_name)
 VALUES ('1acd2865-6cc4-481c-8700-b2df5af24b23', '43c36b21-eed9-4ce4-811d-abc9e226e7fc', 'tklosges0@trellian.com',
         'Tadd', 'Klosges', 'tsadmin1'),
@@ -104,10 +100,6 @@ VALUES ('1acd2865-6cc4-481c-8700-b2df5af24b23', '43c36b21-eed9-4ce4-811d-abc9e22
        ('131dc587-b9ef-47a8-8b13-c50f47e0db97', '7f837d79-40f1-473c-996f-3d4ca4bac786', 'dbotte1d@unblog.fr',
         'Donnamarie', 'Botte', 'student32');
 
------------------------
---> Roles for users <--
------------------------
-
 INSERT INTO public.user_role
 VALUES ('69f850ce-21e1-462b-9c01-0d6437c16f6b', 'administrator'),
        ('69f850ce-21e1-462b-9c01-0d6437c16f6b', 'student'),
@@ -170,10 +162,6 @@ VALUES ('69f850ce-21e1-462b-9c01-0d6437c16f6b', 'administrator'),
        ('53735d24-302b-438b-9071-f187f018e1c5', 'student'),
        ('7f837d79-40f1-473c-996f-3d4ca4bac786', 'student');
 
---------------------------------
---> Example metrics & values <--
---------------------------------
-
 INSERT INTO public.metric (id, name, category)
 VALUES ('2865efff-f8e5-4960-a0ce-fc05e98828ba', 'cpu_count', 'COUNTABLE'),
        ('63490da4-d0f1-4e7a-88fc-3342633accc0', 'memory_size', 'MEMORY'),
@@ -185,10 +173,6 @@ VALUES (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '2865efff-f8e
        (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '63490da4-d0f1-4e7a-88fc-3342633accc0', 10737418240, 0),
        (gen_random_uuid(), 'c282a57c-624e-448b-823e-a68352d10914', '1929c2b2-ba03-4180-ae90-79bd2335f2a8', 10, 0);
 
-------------------------------------------
---- Sample data for maintenance module ---
-------------------------------------------
-
 INSERT INTO public.administrative_break (id, version, cause, description, type, cluster_id, begin_at, end_at)
 VALUES ('2e8989cb-6811-46ce-be27-9ec7b6ea788c', 0, 'Some random cause #1', 'Some description of the break', 'SYSTEM',
         null, timestamp 'yesterday' - interval '1 hour', timestamp 'yesterday' + interval '7 hours'),
@@ -198,10 +182,6 @@ VALUES ('2e8989cb-6811-46ce-be27-9ec7b6ea788c', 0, 'Some random cause #1', 'Some
        ('0136324d-fa42-4d4a-a046-33469ecb9d0b', 0, 'Some random cause #3', 'Some description of the break', 'CLUSTER',
         'c282a57c-624e-448b-823e-a68352d10914', timestamp 'tomorrow' - interval '1 hour',
         timestamp 'tomorrow' + interval '7 hours');
-
-------------------------------------------
---- Sample data for reservation module ---
-------------------------------------------
 
 INSERT INTO public.course (id, version, name, description, cluster_id, course_type, external_link)
 VALUES ('b99fde5c-8200-4eb5-80e2-1c6b4b6019b9', 0, 'Systemy operacyjne', 'Operating Systems',
@@ -698,83 +678,3 @@ VALUES ('c971b368-92c8-4a01-86d2-dd783b5360a8', '1decd050-1328-4eca-b2de-84793a8
         'e51132d3-8ac3-4232-85e0-849c8afa6abc', 'e608c9d0-e871-4374-a052-f27ced4a9cec', 3),
        ('c3db873c-cfeb-4ec2-b87b-342af78f869a', '1decd050-1328-4eca-b2de-84793a8474c2',
         '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '18750e93-22a7-4a23-8f8b-e0cabde8f793', 3);
-
-INSERT INTO public.reservation (
-    id, 
-    version, 
-    rg_id, 
-    team_id, 
-    automatic_startup, 
-    notification_time, 
-    reservation_start, 
-    reservation_end, 
-    status
-) VALUES
-    -- August 2023
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-08-05 09:00:00', '2023-08-05 12:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-08-15 14:00:00', '2023-08-15 18:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-08-25 10:00:00', '2023-08-25 16:00:00', 'COMPLETED'),
-
-    -- September 2023
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-09-05 09:00:00', '2023-09-05 15:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-09-15 13:00:00', '2023-09-15 19:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-09-25 10:00:00', '2023-09-25 16:00:00', 'COMPLETED'),
-
-    -- October 2023
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-10-05 08:00:00', '2023-10-05 14:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-10-15 15:00:00', '2023-10-15 20:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-10-25 11:00:00', '2023-10-25 17:00:00', 'COMPLETED'),
-
-    -- November 2023
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-11-05 09:00:00', '2023-11-05 15:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-11-15 14:00:00', '2023-11-15 20:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-11-25 10:00:00', '2023-11-25 16:00:00', 'COMPLETED'),
-
-    -- December 2023
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-12-05 09:00:00', '2023-12-05 15:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-12-15 13:00:00', '2023-12-15 19:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-12-25 10:00:00', '2023-12-25 16:00:00', 'COMPLETED'),
-
-    -- January 2024 (including current active reservations)
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2024-01-05 09:00:00', '2024-01-05 15:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2024-01-15 14:00:00', '2024-01-15 20:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2024-01-25 10:00:00', '2024-01-25 16:00:00', 'IN_PROGRESS');
-
-    -- Reservations for TUA-RG01 (a7919551-3807-4b35-88e3-fc3a868ba014)
-INSERT INTO public.reservation (id, version, rg_id, team_id, automatic_startup, notification_time, reservation_start, reservation_end, status)
-VALUES
-    -- August - October 2023
-    (gen_random_uuid(), 0, 'a7919551-3807-4b35-88e3-fc3a868ba014', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-08-10 10:00:00', '2023-08-10 13:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, 'a7919551-3807-4b35-88e3-fc3a868ba014', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-09-10 11:00:00', '2023-09-10 14:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, 'a7919551-3807-4b35-88e3-fc3a868ba014', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-10-10 12:00:00', '2023-10-10 15:00:00', 'COMPLETED'),
-    
-    -- November 2023 - January 2024
-    (gen_random_uuid(), 0, 'a7919551-3807-4b35-88e3-fc3a868ba014', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-11-10 13:00:00', '2023-11-10 16:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, 'a7919551-3807-4b35-88e3-fc3a868ba014', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-12-10 14:00:00', '2023-12-10 17:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, 'a7919551-3807-4b35-88e3-fc3a868ba014', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2024-01-10 15:00:00', '2024-01-10 18:00:00', 'IN_PROGRESS');
-
--- Reservations for TUA-RG02 (e51132d3-8ac3-4232-85e0-849c8afa6abc)
-INSERT INTO public.reservation (id, version, rg_id, team_id, automatic_startup, notification_time, reservation_start, reservation_end, status)
-VALUES
-    -- August - October 2023
-    (gen_random_uuid(), 0, 'e51132d3-8ac3-4232-85e0-849c8afa6abc', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-08-20 13:00:00', '2023-08-20 16:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, 'e51132d3-8ac3-4232-85e0-849c8afa6abc', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-09-20 14:00:00', '2023-09-20 17:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, 'e51132d3-8ac3-4232-85e0-849c8afa6abc', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-10-20 15:00:00', '2023-10-20 18:00:00', 'COMPLETED'),
-    
-    -- November 2023 - January 2024
-    (gen_random_uuid(), 0, 'e51132d3-8ac3-4232-85e0-849c8afa6abc', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-11-20 16:00:00', '2023-11-20 19:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, 'e51132d3-8ac3-4232-85e0-849c8afa6abc', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-12-20 17:00:00', '2023-12-20 20:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, 'e51132d3-8ac3-4232-85e0-849c8afa6abc', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2024-01-20 18:00:00', '2024-01-20 21:00:00', 'IN_PROGRESS');
-
--- Reservations for TUA-RG03 (7c7ed665-831c-4e24-b6fe-1947a16fcadb)
-INSERT INTO public.reservation (id, version, rg_id, team_id, automatic_startup, notification_time, reservation_start, reservation_end, status)
-VALUES
-    -- August - October 2023
-    (gen_random_uuid(), 0, '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-08-30 09:00:00', '2023-08-30 12:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-09-30 10:15:00', '2023-09-30 13:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-10-30 11:00:00', '2023-10-30 14:00:00', 'COMPLETED'),
-    
-    -- November 2023 - January 2024
-    (gen_random_uuid(), 0, '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-11-30 12:00:00', '2023-11-30 15:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2023-12-30 13:00:00', '2023-12-30 16:00:00', 'COMPLETED'),
-    (gen_random_uuid(), 0, '7c7ed665-831c-4e24-b6fe-1947a16fcadb', '40517c17-58b9-41ce-b53e-abaf0e7782fd', true, 0, '2024-01-30 14:00:00', '2024-01-30 17:00:00', 'IN_PROGRESS');

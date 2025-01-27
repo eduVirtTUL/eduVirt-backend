@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ClusterMetric extends AbstractEntity {
+public class ClusterMetric extends Updatable {
 
     @NotNull(message = "metrics.validation.null.cluster.id")
     @Column(name = "cluster_id", nullable = false, updatable = false)
@@ -46,6 +47,17 @@ public class ClusterMetric extends AbstractEntity {
     public ClusterMetric(UUID clusterId,
                          Metric metric,
                          Double value) {
+        this.clusterId = clusterId;
+        this.metric = metric;
+        this.value = value;
+    }
+
+    @Builder
+    public ClusterMetric(Long version,
+                         UUID clusterId,
+                         Metric metric,
+                         Double value) {
+        super(version);
         this.clusterId = clusterId;
         this.metric = metric;
         this.value = value;

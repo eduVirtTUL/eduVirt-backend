@@ -4,8 +4,10 @@ import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.Metric;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ClusterMetricService {
@@ -16,12 +18,13 @@ public interface ClusterMetricService {
 
     /* Read methods */
 
+    Optional<ClusterMetric> findClusterMetricByClusterAndMetric(Cluster cluster, Metric metric);
     Page<ClusterMetric> findAllMetricValuesForCluster(Cluster cluster, Pageable pageable);
     List<ClusterMetric> findAllMetricValuesForCluster(Cluster cluster);
 
     /* Update methods */
 
-    ClusterMetric updateMetricValue(Cluster cluster, UUID metricId, double newValue);
+    ClusterMetric updateMetricValue(UUID clusterMetricId, ClusterMetric clusterMetric, String ifMatch);
 
     /* Delete methods */
 

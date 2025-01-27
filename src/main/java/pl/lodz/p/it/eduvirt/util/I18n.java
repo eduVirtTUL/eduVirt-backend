@@ -59,6 +59,7 @@ public class I18n {
 
     public static final String CLUSTER_METRIC_VALUE_NOT_DEFINED = "clusterMetricValues.error.value.not.defined";
     public static final String CLUSTER_METRIC_VALUE_ALREADY_DEFINED = "clusterMetricValues.error.value.already.defined";
+    public static final String CLUSTER_METRIC_CONFLICT_EXCEPTION = "clusterMetricValues.error.conflict.exception";
 
     public static final String COURSE_METRIC_VALUE_NOT_DEFINED = "courseLimits.error.value.not.defined";
     public static final String COURSE_METRIC_VALUE_ALREADY_DEFINED = "courseLimits.error.value.already.defined";

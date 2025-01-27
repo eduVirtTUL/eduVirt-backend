@@ -31,6 +31,9 @@ public class IntegrationTestBase {
     protected final UUID nonExistentMetricId = UUID.randomUUID();
     protected final UUID existingMetricId = UUID.fromString("21db3b91-39ff-4e21-b193-61318e6c362c");
 
+    protected final UUID nonExistentClusterMetricId = UUID.randomUUID();
+    protected final UUID existingClusterMetricId = UUID.fromString("6cc4d9d9-28af-41fb-9fdf-eb7168ffb804");
+
     protected final UUID nonExistentMaintenanceIntervalId = UUID.randomUUID();
     protected final UUID existingMaintenanceIntervalId = UUID.fromString("fe14bd1c-59c4-428b-8f72-332a0688a488");
 

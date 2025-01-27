@@ -11,6 +11,7 @@ import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,15 +20,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricValueDto;
+import pl.lodz.p.it.eduvirt.dto.metric.GeneralMetricValueDto;
 import pl.lodz.p.it.eduvirt.dto.metric.MetricValueDto;
 import pl.lodz.p.it.eduvirt.dto.metric.ValueDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
+import pl.lodz.p.it.eduvirt.entity.Metric;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.ClusterMetricMapper;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
+import pl.lodz.p.it.eduvirt.service.MetricService;
 import pl.lodz.p.it.eduvirt.service.ovirt.impl.OVirtClusterServiceImpl;
+import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.UUID;
 
@@ -40,12 +46,17 @@ public class ClusterMetricController {
     /* Services */
 
     private final ClusterMetricService clusterMetricService;
+    private final MetricService metricService;
 
     private final OVirtClusterServiceImpl oVirtClusterServiceImpl;
 
     /* Mappers */
 
     private final ClusterMetricMapper clusterMetricMapper;
+
+    /* Util */
+
+    private final ETagHelper eTagHelper;
 
     /* Create methods */
 
@@ -119,6 +130,19 @@ public class ClusterMetricController {
         }
     }
 
+    @PreAuthorize("hasAuthority('administrator')")
+    @GetMapping(path = "/{metricId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<GeneralMetricValueDto> getClusterMetricDetails(@PathVariable("clusterId") UUID clusterId,
+                                                                         @PathVariable("metricId") UUID metricId) {
+        Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
+        Metric metric = metricService.findById(metricId);
+        ClusterMetric foundMetricValue = clusterMetricService.findClusterMetricByClusterAndMetric(cluster, metric)
+                .orElseThrow(() -> new ClusterMetricNotFoundException("Value of the metric %s for cluster %s could not be found!".formatted(metricId, clusterId)));
+
+        return ResponseEntity.ok().eTag(eTagHelper.generateEtag(foundMetricValue))
+                .body(clusterMetricMapper.clusterMetricToGeneralDto(foundMetricValue));
+    }
+
     /* Update methods */
 
     @Operation(
@@ -145,12 +169,16 @@ public class ClusterMetricController {
     )
     @PreAuthorize("hasAuthority('administrator')")
     @PatchMapping(path = "/{metricId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<MetricValueDto> updateMetricValue(@PathVariable("clusterId") UUID clusterId,
-                                                            @PathVariable("metricId") UUID metricId,
-                                                            @RequestBody @Validated ValueDto valueDto) {
+    public ResponseEntity<MetricValueDto> updateMetricValue(
+            @PathVariable("clusterId") UUID clusterId, @PathVariable("metricId") UUID metricId,
+            @RequestBody @Validated ValueDto valueDto, @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
         Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
-        ClusterMetric updatedMetric = clusterMetricService.updateMetricValue(cluster, metricId, valueDto.value());
+        Metric metric = metricService.findById(metricId);
+
+        ClusterMetric newMetricValue = clusterMetricMapper.valueDtoToClusterMetric(valueDto, UUID.fromString(cluster.id()), metric);
+        ClusterMetric updatedMetric = clusterMetricService.updateMetricValue(valueDto.metricValueId(), newMetricValue, ifMatch);
         MetricValueDto dto = clusterMetricMapper.clusterMetricToDto(updatedMetric);
+
         return ResponseEntity.ok(dto);
     }
 
