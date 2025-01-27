@@ -11,4 +11,8 @@ public class ClusterMetricNotFoundException extends NotFoundException {
         super("Value of metric with id %s is not defined for cluster %s".formatted(metricId, clusterId),
                 I18n.CLUSTER_METRIC_VALUE_NOT_DEFINED);
     }
+
+    public ClusterMetricNotFoundException(String message) {
+        super(message, I18n.CLUSTER_METRIC_VALUE_NOT_DEFINED);
+    }
 }

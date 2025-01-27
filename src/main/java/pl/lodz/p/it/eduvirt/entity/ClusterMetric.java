@@ -20,7 +20,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ClusterMetric extends AbstractEntity {
+public class ClusterMetric extends Updatable {
 
     @NotNull(message = "metrics.validation.null.cluster.id")
     @Column(name = "cluster_id", nullable = false, updatable = false)

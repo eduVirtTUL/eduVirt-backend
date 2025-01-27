@@ -19,6 +19,7 @@ import pl.lodz.p.it.eduvirt.repository.MetricRepository;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -51,6 +52,13 @@ public class ClusterMetricServiceImpl implements ClusterMetricService {
     }
 
     /* Read methods */
+
+    @PreAuthorize("hasAuthority('administrator')")
+    @Override
+    public Optional<ClusterMetric> findClusterMetricByClusterAndMetric(Cluster cluster, Metric metric) {
+        UUID clusterId = UUID.fromString(cluster.id());
+        return clusterMetricRepository.findByClusterIdAndMetric(clusterId, metric);
+    }
 
     @PreAuthorize("hasAuthority('administrator')")
     @Override

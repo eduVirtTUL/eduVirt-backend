@@ -2,12 +2,16 @@ package pl.lodz.p.it.eduvirt.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.dto.metric.CreateMetricDto;
 import pl.lodz.p.it.eduvirt.dto.metric.MetricDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
 import pl.lodz.p.it.eduvirt.entity.Metric;
+import pl.lodz.p.it.eduvirt.utils.EnableTestcontainers;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +22,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@EnableTestcontainers
 public class MetricControllerIT extends IntegrationTestBase {
 
     /**
@@ -25,7 +32,7 @@ public class MetricControllerIT extends IntegrationTestBase {
      *      Basically, to conduct that test only eduVirt database is needed. Even the test data is not needed.
      *      The app needs to be up, as well as the eduVirt DB.
      */
-    // @Test
+    @Test
     public void Given_NewMetricName_When_NoMetricWithThatNameExists_Then_CreatesNewMetricSuccessfully() throws Exception {
         CreateMetricDto createDto = new CreateMetricDto("new_metric_name", Metric.MetricCategory.COUNTABLE);
 
