@@ -30,7 +30,11 @@ import java.util.Objects;
 @Entity
 @Table(
         name = "executor_task",
-        indexes = @Index(name = "executor_task_reservation_id_idx", columnList = "reservation_id")
+        indexes = {
+                @Index(name = "executor_task_reservation_id_idx", columnList = "reservation_id"),
+                @Index(name = "executor_task_type_idx", columnList = "type"),
+                @Index(name = "executor_task_status_idx", columnList = "status"),
+        }
 )
 @Getter
 @NoArgsConstructor

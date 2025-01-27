@@ -129,6 +129,8 @@ public class I18n {
     public static final String INTERNAL_SERVER_ERROR = "general.error.internal.server.error";
     public static final String PATH_NOT_FOUND = "general.error.path.not.found.error";
 
+    public static final String VM_OVIRT_OPERATION_EXCEPTION = "vm.ovirt.operation.exception";
+
     /* AccessKey keys */
 
     public static final String ACCESS_KEY_ALREADY_EXISTS = "access.key.already.exists";

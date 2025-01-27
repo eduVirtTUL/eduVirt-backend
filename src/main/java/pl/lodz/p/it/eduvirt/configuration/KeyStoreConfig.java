@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -20,6 +21,7 @@ import java.security.cert.CertificateFactory;
 import java.util.Objects;
 
 @Configuration
+@Profile({"prod", "dev"})
 public class KeyStoreConfig {
 
     @Value("${ovirt.engine.url}")

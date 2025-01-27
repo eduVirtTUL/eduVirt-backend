@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.executor.schedulers;
+package pl.lodz.p.it.eduvirt.executor.scheduler;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +18,10 @@ import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
-import pl.lodz.p.it.eduvirt.executor.executor.NoAvailableVnicProfileException;
-import pl.lodz.p.it.eduvirt.executor.executor.ResourceGroupCurrentlyInUseException;
-import pl.lodz.p.it.eduvirt.executor.executor.VmInvalidStatusException;
-import pl.lodz.p.it.eduvirt.executor.executor.VmLaunchingStatusException;
+import pl.lodz.p.it.eduvirt.executor.exception.NoAvailableVnicProfileException;
+import pl.lodz.p.it.eduvirt.executor.exception.ResourceGroupCurrentlyInUseException;
+import pl.lodz.p.it.eduvirt.executor.exception.VmInvalidStatusException;
+import pl.lodz.p.it.eduvirt.executor.exception.VmLaunchingStatusException;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.AdditionalId;
@@ -50,24 +50,18 @@ import java.util.stream.Collectors;
 //TO_CHECK michal: improvements for transactions
 //TO_CHECK michal: LoggerInterceptor on other services
 
-// Priority 0
-//TO_IMPROVE michal: Check two conflicting invocation of scheduled method (ex. two pod starts) => set UniqueConstraints (when some tasks wait more then one minute i forEach)
-
 // Priority 1
 //TO_IMPROVE michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
-//TO_IMPROVE michal: limit number of retries to create/destroy pod (after reaching this limit, maybe administrators should be informed about problems) (probably no limit)
+//TO_IMPROVE michal: send mail notification to administrators after multiply restarts of POD
 
 // Priority 2
-//TO_IMPROVE michal: on start-up check if other students have permissions to these VMs (If they have, reservation should failed)
-//TO_IMPROVE michal: indexes for sub queries and FK?
-//TO_IMPROVE michal: Specified Persistence Unit for executor module (separate connection pool)
+//TODO_OPTIONAL michal: Specified Persistence Unit for exception module (separate connection pool)
 
 @Slf4j
 @Service
 @LoggerInterceptor
 @RequiredArgsConstructor
-//@Profile({"prod", "dev"})
-@Profile("prod")
+@Profile({"prod", "dev"})
 @Transactional(propagation = Propagation.NEVER)
 public class ExecutorScheduler {
 
@@ -207,7 +201,6 @@ public class ExecutorScheduler {
                                     List<NetworkInterface> interfaces = network.getInterfaces();
                                     int numOfInterfacesBeforeFiltering = interfaces.size();
 
-                                    //TODO michal: simplify/optimization
                                     UUID[] previousVnicProfileId = new UUID[1];
                                     interfaces.removeIf(nic -> {
                                         if (nicsIdsToExclude.containsKey(nic.getId())) {
@@ -236,8 +229,7 @@ public class ExecutorScheduler {
                                         vnicProfilePoolService.markVnicProfileAsOccupied(chosenVnicProfileId);
                                     }
 
-                                    //TODO michal: check if transaction rollback setting 'inUse' flag (BIG PROBLEM)
-                                    //TODO michal: potentially if error occurs on the first nic, in the next iteration
+                                    //TODO_OPTIONAL michal: potentially if error occurs on the first nic, in the next iteration
                                     // will be choose the new one vnic profile from pool (and the previous one will be
                                     // marked as occupied without assigning to any NIC - resource blocking)
 
@@ -281,7 +273,7 @@ public class ExecutorScheduler {
                                             );
                                         } catch (Throwable nestedException) {
                                             // If the exception was related to a call to oVirt's API is intentionally
-                                            // swallowed, so as not to interrupt the executor algorithm
+                                            // swallowed, so as not to interrupt the exception algorithm
                                             // (this is conditioned on one attempt to run the VM,
                                             // next attempts can be made by students manually)
                                             if (nestedException.getCause() instanceof org.ovirt.engine.sdk4.Error) {
@@ -349,8 +341,6 @@ public class ExecutorScheduler {
                         .map(pl.lodz.p.it.eduvirt.entity.User::getOVirtId)
                         .toList();
 
-                //todo to_test
-
                 // Filter VMs for which permission have been assigned
                 List<VirtualMachine> filteredVmsToRevokePermission = filterVmsBySubtasks(
                         existingSubtasks,
@@ -372,7 +362,6 @@ public class ExecutorScheduler {
 
             CLEAR_PRIVATE_SEGMENTS_ZONE:
             {
-                //todo to_test
                 Predicate<ExecutorSubtask> predicate = st ->
                         st.getType().equals(ExecutorSubtask.SubtaskType.REMOVE_VNIC_PROFILE) && st.getSuccessful();
                 Set<UUID> nicsIdsToExclude = existingSubtasks.stream()
@@ -392,8 +381,6 @@ public class ExecutorScheduler {
                                     if (interfaces.isEmpty()) {
                                         return;
                                     }
-
-                                    //todo michal: maybe verify if vnic profile is equal to this from startUpPod subtasks??
 
                                     // Remove vnic profile from VMs NICs
                                     Set<UUID> removedVnicProfilesIdsSet = interfaces
@@ -416,8 +403,7 @@ public class ExecutorScheduler {
                                     if (removedVnicProfilesIdsSet.size() == 1) {
                                         vnicProfilePoolService.markVnicProfileAsFree(removedVnicProfilesIdsSet.iterator().next());
                                     } else {
-                                        // TODO michal: Solution? take the vnic profile id from startUpPod subtasks???
-                                        log.error("More than one assigned vnic profile was detected within " +
+                                        log.warn("More than one (or none) assigned vnic profile was detected within " +
                                                 "the private network segment, which prevented from marking, " +
                                                 "the nominal vnic profile as free in the pool");
                                     }
@@ -427,9 +413,6 @@ public class ExecutorScheduler {
 
             STOP_VMS_ZONE:
             {
-                //TODO michal: if this filtering is necessery??
-                //TODO to_test
-
                 // Filter VMs for which an attempt was made to shutdown
                 List<VirtualMachine> filteredVmsToStop = filterVmsBySubtasks(
                         existingSubtasks,
@@ -449,7 +432,7 @@ public class ExecutorScheduler {
                                         );
                                     } catch (Throwable nestedException) {
                                         // If the exception was related to a call to oVirt's API is intentionally
-                                        // swallowed, so as not to interrupt the executor algorithm
+                                        // swallowed, so as not to interrupt the exception algorithm
                                         // (this is conditioned on one attempt to shutdown the VM,
                                         // attempts to stop will be made by another time task, as POWER_OFF operations
                                         if (nestedException.getCause() instanceof org.ovirt.engine.sdk4.Error) {
@@ -468,18 +451,15 @@ public class ExecutorScheduler {
         }
     }
 
-    //todo to_test
     private void finalizePodReservation(ExecutorTask task) {
         ExecutorTask executorTask = executorTaskService.registerEndReservationTask(task.getReservation());
-        List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationEndExistingSubTasks(task.getReservation());
 
         try {
             List<VirtualMachine> originalVms = task.getReservation().getResourceGroup().getVms();
             List<Vm> ovirtVms = fetchOvirtVms(originalVms);
 
             if (originalVms.size() != ovirtVms.size()) {
-                //TODO michal
-                throw new RuntimeException("The number of VMs in eduVirt RG is different from the number of VMs " +
+                throw new IllegalStateException("The number of VMs in eduVirt RG is different from the number of VMs " +
                         "fetched from oVirt, the reservation cannot be completed automatically"
                 );
             }
@@ -488,36 +468,21 @@ public class ExecutorScheduler {
             ovirtVms.removeIf(vm -> vm.status().equals(VmStatus.DOWN));
 
             if (!ovirtVms.isEmpty()) {
-                // Filter VMs for which an attempt was made to shutdown
-                List<VirtualMachine> filteredVms = filterVmsBySubtasks(
-                        existingSubtasks,
-                        originalVms,
-                        ExecutorSubtask.SubtaskType.POWER_OFF,
-                        true
-                );
-
-                //TODO michal: optimization
-                List<Vm> filteredOvirtVms = filteredVms.stream()
-                        .map(vm ->
-                                ovirtVms.stream()
-                                        .filter(ovirtVm -> ovirtVm.id().equals(vm.getId().toString()))
-                                        .findFirst().orElse(null)
-                        )
-                        .filter(Objects::nonNull)
-                        .toList();
-
-                filteredOvirtVms
+                ovirtVms
                         .forEach(
                                 vm -> runAndRegister(() -> oVirtVmService.powerOffVm(vm.id()),
                                         task, UUID.fromString(vm.id()), ExecutorSubtask.SubtaskType.POWER_OFF
                                 )
                         );
+
+                executorTaskService.finalizeTask(executorTask.getId(), false,
+                        "The task must be repeated due to the need to check the success of the power off operations.");
+            } else {
+                // Mark reservation as completed
+                reservationService.endReservation(task.getReservation());
+
+                executorTaskService.finalizeTask(executorTask.getId(), true);
             }
-
-            // Mark reservation as completed
-            reservationService.endReservation(task.getReservation());
-
-            executorTaskService.finalizeTask(executorTask.getId(), true);
         } catch (Throwable e) {
             executorTaskService.finalizeTask(executorTask.getId(), false, e.getMessage());
             throw e;
@@ -657,7 +622,6 @@ public class ExecutorScheduler {
         // (solution for tasks and subtasks that are stuck in IN_PROGRESS status )
         executorTaskService.getReservationsInProgressTasks()
                 .forEach(task -> executorTaskService.finalizeTask(task.getId(), false, "Failed due to system restart"));
-        //TODO michal: maybe search by List<ExecutorTask.id>
         executorTaskService.getReservationsInProgressSubTasks()
                 .forEach(subtask -> executorTaskService.finalizeSubTask(subtask.getId(), false, "Failed due to system restart"));
     }

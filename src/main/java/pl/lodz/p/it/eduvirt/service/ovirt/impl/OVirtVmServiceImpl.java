@@ -19,12 +19,18 @@ import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.EventNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.VmNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.VmOvirtOperationException;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 import pl.lodz.p.it.eduvirt.util.StatisticsUtil;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -195,7 +201,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .vms();
         } catch (Throwable e) {
             log.error("Error while fetching VMs", e);
-            throw new RuntimeException(e);
+            throw new VmOvirtOperationException(e.getMessage());
         }
     }
 
@@ -210,7 +216,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .send();
         } catch (Throwable e) {
             log.error(e.getMessage());
-            throw new RuntimeException(e);
+            throw new VmOvirtOperationException(e.getMessage());
         }
     }
 
@@ -225,7 +231,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .send();
         } catch (Throwable e) {
             log.error(e.getMessage());
-            throw new RuntimeException(e);
+            throw new VmOvirtOperationException(e.getMessage());
         }
     }
 
@@ -240,7 +246,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
                     .send();
         } catch (Throwable e) {
             log.error(e.getMessage());
-            throw new RuntimeException(e);
+            throw new VmOvirtOperationException(e.getMessage());
         }
     }
 
@@ -289,7 +295,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
 
         } catch (Throwable e) {
             log.error(e.getMessage());
-            throw new RuntimeException(e);
+            throw new VmOvirtOperationException(e.getMessage());
         }
     }
 
@@ -331,7 +337,7 @@ public class OVirtVmServiceImpl implements OVirtVmService {
             return vnicProfileToRemoveId;
         } catch (Throwable e) {
             log.error(e.getMessage());
-            throw new RuntimeException(e);
+            throw new VmOvirtOperationException(e.getMessage());
         }
     }
 }
