@@ -7,6 +7,7 @@ import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.CourseMetric;
 import pl.lodz.p.it.eduvirt.entity.CourseMetricKey;
 import pl.lodz.p.it.eduvirt.entity.Metric;
+import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseMetricExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseMetricNetworksNotSufficientException;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseMetricNotFoundException;
@@ -30,7 +31,7 @@ public class CourseMetricServiceImpl implements CourseMetricService {
     @Transactional
     public void addMetricToCourse(UUID courseId, UUID metricId, double value) {
         Metric metric = metricRepository.findById(metricId)
-                .orElseThrow(() -> new IllegalArgumentException("Metric not found"));
+                .orElseThrow(() -> new MetricNotFoundException(metricId));
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
@@ -57,7 +58,8 @@ public class CourseMetricServiceImpl implements CourseMetricService {
     public void removeMetricFromCourse(UUID courseId, UUID metricId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
-        Metric metric = metricRepository.findById(metricId).orElseThrow();
+        Metric metric = metricRepository.findById(metricId)
+                .orElseThrow(() -> new MetricNotFoundException(metricId));
 
         courseMetricRepository.deleteById(new CourseMetricKey(course, metric));
     }
@@ -67,9 +69,11 @@ public class CourseMetricServiceImpl implements CourseMetricService {
     public CourseMetric getCourseMetric(UUID courseId, UUID metricId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
-        Metric metric = metricRepository.findById(metricId).orElseThrow();
+        Metric metric = metricRepository.findById(metricId)
+                .orElseThrow(() -> new MetricNotFoundException(metricId));
 
-        return courseMetricRepository.findById(new CourseMetricKey(course, metric)).orElseThrow();
+        return courseMetricRepository.findById(new CourseMetricKey(course, metric))
+                .orElseThrow(() -> new CourseMetricNotFoundException(courseId, metricId));
     }
 
     @Override
