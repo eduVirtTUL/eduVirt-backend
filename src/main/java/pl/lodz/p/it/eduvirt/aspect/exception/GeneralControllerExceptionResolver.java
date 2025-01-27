@@ -74,4 +74,11 @@ public class GeneralControllerExceptionResolver {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
     }
+    
+    @ExceptionHandler({Exception.class})
+    ResponseEntity<ExceptionResponse> handleError(Exception exception) {
+        return ResponseEntity.internalServerError()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ExceptionResponse(exception.getMessage(), "internalServerError"));
+    }
 }
