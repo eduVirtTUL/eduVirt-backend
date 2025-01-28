@@ -54,9 +54,6 @@ import java.util.stream.Collectors;
 //TO_IMPROVE michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
 //TO_IMPROVE michal: send mail notification to administrators after multiply restarts of POD
 
-// Priority 2
-//TODO_OPTIONAL michal: Specified Persistence Unit for exception module (separate connection pool)
-
 @Slf4j
 @Service
 @LoggerInterceptor
@@ -151,35 +148,36 @@ public class ExecutorScheduler {
 
             CHECK_CONDITION_ZONE:
             {
-                //todo maybe do not repeat it after first successful check
-
-                // Check if the RG is not used by another RG
-                runAndRegister(
-                        () -> checkIfRgIsInUse(reservation.getId(), resourceGroup),
-                        executorTask, null, ExecutorSubtask.SubtaskType.CHECK_RG_IN_USE
-                );
+                // Check if RG usages were checked
+                Predicate<ExecutorSubtask> predicateRgUsages = st ->
+                        st.getType().equals(ExecutorSubtask.SubtaskType.CHECK_RG_IN_USE) && st.getSuccessful();
+                if (existingSubtasks.stream().noneMatch(predicateRgUsages)) {
+                    // Check if the RG is not used by another RG
+                    runAndRegister(
+                            () -> checkIfRgIsInUse(reservation.getId(), resourceGroup),
+                            executorTask, null, ExecutorSubtask.SubtaskType.CHECK_RG_IN_USE
+                    );
+                }
 
                 // Check if VMs statuses were checked
                 Predicate<ExecutorSubtask> predicateVmsStatuses = st ->
                         st.getType().equals(ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES) && st.getSuccessful();
-                if (existingSubtasks.stream().anyMatch(predicateVmsStatuses)) {
-                    break CHECK_CONDITION_ZONE;
+                if (existingSubtasks.stream().noneMatch(predicateVmsStatuses)) {
+                    // Filter properly started VMs
+                    List<VirtualMachine> filteredVmsToCheck = filterVmsBySubtasks(
+                            existingSubtasks,
+                            originalVms,
+                            ExecutorSubtask.SubtaskType.START_VM,
+                            true
+                    );
+                    List<Vm> ovirtVms = fetchOvirtVms(filteredVmsToCheck);
+
+                    // Check if all VMs are down
+                    runAndRegister(
+                            () -> checkIfVmsDownStatus(ovirtVms),
+                            executorTask, null, ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES
+                    );
                 }
-
-                // Filter properly started VMs
-                List<VirtualMachine> filteredVmsToCheck = filterVmsBySubtasks(
-                        existingSubtasks,
-                        originalVms,
-                        ExecutorSubtask.SubtaskType.START_VM,
-                        true
-                );
-                List<Vm> ovirtVms = fetchOvirtVms(filteredVmsToCheck);
-
-                // Check if all VMs are down
-                runAndRegister(
-                        () -> checkIfVmsDownStatus(ovirtVms),
-                        executorTask, null, ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES
-                );
             }
 
             MAP_PRIVATE_SEGMENTS_ZONE:
@@ -279,8 +277,7 @@ public class ExecutorScheduler {
                                             if (nestedException.getCause() instanceof org.ovirt.engine.sdk4.Error) {
                                                 return;
                                             }
-                                            //todo ???Fault reason is "Operation Failed". Fault detail is
-                                            // "[Cannot run VM. There is no host that satisfies current scheduling constraints. See below for details:, The host node2 did not satisfy internal filter Network because network(s) testNetworkNo1000 are missing., The host node2 did not satisfy internal filter Network because network(s) testNetworkNo1000 are missing., The host node2 did not satisfy internal filter Network because network(s) testNetworkNo1000 are missing.]". HTTP response code is "
+
                                             throw nestedException;
                                         }
                                     }
@@ -603,9 +600,9 @@ public class ExecutorScheduler {
         ExecutorSubtask executorSubtask = executorTaskService.registerSubTask(task.getId(), vmId, type);
         try {
             T tmpVal = supplier.get();
-            if (tmpVal instanceof UUID && Objects.nonNull(additionalIds) &&
+            if (tmpVal instanceof UUID uuid && Objects.nonNull(additionalIds) &&
                     additionalIds.length >= 1 && Objects.isNull(additionalIds[0].getId())) {
-                additionalIds[0].withId((UUID) tmpVal);
+                additionalIds[0].withId(uuid);
             }
             executorTaskService.finalizeSubTask(executorSubtask.getId(), true, additionalIds);
             return tmpVal;

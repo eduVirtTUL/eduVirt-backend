@@ -43,8 +43,6 @@ import java.util.UUID;
 import static pl.lodz.p.it.eduvirt.service.VnicProfilePoolService.VnicProfilesAggregate;
 
 //todo vnic profile details
-//todo vnic profile sorting
-//todo vnic profile filtering
 
 @RestController
 @RequestMapping("/resources/vnic-profiles")

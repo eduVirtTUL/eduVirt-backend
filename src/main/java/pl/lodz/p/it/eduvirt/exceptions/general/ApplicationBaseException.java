@@ -15,4 +15,9 @@ public class ApplicationBaseException extends RuntimeException {
         super(message);
         this.key = key;
     }
+
+    public ApplicationBaseException(String key, String message, Throwable cause) {
+        super(message, cause);
+        this.key = key;
+    }
 }

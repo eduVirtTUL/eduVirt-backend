@@ -1,6 +1,7 @@
 package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,10 +30,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-//TODO michal: transactional for vnic profile/vlan ranges controllers/services/repositories
 //TODO michal consider managing transaction timeouts rather than excluding API operations from transactions
 
 @Service
+@Slf4j
 @LoggerInterceptor
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.REQUIRED)
@@ -131,7 +132,16 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
 
         for (VnicProfilePoolMember vnicProfile : freeVnicProfiles) {
             try {
-                if (Objects.nonNull(oVirtVnicProfileService.getVnicProfileById(vnicProfile.getId().toString()))) {
+                VnicProfile ovirtVnicProfile = oVirtVnicProfileService.getVnicProfileById(vnicProfile.getId().toString());
+                if (Objects.nonNull(ovirtVnicProfile)) {
+                    validateVnicProfile(vnicProfile, ovirtVnicProfile);
+
+                    if (!vnicProfile.isValid()) {
+                        log.warn("Vnic profile with ID {} was taken from the pool, but it cannot be used to assign " +
+                                "to a reservation, due to incompatible data with oVirt", vnicProfile.getId());
+                        continue;
+                    }
+
                     return Optional.of(vnicProfile);
                 }
             } catch (VnicProfileOvirtNotFoundException ignored) {
