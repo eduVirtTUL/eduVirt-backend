@@ -132,7 +132,7 @@ public class I18n {
 
     public static final String VM_OVIRT_OPERATION_EXCEPTION = "vm.ovirt.operation.exception";
 
-    public static final String NON_COMPLIANCE_VALUES = "non.compliance.values.{}";
+    public static final String NON_COMPLIANCE_VALUES = "compliance.errors.{}";
 
     /* AccessKey keys */
 

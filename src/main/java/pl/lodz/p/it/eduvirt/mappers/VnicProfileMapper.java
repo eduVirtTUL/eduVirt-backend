@@ -10,14 +10,15 @@ import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 @Mapper(componentModel = "spring")
 public interface VnicProfileMapper {
 
-    @Mapping(target = "id",             expression = "java(vnicProfile.id())")
-    @Mapping(target = "name",           expression = "java(vnicProfile.name())")
-    @Mapping(target = "networkId",      expression = "java(vnicProfile.network().id())")
-    @Mapping(target = "networkName",    expression = "java(vnicProfile.network().name())")
-    @Mapping(target = "networkVlanId",  expression = "java(vnicProfile.network().vlan() != null ? vnicProfile.network().vlan().id().toString() : null)")
-    @Mapping(target = "inPool",         expression = "java(isInPool)")
-    @Mapping(target = "valid",         expression = "java(true)")
-    VnicProfileDto ovirtVnicProfileToDto(VnicProfile vnicProfile, Boolean isInPool);
+    @Mapping(target = "id",                 expression = "java(vnicProfile.id())")
+    @Mapping(target = "name",               expression = "java(vnicProfile.name())")
+    @Mapping(target = "networkId",          expression = "java(vnicProfile.network().id())")
+    @Mapping(target = "networkName",        expression = "java(vnicProfile.network().name())")
+    @Mapping(target = "networkVlanId",      expression = "java(vnicProfile.network().vlan() != null ? vnicProfile.network().vlan().id().toString() : null)")
+    @Mapping(target = "inPool",             expression = "java(false)")
+    @Mapping(target = "valid",              expression = "java(null)")
+    @Mapping(target = "validationErrors",   expression = "java(null)")
+    VnicProfileDto ovirtVnicProfileToDto(VnicProfile vnicProfile);
 
     VnicProfilePoolMemberDto vnicProfileToPoolMemberDto(VnicProfilePoolMember vnicProfile);
 

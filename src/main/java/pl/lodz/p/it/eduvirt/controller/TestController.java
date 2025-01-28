@@ -18,7 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfileDto;
+import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.repository.ExecutorTaskRepository;
+import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
 import pl.lodz.p.it.eduvirt.repository.VnicProfileRepository;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
@@ -42,6 +46,8 @@ public class TestController {
 
     private final OVirtVnicProfileService oVirtVnicProfileService;
     private final VnicProfileMapper vnicProfileMapper;
+
+    private final ExecutorTaskService executorTaskService;
 
     @GetMapping
     public ResponseEntity<?> test(JwtAuthenticationToken auth) {
@@ -99,7 +105,7 @@ public class TestController {
     @GetMapping(path = "/vnic-profiles-test")
     public ResponseEntity<?> testVnicProfilesPagination(@PageableDefault Pageable pageable) {
         List<VnicProfileDto> vnicProfileDtoList = oVirtVnicProfileService.getVnicProfiles(pageable).stream()
-                .map(vnicProfile -> vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, null))
+                .map(vnicProfileMapper::ovirtVnicProfileToDto)
                 .toList();
 
         if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();
@@ -108,17 +114,11 @@ public class TestController {
 
     private final VnicProfileRepository vnicProfileRepository;
 
-    @GetMapping(path = "/test-fetch")
-    @Transactional
-    public ResponseEntity<?> testFetch() {
-        List<VnicProfilePoolMember> list = vnicProfileRepository.findAllWithIds(
-                List.of(
-                        UUID.fromString("72bcab03-c909-4950-bebc-b4189957d8c4"),
-                        UUID.fromString("48b5b881-7cca-43bd-8562-9cc046930690")
-                )
-        );
+    @GetMapping(path = "/test-fetch/{id}")
+    public ResponseEntity<?> testFetch(@PathVariable UUID id) {
+        List<ExecutorTask> list = executorTaskService.getReservationsToEndTasks();
 
         if (list.isEmpty()) return ResponseEntity.noContent().build();
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(list.stream().filter(executorTask -> executorTask.getReservation().getId().equals(id)).findFirst().get().getReservation().getResourceGroup().getVms().stream().map(VirtualMachine::getId).toList());
     }
 }

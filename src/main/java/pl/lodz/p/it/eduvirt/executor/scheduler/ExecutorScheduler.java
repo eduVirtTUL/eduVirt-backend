@@ -480,7 +480,7 @@ public class ExecutorScheduler {
                 ovirtVms
                         .forEach(
                                 vm -> runAndRegister(() -> oVirtVmService.powerOffVm(vm.id()),
-                                        task, UUID.fromString(vm.id()), ExecutorSubtask.SubtaskType.POWER_OFF
+                                        executorTask, UUID.fromString(vm.id()), ExecutorSubtask.SubtaskType.POWER_OFF
                                 )
                         );
 

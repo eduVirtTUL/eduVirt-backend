@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,12 +18,12 @@ import java.util.UUID;
 public interface VnicProfileRepository extends JpaRepository<VnicProfilePoolMember, UUID> {
 
     @Query("SELECT v FROM VnicProfilePoolMember v WHERE v.id IN :ids")
-    List<VnicProfilePoolMember> findAllWithIds(@Param("ids") List<UUID> ids);
+    List<VnicProfilePoolMember> findAllWithIds(@Param("ids") Collection<UUID> ids);
 
     @Query("SELECT v FROM VnicProfilePoolMember v WHERE v.vlanId IN :vlanIds")
-    List<VnicProfilePoolMember> findAllWithVlanIds(@Param("vlanIds") List<Integer> vlanIds,
+    List<VnicProfilePoolMember> findAllWithVlanIds(@Param("vlanIds") Collection<Integer> vlanIds,
                                                    Pageable pageable);
 
     @Query("SELECT v FROM VnicProfilePoolMember v WHERE v.vlanId IN :vlanIds AND v.inUse = false")
-    List<VnicProfilePoolMember> findAllFreeVnicProfiles(@Param("vlanIds") List<Integer> vlanIds);
+    List<VnicProfilePoolMember> findAllFreeVnicProfiles(@Param("vlanIds") Collection<Integer> vlanIds);
 }

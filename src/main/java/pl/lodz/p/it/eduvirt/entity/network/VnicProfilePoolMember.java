@@ -20,8 +20,10 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -61,21 +63,16 @@ public class VnicProfilePoolMember {
 
     /* Transient properties */
 
-//    @Transient
-//    @Setter
-//    private String name;
-
     @Transient
     @Setter
     private String networkId;
 
-//    @Transient
-//    @Setter
-//    private String networkName;
-
     @Transient
     @Setter
     private boolean valid;
+
+    @Transient
+    private final Set<String> validationErrors = new HashSet<>();
 
     public VnicProfilePoolMember(UUID id,
                                  Integer vlanId,
@@ -85,6 +82,11 @@ public class VnicProfilePoolMember {
         this.vlanId = vlanId;
         this.name = name;
         this.networkName = networkName;
+    }
+
+    /* Other methods */
+    public void addValidationError(String error) {
+        validationErrors.add(error);
     }
 
     @PrePersist

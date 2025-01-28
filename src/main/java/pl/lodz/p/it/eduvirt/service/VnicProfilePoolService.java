@@ -5,13 +5,12 @@ import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface VnicProfilePoolService {
 
-    Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles(Pageable pageable);
+    VnicProfilesAggregate getSynchronizedVnicProfiles(Pageable pageable);
 
     List<VnicProfilePoolMember> getVnicProfilesPool(Pageable pageable);
 
@@ -27,4 +26,5 @@ public interface VnicProfilePoolService {
 
     void markVnicProfileAsFree(UUID vnicProfileId);
 
+    record VnicProfilesAggregate(List<VnicProfilePoolMember> inOfPool, List<VnicProfile> outOfPool) {}
 }

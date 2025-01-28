@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static pl.lodz.p.it.eduvirt.service.VnicProfilePoolService.VnicProfilesAggregate;
+
 //todo vnic profile details
 //todo vnic profile sorting
 //todo vnic profile filtering
@@ -69,18 +71,26 @@ public class VnicProfileController {
 
         List<VnicProfileDto> vnicProfileDtoList = switch (inPool) {
             case 1 -> vnicProfileService.getVnicProfilesPool(pageable)
-                        .stream()
-                        .map(vnicProfileMapper::vnicProfileToDto)
-                        .toList();
+                    .stream()
+                    .map(vnicProfileMapper::vnicProfileToDto)
+                    .toList();
 //            case 2 -> oVirtVnicProfileService.getVnicProfiles(pageable).stream()
 //                    .map(vnicProfile -> vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, null))
 //                    .toList();
             default -> {
+                VnicProfilesAggregate vnicProfilesAggregate = vnicProfileService.getSynchronizedVnicProfiles(pageable);
+
                 List<VnicProfileDto> nestedVnicProfileDtoList = new ArrayList<>();
-                vnicProfileService.getSynchronizedVnicProfiles(pageable)
-                        .forEach((key, value) -> value.forEach(
-                                vnicProfile -> nestedVnicProfileDtoList.add(vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, key))
-                        ));
+
+                // Add mapped vnic profiles from the pool
+                nestedVnicProfileDtoList.addAll(
+                        vnicProfilesAggregate.inOfPool().stream().map(vnicProfileMapper::vnicProfileToDto).toList()
+                );
+
+                // Add mapped vnic profiles outside the pool (from oVirt)
+                nestedVnicProfileDtoList.addAll(
+                        vnicProfilesAggregate.outOfPool().stream().map(vnicProfileMapper::ovirtVnicProfileToDto).toList()
+                );
 
                 // Fix sorting order after mapping the map to list
                 Optional<Sort.Order> sortOrderOpt = pageable.getSort().stream().findFirst();
@@ -128,7 +138,7 @@ public class VnicProfileController {
     )
     public ResponseEntity<List<VnicProfileDto>> getOvirtVnicProfiles(@PageableDefault(sort = "vlanid", direction = Sort.Direction.ASC) Pageable pageable) {
         List<VnicProfileDto> vnicProfileDtoList = oVirtVnicProfileService.getVnicProfiles(pageable).stream()
-                .map(vnicProfile -> vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, null))
+                .map(vnicProfileMapper::ovirtVnicProfileToDto)
                 .toList();
 
         if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();

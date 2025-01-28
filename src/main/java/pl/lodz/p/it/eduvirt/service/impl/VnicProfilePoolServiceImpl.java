@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
-import pl.lodz.p.it.eduvirt.exceptions.NonComplianceValuesException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileCurrentlyInUseException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileEduvirtNotFoundException;
@@ -25,10 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 //TODO michal: transactional for vnic profile/vlan ranges controllers/services/repositories
 //TODO michal consider managing transaction timeouts rather than excluding API operations from transactions
@@ -51,32 +50,36 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     /* Read methods */
 
     @Override
-    public Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles(Pageable pageable) {
+    public VnicProfilesAggregate getSynchronizedVnicProfiles(Pageable pageable) {
         // Fetch data from eduVirt
         List<VlansRange> vlansRanges = vlansRangeRepository.findAll();
         // Fetch data from oVirt
-        List<VnicProfile> ovirtVnicProfiles = oVirtVnicProfileService.getVnicProfiles(pageable, vlansRanges.toArray(new VlansRange[0]));
+        Map<UUID, VnicProfile> ovirtVnicProfiles = oVirtVnicProfileService.getVnicProfiles(pageable, vlansRanges.toArray(new VlansRange[0]))
+                .stream()
+                .collect(Collectors.toMap(
+                        vnicProfile -> UUID.fromString(vnicProfile.id()),
+                        vnicProfile -> vnicProfile
+                ));
         // Fetch data from eduVirt (based on data from oVirt)
-        Set<UUID> vnicProfilePoolIds = vnicProfileRepository.findAllWithIds(
-                        ovirtVnicProfiles.stream().map(vp -> UUID.fromString(vp.id())).toList()
-                ).stream()
-                .map(VnicProfilePoolMember::getId)
-                .collect(Collectors.toSet());
+        Map<UUID, VnicProfilePoolMember> vnicProfilePool = vnicProfileRepository.findAllWithIds(ovirtVnicProfiles.keySet())
+                .stream()
+                .map(vnicProfile -> validateVnicProfile(vnicProfile, ovirtVnicProfiles.get(vnicProfile.getId())))
+                .collect(Collectors.toMap(
+                        VnicProfilePoolMember::getId,
+                        vnicProfilePoolMember -> vnicProfilePoolMember
+                ));
 
-        List<VnicProfile> vnicProfilesInPool = new ArrayList<>();
         List<VnicProfile> vnicProfilesOutOfPool = new ArrayList<>();
 
-        ovirtVnicProfiles.forEach(oVirtVnicProfile -> {
-            if (vnicProfilePoolIds.contains(UUID.fromString(oVirtVnicProfile.id()))) {
-                vnicProfilesInPool.add(oVirtVnicProfile);
-            } else {
+        ovirtVnicProfiles.forEach((vnicProfileId, oVirtVnicProfile) -> {
+            if (!vnicProfilePool.containsKey(vnicProfileId)) {
                 vnicProfilesOutOfPool.add(oVirtVnicProfile);
             }
         });
 
-        return Map.ofEntries(
-                Map.entry(Boolean.TRUE, vnicProfilesInPool),
-                Map.entry(Boolean.FALSE, vnicProfilesOutOfPool)
+        return new VnicProfilesAggregate(
+                new ArrayList<>(vnicProfilePool.values()),
+                vnicProfilesOutOfPool
         );
     }
 
@@ -84,8 +87,8 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
     public List<VnicProfilePoolMember> getVnicProfilesPool(Pageable pageable) {
         List<VlansRange> vlansRanges = vlansRangeRepository.findAll();
         List<Integer> vlansToInclude = vlansRanges.stream().flatMap(
-                        vlansRange -> IntStream.rangeClosed(vlansRange.getFrom(), vlansRange.getTo()).boxed()
-                ).toList();
+                vlansRange -> IntStream.rangeClosed(vlansRange.getFrom(), vlansRange.getTo()).boxed()
+        ).toList();
 
         // Fetch data from eduVirt
         List<VnicProfilePoolMember> eduVirtVnicProfiles = vnicProfileRepository.findAllWithVlanIds(
@@ -97,24 +100,14 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
                 vnicProfile -> {
                     try {
                         VnicProfile ovirtVnicProfile = oVirtVnicProfileService.getVnicProfileById(vnicProfile.getId().toString());
-
                         vnicProfile.setNetworkId(ovirtVnicProfile.network().id());
-                        compareValuesCompliance(vnicProfile.getVlanId(), ovirtVnicProfile.network().vlan().idAsInteger(), "vlan.id");
-                        compareValuesCompliance(vnicProfile.getName(), ovirtVnicProfile.name(), "name");
-                        compareValuesCompliance(vnicProfile.getNetworkName(), ovirtVnicProfile.network().name(), "network.name");
-                        vnicProfile.setValid(true);
-                    } catch (VnicProfileOvirtNotFoundException | NonComplianceValuesException e) {
+
+                        validateVnicProfile(vnicProfile, ovirtVnicProfile);
+                    } catch (VnicProfileOvirtNotFoundException e) {
                         vnicProfile.setValid(false);
                     }
                 }
         ).toList();
-    }
-
-    private static <T> T compareValuesCompliance(T a, T b, String label) {
-         if(Objects.equals(a, b)) {
-             return a;
-         }
-         throw new NonComplianceValuesException(I18n.NON_COMPLIANCE_VALUES.replace("{}", label.toLowerCase()));
     }
 
     @Override
@@ -141,8 +134,8 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
                 if (Objects.nonNull(oVirtVnicProfileService.getVnicProfileById(vnicProfile.getId().toString()))) {
                     return Optional.of(vnicProfile);
                 }
+            } catch (VnicProfileOvirtNotFoundException ignored) {
             }
-            catch (VnicProfileOvirtNotFoundException ignored) {}
         }
 
         return Optional.empty();
@@ -208,5 +201,24 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
         vnicProfile.setInUse(setInUse);
 
         vnicProfileRepository.saveAndFlush(vnicProfile);
+    }
+
+    private static VnicProfilePoolMember validateVnicProfile(VnicProfilePoolMember vnicProfile, VnicProfile ovirtVnicProfile) {
+        Stream.of(
+                compareValuesCompliance(vnicProfile.getVlanId(), ovirtVnicProfile.network().vlan().idAsInteger(), "vlan.id"),
+                compareValuesCompliance(vnicProfile.getName(), ovirtVnicProfile.name(), "name"),
+                compareValuesCompliance(vnicProfile.getNetworkName(), ovirtVnicProfile.network().name(), "network.name")
+        ).filter(Objects::nonNull).forEach(vnicProfile::addValidationError);
+
+        vnicProfile.setValid(vnicProfile.getValidationErrors().isEmpty());
+
+        return vnicProfile;
+    }
+
+    private static <T> String compareValuesCompliance(T a, T b, String label) {
+        if (Objects.equals(a, b)) {
+            return null;
+        }
+        return I18n.NON_COMPLIANCE_VALUES.replace("{}", label.toLowerCase());
     }
 }
