@@ -6,5 +6,6 @@ public record VnicProfileDto(
         String networkId,
         String networkName,
         String networkVlanId,
-        Boolean inPool
+        Boolean inPool,
+        Boolean valid
 ) {}

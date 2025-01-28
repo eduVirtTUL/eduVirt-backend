@@ -46,6 +46,12 @@ public class VnicProfilePoolMember {
     @Column(name = "vlan_id", unique = true, nullable = false, updatable = false)
     private Integer vlanId;
 
+    @Column(name = "name", unique = true, nullable = false, updatable = false)
+    private String name;
+
+    @Column(name = "network_name", unique = true, nullable = false, updatable = false)
+    private String networkName;
+
     @Column(name = "created_by", updatable = false)
     private UUID createdBy;
 
@@ -53,14 +59,32 @@ public class VnicProfilePoolMember {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
+    /* Transient properties */
+
+//    @Transient
+//    @Setter
+//    private String name;
+
     @Transient
     @Setter
-    private String name;
+    private String networkId;
+
+//    @Transient
+//    @Setter
+//    private String networkName;
+
+    @Transient
+    @Setter
+    private boolean valid;
 
     public VnicProfilePoolMember(UUID id,
-                                 Integer vlanId) {
+                                 Integer vlanId,
+                                 String name,
+                                 String networkName) {
         this.id = id;
         this.vlanId = vlanId;
+        this.name = name;
+        this.networkName = networkName;
     }
 
     @PrePersist

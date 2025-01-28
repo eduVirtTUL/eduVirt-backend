@@ -6,15 +6,18 @@ import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface VnicProfilePoolService {
 
     Map<Boolean, List<VnicProfile>> getSynchronizedVnicProfiles(Pageable pageable);
 
-    List<VnicProfilePoolMember> getVnicProfilesPool();
+    List<VnicProfilePoolMember> getVnicProfilesPool(Pageable pageable);
 
     VnicProfilePoolMember getVnicProfileFromPool(UUID vnicProfileId);
+
+    Optional<VnicProfilePoolMember> getFirstFreeVnicProfileFromPool();
 
     VnicProfilePoolMember addVnicProfileToPool(UUID vnicProfileId);
 

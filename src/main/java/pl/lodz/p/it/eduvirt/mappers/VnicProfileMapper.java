@@ -16,7 +16,12 @@ public interface VnicProfileMapper {
     @Mapping(target = "networkName",    expression = "java(vnicProfile.network().name())")
     @Mapping(target = "networkVlanId",  expression = "java(vnicProfile.network().vlan() != null ? vnicProfile.network().vlan().id().toString() : null)")
     @Mapping(target = "inPool",         expression = "java(isInPool)")
+    @Mapping(target = "valid",         expression = "java(true)")
     VnicProfileDto ovirtVnicProfileToDto(VnicProfile vnicProfile, Boolean isInPool);
 
-    VnicProfilePoolMemberDto vnicProfileToDto(VnicProfilePoolMember vnicProfile);
+    VnicProfilePoolMemberDto vnicProfileToPoolMemberDto(VnicProfilePoolMember vnicProfile);
+
+    @Mapping(target = "networkVlanId",  expression = "java(vnicProfile.getVlanId().toString())")
+    @Mapping(target = "inPool",         expression = "java(true)")
+    VnicProfileDto vnicProfileToDto(VnicProfilePoolMember vnicProfile);
 }

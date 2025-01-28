@@ -151,6 +151,8 @@ public class ExecutorScheduler {
 
             CHECK_CONDITION_ZONE:
             {
+                //todo maybe do not repeat it after first successful check
+
                 // Check if the RG is not used by another RG
                 runAndRegister(
                         () -> checkIfRgIsInUse(reservation.getId(), resourceGroup),
@@ -217,11 +219,9 @@ public class ExecutorScheduler {
                                     } else if (numOfInterfacesBeforeFiltering > numOfInterfacesAfterFiltering) {
                                         chosenVnicProfileId = previousVnicProfileId[0];
                                     } else {
-                                        // Fetch vnic profile from pool, checking conditions (if inUse equals false)
-                                        chosenVnicProfileId = vnicProfilePoolService.getVnicProfilesPool()
-                                                .stream()
-                                                .filter(vnicProfile -> !vnicProfile.getInUse())
-                                                .findFirst()
+                                        // Fetch vnic profile from pool,
+                                        // checking conditions (if inUse equals false and vnic profile is present in the oVirt)
+                                        chosenVnicProfileId = vnicProfilePoolService.getFirstFreeVnicProfileFromPool()
                                                 .orElseThrow(NoAvailableVnicProfileException::new)
                                                 .getId();
 
@@ -279,6 +279,8 @@ public class ExecutorScheduler {
                                             if (nestedException.getCause() instanceof org.ovirt.engine.sdk4.Error) {
                                                 return;
                                             }
+                                            //todo ???Fault reason is "Operation Failed". Fault detail is
+                                            // "[Cannot run VM. There is no host that satisfies current scheduling constraints. See below for details:, The host node2 did not satisfy internal filter Network because network(s) testNetworkNo1000 are missing., The host node2 did not satisfy internal filter Network because network(s) testNetworkNo1000 are missing., The host node2 did not satisfy internal filter Network because network(s) testNetworkNo1000 are missing.]". HTTP response code is "
                                             throw nestedException;
                                         }
                                     }
@@ -401,7 +403,14 @@ public class ExecutorScheduler {
 
                                     // Set vnic profile's property "inUse" to false
                                     if (removedVnicProfilesIdsSet.size() == 1) {
-                                        vnicProfilePoolService.markVnicProfileAsFree(removedVnicProfilesIdsSet.iterator().next());
+                                        try {
+                                            vnicProfilePoolService.markVnicProfileAsFree(removedVnicProfilesIdsSet.iterator().next());
+                                        } catch (Throwable e) {
+                                            log.error("An exception was thrown when marking the vnic profile as free - {}, ~ {}",
+                                                    e.getClass().getName(),
+                                                    e.getMessage()
+                                            );
+                                        }
                                     } else {
                                         log.warn("More than one (or none) assigned vnic profile was detected within " +
                                                 "the private network segment, which prevented from marking, " +

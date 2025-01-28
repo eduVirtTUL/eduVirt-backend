@@ -1,5 +1,6 @@
 package pl.lodz.p.it.eduvirt.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,4 +18,11 @@ public interface VnicProfileRepository extends JpaRepository<VnicProfilePoolMemb
 
     @Query("SELECT v FROM VnicProfilePoolMember v WHERE v.id IN :ids")
     List<VnicProfilePoolMember> findAllWithIds(@Param("ids") List<UUID> ids);
+
+    @Query("SELECT v FROM VnicProfilePoolMember v WHERE v.vlanId IN :vlanIds")
+    List<VnicProfilePoolMember> findAllWithVlanIds(@Param("vlanIds") List<Integer> vlanIds,
+                                                   Pageable pageable);
+
+    @Query("SELECT v FROM VnicProfilePoolMember v WHERE v.vlanId IN :vlanIds AND v.inUse = false")
+    List<VnicProfilePoolMember> findAllFreeVnicProfiles(@Param("vlanIds") List<Integer> vlanIds);
 }

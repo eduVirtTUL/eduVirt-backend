@@ -132,6 +132,8 @@ public class I18n {
 
     public static final String VM_OVIRT_OPERATION_EXCEPTION = "vm.ovirt.operation.exception";
 
+    public static final String NON_COMPLIANCE_VALUES = "non.compliance.values.{}";
+
     /* AccessKey keys */
 
     public static final String ACCESS_KEY_ALREADY_EXISTS = "access.key.already.exists";

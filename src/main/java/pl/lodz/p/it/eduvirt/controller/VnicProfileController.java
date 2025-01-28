@@ -19,25 +19,30 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfileDto;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfilePoolMemberDto;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.BadRequestEduVirtException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileAlreadyExistsException;
-import pl.lodz.p.it.eduvirt.exceptions.general.ConflictException;
-import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileEduvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileOvirtNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.general.ConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
-import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-//TODO michal: pageable?
+//todo vnic profile details
+//todo vnic profile sorting
+//todo vnic profile filtering
 
 @RestController
 @RequestMapping("/resources/vnic-profiles")
@@ -58,15 +63,57 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ResponseEntity<List<VnicProfileDto>> getSynchronizedVnicProfiles(@PageableDefault(sort = "vlanid", direction = Sort.Direction.ASC) Pageable pageable) {
-        List<VnicProfileDto> vnicProfileDtoList = new ArrayList<>();
-        vnicProfileService.getSynchronizedVnicProfiles(pageable)
-                .forEach((key, value) -> value.forEach(
-                        vnicProfile -> vnicProfileDtoList.add(vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, key))
-                ));
+    public ResponseEntity<List<VnicProfileDto>> getSynchronizedVnicProfiles(Pageable pageable,
+                                                                            @RequestParam(value = "inPool", required = false) Integer inPool) {
+        // Available paging options networkName, vlanId
 
-        //TODO przez mapę jest popsute sortowanie -> pilnie do naprawienia
-//        vnicProfileDtoList.sort();
+        List<VnicProfileDto> vnicProfileDtoList = switch (inPool) {
+            case 1 -> vnicProfileService.getVnicProfilesPool(pageable)
+                        .stream()
+                        .map(vnicProfileMapper::vnicProfileToDto)
+                        .toList();
+//            case 2 -> oVirtVnicProfileService.getVnicProfiles(pageable).stream()
+//                    .map(vnicProfile -> vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, null))
+//                    .toList();
+            default -> {
+                List<VnicProfileDto> nestedVnicProfileDtoList = new ArrayList<>();
+                vnicProfileService.getSynchronizedVnicProfiles(pageable)
+                        .forEach((key, value) -> value.forEach(
+                                vnicProfile -> nestedVnicProfileDtoList.add(vnicProfileMapper.ovirtVnicProfileToDto(vnicProfile, key))
+                        ));
+
+                // Fix sorting order after mapping the map to list
+                Optional<Sort.Order> sortOrderOpt = pageable.getSort().stream().findFirst();
+                if (sortOrderOpt.isPresent()) {
+                    Sort.Order sortOrder = sortOrderOpt.get();
+                    switch (sortOrder.getProperty()) {
+                        case "vlanId" -> {
+                            if (sortOrder.isAscending()) {
+                                nestedVnicProfileDtoList.sort(
+                                        Comparator.comparing(dto -> Long.parseLong(dto.networkVlanId()), Comparator.naturalOrder())
+                                );
+                            } else {
+                                nestedVnicProfileDtoList.sort(
+                                        Comparator.comparing(dto -> Long.parseLong(dto.networkVlanId()), Comparator.reverseOrder())
+                                );
+                            }
+                        }
+                        case "networkName" -> {
+                            if (sortOrder.isAscending()) {
+                                nestedVnicProfileDtoList.sort(
+                                        Comparator.comparing(VnicProfileDto::networkName, Comparator.nullsLast(Comparator.naturalOrder()))
+                                );
+                            } else {
+                                nestedVnicProfileDtoList.sort(
+                                        Comparator.comparing(VnicProfileDto::networkName, Comparator.nullsLast(Comparator.reverseOrder()))
+                                );
+                            }
+                        }
+                    }
+                }
+                yield nestedVnicProfileDtoList;
+            }
+        };
 
         if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(vnicProfileDtoList);
@@ -96,17 +143,14 @@ public class VnicProfileController {
             @ApiResponse(responseCode = "500", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))})}
     )
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ResponseEntity<List<VnicProfilePoolMemberDto>> getVnicProfilesFromPool() {
-        //todo pageable
-//        List<VnicProfilePoolMemberDto> vnicProfileDtoList = vnicProfileService.getVnicProfilesPool()
-//                .stream()
-//                .map(vnicProfileMapper::vnicProfileToDto)
-//                .toList();
-//
-//        if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();
-//        return ResponseEntity.ok(vnicProfileDtoList);
+    public ResponseEntity<List<VnicProfileDto>> getVnicProfilesFromPool(@PageableDefault(sort = "vlanId", direction = Sort.Direction.ASC) Pageable pageable) {
+        List<VnicProfileDto> vnicProfileDtoList = vnicProfileService.getVnicProfilesPool(pageable)
+                .stream()
+                .map(vnicProfileMapper::vnicProfileToDto)
+                .toList();
 
-        return ResponseEntity.noContent().build();
+        if (vnicProfileDtoList.isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(vnicProfileDtoList);
     }
 
     @GetMapping(path = "/eduvirt/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -120,7 +164,7 @@ public class VnicProfileController {
     public ResponseEntity<VnicProfilePoolMemberDto> getVnicProfileFromPool(@PathVariable("id") UUID id) {
         VnicProfilePoolMember vnicProfileFromPool = vnicProfileService.getVnicProfileFromPool(id);
 
-        return ResponseEntity.ok(vnicProfileMapper.vnicProfileToDto(vnicProfileFromPool));
+        return ResponseEntity.ok(vnicProfileMapper.vnicProfileToPoolMemberDto(vnicProfileFromPool));
     }
 
     @PostMapping(path = "/eduvirt/add-to-pool/{vnicProfileId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -142,7 +186,7 @@ public class VnicProfileController {
             throw new ConflictException(e2);
         }
 
-        return ResponseEntity.ok(vnicProfileMapper.vnicProfileToDto(vnicProfile));
+        return ResponseEntity.ok(vnicProfileMapper.vnicProfileToPoolMemberDto(vnicProfile));
     }
 
     @DeleteMapping(path = "/eduvirt/remove-from-pool/{vnicProfileId}")

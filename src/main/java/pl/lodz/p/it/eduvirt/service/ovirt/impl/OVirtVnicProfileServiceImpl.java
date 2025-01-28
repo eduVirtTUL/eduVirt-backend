@@ -67,7 +67,7 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
         // due to the fact that oVirt's API supports only sorting by single property
         Optional<Sort.Order> sortOrder = pageable.getSort().stream().findFirst();
         if (sortOrder.isPresent()) {
-            sortProp = sortOrder.get().getProperty();
+            sortProp = mapPropertiesNames(sortOrder.get().getProperty());
             sortDir = sortOrder.get().getDirection().name();
         }
 
@@ -97,6 +97,8 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
             throw new VnicProfileOvirtNotFoundException(e.getMessage());
         }
     }
+
+    /* Private methods */
 
     private static String mapVlansRangesToQueryString(VlansRange... vlansRanges) {
         StringBuilder sb = new StringBuilder();
@@ -131,5 +133,13 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
         } catch (NoSuchElementException ignored) {
             return null;
         }
+    }
+
+    private static String mapPropertiesNames(String property) {
+        return switch (property) {
+            case "vlanId" -> "vlanid";
+            case "networkName" -> "name";
+            default -> property.toLowerCase();
+        };
     }
 }
