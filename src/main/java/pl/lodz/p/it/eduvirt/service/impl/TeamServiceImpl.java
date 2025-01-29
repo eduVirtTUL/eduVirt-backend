@@ -354,6 +354,9 @@ public class TeamServiceImpl implements TeamService {
                 .orElseThrow(() -> new UserNotFoundException("User with email %s could not be found!".formatted(email)));
 
         if (team.isActive()) {
+            if (team.getUsers().size() + 1 > team.getMaxSize()) {
+                throw new TeamSizeException();
+            }
             validateUserNotInTeam(team, user.getId());
             team.getUsers().add(user);
             teamRepository.saveAndFlush(team);
