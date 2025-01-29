@@ -55,7 +55,7 @@ public class AccessKeyServiceTest {
     private User user1;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    public void setUp() {
         teamBasedCourse = Course.builder()
                 .name("Team Course")
                 .courseType(CourseType.TEAM_BASED)

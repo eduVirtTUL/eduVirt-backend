@@ -91,7 +91,6 @@ public class TeamServiceTest {
         Field id = AbstractEntity.class.getDeclaredField("id");
         id.setAccessible(true);
 
-        // Setup test courses
         teamBasedCourse = Course.builder()
                 .name("Team Course")
                 .courseType(CourseType.TEAM_BASED)
@@ -104,12 +103,10 @@ public class TeamServiceTest {
                 .build();
         id.set(soloCourse, UUID.randomUUID());
 
-        // Setup test users
         user1 = new User(UUID.randomUUID(), UUID.randomUUID(), "user1@test.com", "user1", "First1", "Last1");
         user2 = new User(UUID.randomUUID(), UUID.randomUUID(), "user2@test.com", "user2", "First2", "Last2");
         user3 = new User(UUID.randomUUID(), UUID.randomUUID(), "user3@test.com", "user3", "First3", "Last3");
 
-        // Setup test teams
         team1 = Team.builder()
                 .name("Team1")
                 .course(teamBasedCourse)
@@ -151,7 +148,6 @@ public class TeamServiceTest {
 
     @Test
     void Given_ValidTeamData_When_CreateTeam_Then_Success() {
-        // given
         Team newTeam = Team.builder()
                 .name("NewTeam")
                 .maxSize(5)
@@ -371,7 +367,6 @@ public class TeamServiceTest {
 
     @Test
     void Given_EtagMismatch_When_UpdateTeam_Then_ThrowException() {
-        // given
         UUID teamId = UUID.randomUUID();
         when(teamRepository.findById(teamId))
                 .thenReturn(Optional.of(team1));
