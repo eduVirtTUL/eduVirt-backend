@@ -69,8 +69,6 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
         MaintenanceInterval maintenanceInterval = new MaintenanceInterval(
                 cause, description, MaintenanceInterval.IntervalType.CLUSTER, clusterId, beginAt, endAt);
 
-        /* TODO: Perform logic on reservation that exist in the specified window of time
-                 that is cancel all of them and send e-mail notification */
 
         List<Reservation> foundReservations = reservationRepository
                 .findClusterReservations(clusterId, beginAt, endAt);
@@ -96,9 +94,6 @@ public class MaintenanceIntervalServiceImpl implements MaintenanceIntervalServic
 
         MaintenanceInterval maintenanceInterval = new MaintenanceInterval(
                 cause, description, MaintenanceInterval.IntervalType.SYSTEM, null, beginAt, endAt);
-
-        /* TODO: Perform logic on reservation that exist in the specified window of time
-                 that is cancel all of them and send e-mail notification */
 
         List<Reservation> foundReservations = reservationRepository
                 .findSystemReservations(beginAt, endAt);

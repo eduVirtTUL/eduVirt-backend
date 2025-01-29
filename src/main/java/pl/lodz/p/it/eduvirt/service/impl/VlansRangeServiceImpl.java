@@ -67,7 +67,7 @@ public class VlansRangeServiceImpl implements VlansRangeService {
                  || (vlansRange.getFrom() < vlansRangeFromList.getFrom() && vlansRange.getTo() > vlansRangeFromList.getTo())
             ) {
                 String exMessage = String.format("This VLANs range conflicts with the already defined range = (%s-%s)",
-                        vlansRangeFromList.getFrom(), vlansRange.getTo()
+                        vlansRangeFromList.getFrom(), vlansRangeFromList.getTo()
                 );
                 throw new VlansRangeConflictingRangeException(exMessage);
             }

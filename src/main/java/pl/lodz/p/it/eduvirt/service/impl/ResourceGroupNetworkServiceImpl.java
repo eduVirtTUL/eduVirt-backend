@@ -7,11 +7,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.*;
-import pl.lodz.p.it.eduvirt.exceptions.resource_group.NetworkAlreadyExistsException;
-import pl.lodz.p.it.eduvirt.exceptions.resource_group.NoNetworkAvailableException;
-import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupConflictException;
-import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
+import pl.lodz.p.it.eduvirt.exceptions.resource_group.*;
+import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.NetworkInterfaceNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupNetworkService;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
@@ -106,21 +105,22 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     public void attachNicToNetwork(UUID networkId, UUID vmId, UUID nicId, String etag) {
         ResourceGroupNetwork resourceGroupNetwork = resourceGroupNetworkRepository
                 .findById(networkId)
-                .orElseThrow();
+                .orElseThrow(() -> new ResourceGroupNetworkNotFoundException(networkId));
 
         ResourceGroup resourceGroup = resourceGroupNetwork.getResourceGroup();
         if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
             throw new ResourceGroupNotFoundException(resourceGroup.getId());
         }
 
-        VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
+        VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId)
+                .orElseThrow(() -> new VirtualMachineNotFoundException(vmId));
 
         if (!eTagHelper.validateEtag(etag, virtualMachine.getId(), virtualMachine.getVersion())) {
             throw new VirtualMachineConflictException();
         }
 
         if (resourceGroupNetwork.getResourceGroup().getId() != virtualMachine.getResourceGroup().getId()) {
-            throw new IllegalArgumentException("VM and network are not in the same resource group");
+            throw new ResourceGroupNetworkNotFoundException(networkId);
         }
 
         boolean isNicFromVm = oVirtVmService.findNicsByVmId(vmId.toString())
@@ -143,22 +143,23 @@ public class ResourceGroupNetworkServiceImpl implements ResourceGroupNetworkServ
     @Transactional
     @PreAuthorize("hasAuthority('teacher')")
     public void detachNicFromNetwork(UUID vmId, UUID nicId, String etag) {
-        VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId).orElseThrow();
+        VirtualMachine virtualMachine = virtualMachineRepository.findById(vmId)
+                .orElseThrow(() -> new VirtualMachineNotFoundException(vmId));
         ResourceGroup resourceGroup = virtualMachine.getResourceGroup();
 
         if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
             throw new ResourceGroupNotFoundException(resourceGroup.getId());
         }
 
-        NetworkInterface networkInterface = networkInterfaceRepository.findById(nicId).orElseThrow();
-
-        if (!networkInterface.getVirtualMachine().getId().equals(vmId)) {
-            throw new IllegalArgumentException("Nic does not belong to the VM");
-        }
-
-
         if (!eTagHelper.validateEtag(etag, virtualMachine.getId(), virtualMachine.getVersion())) {
             throw new VirtualMachineConflictException();
+        }
+
+        NetworkInterface networkInterface = networkInterfaceRepository.findById(nicId)
+                .orElseThrow(() -> new NetworkInterfaceNotFoundException(nicId));
+
+        if (!networkInterface.getVirtualMachine().getId().equals(vmId)) {
+            throw new NetworkInterfaceNotFoundException(nicId);
         }
 
         networkInterfaceRepository.deleteByIdAndVirtualMachine_Id(nicId, vmId);

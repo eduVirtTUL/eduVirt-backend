@@ -40,6 +40,9 @@ public class LoginController {
     @Value("${frontend.login}")
     private String frontendLogin;
 
+    @Value("${frontend.base-path}")
+    private String frontentBasePath;
+
     private final RestClient restClient;
     private final KeycloackConfig keycloackConfig;
     private final AuthService authService;
@@ -83,7 +86,14 @@ public class LoginController {
             return;
         }
 
-        authService.loginWithExternalToken(result.getBody().getAccessToken());
+
+        try {
+            authService.loginWithExternalToken(result.getBody().getAccessToken());
+        } catch (UserNotFoundException e) {
+            httpServletResponse.setHeader("Location", frontentBasePath + "/loginNotFound");
+            httpServletResponse.setStatus(302);
+            return;
+        }
 
         httpServletResponse.setHeader("Location", frontendCallback);
         Cookie cookie = new Cookie("access_token", result.getBody().getAccessToken());

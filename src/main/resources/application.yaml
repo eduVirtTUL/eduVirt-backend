@@ -61,6 +61,7 @@ mail:
     language: ${DEFAULT_MAIL_LANGUAGE:pl}
 
 frontend:
+  base-path: ${FRONTEND_BASE_PATH}
   login: ${FRONTEND_LOGIN}
   callback: ${FRONTEND_CALLBACK}
 
