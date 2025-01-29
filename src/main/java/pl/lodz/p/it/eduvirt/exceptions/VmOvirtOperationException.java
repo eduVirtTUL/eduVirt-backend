@@ -8,4 +8,8 @@ public class VmOvirtOperationException extends ApplicationBaseException {
     public VmOvirtOperationException(String message) {
         super(message, I18n.VM_OVIRT_OPERATION_EXCEPTION);
     }
+
+    public VmOvirtOperationException(String message, Throwable cause) {
+        super(I18n.VM_OVIRT_OPERATION_EXCEPTION, message, cause);
+    }
 }

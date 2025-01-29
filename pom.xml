@@ -300,6 +300,8 @@
                         <include>pl/lodz/p/it/eduvirt/controller/**</include>
                         <include>pl/lodz/p/it/eduvirt/service/**</include>
                         <include>pl/lodz/p/it/eduvirt/util/**</include>
+                        <include>pl/lodz/p/it/eduvirt/executor/scheduler/**</include>
+                        <include>pl/lodz/p/it/eduvirt/executor/service/**</include>
                     </includes>
                 </configuration>
             </plugin>
@@ -349,7 +351,6 @@
                     </reportSet>
                 </reportSets>
             </plugin>
-
         </plugins>
     </reporting>
 

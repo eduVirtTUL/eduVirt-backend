@@ -18,10 +18,7 @@ import java.util.UUID;
 public interface ExecutorTaskRepository extends JpaRepository<ExecutorTask, UUID> {
 
     @Query("""
-            SELECT e FROM ExecutorTask e
-            JOIN FETCH e.reservation
-            JOIN FETCH e.reservation.resourceGroup
-            JOIN FETCH e.reservation.resourceGroup.vms
+            SELECT DISTINCT e FROM ExecutorTask e
             WHERE e.type = 'POD_DESTRUCT'
             AND e.status = 'SUCCESSFUL'
             AND e.updatedAt <= :probeTimeWithGraceTime

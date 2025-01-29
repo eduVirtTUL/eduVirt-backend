@@ -54,9 +54,6 @@ import java.util.stream.Collectors;
 //TO_IMPROVE michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
 //TO_IMPROVE michal: send mail notification to administrators after multiply restarts of POD
 
-// Priority 2
-//TODO_OPTIONAL michal: Specified Persistence Unit for exception module (separate connection pool)
-
 @Slf4j
 @Service
 @LoggerInterceptor
@@ -151,33 +148,36 @@ public class ExecutorScheduler {
 
             CHECK_CONDITION_ZONE:
             {
-                // Check if the RG is not used by another RG
-                runAndRegister(
-                        () -> checkIfRgIsInUse(reservation.getId(), resourceGroup),
-                        executorTask, null, ExecutorSubtask.SubtaskType.CHECK_RG_IN_USE
-                );
+                // Check if RG usages were checked
+                Predicate<ExecutorSubtask> predicateRgUsages = st ->
+                        st.getType().equals(ExecutorSubtask.SubtaskType.CHECK_RG_IN_USE) && st.getSuccessful();
+                if (existingSubtasks.stream().noneMatch(predicateRgUsages)) {
+                    // Check if the RG is not used by another RG
+                    runAndRegister(
+                            () -> checkIfRgIsInUse(reservation.getId(), resourceGroup),
+                            executorTask, null, ExecutorSubtask.SubtaskType.CHECK_RG_IN_USE
+                    );
+                }
 
                 // Check if VMs statuses were checked
                 Predicate<ExecutorSubtask> predicateVmsStatuses = st ->
                         st.getType().equals(ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES) && st.getSuccessful();
-                if (existingSubtasks.stream().anyMatch(predicateVmsStatuses)) {
-                    break CHECK_CONDITION_ZONE;
+                if (existingSubtasks.stream().noneMatch(predicateVmsStatuses)) {
+                    // Filter properly started VMs
+                    List<VirtualMachine> filteredVmsToCheck = filterVmsBySubtasks(
+                            existingSubtasks,
+                            originalVms,
+                            ExecutorSubtask.SubtaskType.START_VM,
+                            true
+                    );
+                    List<Vm> ovirtVms = fetchOvirtVms(filteredVmsToCheck);
+
+                    // Check if all VMs are down
+                    runAndRegister(
+                            () -> checkIfVmsDownStatus(ovirtVms),
+                            executorTask, null, ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES
+                    );
                 }
-
-                // Filter properly started VMs
-                List<VirtualMachine> filteredVmsToCheck = filterVmsBySubtasks(
-                        existingSubtasks,
-                        originalVms,
-                        ExecutorSubtask.SubtaskType.START_VM,
-                        true
-                );
-                List<Vm> ovirtVms = fetchOvirtVms(filteredVmsToCheck);
-
-                // Check if all VMs are down
-                runAndRegister(
-                        () -> checkIfVmsDownStatus(ovirtVms),
-                        executorTask, null, ExecutorSubtask.SubtaskType.CHECK_VMS_STATUSES
-                );
             }
 
             MAP_PRIVATE_SEGMENTS_ZONE:
@@ -217,11 +217,9 @@ public class ExecutorScheduler {
                                     } else if (numOfInterfacesBeforeFiltering > numOfInterfacesAfterFiltering) {
                                         chosenVnicProfileId = previousVnicProfileId[0];
                                     } else {
-                                        // Fetch vnic profile from pool, checking conditions (if inUse equals false)
-                                        chosenVnicProfileId = vnicProfilePoolService.getVnicProfilesPool()
-                                                .stream()
-                                                .filter(vnicProfile -> !vnicProfile.getInUse())
-                                                .findFirst()
+                                        // Fetch vnic profile from pool,
+                                        // checking conditions (if inUse equals false and vnic profile is present in the oVirt)
+                                        chosenVnicProfileId = vnicProfilePoolService.getFirstFreeVnicProfileFromPool()
                                                 .orElseThrow(NoAvailableVnicProfileException::new)
                                                 .getId();
 
@@ -279,6 +277,7 @@ public class ExecutorScheduler {
                                             if (nestedException.getCause() instanceof org.ovirt.engine.sdk4.Error) {
                                                 return;
                                             }
+
                                             throw nestedException;
                                         }
                                     }
@@ -401,7 +400,14 @@ public class ExecutorScheduler {
 
                                     // Set vnic profile's property "inUse" to false
                                     if (removedVnicProfilesIdsSet.size() == 1) {
-                                        vnicProfilePoolService.markVnicProfileAsFree(removedVnicProfilesIdsSet.iterator().next());
+                                        try {
+                                            vnicProfilePoolService.markVnicProfileAsFree(removedVnicProfilesIdsSet.iterator().next());
+                                        } catch (Throwable e) {
+                                            log.error("An exception was thrown when marking the vnic profile as free - {}, ~ {}",
+                                                    e.getClass().getName(),
+                                                    e.getMessage()
+                                            );
+                                        }
                                     } else {
                                         log.warn("More than one (or none) assigned vnic profile was detected within " +
                                                 "the private network segment, which prevented from marking, " +
@@ -471,7 +477,7 @@ public class ExecutorScheduler {
                 ovirtVms
                         .forEach(
                                 vm -> runAndRegister(() -> oVirtVmService.powerOffVm(vm.id()),
-                                        task, UUID.fromString(vm.id()), ExecutorSubtask.SubtaskType.POWER_OFF
+                                        executorTask, UUID.fromString(vm.id()), ExecutorSubtask.SubtaskType.POWER_OFF
                                 )
                         );
 
@@ -594,9 +600,9 @@ public class ExecutorScheduler {
         ExecutorSubtask executorSubtask = executorTaskService.registerSubTask(task.getId(), vmId, type);
         try {
             T tmpVal = supplier.get();
-            if (tmpVal instanceof UUID && Objects.nonNull(additionalIds) &&
+            if (tmpVal instanceof UUID uuid && Objects.nonNull(additionalIds) &&
                     additionalIds.length >= 1 && Objects.isNull(additionalIds[0].getId())) {
-                additionalIds[0].withId((UUID) tmpVal);
+                additionalIds[0].withId(uuid);
             }
             executorTaskService.finalizeSubTask(executorSubtask.getId(), true, additionalIds);
             return tmpVal;
