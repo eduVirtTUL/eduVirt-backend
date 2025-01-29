@@ -96,7 +96,7 @@ public class MetricControllerTest {
         CreateMetricDto createDto = new CreateMetricDto(newMetricName, Metric.MetricCategory.COUNTABLE);
 
         doNothing().when(metricService)
-                .createNewMetric(Mockito.eq(newMetricName), Mockito.eq(Metric.MetricCategory.COUNTABLE));
+                .createNewMetric(newMetricName, Metric.MetricCategory.COUNTABLE);
 
         mockMvc.perform(post("/metrics")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -106,7 +106,7 @@ public class MetricControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(metricService, times(1))
-                .createNewMetric(Mockito.eq(newMetricName), Mockito.eq(Metric.MetricCategory.COUNTABLE));
+                .createNewMetric(newMetricName, Metric.MetricCategory.COUNTABLE);
     }
 
     /* GetAllMetrics method tests */
@@ -122,9 +122,9 @@ public class MetricControllerTest {
         MetricDto dtoNo2 = new MetricDto(metric2.getId(), metric2.getName(), Metric.MetricCategory.MEMORY);
         MetricDto dtoNo3 = new MetricDto(metric3.getId(), metric3.getName(), Metric.MetricCategory.MEMORY);
 
-        when(metricService.findAllMetrics(Mockito.eq(pageable)))
+        when(metricService.findAllMetrics(pageable))
                 .thenReturn(new PageImpl<>(List.of(metric1, metric2, metric3), pageable, 3));
-        when(metricMapper.metricToDto(Mockito.any(Metric.class))).thenReturn(dtoNo1, dtoNo2, dtoNo3);
+        when(metricMapper.metricToDto(any(Metric.class))).thenReturn(dtoNo1, dtoNo2, dtoNo3);
 
         MvcResult result = mockMvc.perform(get("/metrics")
                         .param("page", "0")
@@ -172,8 +172,8 @@ public class MetricControllerTest {
         assertEquals(thirdMetric.name(), metric3.getName());
         assertEquals(thirdMetric.category(), metric3.getCategory());
 
-        verify(metricService, times(1)).findAllMetrics(Mockito.eq(pageable));
-        verify(metricMapper, times(3)).metricToDto(Mockito.any(Metric.class));
+        verify(metricService, times(1)).findAllMetrics(pageable);
+        verify(metricMapper, times(3)).metricToDto(any(Metric.class));
     }
 
     @WithMockUser
@@ -183,7 +183,7 @@ public class MetricControllerTest {
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
 
-        when(metricService.findAllMetrics(Mockito.eq(pageable)))
+        when(metricService.findAllMetrics(pageable))
                 .thenReturn(new PageImpl<>(List.of(), pageable, 3));
 
         mockMvc.perform(get("/metrics")
@@ -192,7 +192,7 @@ public class MetricControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(metricService, times(1)).findAllMetrics(Mockito.eq(pageable));
+        verify(metricService, times(1)).findAllMetrics(pageable);
     }
 
     /* DeleteMetric method tests */
@@ -200,27 +200,27 @@ public class MetricControllerTest {
     @WithMockUser
     @Test
     public void Given_ExistingMetricIdentifierWasPassed_When_DeleteMetric_Then_RemovesFoundMetricSuccessfully() throws Exception {
-        doNothing().when(metricService).deleteMetric(Mockito.eq(metric1.getId()));
+        doNothing().when(metricService).deleteMetric(metric1.getId());
 
         mockMvc.perform(delete("/metrics/{metricId}", metric1.getId())
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(metricService, times(1)).deleteMetric(Mockito.eq(metric1.getId()));
+        verify(metricService, times(1)).deleteMetric(metric1.getId());
     }
 
     @WithMockUser
     @Test
     public void Given_NonExistentMetricIdentifierWasPassed_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
         UUID randomUUID = UUID.randomUUID();
-        doThrow(MetricNotFoundException.class).when(metricService).deleteMetric(Mockito.eq(randomUUID));
+        doThrow(MetricNotFoundException.class).when(metricService).deleteMetric(randomUUID);
 
         mockMvc.perform(delete("/metrics/{metricId}", randomUUID)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(metricService, times(1)).deleteMetric(Mockito.eq(randomUUID));
+        verify(metricService, times(1)).deleteMetric(randomUUID);
     }
 }

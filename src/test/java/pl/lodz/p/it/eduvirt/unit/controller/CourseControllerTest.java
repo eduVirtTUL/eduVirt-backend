@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -242,9 +241,8 @@ public class CourseControllerTest {
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
 
-        when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.of(student1));
-        when(courseService.getCoursesForStudent(Mockito.eq(student1), Mockito.eq(pageable)))
-                .thenReturn(List.of(course1, course2));
+        when(userRepository.findById(studentId1)).thenReturn(Optional.of(student1));
+        when(courseService.getCoursesForStudent(student1, pageable)).thenReturn(List.of(course1, course2));
 
         MvcResult result = mockMvc.perform(get("/course/student")
                         .param("page", String.valueOf(page))
@@ -278,9 +276,8 @@ public class CourseControllerTest {
         assertEquals(course2.getClusterId(), secondCourse.clusterId());
         assertEquals(course2.getCourseType(), secondCourse.courseType());
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId1));
-        verify(courseService, times(1))
-                .getCoursesForStudent(Mockito.eq(student1), Mockito.eq(pageable));
+        verify(userRepository, times(1)).findById(studentId1);
+        verify(courseService, times(1)).getCoursesForStudent(student1, pageable);
     }
 
     @Test
@@ -290,9 +287,8 @@ public class CourseControllerTest {
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
 
-        when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.of(student1));
-        when(courseService.getCoursesForStudent(Mockito.eq(student1), Mockito.eq(pageable)))
-                .thenReturn(List.of());
+        when(userRepository.findById(studentId1)).thenReturn(Optional.of(student1));
+        when(courseService.getCoursesForStudent(student1, pageable)).thenReturn(List.of());
 
         mockMvc.perform(get("/course/student")
                         .param("page", String.valueOf(page))
@@ -300,9 +296,8 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId1));
-        verify(courseService, times(1))
-                .getCoursesForStudent(Mockito.eq(student1), Mockito.eq(pageable));
+        verify(userRepository, times(1)).findById(studentId1);
+        verify(courseService, times(1)).getCoursesForStudent(student1, pageable);
     }
 
     @Test
@@ -311,7 +306,7 @@ public class CourseControllerTest {
         int page = 0;
         int size = 10;
 
-        when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.empty());
+        when(userRepository.findById(studentId1)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/course/student")
                         .param("page", String.valueOf(page))
@@ -319,7 +314,7 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId1));
+        verify(userRepository, times(1)).findById(studentId1);
     }
 
     /* FindResourcesAvailabilityForResourceGroup method tests */
@@ -337,12 +332,12 @@ public class CourseControllerTest {
         availability.put(start.plusHours(1), true);
         availability.put(start.plusHours(1).plusMinutes(30), true);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.checkResourceGroupAvailability(Mockito.eq(resourceGroup1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
+        when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.of(student1));
+        when(userRepository.findById(studentId1)).thenReturn(Optional.of(student1));
 
         MvcResult result = mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -365,12 +360,12 @@ public class CourseControllerTest {
             assertTrue(availabilityDto.available());
         }
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupAvailability(Mockito.eq(resourceGroup1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
+        verify(reservationService, times(1)).checkResourceGroupAvailability(eq(resourceGroup1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId1));
+        verify(userRepository, times(1)).findById(studentId1);
     }
 
     @Test
@@ -382,12 +377,12 @@ public class CourseControllerTest {
 
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.checkResourceGroupAvailability(Mockito.eq(resourceGroup1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
+        when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.of(student1));
+        when(userRepository.findById(studentId1)).thenReturn(Optional.of(student1));
 
         mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -396,12 +391,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupAvailability(Mockito.eq(resourceGroup1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
+        verify(reservationService, times(1)).checkResourceGroupAvailability(eq(resourceGroup1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId1));
+        verify(userRepository, times(1)).findById(studentId1);
     }
 
     @Test
@@ -412,7 +407,7 @@ public class CourseControllerTest {
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(2);
 
-        when(courseService.getCourse(Mockito.eq(nonExistentCourseIdentifier)))
+        when(courseService.getCourse(nonExistentCourseIdentifier))
                 .thenThrow(CourseNotFoundException.class);
 
         mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
@@ -422,7 +417,7 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(nonExistentCourseIdentifier));
+        verify(courseService, times(1)).getCourse(nonExistentCourseIdentifier);
     }
 
     @Test
@@ -433,8 +428,8 @@ public class CourseControllerTest {
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(2);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(nonExistentResourceGroupIdentifier)))
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(nonExistentResourceGroupIdentifier))
                 .thenThrow(ResourceGroupNotFoundException.class);
 
         mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
@@ -444,8 +439,8 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(nonExistentResourceGroupIdentifier));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(nonExistentResourceGroupIdentifier);
     }
 
     @Test
@@ -455,8 +450,8 @@ public class CourseControllerTest {
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(2);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
 
         mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -465,8 +460,8 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
     }
 
     @Test
@@ -482,12 +477,12 @@ public class CourseControllerTest {
         availability.put(start.plusHours(1), true);
         availability.put(start.plusHours(1).plusMinutes(30), true);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.checkResourceGroupAvailability(Mockito.eq(resourceGroup1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
+        when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(adminId))).thenReturn(Optional.of(admin));
+        when(userRepository.findById(eq(adminId))).thenReturn(Optional.of(admin));
 
         MvcResult result = mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -510,12 +505,12 @@ public class CourseControllerTest {
             assertTrue(availabilityDto.available());
         }
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupAvailability(Mockito.eq(resourceGroup1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
+        verify(reservationService, times(1)).checkResourceGroupAvailability(eq(resourceGroup1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(adminId));
+        verify(userRepository, times(1)).findById(adminId);
     }
 
     @Test
@@ -527,12 +522,12 @@ public class CourseControllerTest {
 
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.checkResourceGroupAvailability(Mockito.eq(resourceGroup1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
+        when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(adminId))).thenReturn(Optional.of(admin));
+        when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
 
         mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -541,12 +536,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupAvailability(Mockito.eq(resourceGroup1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
+        verify(reservationService, times(1)).checkResourceGroupAvailability(eq(resourceGroup1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(adminId));
+        verify(userRepository, times(1)).findById(adminId);
     }
 
     @Test
@@ -562,12 +557,12 @@ public class CourseControllerTest {
         availability.put(start.plusHours(1), true);
         availability.put(start.plusHours(1).plusMinutes(30), true);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.checkResourceGroupAvailability(Mockito.eq(resourceGroup1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
+        when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
 
         MvcResult result = mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -590,12 +585,12 @@ public class CourseControllerTest {
             assertTrue(availabilityDto.available());
         }
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupAvailability(Mockito.eq(resourceGroup1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
+        verify(reservationService, times(1)).checkResourceGroupAvailability(eq(resourceGroup1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(teacherId1));
+        verify(userRepository, times(1)).findById(teacherId1);
     }
 
     @Test
@@ -607,12 +602,12 @@ public class CourseControllerTest {
 
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.checkResourceGroupAvailability(Mockito.eq(resourceGroup1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
+        when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
 
         mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -621,12 +616,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupAvailability(Mockito.eq(resourceGroup1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
+        verify(reservationService, times(1)).checkResourceGroupAvailability(eq(resourceGroup1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(teacherId1));
+        verify(userRepository, times(1)).findById(teacherId1);
     }
 
     @Test
@@ -642,12 +637,12 @@ public class CourseControllerTest {
         availability.put(start.plusHours(1), true);
         availability.put(start.plusHours(1).plusMinutes(30), true);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.checkResourceGroupAvailability(Mockito.eq(resourceGroup1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
+        when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
 
         mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -656,12 +651,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupAvailability(Mockito.eq(resourceGroup1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
+        verify(reservationService, times(1)).checkResourceGroupAvailability(eq(resourceGroup1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(teacherId2));
+        verify(userRepository, times(1)).findById(teacherId2);
     }
 
     @Test
@@ -673,12 +668,12 @@ public class CourseControllerTest {
 
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.checkResourceGroupAvailability(Mockito.eq(resourceGroup1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
+        when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
 
         mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -687,12 +682,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupAvailability(Mockito.eq(resourceGroup1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
+        verify(reservationService, times(1)).checkResourceGroupAvailability(eq(resourceGroup1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(teacherId2));
+        verify(userRepository, times(1)).findById(teacherId2);
     }
 
     @Test
@@ -708,12 +703,12 @@ public class CourseControllerTest {
         availability.put(start.plusHours(1), true);
         availability.put(start.plusHours(1).plusMinutes(30), true);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.checkResourceGroupAvailability(Mockito.eq(resourceGroup1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
+        when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(studentId5))).thenReturn(Optional.of(student5));
+        when(userRepository.findById(studentId5)).thenReturn(Optional.of(student5));
 
         mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -722,12 +717,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupAvailability(Mockito.eq(resourceGroup1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
+        verify(reservationService, times(1)).checkResourceGroupAvailability(eq(resourceGroup1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId5));
+        verify(userRepository, times(1)).findById(studentId5);
     }
 
     @Test
@@ -739,12 +734,12 @@ public class CourseControllerTest {
 
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupService.getResourceGroup(Mockito.eq(resourceGroup1.getId()))).thenReturn(resourceGroup1);
-        when(reservationService.checkResourceGroupAvailability(Mockito.eq(resourceGroup1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupService.getResourceGroup(resourceGroup1.getId())).thenReturn(resourceGroup1);
+        when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(studentId5))).thenReturn(Optional.of(student5));
+        when(userRepository.findById(studentId5)).thenReturn(Optional.of(student5));
 
         mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -753,12 +748,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupService, times(1)).getResourceGroup(Mockito.eq(resourceGroup1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupAvailability(Mockito.eq(resourceGroup1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupService, times(1)).getResourceGroup(resourceGroup1.getId());
+        verify(reservationService, times(1)).checkResourceGroupAvailability(eq(resourceGroup1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId5));
+        verify(userRepository, times(1)).findById(studentId5);
     }
 
     /* FindResourcesAvailabilityForResourceGroupPool method tests */
@@ -776,12 +771,12 @@ public class CourseControllerTest {
         availability.put(start.plusHours(1), true);
         availability.put(start.plusHours(1).plusMinutes(30), true);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
-        when(reservationService.checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
+        when(reservationService.checkResourceGroupPoolAvailability(eq(resourceGroupPool1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.of(student1));
+        when(userRepository.findById(studentId1)).thenReturn(Optional.of(student1));
 
         MvcResult result = mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -804,12 +799,12 @@ public class CourseControllerTest {
             assertTrue(availabilityDto.available());
         }
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
+        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(eq(resourceGroupPool1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId1));
+        verify(userRepository, times(1)).findById(studentId1);
     }
 
     @Test
@@ -821,12 +816,12 @@ public class CourseControllerTest {
 
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
-        when(reservationService.checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
+        when(reservationService.checkResourceGroupPoolAvailability(eq(resourceGroupPool1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(studentId1))).thenReturn(Optional.of(student1));
+        when(userRepository.findById(studentId1)).thenReturn(Optional.of(student1));
 
         mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -835,12 +830,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
+        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(eq(resourceGroupPool1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId1));
+        verify(userRepository, times(1)).findById(studentId1);
     }
 
     @Test
@@ -851,8 +846,7 @@ public class CourseControllerTest {
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(2);
 
-        when(courseService.getCourse(Mockito.eq(nonExistentCourseIdentifier)))
-                .thenThrow(CourseNotFoundException.class);
+        when(courseService.getCourse(nonExistentCourseIdentifier)).thenThrow(CourseNotFoundException.class);
 
         mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         nonExistentCourseIdentifier, resourceGroupPool1.getId())
@@ -861,7 +855,7 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(nonExistentCourseIdentifier));
+        verify(courseService, times(1)).getCourse(nonExistentCourseIdentifier);
     }
 
     @Test
@@ -872,8 +866,8 @@ public class CourseControllerTest {
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(2);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(nonExistentResourceGroupPoolIdentifier)))
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(nonExistentResourceGroupPoolIdentifier))
                 .thenThrow(ResourceGroupNotFoundException.class);
 
         mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
@@ -883,8 +877,8 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(nonExistentResourceGroupPoolIdentifier));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(nonExistentResourceGroupPoolIdentifier);
     }
 
     @Test
@@ -894,9 +888,8 @@ public class CourseControllerTest {
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(2);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId())))
-                .thenReturn(resourceGroupPool1);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
 
         mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -905,9 +898,8 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1))
-                .getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
     }
 
     @Test
@@ -923,12 +915,12 @@ public class CourseControllerTest {
         availability.put(start.plusHours(1), true);
         availability.put(start.plusHours(1).plusMinutes(30), true);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
-        when(reservationService.checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
+        when(reservationService.checkResourceGroupPoolAvailability(eq(resourceGroupPool1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(adminId))).thenReturn(Optional.of(admin));
+        when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
 
         MvcResult result = mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -951,12 +943,12 @@ public class CourseControllerTest {
             assertTrue(availabilityDto.available());
         }
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
+        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(eq(resourceGroupPool1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(adminId));
+        verify(userRepository, times(1)).findById(adminId);
     }
 
     @Test
@@ -968,12 +960,12 @@ public class CourseControllerTest {
 
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
-        when(reservationService.checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
+        when(reservationService.checkResourceGroupPoolAvailability(eq(resourceGroupPool1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(adminId))).thenReturn(Optional.of(admin));
+        when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
 
         mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -982,12 +974,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
+        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(eq(resourceGroupPool1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(adminId));
+        verify(userRepository, times(1)).findById(adminId);
     }
 
     @Test
@@ -1003,12 +995,12 @@ public class CourseControllerTest {
         availability.put(start.plusHours(1), true);
         availability.put(start.plusHours(1).plusMinutes(30), true);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
-        when(reservationService.checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
+        when(reservationService.checkResourceGroupPoolAvailability(eq(resourceGroupPool1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
 
         MvcResult result = mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -1031,12 +1023,12 @@ public class CourseControllerTest {
             assertTrue(availabilityDto.available());
         }
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
+        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(eq(resourceGroupPool1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(teacherId1));
+        verify(userRepository, times(1)).findById(teacherId1);
     }
 
     @Test
@@ -1048,12 +1040,12 @@ public class CourseControllerTest {
 
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
-        when(reservationService.checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
+        when(reservationService.checkResourceGroupPoolAvailability(eq(resourceGroupPool1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(teacherId1))).thenReturn(Optional.of(teacher1));
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
 
         mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -1062,12 +1054,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
+        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(eq(resourceGroupPool1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(teacherId1));
+        verify(userRepository, times(1)).findById(teacherId1);
     }
 
     @Test
@@ -1083,12 +1075,12 @@ public class CourseControllerTest {
         availability.put(start.plusHours(1), true);
         availability.put(start.plusHours(1).plusMinutes(30), true);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
-        when(reservationService.checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
+        when(reservationService.checkResourceGroupPoolAvailability(eq(resourceGroupPool1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
 
         mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -1097,12 +1089,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
+        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(eq(resourceGroupPool1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(teacherId2));
+        verify(userRepository, times(1)).findById(teacherId2);
     }
 
     @Test
@@ -1114,12 +1106,12 @@ public class CourseControllerTest {
 
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
-        when(reservationService.checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
+        when(reservationService.checkResourceGroupPoolAvailability(eq(resourceGroupPool1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(teacherId2))).thenReturn(Optional.of(teacher2));
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
 
         mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -1128,12 +1120,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
+        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(eq(resourceGroupPool1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(teacherId2));
+        verify(userRepository, times(1)).findById(teacherId2);
     }
 
     @Test
@@ -1149,12 +1141,12 @@ public class CourseControllerTest {
         availability.put(start.plusHours(1), true);
         availability.put(start.plusHours(1).plusMinutes(30), true);
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
-        when(reservationService.checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
+        when(reservationService.checkResourceGroupPoolAvailability(eq(resourceGroupPool1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(studentId5))).thenReturn(Optional.of(student5));
+        when(userRepository.findById(studentId5)).thenReturn(Optional.of(student5));
 
         mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -1163,12 +1155,12 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
+        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(eq(resourceGroupPool1),
+                eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId5));
+        verify(userRepository, times(1)).findById(studentId5);
     }
 
     @Test
@@ -1180,12 +1172,12 @@ public class CourseControllerTest {
 
         Map<LocalDateTime, Boolean> availability = new HashMap<>();
 
-        when(courseService.getCourse(Mockito.eq(course1.getId()))).thenReturn(course1);
-        when(resourceGroupPoolService.getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()))).thenReturn(resourceGroupPool1);
-        when(reservationService.checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1), Mockito.eq(course1),
-                Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end))).thenReturn(availability);
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(resourceGroupPoolService.getResourceGroupPool(resourceGroupPool1.getId())).thenReturn(resourceGroupPool1);
+        when(reservationService.checkResourceGroupPoolAvailability(eq(resourceGroupPool1), eq(course1),
+                any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(Mockito.eq(studentId5))).thenReturn(Optional.of(student5));
+        when(userRepository.findById(studentId5)).thenReturn(Optional.of(student5));
 
         mockMvc.perform(get("/course/{courseId}/resource-group-pools/{rgPoolId}/availability",
                         course1.getId(), resourceGroupPool1.getId())
@@ -1194,11 +1186,11 @@ public class CourseControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(courseService, times(1)).getCourse(Mockito.eq(course1.getId()));
-        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(Mockito.eq(resourceGroupPool1.getId()));
-        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(Mockito.eq(resourceGroupPool1),
-                Mockito.eq(course1), Mockito.any(Integer.class), Mockito.eq(start), Mockito.eq(end));
+        verify(courseService, times(1)).getCourse(course1.getId());
+        verify(resourceGroupPoolService, times(1)).getResourceGroupPool(resourceGroupPool1.getId());
+        verify(reservationService, times(1)).checkResourceGroupPoolAvailability(
+                eq(resourceGroupPool1), eq(course1), any(Integer.class), eq(start), eq(end));
 
-        verify(userRepository, times(1)).findById(Mockito.eq(studentId5));
+        verify(userRepository, times(1)).findById(studentId5);
     }
 }

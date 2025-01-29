@@ -205,15 +205,13 @@ public class MaintenanceIntervalControllerTest {
         );
 
         Cluster cluster = mock(Cluster.class);
-        when(clusterService.findClusterById(Mockito.eq(existingClusterId)))
-                .thenReturn(cluster);
-
+        when(clusterService.findClusterById(existingClusterId)).thenReturn(cluster);
         doNothing().when(maintenanceIntervalService).createClusterMaintenanceInterval(
-                Mockito.eq(cluster),
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                cluster,
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
 
         mockMvc.perform(post("/maintenance-intervals/cluster/{clusterId}", existingClusterId)
@@ -223,13 +221,13 @@ public class MaintenanceIntervalControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
+        verify(clusterService, times(1)).findClusterById(existingClusterId);
         verify(maintenanceIntervalService, times(1)).createClusterMaintenanceInterval(
-                Mockito.eq(cluster),
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                cluster,
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
     }
 
@@ -242,7 +240,7 @@ public class MaintenanceIntervalControllerTest {
                 OffsetDateTime.now(ZoneOffset.UTC).plusHours(3).toLocalDateTime()
         );
 
-        when(clusterService.findClusterById(Mockito.eq(nonExistentClusterId)))
+        when(clusterService.findClusterById(nonExistentClusterId))
                 .thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(post("/maintenance-intervals/cluster/{clusterId}", nonExistentClusterId)
@@ -252,7 +250,7 @@ public class MaintenanceIntervalControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(clusterService, times(1)).findClusterById(Mockito.eq(nonExistentClusterId));
+        verify(clusterService, times(1)).findClusterById(nonExistentClusterId);
     }
 
     @WithMockUser
@@ -265,15 +263,14 @@ public class MaintenanceIntervalControllerTest {
         );
 
         Cluster cluster = mock(Cluster.class);
-        when(clusterService.findClusterById(Mockito.eq(existingClusterId)))
-                .thenReturn(cluster);
+        when(clusterService.findClusterById(existingClusterId)).thenReturn(cluster);
 
         doThrow(MaintenanceIntervalInvalidTimeWindowException.class).when(maintenanceIntervalService).createClusterMaintenanceInterval(
-                Mockito.eq(cluster),
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                cluster,
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
 
         mockMvc.perform(post("/maintenance-intervals/cluster/{clusterId}", existingClusterId)
@@ -283,13 +280,13 @@ public class MaintenanceIntervalControllerTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
-        verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
+        verify(clusterService, times(1)).findClusterById(existingClusterId);
         verify(maintenanceIntervalService, times(1)).createClusterMaintenanceInterval(
-                Mockito.eq(cluster),
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                cluster,
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
     }
 
@@ -303,15 +300,15 @@ public class MaintenanceIntervalControllerTest {
         );
 
         Cluster cluster = mock(Cluster.class);
-        when(clusterService.findClusterById(Mockito.eq(existingClusterId)))
+        when(clusterService.findClusterById(existingClusterId))
                 .thenReturn(cluster);
 
         doThrow(MaintenanceIntervalConflictException.class).when(maintenanceIntervalService).createClusterMaintenanceInterval(
-                Mockito.eq(cluster),
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                cluster,
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
 
         mockMvc.perform(post("/maintenance-intervals/cluster/{clusterId}", existingClusterId)
@@ -321,13 +318,13 @@ public class MaintenanceIntervalControllerTest {
                 .andDo(print())
                 .andExpect(status().isConflict());
 
-        verify(clusterService, times(1)).findClusterById(Mockito.eq(existingClusterId));
+        verify(clusterService, times(1)).findClusterById(existingClusterId);
         verify(maintenanceIntervalService, times(1)).createClusterMaintenanceInterval(
-                Mockito.eq(cluster),
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                cluster,
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
     }
 
@@ -343,10 +340,10 @@ public class MaintenanceIntervalControllerTest {
         );
 
         doNothing().when(maintenanceIntervalService).createSystemMaintenanceInterval(
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
 
         mockMvc.perform(post("/maintenance-intervals/system")
@@ -357,10 +354,10 @@ public class MaintenanceIntervalControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(maintenanceIntervalService, times(1)).createSystemMaintenanceInterval(
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
     }
 
@@ -374,10 +371,10 @@ public class MaintenanceIntervalControllerTest {
         );
 
         doThrow(MaintenanceIntervalInvalidTimeWindowException.class).when(maintenanceIntervalService).createSystemMaintenanceInterval(
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
 
         mockMvc.perform(post("/maintenance-intervals/system", existingClusterId)
@@ -388,10 +385,10 @@ public class MaintenanceIntervalControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(maintenanceIntervalService, times(1)).createSystemMaintenanceInterval(
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
     }
 
@@ -405,10 +402,10 @@ public class MaintenanceIntervalControllerTest {
         );
 
         doThrow(MaintenanceIntervalConflictException.class).when(maintenanceIntervalService).createSystemMaintenanceInterval(
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
 
         mockMvc.perform(post("/maintenance-intervals/system", existingClusterId)
@@ -419,10 +416,10 @@ public class MaintenanceIntervalControllerTest {
                 .andExpect(status().isConflict());
 
         verify(maintenanceIntervalService, times(1)).createSystemMaintenanceInterval(
-                Mockito.eq(createDto.cause()),
-                Mockito.eq(createDto.description()),
-                Mockito.eq(createDto.beginAt()),
-                Mockito.eq(createDto.endAt())
+                createDto.cause(),
+                createDto.description(),
+                createDto.beginAt(),
+                createDto.endAt()
         );
     }
 
@@ -459,10 +456,10 @@ public class MaintenanceIntervalControllerTest {
                 maintenanceInterval3.getEndAt()
         );
 
-        when(maintenanceIntervalService.findAllMaintenanceIntervals(Mockito.eq(clusterId), Mockito.eq(active), Mockito.eq(pageable)))
+        when(maintenanceIntervalService.findAllMaintenanceIntervals(clusterId, active, pageable))
                 .thenReturn(new PageImpl<>(List.of(maintenanceInterval1, maintenanceInterval3), pageable, 2));
 
-        when(maintenanceIntervalMapper.maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class)))
+        when(maintenanceIntervalMapper.maintenanceIntervalToDto(any(MaintenanceInterval.class)))
                 .thenReturn(dtoNo1, dtoNo2);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
@@ -475,8 +472,7 @@ public class MaintenanceIntervalControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {
-        });
+        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {});
 
         assertNotNull(foundPage);
         assertNotNull(foundPage.page());
@@ -515,10 +511,10 @@ public class MaintenanceIntervalControllerTest {
         assertEquals(secondMaintenanceInterval.endAt(), maintenanceInterval3.getEndAt());
 
         verify(maintenanceIntervalService, times(1))
-                .findAllMaintenanceIntervals(Mockito.eq(clusterId), Mockito.eq(active), Mockito.eq(pageable));
+                .findAllMaintenanceIntervals(clusterId, active, pageable);
 
         verify(maintenanceIntervalMapper, times(2))
-                .maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class));
+                .maintenanceIntervalToDto(any(MaintenanceInterval.class));
     }
 
     @WithMockUser
@@ -551,10 +547,10 @@ public class MaintenanceIntervalControllerTest {
                 maintenanceInterval4.getEndAt()
         );
 
-        when(maintenanceIntervalService.findAllMaintenanceIntervals(Mockito.isNull(), Mockito.eq(active), Mockito.eq(pageable)))
+        when(maintenanceIntervalService.findAllMaintenanceIntervals(isNull(), eq(active), eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(maintenanceInterval2, maintenanceInterval4), pageable, 2));
 
-        when(maintenanceIntervalMapper.maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class)))
+        when(maintenanceIntervalMapper.maintenanceIntervalToDto(any(MaintenanceInterval.class)))
                 .thenReturn(dtoNo1, dtoNo2);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
@@ -566,8 +562,7 @@ public class MaintenanceIntervalControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {
-        });
+        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {});
 
         assertNotNull(foundPage);
         assertNotNull(foundPage.page());
@@ -606,10 +601,10 @@ public class MaintenanceIntervalControllerTest {
         assertEquals(secondMaintenanceInterval.endAt(), maintenanceInterval4.getEndAt());
 
         verify(maintenanceIntervalService, times(1))
-                .findAllMaintenanceIntervals(Mockito.isNull(), Mockito.eq(active), Mockito.eq(pageable));
+                .findAllMaintenanceIntervals(isNull(), eq(active), eq(pageable));
 
         verify(maintenanceIntervalMapper, times(2))
-                .maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class));
+                .maintenanceIntervalToDto(any(MaintenanceInterval.class));
     }
 
     @WithMockUser
@@ -643,10 +638,10 @@ public class MaintenanceIntervalControllerTest {
                 maintenanceInterval7.getEndAt()
         );
 
-        when(maintenanceIntervalService.findAllMaintenanceIntervals(Mockito.eq(clusterId), Mockito.eq(active), Mockito.eq(pageable)))
+        when(maintenanceIntervalService.findAllMaintenanceIntervals(clusterId, active, pageable))
                 .thenReturn(new PageImpl<>(List.of(maintenanceInterval5, maintenanceInterval7), pageable, 2));
 
-        when(maintenanceIntervalMapper.maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class)))
+        when(maintenanceIntervalMapper.maintenanceIntervalToDto(any(MaintenanceInterval.class)))
                 .thenReturn(dtoNo1, dtoNo2);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
@@ -659,8 +654,7 @@ public class MaintenanceIntervalControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {
-        });
+        PageDto<MaintenanceIntervalDto> foundPage = mapper.readValue(json, new TypeReference<>() {});
 
         assertNotNull(foundPage);
         assertNotNull(foundPage.page());
@@ -699,10 +693,10 @@ public class MaintenanceIntervalControllerTest {
         assertEquals(secondMaintenanceInterval.endAt(), maintenanceInterval7.getEndAt());
 
         verify(maintenanceIntervalService, times(1))
-                .findAllMaintenanceIntervals(Mockito.eq(clusterId), Mockito.eq(active), Mockito.eq(pageable));
+                .findAllMaintenanceIntervals(clusterId, active, pageable);
 
         verify(maintenanceIntervalMapper, times(2))
-                .maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class));
+                .maintenanceIntervalToDto(any(MaintenanceInterval.class));
     }
 
     @WithMockUser
@@ -735,10 +729,10 @@ public class MaintenanceIntervalControllerTest {
                 maintenanceInterval8.getEndAt()
         );
 
-        when(maintenanceIntervalService.findAllMaintenanceIntervals(Mockito.isNull(), Mockito.eq(active), Mockito.eq(pageable)))
+        when(maintenanceIntervalService.findAllMaintenanceIntervals(isNull(), eq(active), eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(maintenanceInterval6, maintenanceInterval8), pageable, 2));
 
-        when(maintenanceIntervalMapper.maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class)))
+        when(maintenanceIntervalMapper.maintenanceIntervalToDto(any(MaintenanceInterval.class)))
                 .thenReturn(dtoNo1, dtoNo2);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals")
@@ -790,10 +784,10 @@ public class MaintenanceIntervalControllerTest {
         assertEquals(secondMaintenanceInterval.endAt(), maintenanceInterval8.getEndAt());
 
         verify(maintenanceIntervalService, times(1))
-                .findAllMaintenanceIntervals(Mockito.isNull(), Mockito.eq(active), Mockito.eq(pageable));
+                .findAllMaintenanceIntervals(isNull(), eq(active), eq(pageable));
 
         verify(maintenanceIntervalMapper, times(2))
-                .maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class));
+                .maintenanceIntervalToDto(any(MaintenanceInterval.class));
     }
 
     @WithMockUser
@@ -807,7 +801,7 @@ public class MaintenanceIntervalControllerTest {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        when(maintenanceIntervalService.findAllMaintenanceIntervals(Mockito.eq(clusterId), Mockito.eq(active), Mockito.eq(pageable)))
+        when(maintenanceIntervalService.findAllMaintenanceIntervals(clusterId, active, pageable))
                 .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
         mockMvc.perform(get("/maintenance-intervals")
@@ -819,7 +813,7 @@ public class MaintenanceIntervalControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(maintenanceIntervalService, times(1))
-                .findAllMaintenanceIntervals(Mockito.eq(clusterId), Mockito.eq(active), Mockito.eq(pageable));
+                .findAllMaintenanceIntervals(clusterId, active, pageable);
     }
 
     /* GetMaintenanceIntervalsWithinTimePeriod method tests */
@@ -850,10 +844,10 @@ public class MaintenanceIntervalControllerTest {
                 maintenanceInterval1.getEndAt()
         );
 
-        when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end)))
+        when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(existingClusterId, start, end))
                 .thenReturn(List.of(maintenanceInterval4, maintenanceInterval1));
 
-        when(maintenanceIntervalMapper.maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class)))
+        when(maintenanceIntervalMapper.maintenanceIntervalToDto(any(MaintenanceInterval.class)))
                 .thenReturn(dtoNo1, dtoNo2);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals/time-period")
@@ -865,8 +859,7 @@ public class MaintenanceIntervalControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<MaintenanceIntervalDto> foundMaintenanceIntervals = mapper.readValue(json, new TypeReference<>() {
-        });
+        List<MaintenanceIntervalDto> foundMaintenanceIntervals = mapper.readValue(json, new TypeReference<>() {});
 
         assertNotNull(foundMaintenanceIntervals);
         assertFalse(foundMaintenanceIntervals.isEmpty());
@@ -893,10 +886,10 @@ public class MaintenanceIntervalControllerTest {
         assertEquals(secondMaintenanceInterval.endAt(), maintenanceInterval1.getEndAt());
 
         verify(maintenanceIntervalService, times(1))
-                .findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end));
+                .findAllMaintenanceIntervalsInTimePeriod(existingClusterId, start, end);
 
         verify(maintenanceIntervalMapper, times(2))
-                .maintenanceIntervalToDto(Mockito.any(MaintenanceInterval.class));
+                .maintenanceIntervalToDto(any(MaintenanceInterval.class));
     }
 
     @WithMockUser
@@ -905,8 +898,7 @@ public class MaintenanceIntervalControllerTest {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(24).toLocalDateTime();
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(48).toLocalDateTime();
 
-        when(clusterService.findClusterById(Mockito.eq(nonExistentClusterId)))
-                .thenThrow(ClusterNotFoundException.class);
+        when(clusterService.findClusterById(nonExistentClusterId)).thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(get("/maintenance-intervals/time-period")
                         .param("clusterId", nonExistentClusterId.toString())
@@ -915,8 +907,7 @@ public class MaintenanceIntervalControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(clusterService, times(1))
-                .findClusterById(Mockito.eq(nonExistentClusterId));
+        verify(clusterService, times(1)).findClusterById(nonExistentClusterId);
     }
 
     @WithMockUser
@@ -925,7 +916,7 @@ public class MaintenanceIntervalControllerTest {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(24).toLocalDateTime();
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(48).toLocalDateTime();
 
-        when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end)))
+        when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(existingClusterId, start, end))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/maintenance-intervals/time-period")
@@ -936,7 +927,7 @@ public class MaintenanceIntervalControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(maintenanceIntervalService, times(1))
-                .findAllMaintenanceIntervalsInTimePeriod(Mockito.eq(existingClusterId), Mockito.eq(start), Mockito.eq(end));
+                .findAllMaintenanceIntervalsInTimePeriod(existingClusterId, start, end);
     }
 
     /* GetMaintenanceInterval method tests */
@@ -954,10 +945,10 @@ public class MaintenanceIntervalControllerTest {
                 maintenanceInterval1.getEndAt()
         );
 
-        when(maintenanceIntervalService.findMaintenanceInterval(Mockito.eq(maintenanceInterval1.getId())))
+        when(maintenanceIntervalService.findMaintenanceInterval(maintenanceInterval1.getId()))
                 .thenReturn(Optional.of(maintenanceInterval1));
 
-        when(maintenanceIntervalMapper.maintenanceIntervalToDetailsDto(Mockito.eq(maintenanceInterval1)))
+        when(maintenanceIntervalMapper.maintenanceIntervalToDetailsDto(maintenanceInterval1))
                 .thenReturn(maintenanceInterval);
 
         MvcResult result = mockMvc.perform(get("/maintenance-intervals/{intervalId}", maintenanceInterval1.getId()))
@@ -988,17 +979,17 @@ public class MaintenanceIntervalControllerTest {
         assertTrue(foundMaintenanceInterval.endAt().isAfter(foundMaintenanceInterval.beginAt()));
 
         verify(maintenanceIntervalService, times(1))
-                .findMaintenanceInterval(Mockito.eq(maintenanceInterval1.getId()));
+                .findMaintenanceInterval(maintenanceInterval1.getId());
 
         verify(maintenanceIntervalMapper, times(1))
-                .maintenanceIntervalToDetailsDto(Mockito.eq(maintenanceInterval1));
+                .maintenanceIntervalToDetailsDto(maintenanceInterval1);
     }
 
     @WithMockUser
     @Test
     public void Given_NonExistentMaintenanceIntervalIsPassed_When_GetMaintenanceInterval_Then_Returns404NotFound() throws Exception {
         UUID randomUUID = UUID.randomUUID();
-        when(maintenanceIntervalService.findMaintenanceInterval(Mockito.eq(randomUUID)))
+        when(maintenanceIntervalService.findMaintenanceInterval(randomUUID))
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(get("/maintenance-intervals/{intervalId}", randomUUID))
@@ -1006,7 +997,7 @@ public class MaintenanceIntervalControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(maintenanceIntervalService, times(1))
-                .findMaintenanceInterval(Mockito.eq(randomUUID));
+                .findMaintenanceInterval(randomUUID);
     }
 
     /* FinishMaintenanceInterval method tests */
@@ -1015,7 +1006,7 @@ public class MaintenanceIntervalControllerTest {
     @Test
     public void Given_ExistingMaintenanceIntervalIsPassed_When_FinishMaintenanceInterval_Then_FinishesGivenMaintenanceIntervalSuccessfully() throws Exception {
         doNothing().when(maintenanceIntervalService)
-                .finishMaintenanceInterval(Mockito.eq(maintenanceInterval1.getId()));
+                .finishMaintenanceInterval(maintenanceInterval1.getId());
 
         mockMvc.perform(post("/maintenance-intervals/{intervalId}", maintenanceInterval1.getId())
                         .with(csrf()))
@@ -1023,7 +1014,7 @@ public class MaintenanceIntervalControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(maintenanceIntervalService, times(1))
-                .finishMaintenanceInterval(Mockito.eq(maintenanceInterval1.getId()));
+                .finishMaintenanceInterval(maintenanceInterval1.getId());
     }
 
     @WithMockUser
@@ -1031,7 +1022,7 @@ public class MaintenanceIntervalControllerTest {
     public void Given_NonExistentMaintenanceIntervalIsPassed_When_FinishMaintenanceInterval_Then_FinishesGivenMaintenanceIntervalSuccessfully() throws Exception {
         UUID randomUUID = UUID.randomUUID();
         doThrow(MaintenanceIntervalNotFound.class).when(maintenanceIntervalService)
-                .finishMaintenanceInterval(Mockito.eq(randomUUID));
+                .finishMaintenanceInterval(randomUUID);
 
         mockMvc.perform(post("/maintenance-intervals/{intervalId}", randomUUID)
                         .with(csrf()))
@@ -1039,6 +1030,6 @@ public class MaintenanceIntervalControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(maintenanceIntervalService, times(1))
-                .finishMaintenanceInterval(Mockito.eq(randomUUID));
+                .finishMaintenanceInterval(randomUUID);
     }
 }

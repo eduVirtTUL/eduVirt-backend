@@ -70,7 +70,7 @@ public class OVirtClusterServiceTest {
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.clustersService()).thenReturn(clustersService);
-        when(clustersService.clusterService(Mockito.eq(existingClusterId.toString()))).thenReturn(clusterService);
+        when(clustersService.clusterService(existingClusterId.toString())).thenReturn(clusterService);
         when(clusterService.get()).thenReturn(getRequest);
         when(getRequest.send()).thenReturn(getResponse);
         when(getResponse.cluster()).thenReturn(cluster);
@@ -83,7 +83,7 @@ public class OVirtClusterServiceTest {
         verify(connectionFactory, times(1)).getConnection();
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).clustersService();
-        verify(clustersService, times(1)).clusterService(Mockito.eq(existingClusterId.toString()));
+        verify(clustersService, times(1)).clusterService(existingClusterId.toString());
         verify(clusterService, times(1)).get();
         verify(getRequest, times(1)).send();
         verify(getResponse, times(1)).cluster();
@@ -98,7 +98,7 @@ public class OVirtClusterServiceTest {
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.clustersService()).thenReturn(clustersService);
-        when(clustersService.clusterService(Mockito.eq(nonExistentClusterId.toString()))).thenReturn(clusterService);
+        when(clustersService.clusterService(nonExistentClusterId.toString())).thenReturn(clusterService);
         when(clusterService.get()).thenReturn(getRequest);
         when(getRequest.send()).thenThrow(new org.ovirt.engine.sdk4.Error("Cluster not found"));
 
@@ -108,7 +108,7 @@ public class OVirtClusterServiceTest {
         verify(connectionFactory, times(1)).getConnection();
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).clustersService();
-        verify(clustersService, times(1)).clusterService(Mockito.eq(nonExistentClusterId.toString()));
+        verify(clustersService, times(1)).clusterService(nonExistentClusterId.toString());
         verify(clusterService, times(1)).get();
         verify(getRequest, times(1)).send();
     }
@@ -135,8 +135,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.clustersService()).thenReturn(clustersService);
         when(clustersService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.clusters()).thenReturn(List.of(cluster1, cluster2));
 
@@ -158,8 +158,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).clustersService();
         verify(clustersService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).clusters();
     }
@@ -179,8 +179,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.clustersService()).thenReturn(clustersService);
         when(clustersService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.clusters()).thenReturn(List.of());
 
@@ -193,8 +193,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).clustersService();
         verify(clustersService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).clusters();
     }
@@ -213,8 +213,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.clustersService()).thenReturn(clustersService);
         when(clustersService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenThrow(Error.class);
 
         assertThrows(ClusterNotFoundException.class,
@@ -224,8 +224,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).clustersService();
         verify(clustersService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
     }
 
@@ -256,8 +256,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
         when(hostsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.hosts()).thenReturn(List.of(host1, host2));
 
@@ -279,8 +279,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
         verify(hostsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).hosts();
     }
@@ -304,8 +304,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
         when(hostsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.hosts()).thenReturn(List.of());
 
@@ -318,8 +318,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
         verify(hostsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).hosts();
     }
@@ -342,8 +342,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
         when(hostsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenThrow(Error.class);
 
         assertThrows(HostNotFoundException.class,
@@ -353,8 +353,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
         verify(hostsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
     }
 
@@ -379,7 +379,7 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
         when(hostsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.hosts()).thenReturn(List.of(host1, host2));
 
@@ -401,7 +401,7 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
         verify(hostsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).search(searchQuery);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).hosts();
     }
@@ -422,7 +422,7 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
         when(hostsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.hosts()).thenReturn(List.of());
 
@@ -435,7 +435,7 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
         verify(hostsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).search(searchQuery);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).hosts();
     }
@@ -455,7 +455,7 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
         when(hostsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
         when(listRequest.send()).thenThrow(Error.class);
 
         assertThrows(HostNotFoundException.class,
@@ -465,7 +465,7 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
         verify(hostsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).search(searchQuery);
         verify(listRequest, times(1)).send();
     }
 
@@ -493,8 +493,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.vmsService()).thenReturn(vmsService);
         when(vmsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.vms()).thenReturn(List.of(vm1, vm2));
 
@@ -516,8 +516,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).vmsService();
         verify(vmsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).vms();
     }
@@ -541,8 +541,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.vmsService()).thenReturn(vmsService);
         when(vmsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.vms()).thenReturn(List.of());
 
@@ -555,8 +555,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).vmsService();
         verify(vmsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).vms();
     }
@@ -579,8 +579,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.vmsService()).thenReturn(vmsService);
         when(vmsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenThrow(Error.class);
 
         assertThrows(VmNotFoundException.class,
@@ -590,8 +590,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).vmsService();
         verify(vmsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
     }
 
@@ -628,7 +628,7 @@ public class OVirtClusterServiceTest {
 
         verify(cluster, times(1)).networks();
         verify(connectionFactory, times(1)).getConnection();
-        verify(connection, times(1)).followLink(Mockito.eq(allNetworks));
+        verify(connection, times(1)).followLink(allNetworks);
     }
 
     @Test
@@ -651,7 +651,7 @@ public class OVirtClusterServiceTest {
 
         verify(cluster, times(1)).networks();
         verify(connectionFactory, times(1)).getConnection();
-        verify(connection, times(1)).followLink(Mockito.eq(allNetworks));
+        verify(connection, times(1)).followLink(allNetworks);
     }
 
     @Test
@@ -674,7 +674,7 @@ public class OVirtClusterServiceTest {
 
         verify(cluster, times(1)).networks();
         verify(connectionFactory, times(1)).getConnection();
-        verify(connection, times(1)).followLink(Mockito.eq(allNetworks));
+        verify(connection, times(1)).followLink(allNetworks);
     }
 
     /* FindEventsInCluster method tests */
@@ -704,8 +704,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.eventsService()).thenReturn(eventsService);
         when(eventsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.events()).thenReturn(List.of(event1, event2));
 
@@ -727,8 +727,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).eventsService();
         verify(eventsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).events();
     }
@@ -753,8 +753,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.eventsService()).thenReturn(eventsService);
         when(eventsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.events()).thenReturn(List.of());
 
@@ -767,8 +767,8 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).eventsService();
         verify(eventsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).events();
     }
@@ -792,8 +792,8 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.eventsService()).thenReturn(eventsService);
         when(eventsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
-        when(listRequest.max(Mockito.eq(pageSize))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
+        when(listRequest.max(pageSize)).thenReturn(listRequest);
         when(listRequest.send()).thenThrow(Error.class);
 
         assertThrows(EventNotFoundException.class,
@@ -803,11 +803,10 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).eventsService();
         verify(eventsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
-        verify(listRequest, times(1)).max(Mockito.eq(pageSize));
+        verify(listRequest, times(1)).search(searchQuery);
+        verify(listRequest, times(1)).max(pageSize);
         verify(listRequest, times(1)).send();
     }
-
 
     /* FindHostCountInCluster method tests */
 
@@ -831,7 +830,7 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
         when(hostsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.hosts()).thenReturn(List.of(host1, host2, host3));
 
@@ -844,7 +843,7 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
         verify(hostsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).search(searchQuery);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).hosts();
     }
@@ -865,7 +864,7 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
         when(hostsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.hosts()).thenReturn(List.of());
 
@@ -877,7 +876,7 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
         verify(hostsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).search(searchQuery);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).hosts();
     }
@@ -897,7 +896,7 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
         when(hostsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
         when(listRequest.send()).thenThrow(Error.class);
 
         assertThrows(HostNotFoundException.class,
@@ -907,7 +906,7 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
         verify(hostsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).search(searchQuery);
         verify(listRequest, times(1)).send();
     }
 
@@ -933,7 +932,7 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.vmsService()).thenReturn(vmsService);
         when(vmsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.vms()).thenReturn(List.of(vm1, vm2, vm3));
 
@@ -946,7 +945,7 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).vmsService();
         verify(vmsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).search(searchQuery);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).vms();
     }
@@ -967,7 +966,7 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.vmsService()).thenReturn(vmsService);
         when(vmsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
         when(listRequest.send()).thenReturn(listResponse);
         when(listResponse.vms()).thenReturn(List.of());
 
@@ -979,7 +978,7 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).vmsService();
         verify(vmsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).search(searchQuery);
         verify(listRequest, times(1)).send();
         verify(listResponse, times(1)).vms();
     }
@@ -999,7 +998,7 @@ public class OVirtClusterServiceTest {
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.vmsService()).thenReturn(vmsService);
         when(vmsService.list()).thenReturn(listRequest);
-        when(listRequest.search(Mockito.eq(searchQuery))).thenReturn(listRequest);
+        when(listRequest.search(searchQuery)).thenReturn(listRequest);
         when(listRequest.send()).thenThrow(Error.class);
 
         assertThrows(VmNotFoundException.class,
@@ -1009,7 +1008,7 @@ public class OVirtClusterServiceTest {
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).vmsService();
         verify(vmsService, times(1)).list();
-        verify(listRequest, times(1)).search(Mockito.eq(searchQuery));
+        verify(listRequest, times(1)).search(searchQuery);
         verify(listRequest, times(1)).send();
     }
 }
