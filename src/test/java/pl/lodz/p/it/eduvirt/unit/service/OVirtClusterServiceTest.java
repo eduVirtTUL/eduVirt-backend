@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.Error;
@@ -24,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class OVirtClusterServiceTest {
+class OVirtClusterServiceTest {
 
     @Mock
     private Connection connection;
@@ -60,7 +59,7 @@ public class OVirtClusterServiceTest {
     /* FindClusterById method tests */
 
     @Test
-    public void Given_ExistingClusterIdentifierIsPassed_When_FindClusterById_Then_ReturnsFoundClusterSuccessfully() {
+    void Given_ExistingClusterIdentifierIsPassed_When_FindClusterById_Then_ReturnsFoundClusterSuccessfully() {
         UUID existingClusterId = UUID.randomUUID();
 
         ClusterService.GetRequest getRequest = mock(ClusterService.GetRequest.class);
@@ -90,7 +89,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_FindClusterById_Then_ThrowsException() {
+    void Given_NonExistentClusterIdentifierIsPassed_When_FindClusterById_Then_ThrowsException() {
         UUID nonExistentClusterId = UUID.randomUUID();
 
         ClusterService.GetRequest getRequest = mock(ClusterService.GetRequest.class);
@@ -116,7 +115,7 @@ public class OVirtClusterServiceTest {
     /* FindClusters method tests */
 
     @Test
-    public void Given_SomeClustersExistInTheOVirtSystem_When_FindClusters_Then_ReturnsFoundClustersSuccessfully() {
+    void Given_SomeClustersExistInTheOVirtSystem_When_FindClusters_Then_ReturnsFoundClustersSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
         String sortField = "name";
@@ -165,7 +164,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_NoClustersExistInTheOVirtSystem_When_FindClusters_Then_ReturnsEmptyClusterList() {
+    void Given_NoClustersExistInTheOVirtSystem_When_FindClusters_Then_ReturnsEmptyClusterList() {
         int pageNumber = 0;
         int pageSize = 10;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -200,7 +199,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_SomeExceptionIsThrownDuringOVirtClass_When_FindClusters_Then_ThrowsException() {
+    void Given_SomeExceptionIsThrownDuringOVirtClass_When_FindClusters_Then_ThrowsException() {
         int pageNumber = 0;
         int pageSize = 10;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -232,7 +231,7 @@ public class OVirtClusterServiceTest {
     /* FindHostsInCluster method tests */
 
     @Test
-    public void Given_SomeHostsExistInTheGivenOVirtCluster_When_FindHostsInCluster_Then_ReturnsAllFoundHostsSuccessfully() {
+    void Given_SomeHostsExistInTheGivenOVirtCluster_When_FindHostsInCluster_Then_ReturnsAllFoundHostsSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
         String sortField = "name";
@@ -286,7 +285,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_NoHostsExistInTheGivenOVirtCluster_When_FindHostsInCluster_Then_ReturnsEmptyHostList() {
+    void Given_NoHostsExistInTheGivenOVirtCluster_When_FindHostsInCluster_Then_ReturnsEmptyHostList() {
         int pageNumber = 0;
         int pageSize = 10;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -325,7 +324,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_SomeExceptionIsThrownDuringOVirtCall_FindHostsInCluster_Then_ThrowsException() {
+    void Given_SomeExceptionIsThrownDuringOVirtCall_FindHostsInCluster_Then_ThrowsException() {
         int pageNumber = 0;
         int pageSize = 10;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -361,7 +360,7 @@ public class OVirtClusterServiceTest {
     /* FindAllHostsInCluster method tests */
 
     @Test
-    public void Given_SomeHostsExistInGivenOVirtCluster_When_FindAllHostsInCluster_Then_ReturnsAllHostsFoundForGivenCluster() {
+    void Given_SomeHostsExistInGivenOVirtCluster_When_FindAllHostsInCluster_Then_ReturnsAllHostsFoundForGivenCluster() {
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
@@ -407,7 +406,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_NoHostsExistInGivenOVirtCluster_When_FindAllHostsInCluster_Then_ReturnsEmptyHostList() {
+    void Given_NoHostsExistInGivenOVirtCluster_When_FindAllHostsInCluster_Then_ReturnsEmptyHostList() {
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
@@ -441,7 +440,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindAllHostsInCluster_Then_ThrowsException() {
+    void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindAllHostsInCluster_Then_ThrowsException() {
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
@@ -472,7 +471,7 @@ public class OVirtClusterServiceTest {
     /* FindVmsInCluster method tests */
 
     @Test
-    public void Given_SomeVmsExistInTheGivenOVirtCluster_When_FindVmsInCluster_Then_ReturnsAllFoundVmsSuccessfully() {
+    void Given_SomeVmsExistInTheGivenOVirtCluster_When_FindVmsInCluster_Then_ReturnsAllFoundVmsSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
 
@@ -523,7 +522,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_NoVmsExistInTheGivenOVirtCluster_When_FindVmsInCluster_Then_ReturnsEmptyVmList() {
+    void Given_NoVmsExistInTheGivenOVirtCluster_When_FindVmsInCluster_Then_ReturnsEmptyVmList() {
         int pageNumber = 0;
         int pageSize = 10;
 
@@ -562,7 +561,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindVmsInCluster_Then_ThrowsException() {
+    void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindVmsInCluster_Then_ThrowsException() {
         int pageNumber = 0;
         int pageSize = 10;
 
@@ -598,7 +597,7 @@ public class OVirtClusterServiceTest {
     /* FindNetworksInCluster method tests */
 
     @Test
-    public void Given_SomeNetworksExistInGivenOVirtCluster_When_FindNetworksInCluster_Then_ReturnsAllFoundNetworksSuccessfully() {
+    void Given_SomeNetworksExistInGivenOVirtCluster_When_FindNetworksInCluster_Then_ReturnsAllFoundNetworksSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
 
@@ -632,7 +631,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_NoNetworksExistInGivenOVirtCluster_When_FindNetworksInCluster_Then_ReturnsEmptyNetworksList() {
+    void Given_NoNetworksExistInGivenOVirtCluster_When_FindNetworksInCluster_Then_ReturnsEmptyNetworksList() {
         int pageNumber = 0;
         int pageSize = 10;
 
@@ -655,7 +654,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindNetworksInCluster_Then_ThrowsException() {
+    void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindNetworksInCluster_Then_ThrowsException() {
         int pageNumber = 0;
         int pageSize = 10;
 
@@ -680,7 +679,7 @@ public class OVirtClusterServiceTest {
     /* FindEventsInCluster method tests */
 
     @Test
-    public void Given_SomeEventsExistForGivenOVirtCluster_When_FindEventsInCluster_Then_ReturnsAllFoundEventsSuccessfully() {
+    void Given_SomeEventsExistForGivenOVirtCluster_When_FindEventsInCluster_Then_ReturnsAllFoundEventsSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
         String sortField = "severity";
@@ -734,7 +733,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_NoEventsExistForGivenOVirtCluster_When_FindEventsInCluster_Then_ReturnsEmptyEventsList() {
+    void Given_NoEventsExistForGivenOVirtCluster_When_FindEventsInCluster_Then_ReturnsEmptyEventsList() {
         int pageNumber = 0;
         int pageSize = 10;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -774,7 +773,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindEventsInCluster_Then_ThrowsException() {
+    void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindEventsInCluster_Then_ThrowsException() {
         int pageNumber = 0;
         int pageSize = 10;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -811,7 +810,7 @@ public class OVirtClusterServiceTest {
     /* FindHostCountInCluster method tests */
 
     @Test
-    public void Given_SomeHostsExistInTheGivenOVirtCluster_When_FindHostCountInCluster_Then_ReturnsHostCountInTheGivenClusterSuccessfully() {
+    void Given_SomeHostsExistInTheGivenOVirtCluster_When_FindHostCountInCluster_Then_ReturnsHostCountInTheGivenClusterSuccessfully() {
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
@@ -849,7 +848,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_NoHostsExistInTheGivenOVirtCluster_When_FindHostCountInCluster_Then_ReturnsHostCountInTheGivenClusterSuccessfully() {
+    void Given_NoHostsExistInTheGivenOVirtCluster_When_FindHostCountInCluster_Then_ReturnsHostCountInTheGivenClusterSuccessfully() {
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
@@ -882,7 +881,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindHostCountInCluster_Then_ThrowsException() {
+    void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindHostCountInCluster_Then_ThrowsException() {
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
@@ -913,7 +912,7 @@ public class OVirtClusterServiceTest {
     /* FindVmCountInCluster method tests */
 
     @Test
-    public void Given_SomeVmsExistInTheGivenOVirtCluster_When_FindVmCountInCluster_Then_ReturnsVmCountInTheGivenClusterSuccessfully() {
+    void Given_SomeVmsExistInTheGivenOVirtCluster_When_FindVmCountInCluster_Then_ReturnsVmCountInTheGivenClusterSuccessfully() {
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
@@ -951,7 +950,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_NoVmsExistInTheGivenOVirtCluster_When_FindVmCountInCluster_Then_ReturnsVmCountInTheGivenClusterSuccessfully() {
+    void Given_NoVmsExistInTheGivenOVirtCluster_When_FindVmCountInCluster_Then_ReturnsVmCountInTheGivenClusterSuccessfully() {
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);
@@ -984,7 +983,7 @@ public class OVirtClusterServiceTest {
     }
 
     @Test
-    public void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindVmCountInCluster_Then_ThrowsException() {
+    void Given_SomeExceptionIsThrownDuringOVirtCall_When_FindVmCountInCluster_Then_ThrowsException() {
         String exampleClusterName = "example_cluster_name";
 
         Cluster cluster = mock(Cluster.class);

@@ -56,7 +56,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ResourceGroupMapperImpl.class
 })
 @WebMvcTest(controllers = {ReservationController.class}, useDefaultFilters = false)
-public class ReservationControllerTest {
+class ReservationControllerTest {
 
     /* MockMVC */
 
@@ -121,7 +121,6 @@ public class ReservationControllerTest {
     private User user4;
 
     private UUID nonExistentUserId1 = UUID.fromString("608a99f5-7b74-427a-884e-4ccc21b14243");
-    private UUID nonExistentUserId2 = UUID.fromString("57907da0-8187-4448-99a3-6db50aea33fd");
 
     private UUID adminId;
     private UUID teacherId1;
@@ -155,9 +154,6 @@ public class ReservationControllerTest {
 
     /* Reservations */
 
-    private CreateReservationDto createDto1;
-    private CreateReservationDto createDto2;
-
     private Reservation reservation1;
     private Reservation reservation2;
     private Reservation reservation3;
@@ -166,7 +162,6 @@ public class ReservationControllerTest {
     /* Maintenance intervals */
 
     private final UUID existingClusterId = UUID.randomUUID();
-    private final UUID nonExistentClusterId = UUID.randomUUID();
 
     private MaintenanceInterval maintenanceInterval1;
     private MaintenanceInterval maintenanceInterval2;
@@ -174,7 +169,7 @@ public class ReservationControllerTest {
     private MaintenanceInterval maintenanceInterval4;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         mapper.findAndRegisterModules();
 
 
@@ -409,20 +404,6 @@ public class ReservationControllerTest {
         reservation3 = new Reservation(resourceGroup3, team1, currentTime, currentTime.plusHours(6), true, 10);
         reservation4 = new Reservation(resourceGroup4, team2, currentTime, currentTime.plusHours(6), true, 10);
 
-        createDto1 = new CreateReservationDto(
-                reservation1.getStartTime(),
-                reservation1.getEndTime(),
-                reservation1.getAutomaticStartup(),
-                reservation1.getNotificationTime()
-        );
-
-        createDto2 = new CreateReservationDto(
-                reservation2.getStartTime(),
-                reservation2.getEndTime(),
-                reservation2.getAutomaticStartup(),
-                reservation2.getNotificationTime()
-        );
-
         id.setAccessible(true);
         id.set(reservation1, UUID.randomUUID());
         id.set(reservation2, UUID.randomUUID());
@@ -462,7 +443,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_AllDataInCreateReservationDtoIsValidAndExistingCourseAndStatefulPodIdentifiersArePassed_When_CreateNewReservationForPod_Then_() throws Exception {
+    void Given_AllDataInCreateReservationDtoIsValidAndExistingCourseAndStatefulPodIdentifiersArePassed_When_CreateNewReservationForPod_Then_() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -492,7 +473,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_AllDataInCreateReservationDtoIsValidAndExistingCourseAndStatelessPodIdentifiersArePassed_When_CreateNewReservationForPod_Then_() throws Exception {
+    void Given_AllDataInCreateReservationDtoIsValidAndExistingCourseAndStatelessPodIdentifiersArePassed_When_CreateNewReservationForPod_Then_() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -522,7 +503,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentCourseIdentifierIsPassed_When_CreateNewReservationForPod_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentCourseIdentifierIsPassed_When_CreateNewReservationForPod_Then_Returns404NotFound() throws Exception {
         UUID nonExistentCourseId = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -550,7 +531,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "608a99f5-7b74-427a-884e-4ccc21b14243", authorities = "student")
-    public void Given_TeamCouldNotBeFoundForTheCurrentlyLoggedInUser_When_CreateNewReservationForPod_Then_Returns404NotFound() throws Exception {
+    void Given_TeamCouldNotBeFoundForTheCurrentlyLoggedInUser_When_CreateNewReservationForPod_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -579,7 +560,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentPodForGivenTeamIsPassed_When_CreateNewReservationForPod_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentPodForGivenTeamIsPassed_When_CreateNewReservationForPod_Then_Returns404NotFound() throws Exception {
         UUID nonExistentPodId = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -610,7 +591,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingReservationIdentifierIsPassedAsStudentInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
+    void Given_ExistingReservationIdentifierIsPassedAsStudentInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(userId1)).thenReturn(Optional.of(user1));
 
@@ -646,7 +627,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
-    public void Given_ExistingReservationIdentifierIsPassedAsAdmin_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
+    void Given_ExistingReservationIdentifierIsPassedAsAdmin_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
 
@@ -682,7 +663,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
-    public void Given_ExistingReservationIdentifierIsPassedAsTeacherInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
+    void Given_ExistingReservationIdentifierIsPassedAsTeacherInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
 
@@ -718,7 +699,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
-    public void Given_ExistingReservationIdentifierIsPassedAsTeacherNotInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
+    void Given_ExistingReservationIdentifierIsPassedAsTeacherNotInCourse_When_GetReservationDetails_Then_ReturnsFoundReservationsDetails() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
 
         when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
@@ -733,7 +714,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
-    public void Given_ExistingUserIsAuthenticatedButNotInCourse_When_GetReservationDetails_Then_Returns404NotFound() throws Exception {
+    void Given_ExistingUserIsAuthenticatedButNotInCourse_When_GetReservationDetails_Then_Returns404NotFound() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(studentId)).thenReturn(Optional.of(student));
 
@@ -747,7 +728,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser
-    public void Given_NonExistentReservationIdentifierIsPassed_When_GetReservationDetails_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentReservationIdentifierIsPassed_When_GetReservationDetails_Then_Returns404NotFound() throws Exception {
         UUID nonExistentReservationId = UUID.randomUUID();
         when(reservationService.findReservationById(reservation1.getId()))
                 .thenThrow(new ReservationNotFoundException(nonExistentReservationId));
@@ -761,7 +742,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "608a99f5-7b74-427a-884e-4ccc21b14243", authorities = "student")
-    public void Given_NonExistentUserIsAuthenticated_When_GetReservationDetails_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentUserIsAuthenticated_When_GetReservationDetails_Then_Returns404NotFound() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(nonExistentUserId1)).thenReturn(Optional.empty());
 
@@ -777,7 +758,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseAndStatefulPodIdentifiersArePassed_When_GetPreviousReservationCount_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
+    void Given_ExistingCourseAndStatefulPodIdentifiersArePassed_When_GetPreviousReservationCount_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
         when(courseService.getCourse(course.getId())).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(course, userId1)).thenReturn(team1);
         when(reservationService.findReservationCountForStatefulPod(podStateful1, team1)).thenReturn(2);
@@ -799,7 +780,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseAndStatelessPodIdentifiersArePassed_When_GetPreviousReservationCount_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
+    void Given_ExistingCourseAndStatelessPodIdentifiersArePassed_When_GetPreviousReservationCount_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
         when(courseService.getCourse(course.getId())).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(course, userId1)).thenReturn(team1);
         when(reservationService.findReservationCountForStatelessPod(podStateless1, team1)).thenReturn(2);
@@ -822,7 +803,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonPodIdentifiersIsPassed_When_GetPreviousReservationCount_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_NonPodIdentifiersIsPassed_When_GetPreviousReservationCount_Then_ReturnsEmptyListOfReservations() throws Exception {
         UUID nonExistentPodIdentifier = UUID.randomUUID();
 
         when(courseService.getCourse(course.getId())).thenReturn(course);
@@ -839,7 +820,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentCourseIdentifierIsPassed_When_GetPreviousReservationCount_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentCourseIdentifierIsPassed_When_GetPreviousReservationCount_Then_Returns404NotFound() throws Exception {
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
 
         when(courseService.getCourse(nonExistentCourseIdentifier)).thenThrow(CourseNotFoundException.class);
@@ -854,7 +835,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
-    public void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetPreviousReservationCount_Then_Returns404NotFound() throws Exception {
+    void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetPreviousReservationCount_Then_Returns404NotFound() throws Exception {
         when(courseService.getCourse(course.getId())).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(course, studentId)).thenThrow(TeamNotFoundException.class);
 
@@ -871,7 +852,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseAndStatefulPodIdentifiersArePassed_When_GetPreviousReservations_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
+    void Given_ExistingCourseAndStatefulPodIdentifiersArePassed_When_GetPreviousReservations_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -897,10 +878,10 @@ public class ReservationControllerTest {
 
         PageInfoDto pageInfo = reservationPage.page();
         assertNotNull(pageInfo);
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<ReservationDto> foundReservation = reservationPage.items();
         assertNotNull(foundReservation);
@@ -940,7 +921,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseAndStatelessPodIdentifiersArePassed_When_GetPreviousReservations_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
+    void Given_ExistingCourseAndStatelessPodIdentifiersArePassed_When_GetPreviousReservations_Then_ReturnsListOfFoundReservationsSuccessfully() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -966,10 +947,10 @@ public class ReservationControllerTest {
 
         PageInfoDto pageInfo = reservationPage.page();
         assertNotNull(pageInfo);
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<ReservationDto> foundReservation = reservationPage.items();
         assertNotNull(foundReservation);
@@ -1009,7 +990,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonPodIdentifiersIsPassed_When_GetPreviousReservations_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_NonPodIdentifiersIsPassed_When_GetPreviousReservations_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
         UUID nonExistentPodIdentifier = UUID.randomUUID();
@@ -1030,7 +1011,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentCourseIdentifierIsPassed_When_GetPreviousReservations_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentCourseIdentifierIsPassed_When_GetPreviousReservations_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
@@ -1049,7 +1030,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
-    public void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetPreviousReservations_Then_Returns404NotFound() throws Exception {
+    void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetPreviousReservations_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -1069,7 +1050,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_EmptyListOfReservations_When_GetPreviousReservations_Then_Returns204NoContent() throws Exception {
+    void Given_EmptyListOfReservations_When_GetPreviousReservations_Then_Returns204NoContent() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -1095,7 +1076,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndSomeReservationsExistAsUserInCourse_When_GetRgReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
+    void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndSomeReservationsExistAsUserInCourse_When_GetRgReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1156,7 +1137,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
-    public void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndNoReservationsExist_When_GetRgReservationsInGivenCourse_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndNoReservationsExist_When_GetRgReservationsInGivenCourse_Then_ReturnsEmptyListOfReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1182,7 +1163,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentCourseIdentifierIsPassed_When_GetRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentCourseIdentifierIsPassed_When_GetRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -1203,7 +1184,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentResourceGroupIdentifierIsPassed_When_GetRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentResourceGroupIdentifierIsPassed_When_GetRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         UUID nonExistentResourceGroupIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -1226,7 +1207,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
-    public void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndSomeReservationsExistAsAdministrator_When_GetRgReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
+    void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndSomeReservationsExistAsAdministrator_When_GetRgReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1285,7 +1266,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
-    public void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndSomeReservationsExistAsTeacherInCourse_When_GetRgReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
+    void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndSomeReservationsExistAsTeacherInCourse_When_GetRgReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1347,7 +1328,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
-    public void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndSomeReservationsExistAsTeacherNotInCourse_When_GetRgReservationsInGivenCourse_Then_ReturnsEmptyListReservations() throws Exception {
+    void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndSomeReservationsExistAsTeacherNotInCourse_When_GetRgReservationsInGivenCourse_Then_ReturnsEmptyListReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1375,7 +1356,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
-    public void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndSomeReservationsExistAsStudentNotInCourse_When_GetRgReservationsInGivenCourse_Then_ReturnsEmptyListReservations() throws Exception {
+    void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndSomeReservationsExistAsStudentNotInCourse_When_GetRgReservationsInGivenCourse_Then_ReturnsEmptyListReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1403,7 +1384,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndNoReservationsExistAsStudentInCourse_When_GetRgReservationsInGivenCourse_Then_ReturnsEmptyListReservations() throws Exception {
+    void Given_ExistingCourseAndResourceGroupIdentifiersArePassedAndNoReservationsExistAsStudentInCourse_When_GetRgReservationsInGivenCourse_Then_ReturnsEmptyListReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1431,7 +1412,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
-    public void Given_UserCouldNotFound_When_GetRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_UserCouldNotFound_When_GetRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1461,7 +1442,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_SomeReservationsExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
+    void Given_SomeReservationsExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1521,7 +1502,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NoReservationExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgReservationsInGivenCourse_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_NoReservationExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgReservationsInGivenCourse_Then_ReturnsEmptyListOfReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1546,7 +1527,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentCourseIdentifierIsProvider_When_GetOwnRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentCourseIdentifierIsProvider_When_GetOwnRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -1566,7 +1547,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_TeamNotFoundForTheCurrentlyAuthenticatedUser_When_GetOwnRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_TeamNotFoundForTheCurrentlyAuthenticatedUser_When_GetOwnRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1588,7 +1569,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentResourceGroupPoolIdentifierIsPassed_When_GetOwnRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentResourceGroupPoolIdentifierIsPassed_When_GetOwnRgReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         UUID nonExistentResourceGroupIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -1615,7 +1596,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseAndResourceGroupPoolIdentifiersArePassedAndSomeReservationsExist_When_GetRgPoolReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
+    void Given_ExistingCourseAndResourceGroupPoolIdentifiersArePassedAndSomeReservationsExist_When_GetRgPoolReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1677,7 +1658,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseAndResourceGroupPoolIdentifiersArePassedAndNoReservationsExist_When_GetRgPoolReservationsInGivenCourse_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_ExistingCourseAndResourceGroupPoolIdentifiersArePassedAndNoReservationsExist_When_GetRgPoolReservationsInGivenCourse_Then_ReturnsEmptyListOfReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1704,7 +1685,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentCourseIdentifierIsPassedAndNoReservationsExist_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentCourseIdentifierIsPassedAndNoReservationsExist_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -1727,7 +1708,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentResourceGroupPoolIdentifierIsPassedAndNoReservationsExist_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentResourceGroupPoolIdentifierIsPassedAndNoReservationsExist_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         UUID nonExistentResourceGroupIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -1750,7 +1731,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
-    public void Given_UserCouldNotBeFound_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_UserCouldNotBeFound_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1777,7 +1758,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
-    public void Given_NonExistentResourceGroupPoolIdentifierIsPassedAndSomeReservationsExistAsAdministrator_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentResourceGroupPoolIdentifierIsPassedAndSomeReservationsExistAsAdministrator_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1839,7 +1820,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
-    public void Given_NonExistentResourceGroupPoolIdentifierIsPassedAndSomeReservationsExistAsTeacherInCourse_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentResourceGroupPoolIdentifierIsPassedAndSomeReservationsExistAsTeacherInCourse_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1901,7 +1882,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
-    public void Given_NonExistentResourceGroupPoolIdentifierIsPassedAndSomeReservationsExistAsTeacherNotInCourse_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentResourceGroupPoolIdentifierIsPassedAndSomeReservationsExistAsTeacherNotInCourse_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1929,7 +1910,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "student")
-    public void Given_NonExistentResourceGroupPoolIdentifierIsPassedAndNoReservationsExistAsTeacherNotInCourse_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentResourceGroupPoolIdentifierIsPassedAndNoReservationsExistAsTeacherNotInCourse_When_GetRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -1959,7 +1940,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_SomeReservationsExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgPoolReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
+    void Given_SomeReservationsExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgPoolReservationsInGivenCourse_Then_ReturnsListOfFoundReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -2020,7 +2001,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NoReservationExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgPoolReservationsInGivenCourse_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_NoReservationExistForTheTeamOfTheCurrentlyAuthenticatedUser_When_GetOwnRgPoolReservationsInGivenCourse_Then_ReturnsEmptyListOfReservations() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -2046,7 +2027,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentCourseIdentifierIsProvider_When_GetOwnRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentCourseIdentifierIsProvider_When_GetOwnRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -2066,7 +2047,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_TeamNotFoundForTheCurrentlyAuthenticatedUser_When_GetOwnRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_TeamNotFoundForTheCurrentlyAuthenticatedUser_When_GetOwnRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(6);
@@ -2087,7 +2068,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentResourceGroupPoolIdentifierIsPassed_When_GetOwnRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentResourceGroupPoolIdentifierIsPassed_When_GetOwnRgPoolReservationsInGivenCourse_Then_Returns404NotFound() throws Exception {
         UUID nonExistentResourceGroupPoolIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -2114,7 +2095,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndSomeActiveReservationsExist_When_GetActiveReservations_Then_ReturnsListOfActiveReservations() throws Exception {
+    void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndSomeActiveReservationsExist_When_GetActiveReservations_Then_ReturnsListOfActiveReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2139,10 +2120,10 @@ public class ReservationControllerTest {
 
         PageInfoDto pageInfo = reservationPage.page();
 
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<ReservationDto> foundReservations = reservationPage.items();
 
@@ -2184,7 +2165,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndNoActiveReservationsExist_When_GetActiveReservations_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndNoActiveReservationsExist_When_GetActiveReservations_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2209,7 +2190,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentCourseIdentifierIsPassed_When_GetActiveReservations_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentCourseIdentifierIsPassed_When_GetActiveReservations_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
@@ -2227,7 +2208,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetActiveReservations_Then_Returns404NotFound() throws Exception {
+    void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetActiveReservations_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -2248,7 +2229,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndSomeHistoricReservationsExist_When_GetHistoricReservations_Then_ReturnsListOfHistoricalReservations() throws Exception {
+    void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndSomeHistoricReservationsExist_When_GetHistoricReservations_Then_ReturnsListOfHistoricalReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2273,10 +2254,10 @@ public class ReservationControllerTest {
 
         PageInfoDto pageInfo = reservationPage.page();
 
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<ReservationDto> foundReservations = reservationPage.items();
 
@@ -2318,7 +2299,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndNoHistoricReservationsExist_When_GetHistoricReservations_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_ExistingCourseIdentifierIsPassedAndTeamCouldBeFoundForCurrentUserAndNoHistoricReservationsExist_When_GetHistoricReservations_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2343,7 +2324,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentCourseIdentifierIsPassed_When_GetHistoricReservations_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentCourseIdentifierIsPassed_When_GetHistoricReservations_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
@@ -2361,10 +2342,9 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetHistoricReservations_Then_Returns404NotFound() throws Exception {
+    void Given_TeamCouldNotBeFoundForCurrentlyAuthenticatedUser_When_GetHistoricReservations_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
-        Pageable pageable = PageRequest.of(page, size);
 
         when(courseService.getCourse(course.getId())).thenReturn(course);
         when(teamService.getTeamByCourseAndUser(course, userId1))
@@ -2384,7 +2364,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
-    public void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExist_When_GetActiveReservationsForTeam_Then_ReturnsListOfActiveReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExist_When_GetActiveReservationsForTeam_Then_ReturnsListOfActiveReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2408,10 +2388,10 @@ public class ReservationControllerTest {
 
         PageInfoDto pageInfo = reservationPage.page();
 
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<ReservationDto> foundReservations = reservationPage.items();
 
@@ -2452,7 +2432,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
-    public void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExist_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExist_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2475,7 +2455,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f758db9b-3227-4b40-b709-52ea13f814a4", authorities = "teacher")
-    public void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_GetActiveReservationsForTeam_Then_Returns404NotFound() throws Exception {
+    void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_GetActiveReservationsForTeam_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -2492,7 +2472,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
-    public void Given_NonExistentTeamIdentifierIsPassed_When_GetActiveReservationsForTeam_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentTeamIdentifierIsPassed_When_GetActiveReservationsForTeam_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
         UUID nonExistentTeamIdentifier = UUID.randomUUID();
@@ -2512,7 +2492,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
-    public void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExistAsAdministrator_When_GetActiveReservationsForTeam_Then_ReturnsListOfActiveReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExistAsAdministrator_When_GetActiveReservationsForTeam_Then_ReturnsListOfActiveReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2536,10 +2516,10 @@ public class ReservationControllerTest {
 
         PageInfoDto pageInfo = reservationPage.page();
 
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<ReservationDto> foundReservations = reservationPage.items();
 
@@ -2580,7 +2560,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
-    public void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExistAsAdministrator_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExistAsAdministrator_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2603,7 +2583,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
-    public void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExistAsTeacherInCourse_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExistAsTeacherInCourse_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2626,7 +2606,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
-    public void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExistAsTeacherNotInCourse_When_GetActiveReservationsForTeam_Then_ReturnsListOfActiveReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExistAsTeacherNotInCourse_When_GetActiveReservationsForTeam_Then_ReturnsListOfActiveReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2649,7 +2629,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
-    public void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExistAsTeacherNotInCourse_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndNoActiveReservationsExistAsTeacherNotInCourse_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2674,7 +2654,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
-    public void Given_ExistingTeamIdentifierIsPassedAndSomeHistoricReservationsExist_When_GetHistoricReservationsForTeam_Then_ReturnsListOfHistoricReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndSomeHistoricReservationsExist_When_GetHistoricReservationsForTeam_Then_ReturnsListOfHistoricReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2698,10 +2678,10 @@ public class ReservationControllerTest {
 
         PageInfoDto pageInfo = reservationPage.page();
 
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<ReservationDto> foundReservations = reservationPage.items();
 
@@ -2742,7 +2722,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "student")
-    public void Given_ExistingTeamIdentifierIsPassedAndNoHistoricReservationsExist_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndNoHistoricReservationsExist_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2765,10 +2745,9 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "student")
-    public void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_GetHistoricReservationsForTeam_Then_Returns404NotFound() throws Exception {
+    void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_GetHistoricReservationsForTeam_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
-        Pageable pageable = PageRequest.of(page, size);
 
         when(userRepository.findById(teacherId1)).thenReturn(Optional.empty());
         mockMvc.perform(get("/reservations/historic/teams/{teamId}", team1.getId())
@@ -2782,7 +2761,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "student")
-    public void Given_NonExistentTeamIdentifierIsPassed_When_GetHistoricReservationsForTeam_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentTeamIdentifierIsPassed_When_GetHistoricReservationsForTeam_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
         UUID nonExistentTeamIdentifier = UUID.randomUUID();
@@ -2802,7 +2781,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
-    public void Given_ExistingTeamIdentifierIsPassedAndSomeHistoricReservationsExistAsAdministrator_When_GetHistoricReservationsForTeam_Then_ReturnsListOfHistoricReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndSomeHistoricReservationsExistAsAdministrator_When_GetHistoricReservationsForTeam_Then_ReturnsListOfHistoricReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2826,10 +2805,10 @@ public class ReservationControllerTest {
 
         PageInfoDto pageInfo = reservationPage.page();
 
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<ReservationDto> foundReservations = reservationPage.items();
 
@@ -2869,31 +2848,8 @@ public class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
-    public void Given_ExistingTeamIdentifierIsPassedAndNoHistoricReservationsExistAsTeacherInCourse_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
-        int page = 0;
-        int size = 10;
-        Pageable pageable = PageRequest.of(page, size);
-
-        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
-        when(teamService.getTeamById(team1.getId())).thenReturn(team1);
-        when(reservationService.findHistoricalReservations(team1.getId(), pageable))
-                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
-
-        mockMvc.perform(get("/reservations/historic/teams/{teamId}", team1.getId())
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size)))
-                .andDo(print())
-                .andExpect(status().isNoContent());
-
-        verify(userRepository, times(1)).findById(teacherId1);
-        verify(teamService, times(1)).getTeamById(team1.getId());
-        verify(reservationService, times(1)).findHistoricalReservations(team1.getId(), pageable);
-    }
-
-    @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
-    public void Given_ExistingTeamIdentifierIsPassedAndSomeHistoricReservationsExistAsTeacherNotInCourse_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndSomeHistoricReservationsExistAsTeacherNotInCourse_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2916,7 +2872,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
-    public void Given_ExistingTeamIdentifierIsPassedAndNoHistoricReservationsExistAsTeacherNotInCourse_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndNoHistoricReservationsExistAsTeacherNotInCourse_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2941,7 +2897,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_CurrentlyLoggedInUserIsAuthenticated_When_GetWindowLength_Then_ReturnsWindowLength() throws Exception {
+    void Given_CurrentlyLoggedInUserIsAuthenticated_When_GetWindowLength_Then_ReturnsWindowLength() throws Exception {
         MvcResult result = mockMvc.perform(get("/reservations/window-length"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -2949,14 +2905,14 @@ public class ReservationControllerTest {
 
         String json = result.getResponse().getContentAsString();
         int windowLength = mapper.readValue(json, Integer.class);
-        assertEquals(windowLength, 15);
+        assertEquals(15, windowLength);
     }
 
     /* FinishReservation method tests */
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_ExistingReservationIdentifierIsPassed_When_FinishReservation_Then_Returns204NoContent() throws Exception {
+    void Given_ExistingReservationIdentifierIsPassed_When_FinishReservation_Then_Returns204NoContent() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(userId1)).thenReturn(Optional.of(user1));
         doNothing().when(reservationService).finishReservationAsStudent(reservation1);
@@ -2974,7 +2930,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_CurrentlyLoggedInUserCouldNotBeFound_When_FinishReservation_Then_Returns404NotFound() throws Exception {
+    void Given_CurrentlyLoggedInUserCouldNotBeFound_When_FinishReservation_Then_Returns404NotFound() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(userId1)).thenReturn(Optional.empty());
 
@@ -2990,7 +2946,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "5da2cdeb-38da-4a27-bf8d-6b33ae49726f", authorities = "student")
-    public void Given_NonExistentReservationIdentifierIsPassed_When_FinishReservation_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentReservationIdentifierIsPassed_When_FinishReservation_Then_Returns404NotFound() throws Exception {
         UUID nonExistentReservationId = UUID.randomUUID();
 
         when(reservationService.findReservationById(nonExistentReservationId)).thenReturn(Optional.empty());
@@ -3006,7 +2962,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
-    public void Given_ExistingReservationIdentifierIsPassedAsAdministrator_When_FinishReservation_Then_Returns204NoContent() throws Exception {
+    void Given_ExistingReservationIdentifierIsPassedAsAdministrator_When_FinishReservation_Then_Returns204NoContent() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
         doNothing().when(reservationService).finishReservationAsTeacherOrAdmin(reservation1);
@@ -3024,7 +2980,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
-    public void Given_ExistingReservationIdentifierIsPassedAsTeacherInCourse_When_FinishReservation_Then_Returns204NoContent() throws Exception {
+    void Given_ExistingReservationIdentifierIsPassedAsTeacherInCourse_When_FinishReservation_Then_Returns204NoContent() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
         doNothing().when(reservationService).finishReservationAsTeacherOrAdmin(reservation1);
@@ -3042,7 +2998,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
-    public void Given_ExistingReservationIdentifierIsPassedAsTeacherNotInCourse_When_FinishReservation_Then_Returns404NotFound() throws Exception {
+    void Given_ExistingReservationIdentifierIsPassedAsTeacherNotInCourse_When_FinishReservation_Then_Returns404NotFound() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
 
@@ -3058,7 +3014,7 @@ public class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "a1de3736-ea14-4e45-b856-338a4c1d67f9", authorities = "student")
-    public void Given_ExistingReservationIdentifierIsPassedAsStudentNotInTeam_When_FinishReservation_Then_Returns404NotFound() throws Exception {
+    void Given_ExistingReservationIdentifierIsPassedAsStudentNotInTeam_When_FinishReservation_Then_Returns404NotFound() throws Exception {
         when(reservationService.findReservationById(reservation1.getId())).thenReturn(Optional.of(reservation1));
         when(userRepository.findById(userId3)).thenReturn(Optional.of(user3));
 

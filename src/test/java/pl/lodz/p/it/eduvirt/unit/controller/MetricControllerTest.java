@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -44,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         GeneralControllerExceptionResolver.class,
 })
 @WebMvcTest(controllers = {MetricController.class}, useDefaultFilters = false)
-public class MetricControllerTest {
+class MetricControllerTest {
 
     @MockitoBean
     private MetricService metricService;
@@ -68,7 +67,7 @@ public class MetricControllerTest {
     private Metric metric3;
 
     @BeforeEach
-    public void prepareTestData() throws Exception {
+    void prepareTestData() throws Exception {
         Field id = AbstractEntity.class.getDeclaredField("id");
 
         String metricName1 = "metric_name_no1";
@@ -91,7 +90,7 @@ public class MetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NewMetricNameIsPassed_When_CreateNewMetric_Then_CreatesNewMetricSuccessfully() throws Exception {
+    void Given_NewMetricNameIsPassed_When_CreateNewMetric_Then_CreatesNewMetricSuccessfully() throws Exception {
         String newMetricName = "new_metric_name";
         CreateMetricDto createDto = new CreateMetricDto(newMetricName, Metric.MetricCategory.COUNTABLE);
 
@@ -113,7 +112,7 @@ public class MetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeMetricsExistInTheEduVirtDB_When_GetAllMetrics_Then_ReturnsAllFoundMetrics() throws Exception {
+    void Given_SomeMetricsExistInTheEduVirtDB_When_GetAllMetrics_Then_ReturnsAllFoundMetrics() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -143,10 +142,10 @@ public class MetricControllerTest {
         PageInfoDto pageInfo = foundPage.page();
 
         assertNotNull(pageInfo);
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 3);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 3);
+        assertEquals(0, pageInfo.page());
+        assertEquals(3, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(3, pageInfo.totalElements());
 
         List<MetricDto> foundMetrics = foundPage.items();
 
@@ -178,7 +177,7 @@ public class MetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NoMetricsExistInTheEduVirtDB_When_GetAllMetrics_Then_ReturnsEmptyListOfMetrics() throws Exception {
+    void Given_NoMetricsExistInTheEduVirtDB_When_GetAllMetrics_Then_ReturnsEmptyListOfMetrics() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -199,7 +198,7 @@ public class MetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ExistingMetricIdentifierWasPassed_When_DeleteMetric_Then_RemovesFoundMetricSuccessfully() throws Exception {
+    void Given_ExistingMetricIdentifierWasPassed_When_DeleteMetric_Then_RemovesFoundMetricSuccessfully() throws Exception {
         doNothing().when(metricService).deleteMetric(metric1.getId());
 
         mockMvc.perform(delete("/metrics/{metricId}", metric1.getId())
@@ -212,7 +211,7 @@ public class MetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentMetricIdentifierWasPassed_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentMetricIdentifierWasPassed_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
         UUID randomUUID = UUID.randomUUID();
         doThrow(MetricNotFoundException.class).when(metricService).deleteMetric(randomUUID);
 
