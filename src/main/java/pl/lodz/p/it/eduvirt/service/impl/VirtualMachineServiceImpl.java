@@ -14,6 +14,7 @@ import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundExcep
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineAlreadyExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineClusterMismatchException;
 import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineConflictException;
+import pl.lodz.p.it.eduvirt.exceptions.virtual_machine.VirtualMachineNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
@@ -77,7 +78,8 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
     @Transactional
     @Override
     public void deleteVirtualMachine(UUID id, UUID rgId, String etag) {
-        ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId).orElseThrow();
+        ResourceGroup resourceGroup = resourceGroupRepository.findById(rgId)
+                .orElseThrow(() -> new ResourceGroupNotFoundException(rgId));
         if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
             throw new ResourceGroupNotFoundException(rgId);
         }
@@ -88,9 +90,10 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
         }
 
 
-        VirtualMachine vm = virtualMachineRepository.findById(id).orElseThrow();
+        VirtualMachine vm = virtualMachineRepository.findById(id)
+                .orElseThrow(() -> new VirtualMachineNotFoundException(id));
         if (!vm.getResourceGroup().equals(resourceGroup)) {
-            throw new IllegalArgumentException("Virtual machine does not belong to the resource group");
+            throw new VirtualMachineNotFoundException(id);
         }
 
         virtualMachineRepository.delete(vm);
@@ -100,7 +103,8 @@ public class VirtualMachineServiceImpl implements VirtualMachineService {
     @Override
     @Transactional
     public void updateVirtualMachine(UUID id, boolean hidden, String etag) {
-        VirtualMachine vm = virtualMachineRepository.findById(id).orElseThrow();
+        VirtualMachine vm = virtualMachineRepository.findById(id)
+                .orElseThrow(() -> new VirtualMachineNotFoundException(id));
         ResourceGroup resourceGroup = vm.getResourceGroup();
 
         if (!privilegesService.validateResourceGroupOwnership(resourceGroup)) {
