@@ -46,6 +46,7 @@ public class I18n {
     public static final String USER_ALREADY_IN_COURSE = "user.already.in.course.exception";
     public static final String TEAM_CONFLICT = "team.conflict.exception";
     public static final String TEAM_DELETION = "team.deletion.exception";
+    public static final String TEAM_SIZE_EXCEPTION = "team.size.exception";
 
     /* Permission keys */
 

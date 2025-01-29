@@ -64,7 +64,8 @@ public class OVirtUserServiceImpl implements OVirtUserService {
             Connection connection = connectionFactory.getConnection();
             SystemService systemService = connection.systemService();
 
-            String searchQuery = "usrname=%s@internalkeycloak-authz".formatted(principal);
+            String searchQuery = "usrname=%s".formatted(principal);
+//          String searchQuery = "usrname=%s@id.ftims.p.lodz.pl".formatted(principal);
 
             List<User> users = systemService.usersService()
                     .list()

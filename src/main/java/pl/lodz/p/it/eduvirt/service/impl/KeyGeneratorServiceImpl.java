@@ -29,11 +29,13 @@ public class KeyGeneratorServiceImpl implements KeyGeneratorService {
 
     private String generateKey(Course course) {
         StringBuilder key = new StringBuilder();
-        key.append(course.getName().substring(0, Math.min(2, course.getName().length())).toUpperCase());
+        String prefix = course.getName().substring(0, Math.min(2, course.getName().length())).toUpperCase();
+        key.append(prefix);
         key.append("-");
-        for (int i = 0; i < KeyGenerationConstants.KEY_LENGTH - 3; i++) {
+        int randomSequenceLength = KeyGenerationConstants.KEY_LENGTH - prefix.length() - 1;
+        for (int i = 0; i < randomSequenceLength; i++) {
             key.append(KeyGenerationConstants.ALLOWED_CHARS.charAt(
-                secureRandom.nextInt(KeyGenerationConstants.ALLOWED_CHARS.length())
+                    secureRandom.nextInt(KeyGenerationConstants.ALLOWED_CHARS.length())
             ));
         }
         return key.toString();
