@@ -89,7 +89,7 @@ public class PodStatefulServiceImpl implements PodStatefulService {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('student', 'teacher', 'administrator')")
     public List<PodStateful> getStatefulPodsByResourceGroup(UUID resourceGroupId) {
         return podStatefulRepository.findByResourceGroupId(resourceGroupId);
     }

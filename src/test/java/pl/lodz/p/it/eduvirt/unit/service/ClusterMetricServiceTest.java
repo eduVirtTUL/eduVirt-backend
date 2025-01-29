@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
+import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricConflictException;
 import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricExistsException;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterMetricNotFoundException;
@@ -134,6 +135,37 @@ public class ClusterMetricServiceTest {
 
         verify(cluster, times(1)).id();
         verify(metricRepository, times(1)).findById(metric1.getId());
+        verify(clusterMetricRepository, times(1)).findByClusterIdAndMetric(existingClusterId, metric1);
+    }
+
+    /* FindClusterMetricByClusterAndMetric method test */
+
+    @Test
+    public void Given_ExistingClusterAndMetricArePassedAndClusterMetricValueExists_When_FindClusterMetricByClusterAndMetric_Then_ReturnsOptionalWithFoundClusterMetricValue() {
+        when(cluster.id()).thenReturn(existingClusterId.toString());
+        when(clusterMetricRepository.findByClusterIdAndMetric(existingClusterId, metric1)).thenReturn(Optional.of(clusterMetric1));
+
+        Optional<ClusterMetric> clusterMetricOptional = clusterMetricService.findClusterMetricByClusterAndMetric(cluster, metric1);
+
+        assertNotNull(clusterMetricOptional);
+        assertFalse(clusterMetricOptional.isEmpty());
+        assertEquals(clusterMetricOptional.get(), clusterMetric1);
+
+        verify(cluster, times(1)).id();
+        verify(clusterMetricRepository, times(1)).findByClusterIdAndMetric(existingClusterId, metric1);
+    }
+
+    @Test
+    public void Given_ExistingClusterAndMetricArePassedButClusterMetricValueDoesNotExists_When_FindClusterMetricByClusterAndMetric_Then_ReturnsEmptyOptional() {
+        when(cluster.id()).thenReturn(existingClusterId.toString());
+        when(clusterMetricRepository.findByClusterIdAndMetric(existingClusterId, metric1)).thenReturn(Optional.empty());
+
+        Optional<ClusterMetric> clusterMetricOptional = clusterMetricService.findClusterMetricByClusterAndMetric(cluster, metric1);
+
+        assertNotNull(clusterMetricOptional);
+        assertTrue(clusterMetricOptional.isEmpty());
+
+        verify(cluster, times(1)).id();
         verify(clusterMetricRepository, times(1)).findByClusterIdAndMetric(existingClusterId, metric1);
     }
 
@@ -329,6 +361,24 @@ public class ClusterMetricServiceTest {
                 () -> clusterMetricService.updateMetricValue(nonExistentClusterMetricId, updateClusterMetric, ifMatch));
 
         verify(clusterMetricRepository, times(1)).findById(nonExistentClusterMetricId);
+    }
+
+    @Test
+    public void Given_InvalidIfMatchHeaderContentIsPassed_When_UpdateMetricValue_Then_ThrowsException() {
+        double newMetricValue = 199.99;
+        String invalidIfMatch = "INVALID_IF_MATCH_HEADER_CONTENT";
+
+        assertEquals(clusterMetric1.getValue(), 99.9999);
+        clusterMetric1.setValue(newMetricValue);
+
+        when(clusterMetricRepository.findById(clusterMetric1.getId())).thenReturn(Optional.of(clusterMetric1));
+        when(eTagHelper.validateEtag(invalidIfMatch, clusterMetric1)).thenReturn(false);
+
+        assertThrows(ClusterMetricConflictException.class,
+                () -> clusterMetricService.updateMetricValue(clusterMetric1.getId(), clusterMetric1, invalidIfMatch));
+
+        verify(clusterMetricRepository, times(1)).findById(clusterMetric1.getId());
+        verify(eTagHelper, times(1)).validateEtag(invalidIfMatch, clusterMetric1);
     }
 
     /* DeleteMetricValue method test */

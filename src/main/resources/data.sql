@@ -511,8 +511,6 @@ VALUES ('0e542d51-ba4f-4dd5-bef8-eae5b7477103', 'a7556146-23a6-4936-903c-c337c79
        ('e016831f-96e4-4c96-a14d-54c167fdd5d0', 'a7556146-23a6-4936-903c-c337c794a8c7',
         'a1529025-aae8-4f33-b5cf-295353d77c48', '60deabdf-ba7d-482a-b6a5-26e440850496', 3);
 
---- Resource group pools ---
-
 INSERT INTO public.course_resource_group (course_id, resource_group_id)
 VALUES ('a7556146-23a6-4936-903c-c337c794a8c7', '1b0912df-c4c0-4907-9dd4-b09573a3ef44'),
        ('a7556146-23a6-4936-903c-c337c794a8c7', 'dfe85896-7c82-41c6-ba31-f9401d10c4f2'),
@@ -609,22 +607,10 @@ VALUES ('a57e55b8-471d-4754-acf0-15c57b877e99', 'e485ded6-c166-45f6-a924-13ce446
        ('a5681e23-bcec-4353-9e4d-f0c60f2efb26', 'e485ded6-c166-45f6-a924-13ce44666f7a',
         '50c319f6-d29d-4193-bfef-5e33b4e26353', '40517c17-58b9-41ce-b53e-abaf0e7782fd', 3);
 
---- Resource group pools ---
-
-INSERT INTO public.resource_group_pool (id, version, name, grace_period, max_rent, course_id, description,
-                                        max_rent_time)
-VALUES ('03d31c2f-d300-45af-a8f8-37c894d7a527', 0, 'SSBD-RGPool01', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a', '',
-        6),
-       ('0e484149-67a8-4c1c-80b6-901fa737f2c9', 0, 'SSBD-RGPool02', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a', '',
-        6),
-       ('9872c8c5-70e9-432e-8a29-7c6dafd35ddc', 0, 'SSBD-RGPool03', 12, 6, 'e485ded6-c166-45f6-a924-13ce44666f7a', '',
-        6);
-
-
-INSERT INTO public.resource_group_pool_resource_groups (resource_group_pool_id, resource_groups_id)
-VALUES ('03d31c2f-d300-45af-a8f8-37c894d7a527', '692bde41-c8ca-4873-bbaf-edb789ae7c87'),
-       ('0e484149-67a8-4c1c-80b6-901fa737f2c9', 'f13f85d1-14bf-4930-bc2a-b044f3feebe2'),
-       ('9872c8c5-70e9-432e-8a29-7c6dafd35ddc', '50c319f6-d29d-4193-bfef-5e33b4e26353');
+INSERT INTO public.course_resource_group (course_id, resource_group_id)
+VALUES ('e485ded6-c166-45f6-a924-13ce44666f7a', '692bde41-c8ca-4873-bbaf-edb789ae7c87'),
+       ('e485ded6-c166-45f6-a924-13ce44666f7a', 'f13f85d1-14bf-4930-bc2a-b044f3feebe2'),
+       ('e485ded6-c166-45f6-a924-13ce44666f7a', '50c319f6-d29d-4193-bfef-5e33b4e26353');
 
 -------------------------------------
 --- Techniki utrzymania aplikacji ---

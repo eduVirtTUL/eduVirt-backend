@@ -168,7 +168,7 @@ public class PodStatelessServiceImpl implements PodStatelessService {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
+    @PreAuthorize("hasAnyAuthority('student', 'teacher', 'administrator')")
     public List<PodStateless> getStatelessPodsByResourceGroupPool(UUID resourceGroupPoolId) {
         return podStatelessRepository.findByResourceGroupPoolId(resourceGroupPoolId);
     }

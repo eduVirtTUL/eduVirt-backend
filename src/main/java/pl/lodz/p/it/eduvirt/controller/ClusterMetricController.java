@@ -32,7 +32,7 @@ import pl.lodz.p.it.eduvirt.exceptions.handle.ExceptionResponse;
 import pl.lodz.p.it.eduvirt.mappers.ClusterMetricMapper;
 import pl.lodz.p.it.eduvirt.service.ClusterMetricService;
 import pl.lodz.p.it.eduvirt.service.MetricService;
-import pl.lodz.p.it.eduvirt.service.ovirt.impl.OVirtClusterServiceImpl;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.UUID;
@@ -48,7 +48,7 @@ public class ClusterMetricController {
     private final ClusterMetricService clusterMetricService;
     private final MetricService metricService;
 
-    private final OVirtClusterServiceImpl oVirtClusterServiceImpl;
+    private final OVirtClusterService clusterService;
 
     /* Mappers */
 
@@ -85,7 +85,7 @@ public class ClusterMetricController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> createMetricValue(@PathVariable("clusterId") UUID clusterId,
                                                   @RequestBody @Validated CreateMetricValueDto createDto) {
-        Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
+        Cluster cluster = clusterService.findClusterById(clusterId);
         clusterMetricService.createNewValueForMetric(cluster, createDto.metricId(), createDto.value());
         return ResponseEntity.noContent().build();
     }
@@ -111,30 +111,40 @@ public class ClusterMetricController {
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PageDto<MetricValueDto>> getAllMetricValues(
-            @PageableDefault Pageable pageable,
-            @PathVariable("clusterId") UUID clusterId) {
-        try {
-            Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
-            Page<ClusterMetric> clusterMetricPage = clusterMetricService.findAllMetricValuesForCluster(cluster, pageable);
+            @PageableDefault Pageable pageable, @PathVariable("clusterId") UUID clusterId) {
+        Cluster cluster = clusterService.findClusterById(clusterId);
+        Page<ClusterMetric> clusterMetricPage = clusterMetricService.findAllMetricValuesForCluster(cluster, pageable);
 
-            PageDto<MetricValueDto> listOfDTOs = new PageDto<>(
-                    clusterMetricPage.getContent().stream().map(clusterMetricMapper::clusterMetricToDto).toList(),
-                    new PageInfoDto(clusterMetricPage.getNumber(), clusterMetricPage.getNumberOfElements(),
-                            clusterMetricPage.getTotalPages(), clusterMetricPage.getTotalElements())
-            );
+        PageDto<MetricValueDto> listOfDTOs = new PageDto<>(
+                clusterMetricPage.getContent().stream().map(clusterMetricMapper::clusterMetricToDto).toList(),
+                new PageInfoDto(clusterMetricPage.getNumber(), clusterMetricPage.getNumberOfElements(),
+                        clusterMetricPage.getTotalPages(), clusterMetricPage.getTotalElements())
+        );
 
-            if (listOfDTOs.items().isEmpty()) return ResponseEntity.noContent().build();
-            return ResponseEntity.ok(listOfDTOs);
-        } catch (IllegalArgumentException exception) {
-            return ResponseEntity.noContent().build();
-        }
+        if (listOfDTOs.items().isEmpty()) return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(listOfDTOs);
     }
 
+    @Operation(
+            method = "GET", summary = "Get value of certain metric, that was defined for the given cluster",
+            description = "This endpoint can be used by the administrator to fetch value of the certain metric, defined for given cluster.",
+            parameters = {
+                    @Parameter(name = "clusterId", in = ParameterIn.PATH, description = "Identifier of the cluster, which the metric value will be fetched for.", required = true),
+                    @Parameter(name = "metricId", in = ParameterIn.PATH, description = "Identifier of the metric, which is to be fetched.", required = true),
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Value of given metric, defined for given cluster was found successfully."),
+                    @ApiResponse(responseCode = "404", description = "Either cluster, metric or value of the metric defined for given cluster could not be found in the database!",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+                    @ApiResponse(responseCode = "500", description = "Some other, unknown error occurred while processing the request.",
+                            content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+            }
+    )
     @PreAuthorize("hasAuthority('administrator')")
     @GetMapping(path = "/{metricId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<GeneralMetricValueDto> getClusterMetricDetails(@PathVariable("clusterId") UUID clusterId,
                                                                          @PathVariable("metricId") UUID metricId) {
-        Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
+        Cluster cluster = clusterService.findClusterById(clusterId);
         Metric metric = metricService.findById(metricId);
         ClusterMetric foundMetricValue = clusterMetricService.findClusterMetricByClusterAndMetric(cluster, metric)
                 .orElseThrow(() -> new ClusterMetricNotFoundException("Value of the metric %s for cluster %s could not be found!".formatted(metricId, clusterId)));
@@ -172,7 +182,7 @@ public class ClusterMetricController {
     public ResponseEntity<MetricValueDto> updateMetricValue(
             @PathVariable("clusterId") UUID clusterId, @PathVariable("metricId") UUID metricId,
             @RequestBody @Validated ValueDto valueDto, @RequestHeader(HttpHeaders.IF_MATCH) String ifMatch) {
-        Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
+        Cluster cluster = clusterService.findClusterById(clusterId);
         Metric metric = metricService.findById(metricId);
 
         ClusterMetric newMetricValue = clusterMetricMapper.valueDtoToClusterMetric(valueDto, UUID.fromString(cluster.id()), metric);
@@ -205,7 +215,7 @@ public class ClusterMetricController {
     @DeleteMapping(path = "/{metricId}")
     public ResponseEntity<Void> deleteMetric(@PathVariable("clusterId") UUID clusterId,
                                              @PathVariable("metricId") UUID metricId) {
-        Cluster cluster = oVirtClusterServiceImpl.findClusterById(clusterId);
+        Cluster cluster = clusterService.findClusterById(clusterId);
         clusterMetricService.deleteMetricValue(cluster, metricId);
         return ResponseEntity.noContent().build();
     }

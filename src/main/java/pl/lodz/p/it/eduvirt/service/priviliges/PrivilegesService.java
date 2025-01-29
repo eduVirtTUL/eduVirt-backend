@@ -8,7 +8,11 @@ public interface PrivilegesService {
 
     boolean validateResourceGroupOwnershipOrAdmin(ResourceGroup resourceGroup);
 
+    boolean validateResourceGroupOwnershipOrAdminOrStudentWithAccess(ResourceGroup resourceGroup);
+
     boolean validateCourseOwnership(Course course);
 
     boolean validateCourseOwnershipOrAdmin(Course course);
+
+    boolean validateCourseMembershipOwnershipOrAdmin(Course course);
 }

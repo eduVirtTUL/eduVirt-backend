@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -820,7 +819,8 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeMaintenanceIntervalsExistInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsAllFoundMaintenanceIntervalsWithinTimePeriod() throws Exception {
+    public void Given_SomeMaintenanceIntervalsExistForClusterInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsAllFoundMaintenanceIntervalsWithinTimePeriod() throws Exception {
+        Cluster clusterMock = mock(Cluster.class);
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(12).toLocalDateTime();
 
@@ -843,6 +843,8 @@ public class MaintenanceIntervalControllerTest {
                 maintenanceInterval1.getBeginAt(),
                 maintenanceInterval1.getEndAt()
         );
+
+        when(clusterService.findClusterById(existingClusterId)).thenReturn(clusterMock);
 
         when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(existingClusterId, start, end))
                 .thenReturn(List.of(maintenanceInterval4, maintenanceInterval1));
@@ -885,8 +887,83 @@ public class MaintenanceIntervalControllerTest {
         assertEquals(secondMaintenanceInterval.beginAt(), maintenanceInterval1.getBeginAt());
         assertEquals(secondMaintenanceInterval.endAt(), maintenanceInterval1.getEndAt());
 
+        verify(clusterService, times(1)).findClusterById(existingClusterId);
+
         verify(maintenanceIntervalService, times(1))
                 .findAllMaintenanceIntervalsInTimePeriod(existingClusterId, start, end);
+
+        verify(maintenanceIntervalMapper, times(2))
+                .maintenanceIntervalToDto(any(MaintenanceInterval.class));
+    }
+
+    @WithMockUser
+    @Test
+    public void Given_SomeMaintenanceIntervalsExistForSystemInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsAllFoundMaintenanceIntervalsWithinTimePeriod() throws Exception {
+        LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(12).toLocalDateTime();
+
+        MaintenanceIntervalDto dtoNo1 = new MaintenanceIntervalDto(
+                maintenanceInterval4.getId(),
+                maintenanceInterval4.getCause(),
+                maintenanceInterval4.getDescription(),
+                maintenanceInterval4.getType().toString(),
+                maintenanceInterval4.getClusterId(),
+                maintenanceInterval4.getBeginAt(),
+                maintenanceInterval4.getEndAt()
+        );
+
+        MaintenanceIntervalDto dtoNo2 = new MaintenanceIntervalDto(
+                maintenanceInterval1.getId(),
+                maintenanceInterval1.getCause(),
+                maintenanceInterval1.getDescription(),
+                maintenanceInterval1.getType().toString(),
+                maintenanceInterval1.getClusterId(),
+                maintenanceInterval1.getBeginAt(),
+                maintenanceInterval1.getEndAt()
+        );
+
+        when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(isNull(), eq(start), eq(end)))
+                .thenReturn(List.of(maintenanceInterval4, maintenanceInterval1));
+
+        when(maintenanceIntervalMapper.maintenanceIntervalToDto(any(MaintenanceInterval.class)))
+                .thenReturn(dtoNo1, dtoNo2);
+
+        MvcResult result = mockMvc.perform(get("/maintenance-intervals/time-period")
+                        .param("start", start.toString())
+                        .param("end", end.toString()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        List<MaintenanceIntervalDto> foundMaintenanceIntervals = mapper.readValue(json, new TypeReference<>() {});
+
+        assertNotNull(foundMaintenanceIntervals);
+        assertFalse(foundMaintenanceIntervals.isEmpty());
+        assertEquals(2, foundMaintenanceIntervals.size());
+
+        MaintenanceIntervalDto firstMaintenanceInterval = foundMaintenanceIntervals.getFirst();
+        assertNotNull(firstMaintenanceInterval);
+        assertEquals(firstMaintenanceInterval.id(), maintenanceInterval4.getId());
+        assertEquals(firstMaintenanceInterval.cause(), maintenanceInterval4.getCause());
+        assertEquals(firstMaintenanceInterval.description(), maintenanceInterval4.getDescription());
+        assertEquals(firstMaintenanceInterval.type(), maintenanceInterval4.getType().toString());
+        assertEquals(firstMaintenanceInterval.clusterId(), maintenanceInterval4.getClusterId());
+        assertEquals(firstMaintenanceInterval.beginAt(), maintenanceInterval4.getBeginAt());
+        assertEquals(firstMaintenanceInterval.endAt(), maintenanceInterval4.getEndAt());
+
+        MaintenanceIntervalDto secondMaintenanceInterval = foundMaintenanceIntervals.getLast();
+        assertNotNull(secondMaintenanceInterval);
+        assertEquals(secondMaintenanceInterval.id(), maintenanceInterval1.getId());
+        assertEquals(secondMaintenanceInterval.cause(), maintenanceInterval1.getCause());
+        assertEquals(secondMaintenanceInterval.description(), maintenanceInterval1.getDescription());
+        assertEquals(secondMaintenanceInterval.type(), maintenanceInterval1.getType().toString());
+        assertEquals(secondMaintenanceInterval.clusterId(), maintenanceInterval1.getClusterId());
+        assertEquals(secondMaintenanceInterval.beginAt(), maintenanceInterval1.getBeginAt());
+        assertEquals(secondMaintenanceInterval.endAt(), maintenanceInterval1.getEndAt());
+
+        verify(maintenanceIntervalService, times(1))
+                .findAllMaintenanceIntervalsInTimePeriod(isNull(), eq(start), eq(end));
 
         verify(maintenanceIntervalMapper, times(2))
                 .maintenanceIntervalToDto(any(MaintenanceInterval.class));
@@ -913,8 +990,11 @@ public class MaintenanceIntervalControllerTest {
     @WithMockUser
     @Test
     public void Given_NoMaintenanceIntervalsExistInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsEmptyMaintenanceIntervalList() throws Exception {
+        Cluster clusterMock = mock(Cluster.class);
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(24).toLocalDateTime();
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(48).toLocalDateTime();
+
+        when(clusterService.findClusterById(existingClusterId)).thenReturn(clusterMock);
 
         when(maintenanceIntervalService.findAllMaintenanceIntervalsInTimePeriod(existingClusterId, start, end))
                 .thenReturn(List.of());
@@ -925,6 +1005,8 @@ public class MaintenanceIntervalControllerTest {
                         .param("end", end.toString()))
                 .andDo(print())
                 .andExpect(status().isNoContent());
+
+        verify(clusterService, times(1)).findClusterById(existingClusterId);
 
         verify(maintenanceIntervalService, times(1))
                 .findAllMaintenanceIntervalsInTimePeriod(existingClusterId, start, end);
