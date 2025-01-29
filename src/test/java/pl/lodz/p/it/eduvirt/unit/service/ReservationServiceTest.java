@@ -897,7 +897,7 @@ class ReservationServiceTest {
 
         verify(courseMetricRepository, times(1)).findAllByCourse(course);
         verify(reservationRepository, times(1))
-                .findCourseReservations(course, newCreateDto.start(), eq(newCreateDto.end()));
+                .findCourseReservations(course, newCreateDto.start(), newCreateDto.end());
 
         verify(bankerAlgorithm, times(1)).process(any(), eq(courseReservationList),
                 eq(podStateful1.getResourceGroup()), eq(cluster), eq(hosts));
@@ -1148,7 +1148,7 @@ class ReservationServiceTest {
         verify(clusterService, times(1)).findAllHostsInCluster(cluster);
 
         verify(reservationRepository, times(1))
-                .findAllRgPoolReservationsForGivenTeam(podStateless1.getResourceGroupPool(), eq(team1));
+                .findAllRgPoolReservationsForGivenTeam(podStateless1.getResourceGroupPool(), team1);
 
         verify(reservationRepository, times(1)).findRgPoolReservationsForGivenTeam(
                 podStateless1.getResourceGroupPool(), team1,
@@ -1441,7 +1441,7 @@ class ReservationServiceTest {
         verify(clusterService, times(1)).findAllHostsInCluster(cluster);
 
         verify(reservationRepository, times(1)).findAllRgPoolReservationsForGivenTeam(
-                podStateless1.getResourceGroupPool(), eq(team1));
+                podStateless1.getResourceGroupPool(), team1);
 
         verify(reservationRepository, times(1)).findRgPoolReservationsForGivenTeam(
                 podStateless1.getResourceGroupPool(), team1,
@@ -1496,7 +1496,7 @@ class ReservationServiceTest {
         verify(clusterService, times(1)).findAllHostsInCluster(cluster);
 
         verify(reservationRepository, times(1)).findAllRgPoolReservationsForGivenTeam(
-                podStateless1.getResourceGroupPool(), eq(team1));
+                podStateless1.getResourceGroupPool(), team1);
 
         verify(reservationRepository, times(1)).findRgPoolReservationsForGivenTeam(
                 podStateless1.getResourceGroupPool(), team1,
@@ -1562,7 +1562,7 @@ class ReservationServiceTest {
         verify(clusterService, times(1)).findAllHostsInCluster(cluster);
 
         verify(reservationRepository, times(1))
-                .findAllRgPoolReservationsForGivenTeam(podStateless1.getResourceGroupPool(), eq(team1));
+                .findAllRgPoolReservationsForGivenTeam(podStateless1.getResourceGroupPool(), team1);
 
         verify(reservationRepository, times(1)).findRgPoolReservationsForGivenTeam(
                 podStateless1.getResourceGroupPool(), team1,
