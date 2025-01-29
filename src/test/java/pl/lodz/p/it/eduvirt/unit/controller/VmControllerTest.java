@@ -123,12 +123,11 @@ public class VmControllerTest {
         when(vm.cluster()).thenReturn(cluster);
         when(cluster.id()).thenReturn(existingClusterIdentifier.toString());
 
-        when(oVirtVmService.findVmWithCpuProfileById(Mockito.eq(existingVmIdentifier.toString()))).thenReturn(vm);
-        when(oVirtVmService.findQosForVmCpu(Mockito.eq(vm))).thenReturn(qos);
-        when(oVirtClusterService.findClusterById(Mockito.eq(existingClusterIdentifier))).thenReturn(cluster);
-        when(oVirtClusterService.findAllHostsInCluster(Mockito.eq(cluster))).thenReturn(hosts);
-        when(oVirtVmService.findVmResources(Mockito.eq(vm), Mockito.eq(qos), Mockito.eq(host1), Mockito.eq(cluster)))
-                .thenReturn(resourcesMap);
+        when(oVirtVmService.findVmWithCpuProfileById(existingVmIdentifier.toString())).thenReturn(vm);
+        when(oVirtVmService.findQosForVmCpu(vm)).thenReturn(qos);
+        when(oVirtClusterService.findClusterById(existingClusterIdentifier)).thenReturn(cluster);
+        when(oVirtClusterService.findAllHostsInCluster(cluster)).thenReturn(hosts);
+        when(oVirtVmService.findVmResources(vm, qos, host1, cluster)).thenReturn(resourcesMap);
 
         MvcResult result = mockMvc.perform(get("/resource/vm/{vmId}/required-resources", existingVmIdentifier))
                 .andDo(print())
@@ -142,12 +141,11 @@ public class VmControllerTest {
         assertEquals(cpuCount, outputDto.cpuCount());
         assertEquals(memorySize, outputDto.memorySize());
 
-        verify(oVirtVmService, times(1)).findVmWithCpuProfileById(Mockito.eq(existingVmIdentifier.toString()));
-        verify(oVirtVmService, times(1)).findQosForVmCpu(Mockito.eq(vm));
-        verify(oVirtClusterService, times(1)).findClusterById(Mockito.eq(existingClusterIdentifier));
-        verify(oVirtClusterService, times(1)).findAllHostsInCluster(Mockito.eq(cluster));
-        verify(oVirtVmService, times(1))
-                .findVmResources(Mockito.eq(vm), Mockito.eq(qos), Mockito.eq(host1), Mockito.eq(cluster));
+        verify(oVirtVmService, times(1)).findVmWithCpuProfileById(existingVmIdentifier.toString());
+        verify(oVirtVmService, times(1)).findQosForVmCpu(vm);
+        verify(oVirtClusterService, times(1)).findClusterById(existingClusterIdentifier);
+        verify(oVirtClusterService, times(1)).findAllHostsInCluster(cluster);
+        verify(oVirtVmService, times(1)).findVmResources(vm, qos, host1, cluster);
     }
 
     @Test
@@ -167,9 +165,8 @@ public class VmControllerTest {
         when(vm.cpuProfile()).thenReturn(cpuProfile);
         when(cpuProfile.qos()).thenReturn(null);
 
-        when(oVirtVmService.findVmWithCpuProfileById(Mockito.eq(existingVmIdentifier.toString()))).thenReturn(vm);
-        when(oVirtVmService.findVmResources(Mockito.eq(vm), Mockito.eq(null), Mockito.eq(null), Mockito.eq(null)))
-                .thenReturn(resourcesMap);
+        when(oVirtVmService.findVmWithCpuProfileById(existingVmIdentifier.toString())).thenReturn(vm);
+        when(oVirtVmService.findVmResources(eq(vm), isNull(), isNull(), isNull())).thenReturn(resourcesMap);
 
         MvcResult result = mockMvc.perform(get("/resource/vm/{vmId}/required-resources", existingVmIdentifier))
                 .andDo(print())
@@ -185,20 +182,20 @@ public class VmControllerTest {
 
         verify(oVirtVmService, times(1)).findVmWithCpuProfileById(Mockito.eq(existingVmIdentifier.toString()));
         verify(oVirtVmService, times(1))
-                .findVmResources(Mockito.eq(vm), Mockito.eq(null), Mockito.eq(null), Mockito.eq(null));
+                .findVmResources(eq(vm), isNull(), isNull(), isNull());
     }
 
     @Test
     @WithMockUser
     public void Given_NonExistentVmIdentifierIsPassed_When_FindVmRequiredResources_Then_Returns404NotFound() throws Exception {
-        when(oVirtVmService.findVmWithCpuProfileById(Mockito.eq(nonExistentClusterIdentifier.toString())))
+        when(oVirtVmService.findVmWithCpuProfileById(nonExistentClusterIdentifier.toString()))
                 .thenThrow(VmNotFoundException.class);
 
         mockMvc.perform(get("/resource/vm/{vmId}/required-resources", nonExistentClusterIdentifier))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(oVirtVmService, times(1)).findVmWithCpuProfileById(Mockito.eq(nonExistentClusterIdentifier.toString()));
+        verify(oVirtVmService, times(1)).findVmWithCpuProfileById(nonExistentClusterIdentifier.toString());
     }
 
     /* FindVmsForCluster method tests */
@@ -220,8 +217,8 @@ public class VmControllerTest {
         when(vm2.name()).thenReturn("VM-2");
         when(vm3.name()).thenReturn("VM-3");
 
-        when(oVirtClusterService.findClusterById(Mockito.eq(existingClusterIdentifier))).thenReturn(cluster);
-        when(oVirtVmService.findVmsForCluster(Mockito.eq(cluster))).thenReturn(vms);
+        when(oVirtClusterService.findClusterById(existingClusterIdentifier)).thenReturn(cluster);
+        when(oVirtVmService.findVmsForCluster(cluster)).thenReturn(vms);
 
         MvcResult result = mockMvc.perform(get("/resource/vm/clusters/{clusterId}", existingClusterIdentifier))
                 .andDo(print())
@@ -251,8 +248,8 @@ public class VmControllerTest {
         assertEquals(vm3.id(), thirdVm.getId());
         assertEquals(vm3.name(), thirdVm.getName());
 
-        verify(oVirtClusterService, times(1)).findClusterById(Mockito.eq(existingClusterIdentifier));
-        verify(oVirtVmService, times(1)).findVmsForCluster(Mockito.eq(cluster));
+        verify(oVirtClusterService, times(1)).findClusterById(existingClusterIdentifier);
+        verify(oVirtVmService, times(1)).findVmsForCluster(cluster);
     }
 
     @Test
@@ -260,21 +257,21 @@ public class VmControllerTest {
     public void Given_ExistingClusterIdentifierIsPassedAndNoVmsAreFoundForGivenCluster_When_FindVmsForCluster_Then_ReturnsEmptyListOfVms() throws Exception {
         Cluster cluster = mock(Cluster.class);
 
-        when(oVirtClusterService.findClusterById(Mockito.eq(existingClusterIdentifier))).thenReturn(cluster);
-        when(oVirtVmService.findVmsForCluster(Mockito.eq(cluster))).thenReturn(List.of());
+        when(oVirtClusterService.findClusterById(existingClusterIdentifier)).thenReturn(cluster);
+        when(oVirtVmService.findVmsForCluster(cluster)).thenReturn(List.of());
 
         mockMvc.perform(get("/resource/vm/clusters/{clusterId}", existingClusterIdentifier))
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(oVirtClusterService, times(1)).findClusterById(Mockito.eq(existingClusterIdentifier));
-        verify(oVirtVmService, times(1)).findVmsForCluster(Mockito.eq(cluster));
+        verify(oVirtClusterService, times(1)).findClusterById(existingClusterIdentifier);
+        verify(oVirtVmService, times(1)).findVmsForCluster(cluster);
     }
 
     @Test
     @WithMockUser
     public void Given_NonExistentClusterIdentifierIsPassed_When_FindVmsForCluster_Then_Returns404NotFound() throws Exception {
-        when(oVirtClusterService.findClusterById(Mockito.eq(nonExistentClusterIdentifier)))
+        when(oVirtClusterService.findClusterById(nonExistentClusterIdentifier))
                 .thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(get("/resource/vm/clusters/{clusterId}", nonExistentClusterIdentifier))
@@ -282,7 +279,7 @@ public class VmControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(oVirtClusterService, times(1))
-                .findClusterById(Mockito.eq(nonExistentClusterIdentifier));
+                .findClusterById(nonExistentClusterIdentifier);
     }
 
     /* FindEventsForVm methods tests */
@@ -317,8 +314,8 @@ public class VmControllerTest {
         when(event2.time()).thenReturn(Date.from(currentTime.plusHours(4).toInstant(ZoneOffset.UTC)));
         when(event3.time()).thenReturn(Date.from(currentTime.plusHours(6).toInstant(ZoneOffset.UTC)));
 
-        when(oVirtVmService.findVmById(Mockito.eq(existingVmIdentifier.toString()))).thenReturn(vm);
-        when(oVirtVmService.findEventsByVmId(Mockito.eq(vm), Mockito.eq(pageable))).thenReturn(events);
+        when(oVirtVmService.findVmById(existingVmIdentifier.toString())).thenReturn(vm);
+        when(oVirtVmService.findEventsByVmId(vm, pageable)).thenReturn(events);
 
         MvcResult result = mockMvc.perform(get("/resource/vm/{vmId}/events", existingVmIdentifier)
                         .param("page", String.valueOf(page))
@@ -356,8 +353,8 @@ public class VmControllerTest {
         assertEquals(event3.severity().name(), thirdEvent.severity());
         assertEquals(event3.time(), Date.from(thirdEvent.registeredAt().toInstant(ZoneOffset.UTC)));
 
-        verify(oVirtVmService, times(1)).findVmById(Mockito.eq(existingVmIdentifier.toString()));
-        verify(oVirtVmService, times(1)).findEventsByVmId(Mockito.eq(vm), Mockito.eq(pageable));
+        verify(oVirtVmService, times(1)).findVmById(existingVmIdentifier.toString());
+        verify(oVirtVmService, times(1)).findEventsByVmId(vm, pageable);
     }
 
     @Test
@@ -369,8 +366,8 @@ public class VmControllerTest {
 
         Vm vm = mock(Vm.class);
 
-        when(oVirtVmService.findVmById(Mockito.eq(existingVmIdentifier.toString()))).thenReturn(vm);
-        when(oVirtVmService.findEventsByVmId(Mockito.eq(vm), Mockito.eq(pageable))).thenReturn(List.of());
+        when(oVirtVmService.findVmById(existingVmIdentifier.toString())).thenReturn(vm);
+        when(oVirtVmService.findEventsByVmId(vm, pageable)).thenReturn(List.of());
 
         mockMvc.perform(get("/resource/vm/{vmId}/events", existingVmIdentifier)
                         .param("page", String.valueOf(page))
@@ -378,8 +375,8 @@ public class VmControllerTest {
                 .andDo(print())
                 .andExpect(status().isNoContent());
 
-        verify(oVirtVmService, times(1)).findVmById(Mockito.eq(existingVmIdentifier.toString()));
-        verify(oVirtVmService, times(1)).findEventsByVmId(Mockito.eq(vm), Mockito.eq(pageable));
+        verify(oVirtVmService, times(1)).findVmById(existingVmIdentifier.toString());
+        verify(oVirtVmService, times(1)).findEventsByVmId(vm, pageable);
     }
 
     @Test
@@ -388,8 +385,7 @@ public class VmControllerTest {
         int page = 0;
         int size = 10;
 
-        when(oVirtVmService.findVmById(Mockito.eq(nonExistentVmIdentifier.toString())))
-                .thenThrow(VmNotFoundException.class);
+        when(oVirtVmService.findVmById(nonExistentVmIdentifier.toString())).thenThrow(VmNotFoundException.class);
 
         mockMvc.perform(get("/resource/vm/{vmId}/events", nonExistentVmIdentifier)
                         .param("page", String.valueOf(page))
@@ -397,7 +393,6 @@ public class VmControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        verify(oVirtVmService, times(1))
-                .findVmById(Mockito.eq(nonExistentVmIdentifier.toString()));
+        verify(oVirtVmService, times(1)).findVmById(nonExistentVmIdentifier.toString());
     }
 }

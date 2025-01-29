@@ -55,8 +55,10 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     public List<VmDto> getVms(UUID id) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(id)
                 .orElseThrow(() -> new ResourceGroupNotFoundException(id));
-        // TODO: Add access for student
-        // validateOwnershipOrAdmin(resourceGroup);
+
+        if (!privilegesService.validateResourceGroupOwnershipOrAdminOrStudentWithAccess(resourceGroup))
+            throw new ResourceGroupNotFoundException(id);
+
         return resourceGroup.getVms()
                 .parallelStream()
                 .map(machine -> {
@@ -123,8 +125,10 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     @Transactional
     public ResourceGroup getResourceGroup(UUID id) {
         ResourceGroup resourceGroup = resourceGroupRepository.findById(id).orElseThrow(() -> new ResourceGroupNotFoundException(id));
-        // TODO: Return here
-        // validateOwnershipOrAdmin(resourceGroup);
+
+        if (!privilegesService.validateResourceGroupOwnershipOrAdminOrStudentWithAccess(resourceGroup))
+            throw new ResourceGroupNotFoundException(id);
+
         return resourceGroup;
     }
 

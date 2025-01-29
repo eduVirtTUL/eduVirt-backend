@@ -510,7 +510,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findCourseReservations(Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(courseReservationList);
 
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservationList),
+        when(bankerAlgorithm.process(any(), Mockito.eq(courseReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
         List<Reservation> clusterReservationList = List.of(reservation1, reservation2);
@@ -518,7 +518,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(clusterReservationList);
 
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservationList),
+        when(bankerAlgorithm.process(any(), Mockito.eq(clusterReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
         when(reservationRepository.saveAndFlush(any())).thenReturn(reservation);
@@ -540,14 +540,14 @@ public class ReservationServiceTest {
         verify(reservationRepository, times(1))
                 .findCourseReservations(Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(), Mockito.eq(courseReservationList),
+        verify(bankerAlgorithm, times(1)).process(any(), Mockito.eq(courseReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
         verify(reservationRepository, times(1))
                 .findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(), Mockito.eq(clusterReservationList),
+        verify(bankerAlgorithm, times(1)).process(any(), Mockito.eq(clusterReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(reservationRepository, times(1)).saveAndFlush(any());
@@ -595,7 +595,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findCourseReservations(Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(courseReservationList);
 
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservationList),
+        when(bankerAlgorithm.process(any(), Mockito.eq(courseReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
         List<Reservation> clusterReservationList = List.of(reservation1, reservation2);
@@ -603,7 +603,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(clusterReservationList);
 
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservationList),
+        when(bankerAlgorithm.process(any(), Mockito.eq(clusterReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
         when(reservationRepository.saveAndFlush(any())).thenReturn(reservation);
@@ -625,14 +625,14 @@ public class ReservationServiceTest {
         verify(reservationRepository, times(1))
                 .findCourseReservations(Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(), Mockito.eq(courseReservationList),
+        verify(bankerAlgorithm, times(1)).process(any(), Mockito.eq(courseReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
         verify(reservationRepository, times(1))
                 .findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(), Mockito.eq(clusterReservationList),
+        verify(bankerAlgorithm, times(1)).process(any(), Mockito.eq(clusterReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(reservationRepository, times(1)).saveAndFlush(any());
@@ -907,7 +907,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findCourseReservations(Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(courseReservationList);
 
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservationList),
+        when(bankerAlgorithm.process(any(), Mockito.eq(courseReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
 
         assertThrows(CourseInsufficientResourcesException.class,
@@ -928,7 +928,7 @@ public class ReservationServiceTest {
         verify(reservationRepository, times(1))
                 .findCourseReservations(Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(), Mockito.eq(courseReservationList),
+        verify(bankerAlgorithm, times(1)).process(any(), Mockito.eq(courseReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts));
     }
 
@@ -966,7 +966,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findCourseReservations(Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(courseReservationList);
 
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservationList),
+        when(bankerAlgorithm.process(any(), Mockito.eq(courseReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
         List<Reservation> clusterReservationList = List.of(reservation1, reservation2);
@@ -974,7 +974,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end())))
                 .thenReturn(clusterReservationList);
 
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservationList),
+        when(bankerAlgorithm.process(any(), Mockito.eq(clusterReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
 
         assertThrows(ClusterInsufficientResourcesException.class,
@@ -995,14 +995,14 @@ public class ReservationServiceTest {
         verify(reservationRepository, times(1))
                 .findCourseReservations(Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(), Mockito.eq(courseReservationList),
+        verify(bankerAlgorithm, times(1)).process(any(), Mockito.eq(courseReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
         verify(reservationRepository, times(1))
                 .findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(), Mockito.eq(clusterReservationList),
+        verify(bankerAlgorithm, times(1)).process(any(), Mockito.eq(clusterReservationList),
                 Mockito.eq(podStateful1.getResourceGroup()), Mockito.eq(cluster), Mockito.eq(hosts));
     }
 
@@ -1055,7 +1055,7 @@ public class ReservationServiceTest {
                 Mockito.eq(newCreateDto.end()))).thenReturn(courseReservationList);
 
         // when(metricUtil.extractCourseMetricValues(Mockito.eq(courseMetrics))).thenReturn(courseMetricMap);
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservationList), Mockito.eq(resourceGroup3),
+        when(bankerAlgorithm.process(any(), Mockito.eq(courseReservationList), Mockito.eq(resourceGroup3),
                 Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
         List<Reservation> clusterReservationList = List.of(reservation1, reservation2);
@@ -1064,7 +1064,7 @@ public class ReservationServiceTest {
                 Mockito.eq(newCreateDto.end()))).thenReturn(clusterReservationList);
 
         // when(metricUtil.extractClusterMetricValues(Mockito.eq(clusterMetrics))).thenReturn(clusterMetricMap);
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservationList), Mockito.eq(resourceGroup3),
+        when(bankerAlgorithm.process(any(), Mockito.eq(clusterReservationList), Mockito.eq(resourceGroup3),
                 Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
         when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup3), Mockito.eq(newCreateDto.start()),
@@ -1097,7 +1097,7 @@ public class ReservationServiceTest {
                 Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
         // verify(metricUtil, times(1)).extractCourseMetricValues(Mockito.eq(courseMetrics));
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(),
+        verify(bankerAlgorithm, times(1)).process(any(),
                 Mockito.eq(courseReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
@@ -1105,7 +1105,7 @@ public class ReservationServiceTest {
                 Mockito.eq(course.getClusterId()), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
         // verify(metricUtil, times(1)).extractClusterMetricValues(Mockito.eq(clusterMetrics));
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(),
+        verify(bankerAlgorithm, times(1)).process(any(),
                 Mockito.eq(clusterReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(reservationRepository, times(1)).findRgReservations(Mockito.eq(resourceGroup3),
@@ -1165,7 +1165,7 @@ public class ReservationServiceTest {
                 Mockito.eq(newCreateDto.end()))).thenReturn(courseReservationList);
 
         // when(metricUtil.extractCourseMetricValues(Mockito.eq(courseMetrics))).thenReturn(courseMetricMap);
-        when(bankerAlgorithm.process(Mockito.any(),
+        when(bankerAlgorithm.process(any(),
                 Mockito.eq(courseReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts)))
                 .thenReturn(true);
 
@@ -1175,7 +1175,7 @@ public class ReservationServiceTest {
                 Mockito.eq(newCreateDto.end()))).thenReturn(clusterReservationList);
 
         // when(metricUtil.extractClusterMetricValues(Mockito.eq(clusterMetrics))).thenReturn(clusterMetricMap);
-        when(bankerAlgorithm.process(Mockito.any(),
+        when(bankerAlgorithm.process(any(),
                 Mockito.eq(clusterReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts)))
                 .thenReturn(true);
 
@@ -1209,7 +1209,7 @@ public class ReservationServiceTest {
                 Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
         // verify(metricUtil, times(1)).extractCourseMetricValues(Mockito.eq(courseMetrics));
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(),
+        verify(bankerAlgorithm, times(1)).process(any(),
                 Mockito.eq(courseReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
@@ -1217,7 +1217,7 @@ public class ReservationServiceTest {
                 Mockito.eq(course.getClusterId()), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
         // verify(metricUtil, times(1)).extractClusterMetricValues(Mockito.eq(clusterMetrics));
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(),
+        verify(bankerAlgorithm, times(1)).process(any(),
                 Mockito.eq(clusterReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(reservationRepository, times(1)).findRgReservations(Mockito.eq(resourceGroup3),
@@ -1601,7 +1601,7 @@ public class ReservationServiceTest {
         when(reservationRepository.findCourseReservations(Mockito.eq(course), Mockito.eq(newCreateDto.start()),
                 Mockito.eq(newCreateDto.end()))).thenReturn(courseReservationList);
 
-        when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservationList),
+        when(bankerAlgorithm.process(any(), Mockito.eq(courseReservationList),
                 Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
 
         assertThrows(ReservationCreationException.class,
@@ -1629,7 +1629,7 @@ public class ReservationServiceTest {
         verify(reservationRepository, times(1)).findCourseReservations(
                 Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(),
+        verify(bankerAlgorithm, times(1)).process(any(),
                 Mockito.eq(courseReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts));
     }
 
@@ -1675,7 +1675,7 @@ public class ReservationServiceTest {
                 Mockito.eq(newCreateDto.end()))).thenReturn(courseReservationList);
 
         // when(metricUtil.extractCourseMetricValues(Mockito.eq(courseMetrics))).thenReturn(courseMetricMap);
-        when(bankerAlgorithm.process(Mockito.any(),
+        when(bankerAlgorithm.process(any(),
                 Mockito.eq(courseReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts)))
                 .thenReturn(true);
 
@@ -1685,7 +1685,7 @@ public class ReservationServiceTest {
                 Mockito.eq(newCreateDto.end()))).thenReturn(clusterReservationList);
 
         // when(metricUtil.extractClusterMetricValues(Mockito.eq(clusterMetrics))).thenReturn(clusterMetricMap);
-        when(bankerAlgorithm.process(Mockito.any(),
+        when(bankerAlgorithm.process(any(),
                 Mockito.eq(clusterReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts)))
                 .thenReturn(false);
 
@@ -1715,7 +1715,7 @@ public class ReservationServiceTest {
                 Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
         // verify(metricUtil, times(1)).extractCourseMetricValues(Mockito.eq(courseMetrics));
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(),
+        verify(bankerAlgorithm, times(1)).process(any(),
                 Mockito.eq(courseReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
@@ -1723,7 +1723,7 @@ public class ReservationServiceTest {
                 Mockito.eq(course.getClusterId()), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
         // verify(metricUtil, times(1)).extractClusterMetricValues(Mockito.eq(clusterMetrics));
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(),
+        verify(bankerAlgorithm, times(1)).process(any(),
                 Mockito.eq(clusterReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts));
     }
 
@@ -1769,7 +1769,7 @@ public class ReservationServiceTest {
                 Mockito.eq(newCreateDto.end()))).thenReturn(courseReservationList);
 
         // when(metricUtil.extractCourseMetricValues(Mockito.eq(courseMetrics))).thenReturn(courseMetricMap);
-        when(bankerAlgorithm.process(Mockito.any(),
+        when(bankerAlgorithm.process(any(),
                 Mockito.eq(courseReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts)))
                 .thenReturn(true);
 
@@ -1779,7 +1779,7 @@ public class ReservationServiceTest {
                 Mockito.eq(newCreateDto.end()))).thenReturn(clusterReservationList);
 
         // when(metricUtil.extractClusterMetricValues(Mockito.eq(clusterMetrics))).thenReturn(clusterMetricMap);
-        when(bankerAlgorithm.process(Mockito.any(),
+        when(bankerAlgorithm.process(any(),
                 Mockito.eq(clusterReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts)))
                 .thenReturn(true);
 
@@ -1812,7 +1812,7 @@ public class ReservationServiceTest {
                 Mockito.eq(course), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
         // verify(metricUtil, times(1)).extractCourseMetricValues(Mockito.eq(courseMetrics));
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(),
+        verify(bankerAlgorithm, times(1)).process(any(),
                 Mockito.eq(courseReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
@@ -1820,7 +1820,7 @@ public class ReservationServiceTest {
                 Mockito.eq(course.getClusterId()), Mockito.eq(newCreateDto.start()), Mockito.eq(newCreateDto.end()));
 
         // verify(metricUtil, times(1)).extractClusterMetricValues(Mockito.eq(clusterMetrics));
-        verify(bankerAlgorithm, times(1)).process(Mockito.any(),
+        verify(bankerAlgorithm, times(1)).process(any(),
                 Mockito.eq(clusterReservationList), Mockito.eq(resourceGroup3), Mockito.eq(cluster), Mockito.eq(hosts));
 
         verify(reservationRepository, times(1)).findRgReservations(Mockito.eq(resourceGroup3),
@@ -2209,7 +2209,7 @@ public class ReservationServiceTest {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         when(teamRepository.findById(Mockito.eq(team1.getId()))).thenReturn(Optional.of(team1));
-        when(reservationRepository.findAllActiveReservations(Mockito.eq(team1), Mockito.any(), Mockito.eq(pageable)))
+        when(reservationRepository.findAllActiveReservations(Mockito.eq(team1), any(), Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
 
         Page<Reservation> reservationPage = reservationService.findActiveReservations(team1.getId(), pageable);
@@ -2237,7 +2237,7 @@ public class ReservationServiceTest {
 
         verify(teamRepository, times(1)).findById(Mockito.eq(team1.getId()));
         verify(reservationRepository, times(1))
-                .findAllActiveReservations(Mockito.eq(team1), Mockito.any(), Mockito.eq(pageable));
+                .findAllActiveReservations(Mockito.eq(team1), any(), Mockito.eq(pageable));
     }
 
     @Test
@@ -2264,7 +2264,7 @@ public class ReservationServiceTest {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
         when(teamRepository.findById(Mockito.eq(team1.getId()))).thenReturn(Optional.of(team1));
-        when(reservationRepository.findAllHistoricalReservations(Mockito.eq(team1), Mockito.any(), Mockito.eq(pageable)))
+        when(reservationRepository.findAllHistoricalReservations(Mockito.eq(team1), any(), Mockito.eq(pageable)))
                 .thenReturn(new PageImpl<>(List.of(reservation1, reservation3), pageable, 2));
 
         Page<Reservation> reservationPage = reservationService.findHistoricalReservations(team1.getId(), pageable);
@@ -2292,7 +2292,7 @@ public class ReservationServiceTest {
 
         verify(teamRepository, times(1)).findById(Mockito.eq(team1.getId()));
         verify(reservationRepository, times(1))
-                .findAllHistoricalReservations(Mockito.eq(team1), Mockito.any(), Mockito.eq(pageable));
+                .findAllHistoricalReservations(Mockito.eq(team1), any(), Mockito.eq(pageable));
     }
 
     @Test
@@ -2344,19 +2344,19 @@ public class ReservationServiceTest {
                     Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(clusterReservations);
 
             if (index % 2 == 0) {
-                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup1),
+                lenient().when(bankerAlgorithm.process(any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup1),
                         Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
 
-                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup1),
+                lenient().when(bankerAlgorithm.process(any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup1),
                         Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
                 lenient().when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(startTemp),
                         Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(List.of(reservation1));
             } else {
-                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup1),
+                lenient().when(bankerAlgorithm.process(any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup1),
                         Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
 
-                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup1),
+                lenient().when(bankerAlgorithm.process(any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup1),
                         Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
 
                 lenient().when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup1), Mockito.eq(startTemp),
@@ -2388,12 +2388,12 @@ public class ReservationServiceTest {
         verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
 
         verify(reservationRepository, times(4))
-                .findCourseReservations(Mockito.eq(course), Mockito.any(), Mockito.any());
+                .findCourseReservations(Mockito.eq(course), any(), any());
         verify(reservationRepository, times(4))
-                .findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.any(), Mockito.any());
+                .findClusterReservations(Mockito.eq(course.getClusterId()), any(), any());
 
         verify(reservationRepository, times(4))
-                .findRgReservations(Mockito.eq(resourceGroup1), Mockito.any(), Mockito.any());
+                .findRgReservations(Mockito.eq(resourceGroup1), any(), any());
     }
 
     @Test
@@ -2469,19 +2469,19 @@ public class ReservationServiceTest {
                     Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(clusterReservations);
 
             if (index % 2 == 0) {
-                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup3),
+                lenient().when(bankerAlgorithm.process(any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup3),
                         Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
-                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup3),
+                lenient().when(bankerAlgorithm.process(any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup3),
                         Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(false);
 
                 lenient().when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup3), Mockito.eq(startTemp),
                         Mockito.eq(startTemp.plusMinutes(windowLength)))).thenReturn(List.of(reservation1));
             } else {
-                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup3),
+                lenient().when(bankerAlgorithm.process(any(), Mockito.eq(courseReservations), Mockito.eq(resourceGroup3),
                         Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
-                lenient().when(bankerAlgorithm.process(Mockito.any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup3),
+                lenient().when(bankerAlgorithm.process(any(), Mockito.eq(clusterReservations), Mockito.eq(resourceGroup3),
                         Mockito.eq(cluster), Mockito.eq(hosts))).thenReturn(true);
 
                 lenient().when(reservationRepository.findRgReservations(Mockito.eq(resourceGroup3), Mockito.eq(startTemp),
@@ -2513,12 +2513,12 @@ public class ReservationServiceTest {
         verify(clusterMetricRepository, times(1)).findAllByClusterId(Mockito.eq(course.getClusterId()));
 
         verify(reservationRepository, times(4))
-                .findCourseReservations(Mockito.eq(course), Mockito.any(), Mockito.any());
+                .findCourseReservations(Mockito.eq(course), any(), any());
         verify(reservationRepository, times(4))
-                .findClusterReservations(Mockito.eq(course.getClusterId()), Mockito.any(), Mockito.any());
+                .findClusterReservations(Mockito.eq(course.getClusterId()), any(), any());
 
         verify(reservationRepository, times(4))
-                .findRgReservations(Mockito.eq(resourceGroup3), Mockito.any(), Mockito.any());
+                .findRgReservations(Mockito.eq(resourceGroup3), any(), any());
     }
 
     @Test

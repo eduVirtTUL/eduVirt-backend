@@ -124,6 +124,8 @@ public class ResourceGroupPoolServiceTest {
         UUID id = UUID.randomUUID();
         ResourceGroupPool pool = ResourceGroupPool.builder().build();
         when(resourceGroupPoolRepository.findById(any())).thenReturn(Optional.of(pool));
+        when(privilegesService.validateCourseMembershipOwnershipOrAdmin(isNull()))
+                .thenReturn(true);
         // When
         ResourceGroupPool result = sut.getResourceGroupPool(id);
         // Then

@@ -90,6 +90,9 @@ public class ResourceGroupServiceTest {
         when(resourceGroupRepository.findById(id))
                 .thenReturn(Optional.of(resourceGroup));
 
+        when(privilegesService.validateResourceGroupOwnershipOrAdminOrStudentWithAccess(resourceGroup))
+                .thenReturn(true);
+
         var result = sut.getResourceGroup(id);
         assertEquals(resourceGroup, result);
     }
