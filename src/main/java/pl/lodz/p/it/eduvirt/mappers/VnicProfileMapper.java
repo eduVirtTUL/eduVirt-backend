@@ -18,6 +18,7 @@ public interface VnicProfileMapper {
     @Mapping(target = "inPool",             expression = "java(false)")
     @Mapping(target = "valid",              expression = "java(null)")
     @Mapping(target = "validationErrors",   expression = "java(null)")
+    @Mapping(target = "inUse",              expression = "java(null)")
     VnicProfileDto ovirtVnicProfileToDto(VnicProfile vnicProfile);
 
     VnicProfilePoolMemberDto vnicProfileToPoolMemberDto(VnicProfilePoolMember vnicProfile);
