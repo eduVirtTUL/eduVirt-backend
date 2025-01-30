@@ -74,11 +74,19 @@ public class GeneralControllerExceptionResolver {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
     }
-    
+
     @ExceptionHandler({Exception.class})
     ResponseEntity<ExceptionResponse> handleError(Exception exception) {
         return ResponseEntity.internalServerError()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ExceptionResponse(exception.getMessage(), "internalServerError"));
+    }
+
+    @ExceptionHandler({PreconditionFailedException.class})
+    ResponseEntity<ExceptionResponse> handlePreconditionFailedException(
+            PreconditionFailedException exception) {
+        return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ExceptionResponse(exception.getMessage(), exception.getKey()));
     }
 }

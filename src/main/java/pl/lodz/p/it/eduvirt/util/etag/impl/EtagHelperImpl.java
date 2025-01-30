@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import pl.lodz.p.it.eduvirt.entity.Updatable;
 import pl.lodz.p.it.eduvirt.exceptions.general.InternalServerException;
-import pl.lodz.p.it.eduvirt.exceptions.general.PreconditionFailed;
+import pl.lodz.p.it.eduvirt.exceptions.general.PreconditionFailedException;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 import pl.lodz.p.it.eduvirt.util.etag.EtagPayload;
 
@@ -79,7 +79,7 @@ public class EtagHelperImpl implements ETagHelper {
             return payload.equals(etagPayload);
 
         } catch (ParseException e) {
-            throw new PreconditionFailed();
+            throw new PreconditionFailedException();
         } catch (JOSEException e) {
             throw new InternalServerException();
         }
