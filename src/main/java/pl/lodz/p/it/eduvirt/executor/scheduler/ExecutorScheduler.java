@@ -46,14 +46,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-// Check for final version
-//TO_CHECK michal: improvements for transactions
-//TO_CHECK michal: LoggerInterceptor on other services
-
-// Priority 1
-//TO_IMPROVE michal: handle task that in IN_PROGRESS status for a long time (timeouts??????????)
-//TO_IMPROVE michal: send mail notification to administrators after multiply restarts of POD
-
 @Slf4j
 @Service
 @LoggerInterceptor
@@ -226,10 +218,6 @@ public class ExecutorScheduler {
                                         // Set vnic profile's property "inUse" to true
                                         vnicProfilePoolService.markVnicProfileAsOccupied(chosenVnicProfileId);
                                     }
-
-                                    //TODO_OPTIONAL michal: potentially if error occurs on the first nic, in the next iteration
-                                    // will be choose the new one vnic profile from pool (and the previous one will be
-                                    // marked as occupied without assigning to any NIC - resource blocking)
 
                                     // Assign vnic profile to VMs NICs
                                     interfaces

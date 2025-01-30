@@ -10,5 +10,6 @@ public record VnicProfileDto(
         String networkVlanId,
         Boolean inPool,
         Boolean valid,
-        List<String> validationErrors
+        List<String> validationErrors,
+        Boolean inUse
 ) {}

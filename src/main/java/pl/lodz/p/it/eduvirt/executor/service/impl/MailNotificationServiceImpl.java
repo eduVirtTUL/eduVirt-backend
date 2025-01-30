@@ -40,9 +40,6 @@ public class MailNotificationServiceImpl implements MailNotificationService {
 
     @Override
     public void sendReservationEndNotification(Reservation reservation) {
-        //TODO_OPTIONAL michal: handle send mail retries if some error occurs
-        //TODO_OPTIONAL michal: maybe add userId as constraint and register after each email send,
-        // to avoid sending many emails to all students from team, if there is a problem with sending an email to one team member
         reservation.getTeam()
                 .getUsers()
                 .forEach(user ->

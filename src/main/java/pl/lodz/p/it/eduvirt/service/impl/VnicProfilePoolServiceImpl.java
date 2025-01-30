@@ -30,8 +30,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-//TODO michal consider managing transaction timeouts rather than excluding API operations from transactions
-
 @Service
 @Slf4j
 @LoggerInterceptor
