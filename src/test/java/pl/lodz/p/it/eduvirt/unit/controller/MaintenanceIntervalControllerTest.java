@@ -54,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         GeneralControllerExceptionResolver.class,
 })
 @WebMvcTest(controllers = {MaintenanceIntervalController.class}, useDefaultFilters = false)
-public class MaintenanceIntervalControllerTest {
+class MaintenanceIntervalControllerTest {
 
     @MockitoBean
     private MaintenanceIntervalService maintenanceIntervalService;
@@ -90,7 +90,7 @@ public class MaintenanceIntervalControllerTest {
     private MaintenanceInterval maintenanceInterval8;
 
     @BeforeEach
-    public void prepareTestData() throws Exception {
+    void prepareTestData() throws Exception {
         mapper.findAndRegisterModules();
 
         maintenanceInterval1 = new MaintenanceInterval(
@@ -196,7 +196,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ExistingClusterIdentifierIsPassed_When_CreateNewClusterMaintenanceInterval_Then_CreateNewClusterMaintenanceIntervalSuccessfully() throws Exception {
+    void Given_ExistingClusterIdentifierIsPassed_When_CreateNewClusterMaintenanceInterval_Then_CreateNewClusterMaintenanceIntervalSuccessfully() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE", "EXAMPLE_DESCRIPTION",
                 OffsetDateTime.now(ZoneOffset.UTC).plusHours(1).toLocalDateTime(),
@@ -232,7 +232,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_CreateNewClusterMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_CreateNewClusterMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE", "EXAMPLE_DESCRIPTION",
                 OffsetDateTime.now(ZoneOffset.UTC).plusHours(1).toLocalDateTime(),
@@ -254,7 +254,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ServiceMethodThrowsMaintenanceIntervalInvalidTimeWindowException_When_CreateNewClusterMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
+    void Given_ServiceMethodThrowsMaintenanceIntervalInvalidTimeWindowException_When_CreateNewClusterMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE", "EXAMPLE_DESCRIPTION",
                 OffsetDateTime.now(ZoneOffset.UTC).plusHours(1).toLocalDateTime(),
@@ -291,7 +291,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ServiceMethodThrowsMaintenanceIntervalConflictException_When_CreateNewClusterMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
+    void Given_ServiceMethodThrowsMaintenanceIntervalConflictException_When_CreateNewClusterMaintenanceInterval_Then_Returns400BadRequest() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE", "EXAMPLE_DESCRIPTION",
                 OffsetDateTime.now(ZoneOffset.UTC).plusHours(1).toLocalDateTime(),
@@ -331,7 +331,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_AllDataIsValid_When_CreateNewSystemMaintenanceInterval_Then_CreateNewSystemMaintenanceIntervalSuccessfully() throws Exception {
+    void Given_AllDataIsValid_When_CreateNewSystemMaintenanceInterval_Then_CreateNewSystemMaintenanceIntervalSuccessfully() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE", "EXAMPLE_DESCRIPTION",
                 OffsetDateTime.now(ZoneOffset.UTC).plusHours(1).toLocalDateTime(),
@@ -362,7 +362,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ServiceMethodThrowsMaintenanceIntervalInvalidTimeWindowException_When_CreateNewSystemMaintenanceInterval_Then_CreateNewSystemMaintenanceIntervalSuccessfully() throws Exception {
+    void Given_ServiceMethodThrowsMaintenanceIntervalInvalidTimeWindowException_When_CreateNewSystemMaintenanceInterval_Then_CreateNewSystemMaintenanceIntervalSuccessfully() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE", "EXAMPLE_DESCRIPTION",
                 OffsetDateTime.now(ZoneOffset.UTC).plusHours(1).toLocalDateTime(),
@@ -393,7 +393,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ServiceMethodThrowsMaintenanceIntervalConflictException_When_CreateNewSystemMaintenanceInterval_Then_CreateNewSystemMaintenanceIntervalSuccessfully() throws Exception {
+    void Given_ServiceMethodThrowsMaintenanceIntervalConflictException_When_CreateNewSystemMaintenanceInterval_Then_CreateNewSystemMaintenanceIntervalSuccessfully() throws Exception {
         CreateMaintenanceIntervalDto createDto = new CreateMaintenanceIntervalDto(
                 "EXAMPLE_CAUSE", "EXAMPLE_DESCRIPTION",
                 OffsetDateTime.now(ZoneOffset.UTC).plusHours(1).toLocalDateTime(),
@@ -426,7 +426,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeActiveClusterMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
+    void Given_SomeActiveClusterMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -480,10 +480,10 @@ public class MaintenanceIntervalControllerTest {
         PageInfoDto pageInfo = foundPage.page();
 
         assertNotNull(pageInfo);
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<MaintenanceIntervalDto> foundMaintenanceIntervals = foundPage.items();
         assertNotNull(foundMaintenanceIntervals);
@@ -518,7 +518,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeActiveSystemMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
+    void Given_SomeActiveSystemMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -570,10 +570,10 @@ public class MaintenanceIntervalControllerTest {
         PageInfoDto pageInfo = foundPage.page();
 
         assertNotNull(pageInfo);
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<MaintenanceIntervalDto> foundMaintenanceIntervals = foundPage.items();
         assertNotNull(foundMaintenanceIntervals);
@@ -608,7 +608,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeInactiveClusterMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
+    void Given_SomeInactiveClusterMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -662,10 +662,10 @@ public class MaintenanceIntervalControllerTest {
         PageInfoDto pageInfo = foundPage.page();
 
         assertNotNull(pageInfo);
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<MaintenanceIntervalDto> foundMaintenanceIntervals = foundPage.items();
         assertNotNull(foundMaintenanceIntervals);
@@ -700,7 +700,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeInactiveSystemMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
+    void Given_SomeInactiveSystemMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsAllFoundMaintenanceIntervals() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -753,10 +753,10 @@ public class MaintenanceIntervalControllerTest {
         PageInfoDto pageInfo = foundPage.page();
 
         assertNotNull(pageInfo);
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 2);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 2);
+        assertEquals(0, pageInfo.page());
+        assertEquals(2, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(2, pageInfo.totalElements());
 
         List<MaintenanceIntervalDto> foundMaintenanceIntervals = foundPage.items();
         assertNotNull(foundMaintenanceIntervals);
@@ -791,7 +791,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NoMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsEmptyMaintenanceIntervalList() throws Exception {
+    void Given_NoMaintenanceIntervalsExistInTheEduVirtDB_When_GetAllMaintenanceIntervals_Then_ReturnsEmptyMaintenanceIntervalList() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -819,7 +819,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeMaintenanceIntervalsExistForClusterInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsAllFoundMaintenanceIntervalsWithinTimePeriod() throws Exception {
+    void Given_SomeMaintenanceIntervalsExistForClusterInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsAllFoundMaintenanceIntervalsWithinTimePeriod() throws Exception {
         Cluster clusterMock = mock(Cluster.class);
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(12).toLocalDateTime();
@@ -898,7 +898,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeMaintenanceIntervalsExistForSystemInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsAllFoundMaintenanceIntervalsWithinTimePeriod() throws Exception {
+    void Given_SomeMaintenanceIntervalsExistForSystemInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsAllFoundMaintenanceIntervalsWithinTimePeriod() throws Exception {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(12).toLocalDateTime();
 
@@ -971,7 +971,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_GetMaintenanceIntervalsWithinTimePeriod_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_GetMaintenanceIntervalsWithinTimePeriod_Then_Returns404NotFound() throws Exception {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(24).toLocalDateTime();
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(48).toLocalDateTime();
 
@@ -989,7 +989,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NoMaintenanceIntervalsExistInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsEmptyMaintenanceIntervalList() throws Exception {
+    void Given_NoMaintenanceIntervalsExistInSelectedTimePeriod_When_GetMaintenanceIntervalsWithinTimePeriod_Then_ReturnsEmptyMaintenanceIntervalList() throws Exception {
         Cluster clusterMock = mock(Cluster.class);
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(24).toLocalDateTime();
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(48).toLocalDateTime();
@@ -1016,7 +1016,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ExistingMaintenanceIntervalIsPassed_When_GetMaintenanceInterval_Then_ReturnsFoundMaintenanceInterval() throws Exception {
+    void Given_ExistingMaintenanceIntervalIsPassed_When_GetMaintenanceInterval_Then_ReturnsFoundMaintenanceInterval() throws Exception {
         MaintenanceIntervalDetailsDto maintenanceInterval = new MaintenanceIntervalDetailsDto(
                 maintenanceInterval1.getId(),
                 maintenanceInterval1.getCause(),
@@ -1069,7 +1069,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentMaintenanceIntervalIsPassed_When_GetMaintenanceInterval_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentMaintenanceIntervalIsPassed_When_GetMaintenanceInterval_Then_Returns404NotFound() throws Exception {
         UUID randomUUID = UUID.randomUUID();
         when(maintenanceIntervalService.findMaintenanceInterval(randomUUID))
                 .thenReturn(Optional.empty());
@@ -1086,7 +1086,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ExistingMaintenanceIntervalIsPassed_When_FinishMaintenanceInterval_Then_FinishesGivenMaintenanceIntervalSuccessfully() throws Exception {
+    void Given_ExistingMaintenanceIntervalIsPassed_When_FinishMaintenanceInterval_Then_FinishesGivenMaintenanceIntervalSuccessfully() throws Exception {
         doNothing().when(maintenanceIntervalService)
                 .finishMaintenanceInterval(maintenanceInterval1.getId());
 
@@ -1101,7 +1101,7 @@ public class MaintenanceIntervalControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentMaintenanceIntervalIsPassed_When_FinishMaintenanceInterval_Then_FinishesGivenMaintenanceIntervalSuccessfully() throws Exception {
+    void Given_NonExistentMaintenanceIntervalIsPassed_When_FinishMaintenanceInterval_Then_FinishesGivenMaintenanceIntervalSuccessfully() throws Exception {
         UUID randomUUID = UUID.randomUUID();
         doThrow(MaintenanceIntervalNotFound.class).when(maintenanceIntervalService)
                 .finishMaintenanceInterval(randomUUID);

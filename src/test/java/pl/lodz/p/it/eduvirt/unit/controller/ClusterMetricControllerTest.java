@@ -62,7 +62,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ClusterMetricMapperImpl.class, MetricMapperImpl.class
 })
 @WebMvcTest(controllers = {ClusterMetricController.class}, useDefaultFilters = false)
-public class ClusterMetricControllerTest {
+class ClusterMetricControllerTest {
 
     @MockitoBean
     private ClusterMetricService clusterMetricService;
@@ -109,7 +109,7 @@ public class ClusterMetricControllerTest {
     private ClusterMetric clusterMetric3;
 
     @BeforeEach
-    public void prepareTestData() throws Exception {
+    void prepareTestData() throws Exception {
         Field id = AbstractEntity.class.getDeclaredField("id");
         Field version = Updatable.class.getDeclaredField("version");
 
@@ -144,7 +144,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_MetricValueDoesNotExistForGivenCluster_When_CreateMetricValue_Then_CreatesNewMetricValueSuccessfully() throws Exception {
+    void Given_MetricValueDoesNotExistForGivenCluster_When_CreateMetricValue_Then_CreatesNewMetricValueSuccessfully() throws Exception {
         double metricValue = 100.00;
         CreateMetricValueDto createDto = new CreateMetricValueDto(
                 metric1.getId(),
@@ -169,7 +169,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_CreateMetricValue_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_CreateMetricValue_Then_Returns400BadRequest() throws Exception {
         double metricValue = 100.00;
         CreateMetricValueDto createDto = new CreateMetricValueDto(
                 metric1.getId(),
@@ -192,7 +192,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentMetricIdentifierIsPassed_When_CreateMetricValue_Then_Returns409Conflict() throws Exception {
+    void Given_NonExistentMetricIdentifierIsPassed_When_CreateMetricValue_Then_Returns409Conflict() throws Exception {
         double metricValue = 100.00;
         UUID metricId = UUID.randomUUID();
         CreateMetricValueDto createDto = new CreateMetricValueDto(
@@ -222,7 +222,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_MetricValueAlreadyExistsForGivenCluster_When_CreateMetricValue_Then_Returns409Conflict() throws Exception {
+    void Given_MetricValueAlreadyExistsForGivenCluster_When_CreateMetricValue_Then_Returns409Conflict() throws Exception {
         double metricValue = 100.00;
         CreateMetricValueDto createDto = new CreateMetricValueDto(
                 metric1.getId(),
@@ -253,7 +253,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeMetricValuesAreDefinedForGivenCluster_When_GetAllMetricValues_Then_ReturnsAllFoundMetricValuesForGivenCluster() throws Exception {
+    void Given_SomeMetricValuesAreDefinedForGivenCluster_When_GetAllMetricValues_Then_ReturnsAllFoundMetricValuesForGivenCluster() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -289,10 +289,10 @@ public class ClusterMetricControllerTest {
 
         PageInfoDto pageInfo = foundPage.page();
         assertNotNull(pageInfo);
-        assertEquals(pageInfo.page(), 0);
-        assertEquals(pageInfo.elements(), 3);
-        assertEquals(pageInfo.totalPages(), 1);
-        assertEquals(pageInfo.totalElements(), 3);
+        assertEquals(0, pageInfo.page());
+        assertEquals(3, pageInfo.elements());
+        assertEquals(1, pageInfo.totalPages());
+        assertEquals(3, pageInfo.totalElements());
 
         List<MetricValueDto> foundMetricValues = foundPage.items();
         assertNotNull(foundMetricValues);
@@ -332,7 +332,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_GetAllMetricValues_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_GetAllMetricValues_Then_Returns400BadRequest() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -351,7 +351,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NoMetricValuesAreDefinedForGivenCluster_When_GetAllMetricValues_Then_ReturnsEmptyClusterMetricValueList() throws Exception {
+    void Given_NoMetricValuesAreDefinedForGivenCluster_When_GetAllMetricValues_Then_ReturnsEmptyClusterMetricValueList() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -379,7 +379,7 @@ public class ClusterMetricControllerTest {
     
     @WithMockUser
     @Test
-    public void Given_ExistingClusterAndMetricIdentifiersArePassed_When_GetClusterMetricDetails_Then_ReturnsFoundClusterMetricDetails() throws Exception {
+    void Given_ExistingClusterAndMetricIdentifiersArePassed_When_GetClusterMetricDetails_Then_ReturnsFoundClusterMetricDetails() throws Exception {
         Cluster clusterMock = mock(Cluster.class);
         String eTag = "SOME_ETAG_CONTENT";
 
@@ -424,7 +424,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_GetClusterMetricDetails_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_GetClusterMetricDetails_Then_Returns404NotFound() throws Exception {
         when(clusterService.findClusterById(existingClusterId)).thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(get("/clusters/{clusterId}/metrics/{metricId}",
@@ -437,7 +437,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentMetricIdentifierIsPassed_When_GetClusterMetricDetails_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentMetricIdentifierIsPassed_When_GetClusterMetricDetails_Then_Returns404NotFound() throws Exception {
         UUID nonExistentMetricId = UUID.randomUUID();
         Cluster clusterMock = mock(Cluster.class);
 
@@ -455,7 +455,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ExistingClusterAndMetricIdentifiersArePassedButClusterMetricValueDoesNotExist_When_GetClusterMetricDetails_Then_Returns404NotFound() throws Exception {
+    void Given_ExistingClusterAndMetricIdentifiersArePassedButClusterMetricValueDoesNotExist_When_GetClusterMetricDetails_Then_Returns404NotFound() throws Exception {
         Cluster clusterMock = mock(Cluster.class);
 
         when(clusterService.findClusterById(existingClusterId)).thenReturn(clusterMock);
@@ -480,7 +480,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ExistingClusterAndMetricIdentifiersArePassed_When_UpdateMetricValue_Then_UpdatesMetricValueSuccessfully() throws Exception {
+    void Given_ExistingClusterAndMetricIdentifiersArePassed_When_UpdateMetricValue_Then_UpdatesMetricValueSuccessfully() throws Exception {
         String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
         clusterMetric1.setValue(100.0);
         ValueDto newValueDto = new ValueDto(clusterMetric1.getId(), clusterMetric1.getVersion(), 100.0);
@@ -496,12 +496,6 @@ public class ClusterMetricControllerTest {
                 metric1.getName(),
                 Metric.MetricCategory.COUNTABLE,
                 newValueDto.value()
-        );
-
-        ClusterMetric updateClusterMetric = new ClusterMetric(
-                clusterMetric1.getClusterId(),
-                clusterMetric1.getMetric(),
-                clusterMetric1.getValue()
         );
 
         Cluster cluster = mock(Cluster.class);
@@ -545,7 +539,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_UpdateMetricValue_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_UpdateMetricValue_Then_Returns400BadRequest() throws Exception {
         String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
         ValueDto newValueDto = new ValueDto(clusterMetric1.getId(), clusterMetric1.getVersion(), 100.0);
 
@@ -565,7 +559,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentMetricIdentifierIsPassed_When_UpdateMetricValue_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentMetricIdentifierIsPassed_When_UpdateMetricValue_Then_Returns400BadRequest() throws Exception {
         UUID randomUUID = UUID.randomUUID();
         String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
         ValueDto newValueDto = new ValueDto(clusterMetric1.getId(), clusterMetric1.getVersion(), 100.0);
@@ -588,7 +582,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ClusterMetricValueCouldNotBeFound_When_UpdateMetricValue_Then_Returns400BadRequest() throws Exception {
+    void Given_ClusterMetricValueCouldNotBeFound_When_UpdateMetricValue_Then_Returns400BadRequest() throws Exception {
         UUID nonExistentClusterMetricId = UUID.randomUUID();
         String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
         ValueDto newValueDto = new ValueDto(nonExistentClusterMetricId, clusterMetric1.getVersion(), 100.0);
@@ -621,7 +615,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ExistingClusterAndMetricIdentifiersArePassed_When_DeleteMetric_Then_RemovesGivenMetricSuccessfully() throws Exception {
+    void Given_ExistingClusterAndMetricIdentifiersArePassed_When_DeleteMetric_Then_RemovesGivenMetricSuccessfully() throws Exception {
         Cluster cluster = mock(Cluster.class);
 
         when(clusterService.findClusterById(existingClusterId)).thenReturn(cluster);
@@ -638,7 +632,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
         when(clusterService.findClusterById(nonExistentClusterId)).thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(delete("/clusters/{clusterId}/metrics/{metricId}", nonExistentClusterId, metric1.getId())
@@ -651,7 +645,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentMetricIdentifierIsPassed_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentMetricIdentifierIsPassed_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
         UUID randomUUID = UUID.randomUUID();
         Cluster cluster = mock(Cluster.class);
 
@@ -669,7 +663,7 @@ public class ClusterMetricControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ClusterMetricValueIsNotDefinedForTGivenMetric_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
+    void Given_ClusterMetricValueIsNotDefinedForTGivenMetric_When_DeleteMetric_Then_Returns400BadRequest() throws Exception {
         Cluster cluster = mock(Cluster.class);
 
         when(clusterService.findClusterById(existingClusterId)).thenReturn(cluster);

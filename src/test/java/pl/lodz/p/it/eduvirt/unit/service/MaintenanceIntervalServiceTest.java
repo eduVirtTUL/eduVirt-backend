@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class MaintenanceIntervalServiceTest {
+class MaintenanceIntervalServiceTest {
 
     @Mock
     private MaintenanceIntervalRepository maintenanceIntervalRepository;
@@ -58,7 +58,6 @@ public class MaintenanceIntervalServiceTest {
     /* Initialization */
 
     private final UUID existingClusterId = UUID.randomUUID();
-    private final UUID nonExistentClusterId = UUID.randomUUID();
 
     private MaintenanceInterval maintenanceInterval1;
     private MaintenanceInterval maintenanceInterval2;
@@ -86,7 +85,7 @@ public class MaintenanceIntervalServiceTest {
     private Reservation reservationNo3;
 
     @BeforeEach
-    public void prepareTestData() throws Exception {
+    void prepareTestData() throws Exception {
         Field id = AbstractEntity.class.getDeclaredField("id");
         Field version = Updatable.class.getDeclaredField("version");
 
@@ -249,7 +248,7 @@ public class MaintenanceIntervalServiceTest {
     /* CreateClusterMaintenanceInterval method tests */
 
     @Test
-    public void Given_AllDataMatchesRequiredConditionsAndReservationsExistDuringTheMaintenance_When_CreateClusterMaintenanceInterval_Then_NewIntervalCreateSuccessfully() {
+    void Given_AllDataMatchesRequiredConditionsAndReservationsExistDuringTheMaintenance_When_CreateClusterMaintenanceInterval_Then_NewIntervalCreateSuccessfully() {
         String cause = "example_cause";
         String description = "example_description";
         UUID clusterId = UUID.randomUUID();
@@ -293,7 +292,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_AllDataMatchesRequiredConditionsAndNoReservationsAreFound_When_CreateClusterMaintenanceInterval_Then_NewIntervalCreateSuccessfully() {
+    void Given_AllDataMatchesRequiredConditionsAndNoReservationsAreFound_When_CreateClusterMaintenanceInterval_Then_NewIntervalCreateSuccessfully() {
         String cause = "example_cause";
         String description = "example_description";
         UUID clusterId = UUID.randomUUID();
@@ -320,7 +319,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_MaintenanceIntervalBeginAtAfterEndAt_When_CreateClusterMaintenanceInterval_Then_ThrowsException() {
+    void Given_MaintenanceIntervalBeginAtAfterEndAt_When_CreateClusterMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -332,7 +331,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_MaintenanceIntervalBeginAtIsInThePast_When_CreateClusterMaintenanceInterval_Then_ThrowsException() {
+    void Given_MaintenanceIntervalBeginAtIsInThePast_When_CreateClusterMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -344,7 +343,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_OtherMaintenanceIntervalsExistForGivenCluster_When_CreateClusterMaintenanceInterval_Then_ThrowsException() {
+    void Given_OtherMaintenanceIntervalsExistForGivenCluster_When_CreateClusterMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
         UUID clusterId = UUID.randomUUID();
@@ -367,7 +366,7 @@ public class MaintenanceIntervalServiceTest {
     /* CreateSystemMaintenanceInterval method tests */
 
     @Test
-    public void Given_AllDataMatchesRequiredConditionsAndSomeReservationsAreFound_When_CreateSystemMaintenanceInterval_Then_CreatesNewSystemMaintenanceIntervalSuccessfully() {
+    void Given_AllDataMatchesRequiredConditionsAndSomeReservationsAreFound_When_CreateSystemMaintenanceInterval_Then_CreatesNewSystemMaintenanceIntervalSuccessfully() {
         String cause = "example_cause";
         String description = "example_description";
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -420,7 +419,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_AllDataMatchesRequiredConditionsAndNoReservationsAreFound_When_CreateSystemMaintenanceInterval_Then_CreatesNewSystemMaintenanceIntervalSuccessfully() {
+    void Given_AllDataMatchesRequiredConditionsAndNoReservationsAreFound_When_CreateSystemMaintenanceInterval_Then_CreatesNewSystemMaintenanceIntervalSuccessfully() {
         String cause = "example_cause";
         String description = "example_description";
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -444,7 +443,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_MaintenanceIntervalBeginAtAfterEndAt_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
+    void Given_MaintenanceIntervalBeginAtAfterEndAt_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -456,7 +455,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_MaintenanceIntervalBeginAtIsInThePast_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
+    void Given_MaintenanceIntervalBeginAtIsInThePast_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -468,7 +467,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_OtherMaintenanceIntervalsExistForGivenCluster_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
+    void Given_OtherMaintenanceIntervalsExistForGivenCluster_When_CreateSystemMaintenanceInterval_Then_ThrowsException() {
         String cause = "example_cause";
         String description = "example_description";
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -488,7 +487,7 @@ public class MaintenanceIntervalServiceTest {
     /* FindMaintenanceInterval method tests */
 
     @Test
-    public void Given_ExistingMaintenanceIntervalIdentifierIsPassed_When_FindMaintenanceInterval_Then_ReturnsFoundMaintenanceInterval() {
+    void Given_ExistingMaintenanceIntervalIdentifierIsPassed_When_FindMaintenanceInterval_Then_ReturnsFoundMaintenanceInterval() {
         when(maintenanceIntervalRepository.findById(maintenanceInterval1.getId())).thenReturn(Optional.of(maintenanceInterval1));
 
         Optional<MaintenanceInterval> foundMaintenanceInterval = maintenanceIntervalService.findMaintenanceInterval(maintenanceInterval1.getId());
@@ -505,7 +504,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_NonExistentMaintenanceIntervalIdentifierIsPassed_When_FindMaintenanceInterval_Then_ThrowsException() {
+    void Given_NonExistentMaintenanceIntervalIdentifierIsPassed_When_FindMaintenanceInterval_Then_ThrowsException() {
         UUID randomUUID = UUID.randomUUID();
         when(maintenanceIntervalRepository.findById(randomUUID)).thenReturn(Optional.empty());
 
@@ -520,7 +519,7 @@ public class MaintenanceIntervalServiceTest {
     /* FindAllMaintenanceIntervals method tests */
 
     @Test
-    public void Given_SelectedActiveIntervalsForGivenCluster_When_FindAllMaintenanceIntervals_Then_FoundAllMaintenanceIntervals() {
+    void Given_SelectedActiveIntervalsForGivenCluster_When_FindAllMaintenanceIntervals_Then_FoundAllMaintenanceIntervals() {
         UUID randomUUID = UUID.randomUUID();
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -546,7 +545,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_SelectedInactiveIntervalsForGivenCluster_When_FindAllMaintenanceIntervals_Then_FoundAllMaintenanceIntervals() {
+    void Given_SelectedInactiveIntervalsForGivenCluster_When_FindAllMaintenanceIntervals_Then_FoundAllMaintenanceIntervals() {
         UUID randomUUID = UUID.randomUUID();
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -572,7 +571,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_SelectedActiveIntervalsForSystem_When_FindAllMaintenanceIntervals_Then_FoundAllMaintenanceIntervals() {
+    void Given_SelectedActiveIntervalsForSystem_When_FindAllMaintenanceIntervals_Then_FoundAllMaintenanceIntervals() {
         Pageable pageable = PageRequest.of(0, 10);
 
         when(maintenanceIntervalRepository.findAllActiveIntervals(any(LocalDateTime.class), eq(pageable)))
@@ -597,7 +596,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_SelectedInactiveIntervalsForSystem_When_FindAllMaintenanceIntervals_Then_FoundAllMaintenanceIntervals() {
+    void Given_SelectedInactiveIntervalsForSystem_When_FindAllMaintenanceIntervals_Then_FoundAllMaintenanceIntervals() {
         Pageable pageable = PageRequest.of(0, 10);
 
         when(maintenanceIntervalRepository.findAllHistoricalIntervals(any(LocalDateTime.class), eq(pageable)))
@@ -624,7 +623,7 @@ public class MaintenanceIntervalServiceTest {
     /* FindAllMaintenanceIntervalsInTimePeriod method tests */
 
     @Test
-    public void Given_SomeMaintenanceIntervalExistInSelectedTimePeriod_When_FindAllMaintenanceIntervalsInTimePeriod_Then_ReturnAllFoundMaintenanceInterval() {
+    void Given_SomeMaintenanceIntervalExistInSelectedTimePeriod_When_FindAllMaintenanceIntervalsInTimePeriod_Then_ReturnAllFoundMaintenanceInterval() {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(2);
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().plusHours(4);
 
@@ -646,7 +645,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_NoMaintenanceIntervalExistInSelectedTimePeriod_When_FindAllMaintenanceIntervalsInTimePeriod_Then_ReturnAllFoundMaintenanceInterval() {
+    void Given_NoMaintenanceIntervalExistInSelectedTimePeriod_When_FindAllMaintenanceIntervalsInTimePeriod_Then_ReturnAllFoundMaintenanceInterval() {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().minusHours(48);
         LocalDateTime end = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime().minusHours(36);
 
@@ -665,7 +664,7 @@ public class MaintenanceIntervalServiceTest {
     /* FinishMaintenanceInterval method tests */
 
     @Test
-    public void Given_ExistingMaintenanceIntervalIdentifierIsPassedAndIntervalDidNotStart_When_FinishMaintenanceInterval_Then_FinishedMaintenanceIntervalSuccessfully() {
+    void Given_ExistingMaintenanceIntervalIdentifierIsPassedAndIntervalDidNotStart_When_FinishMaintenanceInterval_Then_FinishedMaintenanceIntervalSuccessfully() {
         when(maintenanceIntervalRepository.findById(maintenanceInterval1.getId())).thenReturn(Optional.of(maintenanceInterval1));
         doNothing().when(maintenanceIntervalRepository).delete(maintenanceInterval1);
 
@@ -676,7 +675,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_NonExistentMaintenanceIntervalIdentifierIsPassed_When_FinishMaintenanceInterval_Then_ThrowsException() {
+    void Given_NonExistentMaintenanceIntervalIdentifierIsPassed_When_FinishMaintenanceInterval_Then_ThrowsException() {
         UUID randomUUID = UUID.randomUUID();
         when(maintenanceIntervalRepository.findById(randomUUID)).thenReturn(Optional.empty());
         assertThrows(MaintenanceIntervalNotFound.class, () -> maintenanceIntervalService.finishMaintenanceInterval(randomUUID));
@@ -684,7 +683,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_ExistingIdentifierIsPassedMaintenanceIntervalForMaintenanceIntervalThatIsAlreadyFinished_When_FinishMaintenanceInterval_Then_ThrowsException() {
+    void Given_ExistingIdentifierIsPassedMaintenanceIntervalForMaintenanceIntervalThatIsAlreadyFinished_When_FinishMaintenanceInterval_Then_ThrowsException() {
         LocalDateTime start = OffsetDateTime.now(ZoneOffset.UTC).minusHours(24).toLocalDateTime();
         LocalDateTime end = start.plusHours(8);
 
@@ -702,7 +701,7 @@ public class MaintenanceIntervalServiceTest {
     }
 
     @Test
-    public void Given_ExistingMaintenanceIntervalIdentifierIsPassedAndIntervalHasAlreadyStarted_When_FinishMaintenanceInterval_Then_FinishedMaintenanceIntervalSuccessfully() throws Exception {
+    void Given_ExistingMaintenanceIntervalIdentifierIsPassedAndIntervalHasAlreadyStarted_When_FinishMaintenanceInterval_Then_FinishedMaintenanceIntervalSuccessfully() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
 
         MaintenanceInterval updatedMaintenanceInterval = new MaintenanceInterval(

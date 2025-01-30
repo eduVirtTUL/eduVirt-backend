@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.ovirt.engine.sdk4.types.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -21,8 +20,6 @@ import pl.lodz.p.it.eduvirt.controller.VmController;
 import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
-import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
-import pl.lodz.p.it.eduvirt.entity.Updatable;
 import pl.lodz.p.it.eduvirt.exceptions.ClusterNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.VmNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.EventMapper;
@@ -33,7 +30,6 @@ import pl.lodz.p.it.eduvirt.service.ovirt.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
 
-import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -50,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         VmMapperImpl.class, EventMapperImpl.class
 })
 @WebMvcTest(controllers = {VmController.class}, useDefaultFilters = false)
-public class VmControllerTest {
+class VmControllerTest {
 
     /* MockMVC */
 
@@ -87,11 +83,8 @@ public class VmControllerTest {
     private final UUID nonExistentClusterIdentifier = UUID.randomUUID();
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() {
         mapper.findAndRegisterModules();
-
-        Field id = AbstractEntity.class.getDeclaredField("id");
-        Field version = Updatable.class.getDeclaredField("version");
     }
 
     /* Test methods */
@@ -100,7 +93,7 @@ public class VmControllerTest {
 
     @Test
     @WithMockUser
-    public void Given_ExistingVmIdentifierIsPassedForVmWithQosOnItsCpu_When_FindVmRequiredResources_Then_ReturnsResourcesRequiredByFoundVm() throws Exception {
+    void Given_ExistingVmIdentifierIsPassedForVmWithQosOnItsCpu_When_FindVmRequiredResources_Then_ReturnsResourcesRequiredByFoundVm() throws Exception {
         int cpuCount = 16;
         long memorySize = 10L * 1024 * 1024 * 1024;
 
@@ -150,13 +143,12 @@ public class VmControllerTest {
 
     @Test
     @WithMockUser
-    public void Given_ExistingVmIdentifierIsPassedForVmWithoutQosOnItsCpu_When_FindVmRequiredResources_Then_ReturnsResourcesRequiredByFoundVm() throws Exception {
+    void Given_ExistingVmIdentifierIsPassedForVmWithoutQosOnItsCpu_When_FindVmRequiredResources_Then_ReturnsResourcesRequiredByFoundVm() throws Exception {
         int cpuCount = 16;
         long memorySize = 10L * 1024 * 1024 * 1024;
 
         Vm vm = mock(Vm.class);
         CpuProfile cpuProfile = mock(CpuProfile.class);
-        Qos qos = mock(Qos.class);
 
         Map<String, Object> resourcesMap = new HashMap<>();
         resourcesMap.put("cpu", cpuCount);
@@ -180,14 +172,14 @@ public class VmControllerTest {
         assertEquals(cpuCount, outputDto.cpuCount());
         assertEquals(memorySize, outputDto.memorySize());
 
-        verify(oVirtVmService, times(1)).findVmWithCpuProfileById(Mockito.eq(existingVmIdentifier.toString()));
+        verify(oVirtVmService, times(1)).findVmWithCpuProfileById(existingVmIdentifier.toString());
         verify(oVirtVmService, times(1))
                 .findVmResources(eq(vm), isNull(), isNull(), isNull());
     }
 
     @Test
     @WithMockUser
-    public void Given_NonExistentVmIdentifierIsPassed_When_FindVmRequiredResources_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentVmIdentifierIsPassed_When_FindVmRequiredResources_Then_Returns404NotFound() throws Exception {
         when(oVirtVmService.findVmWithCpuProfileById(nonExistentClusterIdentifier.toString()))
                 .thenThrow(VmNotFoundException.class);
 
@@ -202,7 +194,7 @@ public class VmControllerTest {
 
     @Test
     @WithMockUser
-    public void Given_ExistingClusterIdentifierIsPassedAndSomeVmsExistForGivenCluster_When_FindVmsForCluster_Then_ReturnsListOfFoundVmsForGivenCluster() throws Exception {
+    void Given_ExistingClusterIdentifierIsPassedAndSomeVmsExistForGivenCluster_When_FindVmsForCluster_Then_ReturnsListOfFoundVmsForGivenCluster() throws Exception {
         Vm vm1 = mock(Vm.class);
         Vm vm2 = mock(Vm.class);
         Vm vm3 = mock(Vm.class);
@@ -254,7 +246,7 @@ public class VmControllerTest {
 
     @Test
     @WithMockUser
-    public void Given_ExistingClusterIdentifierIsPassedAndNoVmsAreFoundForGivenCluster_When_FindVmsForCluster_Then_ReturnsEmptyListOfVms() throws Exception {
+    void Given_ExistingClusterIdentifierIsPassedAndNoVmsAreFoundForGivenCluster_When_FindVmsForCluster_Then_ReturnsEmptyListOfVms() throws Exception {
         Cluster cluster = mock(Cluster.class);
 
         when(oVirtClusterService.findClusterById(existingClusterIdentifier)).thenReturn(cluster);
@@ -270,7 +262,7 @@ public class VmControllerTest {
 
     @Test
     @WithMockUser
-    public void Given_NonExistentClusterIdentifierIsPassed_When_FindVmsForCluster_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_FindVmsForCluster_Then_Returns404NotFound() throws Exception {
         when(oVirtClusterService.findClusterById(nonExistentClusterIdentifier))
                 .thenThrow(ClusterNotFoundException.class);
 
@@ -286,7 +278,7 @@ public class VmControllerTest {
 
     @Test
     @WithMockUser
-    public void Given_ExistingVmIdentifierIsPassedAndSomeEventsWereForVm_When_FindEventsForVm_Then_ReturnsListOfFoundEvents() throws Exception {
+    void Given_ExistingVmIdentifierIsPassedAndSomeEventsWereForVm_When_FindEventsForVm_Then_ReturnsListOfFoundEvents() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -359,7 +351,7 @@ public class VmControllerTest {
 
     @Test
     @WithMockUser
-    public void Given_ExistingVmIdentifierIsPassedAndNoEventsWereForVm_When_FindEventsForVm_Then_ReturnsEmptyListOfEvents() throws Exception {
+    void Given_ExistingVmIdentifierIsPassedAndNoEventsWereForVm_When_FindEventsForVm_Then_ReturnsEmptyListOfEvents() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -381,7 +373,7 @@ public class VmControllerTest {
 
     @Test
     @WithMockUser
-    public void Given_NonExistentVmIdentifierIsPassed_When_FindEventsForVm_Then_Returns404NotFound() throws Exception {
+    void Given_NonExistentVmIdentifierIsPassed_When_FindEventsForVm_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
 

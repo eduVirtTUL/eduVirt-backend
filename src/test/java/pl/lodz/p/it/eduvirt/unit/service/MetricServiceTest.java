@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class MetricServiceTest {
+class MetricServiceTest {
 
     @Mock
     private MetricRepository metricRepository;
@@ -45,7 +45,7 @@ public class MetricServiceTest {
     /* Initialization */
 
     @BeforeEach
-    public void prepareTestData() {
+    void prepareTestData() {
         metric1 = new Metric(metricName1, Metric.MetricCategory.MEMORY);
         metric2 = new Metric(metricName2, Metric.MetricCategory.MEMORY);
     }
@@ -55,7 +55,7 @@ public class MetricServiceTest {
     /* CreateNewMetric method test */
 
     @Test
-    public void Given_AllTheDataIsValid_When_CreateNewMetric_Then_CreateNewMetricSuccessfully() {
+    void Given_AllTheDataIsValid_When_CreateNewMetric_Then_CreateNewMetricSuccessfully() {
         String metricName = "new_metric_name";
         Metric newMetric = new Metric(metricName, Metric.MetricCategory.COUNTABLE);
 
@@ -67,14 +67,14 @@ public class MetricServiceTest {
     /* FindById method test */
 
     @Test
-    public void Given_ExistingMetricIdentifierIsPassed_When_FindById_Then_ReturnsFoundMetricSuccessfully() {
+    void Given_ExistingMetricIdentifierIsPassed_When_FindById_Then_ReturnsFoundMetricSuccessfully() {
         when(metricRepository.findById(metric1.getId())).thenReturn(Optional.of(metric1));
         metricService.findById(metric1.getId());
         verify(metricRepository, times(1)).findById(metric1.getId());
     }
 
     @Test
-    public void Given_NonExistentMetricIdentifierIsPassed_When_FindById_Then_ThrowsException() {
+    void Given_NonExistentMetricIdentifierIsPassed_When_FindById_Then_ThrowsException() {
         UUID nonExistentMetricId = UUID.randomUUID();
         when(metricRepository.findById(nonExistentMetricId)).thenReturn(Optional.empty());
         assertThrows(MetricNotFoundException.class, () -> metricService.findById(nonExistentMetricId));
@@ -84,7 +84,7 @@ public class MetricServiceTest {
     /* FindAllMetrics method test */
 
     @Test
-    public void Given_CorrectPageNumberAndPageSizeIsPassed_When_FindAllMetrics_Then_ReturnsAllFoundMetricsSuccessfully() {
+    void Given_CorrectPageNumberAndPageSizeIsPassed_When_FindAllMetrics_Then_ReturnsAllFoundMetricsSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("name"));
@@ -119,7 +119,7 @@ public class MetricServiceTest {
     /* DeleteMetric method test */
 
     @Test
-    public void Given_ExistingMetricIdentifierIsPassed_When_DeleteMetric_Then_RemovesMetricSuccessfully() {
+    void Given_ExistingMetricIdentifierIsPassed_When_DeleteMetric_Then_RemovesMetricSuccessfully() {
         UUID metricId = UUID.randomUUID();
 
         when(metricRepository.findById(metricId)).thenReturn(Optional.of(metric1));
@@ -136,7 +136,7 @@ public class MetricServiceTest {
     }
 
     @Test
-    public void Given_NonExistentMetricIdentifierIsPassed_When_DeleteMetric_Then_ThrowsException() {
+    void Given_NonExistentMetricIdentifierIsPassed_When_DeleteMetric_Then_ThrowsException() {
         UUID metricId = UUID.randomUUID();
         when(metricRepository.findById(metricId)).thenReturn(Optional.empty());
         assertThrows(MetricNotFoundException.class, () -> metricService.deleteMetric(metricId));

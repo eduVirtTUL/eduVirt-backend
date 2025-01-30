@@ -50,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         GeneralControllerExceptionResolver.class,
 })
 @WebMvcTest(controllers = {ClusterController.class}, useDefaultFilters = false)
-public class ClusterControllerTest {
+class ClusterControllerTest {
 
     /* Services */
 
@@ -136,11 +136,10 @@ public class ClusterControllerTest {
     private ClusterMetric clusterMetricNo3;
 
     @BeforeEach
-    public void prepareTestData() throws Exception {
+    void prepareTestData() throws Exception {
         mapper.findAndRegisterModules();
 
         Field id = AbstractEntity.class.getDeclaredField("id");
-        Field version = Updatable.class.getDeclaredField("version");
 
         course = new Course();
         course.setName("Sieciowe System Baz Danych");
@@ -268,7 +267,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_ExistingClusterIdentifierIsPassed_When_FindClusterById_Then_ReturnsFoundClusterSuccessfully() throws Exception {
+    void Given_ExistingClusterIdentifierIsPassed_When_FindClusterById_Then_ReturnsFoundClusterSuccessfully() throws Exception {
         String clusterName = "EXAMPLE_CLUSTER_NAME";
         String clusterComment = "EXAMPLE_CLUSTER_COMMENT";
         String clusterDescription = "EXAMPLE_CLUSTER_DESCRIPTION";
@@ -346,7 +345,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_FindClusterById_Then_ReturnsFoundClusterSuccessfully() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_FindClusterById_Then_ReturnsFoundClusterSuccessfully() throws Exception {
         when(clusterService.findClusterById(nonExistentClusterId)).thenThrow(ClusterNotFoundException.class);
 
         mockMvc.perform(get("/clusters/{clusterId}", nonExistentClusterId))
@@ -360,18 +359,20 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeClustersExistInTheOVirtDB_When_FindAllClusters_Then_ReturnsAllFoundClusters() throws Exception {
+    void Given_SomeClustersExistInTheOVirtDB_When_FindAllClusters_Then_ReturnsAllFoundClusters() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
 
-        int hostCount1 = (int) (Math.random() * 99 + 1);
-        int hostCount2 = (int) (Math.random() * 99 + 1);
-        int hostCount3 = (int) (Math.random() * 99 + 1);
+        Random random = new Random();
 
-        int vmCount1 = (int) (Math.random() * 49 + 1);
-        int vmCount2 = (int) (Math.random() * 49 + 1);
-        int vmCount3 = (int) (Math.random() * 49 + 1);
+        int hostCount1 = random.nextInt(99) + 1;
+        int hostCount2 = random.nextInt(99) + 1;
+        int hostCount3 = random.nextInt(99) + 1;
+
+        int vmCount1 = random.nextInt(49) + 1;
+        int vmCount2 = random.nextInt(49) + 1;
+        int vmCount3 = random.nextInt(49) + 1;
 
         Cluster cluster1 = mock(Cluster.class);
         Cluster cluster2 = mock(Cluster.class);
@@ -499,7 +500,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NoClustersExistInTheOVirtDB_When_FindAllClusters_Then_ReturnsEmptyClusterList() throws Exception {
+    void Given_NoClustersExistInTheOVirtDB_When_FindAllClusters_Then_ReturnsEmptyClusterList() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -521,7 +522,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeHostsAreDefinedForTheGivenCluster_When_FindHostInfoByClusterId_Then_ReturnsAllFoundHostsForGivenCluster() throws Exception {
+    void Given_SomeHostsAreDefinedForTheGivenCluster_When_FindHostInfoByClusterId_Then_ReturnsAllFoundHostsForGivenCluster() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -533,13 +534,14 @@ public class ClusterControllerTest {
         Host host3 = mock(Host.class);
         List<Host> hostList = List.of(host1, host2, host3);
 
-        int cpuCount1 = (int) (Math.random() * 99 + 1);
-        int cpuCount2 = (int) (Math.random() * 99 + 1);
-        int cpuCount3 = (int) (Math.random() * 99 + 1);
+        Random random = new Random();
+        int cpuCount1 = random.nextInt(99) + 1;
+        int cpuCount2 = random.nextInt(99) + 1;
+        int cpuCount3 = random.nextInt(99) + 1;
 
-        int memorySize1 = (int) (Math.random() * 127 + 1) * 128 * 1024 * 1024;
-        int memorySize2 = (int) (Math.random() * 127 + 1) * 128 * 1024 * 1024;
-        int memorySize3 = (int) (Math.random() * 127 + 1) * 128 * 1024 * 1024;
+        int memorySize1 = (random.nextInt(127) + 1) * 128 * 1024 * 1024;
+        int memorySize2 = (random.nextInt(127) + 1) * 128 * 1024 * 1024;
+        int memorySize3 = (random.nextInt(127) + 1) * 128 * 1024 * 1024;
 
         HostDto hostDto1 = new HostDto(
                 UUID.randomUUID().toString(),
@@ -641,7 +643,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_FindHostInfoByClusterId_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_FindHostInfoByClusterId_Then_Returns400BadRequest() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -659,7 +661,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NoHostsAreDefinedForTheGivenCluster_When_FindHostInfoByClusterId_Then_ReturnsEmptyHostList() throws Exception {
+    void Given_NoHostsAreDefinedForTheGivenCluster_When_FindHostInfoByClusterId_Then_ReturnsEmptyHostList() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -685,7 +687,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeVmsAreDefinedForTheGivenCluster_When_FindVirtualMachinesByClusterId_Then_ReturnsAllFoundVmsForGivenCluster() throws Exception {
+    void Given_SomeVmsAreDefinedForTheGivenCluster_When_FindVirtualMachinesByClusterId_Then_ReturnsAllFoundVmsForGivenCluster() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -706,21 +708,22 @@ public class ClusterControllerTest {
         Value value3 = mock(Value.class);
         Value value4 = mock(Value.class);
 
-        int elapsedTime1 = (int) (Math.random() * 11 + 1) * 3600;
-        int elapsedTime2 = (int) (Math.random() * 11 + 1) * 3600;
-        int elapsedTime3 = (int) (Math.random() * 11 + 1) * 3600;
+        Random random = new Random();
+        int elapsedTime1 = (random.nextInt(11) + 1) * 3600;
+        int elapsedTime2 = (random.nextInt(11) + 1) * 3600;
+        int elapsedTime3 = (random.nextInt(11) + 1) * 3600;
 
-        int cpuUsage1 = (int) (Math.random() * 100);
-        int cpuUsage2 = (int) (Math.random() * 100);
-        int cpuUsage3 = (int) (Math.random() * 100);
+        int cpuUsage1 = random.nextInt(100);
+        int cpuUsage2 = random.nextInt(100);
+        int cpuUsage3 = random.nextInt(100);
 
-        int memoryUsage1 = (int) (Math.random() * 100);
-        int memoryUsage2 = (int) (Math.random() * 100);
-        int memoryUsage3 = (int) (Math.random() * 100);
+        int memoryUsage1 = random.nextInt(100);
+        int memoryUsage2 = random.nextInt(100);
+        int memoryUsage3 = random.nextInt(100);
 
-        int networkUsage1 = (int) (Math.random() * 100);
-        int networkUsage2 = (int) (Math.random() * 100);
-        int networkUsage3 = (int) (Math.random() * 100);
+        int networkUsage1 = random.nextInt(100);
+        int networkUsage2 = random.nextInt(100);
+        int networkUsage3 = random.nextInt(100);
 
         VmGeneralDto vmGeneralDto1 = new VmGeneralDto(
                 UUID.randomUUID().toString(),
@@ -869,7 +872,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_FindVirtualMachinesByClusterId_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_FindVirtualMachinesByClusterId_Then_Returns400BadRequest() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -886,7 +889,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NoVmsAreDefinedForTheGivenCluster_When_FindVirtualMachinesByClusterId_Then_ReturnsEmptyVmList() throws Exception {
+    void Given_NoVmsAreDefinedForTheGivenCluster_When_FindVirtualMachinesByClusterId_Then_ReturnsEmptyVmList() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -910,7 +913,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeNetworksAreDefinedForTheGivenCluster_When_FindNetworksByClusterId_Then_ReturnsAllFoundNetworksForGivenCluster() throws Exception {
+    void Given_SomeNetworksAreDefinedForTheGivenCluster_When_FindNetworksByClusterId_Then_ReturnsAllFoundNetworksForGivenCluster() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -1015,7 +1018,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_FindNetworksByClusterId_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_FindNetworksByClusterId_Then_Returns400BadRequest() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -1032,7 +1035,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NoNetworksAreDefinedForTheGivenCluster_When_FindNetworksByClusterId_Then_ReturnsEmptyNetworkList() throws Exception {
+    void Given_NoNetworksAreDefinedForTheGivenCluster_When_FindNetworksByClusterId_Then_ReturnsEmptyNetworkList() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -1056,7 +1059,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_SomeEventsAreDefinedForTheGivenCluster_When_FindEventsByClusterId_Then_ReturnsAllFoundEventsForGivenCluster() throws Exception {
+    void Given_SomeEventsAreDefinedForTheGivenCluster_When_FindEventsByClusterId_Then_ReturnsAllFoundEventsForGivenCluster() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -1178,7 +1181,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NonExistentClusterIdentifierIsPassed_When_FindEventsByClusterId_Then_Returns400BadRequest() throws Exception {
+    void Given_NonExistentClusterIdentifierIsPassed_When_FindEventsByClusterId_Then_Returns400BadRequest() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -1195,7 +1198,7 @@ public class ClusterControllerTest {
 
     @WithMockUser
     @Test
-    public void Given_NoEventsAreDefinedForTheGivenCluster_When_FindEventsByClusterId_Then_ReturnsEmptyEventList() throws Exception {
+    void Given_NoEventsAreDefinedForTheGivenCluster_When_FindEventsByClusterId_Then_ReturnsEmptyEventList() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);

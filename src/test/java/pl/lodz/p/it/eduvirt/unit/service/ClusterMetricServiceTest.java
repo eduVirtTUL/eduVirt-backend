@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.ovirt.engine.sdk4.types.Cluster;
 import org.springframework.data.domain.Page;
@@ -33,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ClusterMetricServiceTest {
+class ClusterMetricServiceTest {
 
     @Mock
     private MetricRepository metricRepository;
@@ -67,7 +66,7 @@ public class ClusterMetricServiceTest {
     private ClusterMetric clusterMetric3;
 
     @BeforeEach
-    public void prepareTestData() throws Exception {
+    void prepareTestData() throws Exception {
         Field id = AbstractEntity.class.getDeclaredField("id");
 
         metric1 = new Metric(metricName1, Metric.MetricCategory.COUNTABLE);
@@ -90,7 +89,7 @@ public class ClusterMetricServiceTest {
     /* CreateNewValueForMetric method test */
 
     @Test
-    public void Given_ExistingClusterAndMetricIdentifiersArePassed_When_CreateNewValueForMetric_Then_CreatesNewMetricValueSuccessfully() {
+    void Given_ExistingClusterAndMetricIdentifiersArePassed_When_CreateNewValueForMetric_Then_CreatesNewMetricValueSuccessfully() {
         double metricValue = 199.99;
         ClusterMetric newClusterMetric = new ClusterMetric(existingClusterId, metric1, metricValue);
 
@@ -108,7 +107,7 @@ public class ClusterMetricServiceTest {
     }
 
     @Test
-    public void Given_NonExistentMetricIdentifierIsPassed_When_CreateNewValueForMetric_Then_ThrowsException() {
+    void Given_NonExistentMetricIdentifierIsPassed_When_CreateNewValueForMetric_Then_ThrowsException() {
         UUID randomUUID = UUID.randomUUID();
         double metricValue = 199.99;
 
@@ -123,7 +122,7 @@ public class ClusterMetricServiceTest {
     }
 
     @Test
-    public void Given_ClusterMetricValueIsAlreadyDefinedForGivenCluster_When_CreateNewValueForMetric_Then_ThrowsException() {
+    void Given_ClusterMetricValueIsAlreadyDefinedForGivenCluster_When_CreateNewValueForMetric_Then_ThrowsException() {
         double metricValue = 199.99;
 
         when(cluster.id()).thenReturn(existingClusterId.toString());
@@ -141,7 +140,7 @@ public class ClusterMetricServiceTest {
     /* FindClusterMetricByClusterAndMetric method test */
 
     @Test
-    public void Given_ExistingClusterAndMetricArePassedAndClusterMetricValueExists_When_FindClusterMetricByClusterAndMetric_Then_ReturnsOptionalWithFoundClusterMetricValue() {
+    void Given_ExistingClusterAndMetricArePassedAndClusterMetricValueExists_When_FindClusterMetricByClusterAndMetric_Then_ReturnsOptionalWithFoundClusterMetricValue() {
         when(cluster.id()).thenReturn(existingClusterId.toString());
         when(clusterMetricRepository.findByClusterIdAndMetric(existingClusterId, metric1)).thenReturn(Optional.of(clusterMetric1));
 
@@ -156,7 +155,7 @@ public class ClusterMetricServiceTest {
     }
 
     @Test
-    public void Given_ExistingClusterAndMetricArePassedButClusterMetricValueDoesNotExists_When_FindClusterMetricByClusterAndMetric_Then_ReturnsEmptyOptional() {
+    void Given_ExistingClusterAndMetricArePassedButClusterMetricValueDoesNotExists_When_FindClusterMetricByClusterAndMetric_Then_ReturnsEmptyOptional() {
         when(cluster.id()).thenReturn(existingClusterId.toString());
         when(clusterMetricRepository.findByClusterIdAndMetric(existingClusterId, metric1)).thenReturn(Optional.empty());
 
@@ -172,7 +171,7 @@ public class ClusterMetricServiceTest {
     /* FindAllMetricValuesForCluster method test */
 
     @Test
-    public void Given_SomeClusterMetricValuesAreDefinedForGivenCluster_When_FindAllMetricValuesForCluster_Then_ReturnsAllFoundMetricsValuesSuccessfully() {
+    void Given_SomeClusterMetricValuesAreDefinedForGivenCluster_When_FindAllMetricValuesForCluster_Then_ReturnsAllFoundMetricsValuesSuccessfully() {
         int pageNumber = 0;
         int pageSize = 10;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -227,7 +226,7 @@ public class ClusterMetricServiceTest {
     }
 
     @Test
-    public void Given_NoClusterMetricValuesAreDefinedForGivenCluster_When_FindAllMetricValuesForCluster_Then_ReturnsEmptyPage() {
+    void Given_NoClusterMetricValuesAreDefinedForGivenCluster_When_FindAllMetricValuesForCluster_Then_ReturnsEmptyPage() {
         int pageNumber = 0;
         int pageSize = 10;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -253,7 +252,7 @@ public class ClusterMetricServiceTest {
     /* FindAllMetricValuesForCluster method test */
 
     @Test
-    public void Given_SomeClusterMetricValuesAreDefinedForGivenCluster_When_FindAllMetricValuesForCluster_WithoutPagination_Then_ReturnsAllFoundMetricsValuesSuccessfully() {
+    void Given_SomeClusterMetricValuesAreDefinedForGivenCluster_When_FindAllMetricValuesForCluster_WithoutPagination_Then_ReturnsAllFoundMetricsValuesSuccessfully() {
         when(cluster.id()).thenReturn(existingClusterId.toString());
         when(clusterMetricRepository.findAllByClusterId(existingClusterId))
                 .thenReturn(List.of(clusterMetric1, clusterMetric2, clusterMetric3));
@@ -299,7 +298,7 @@ public class ClusterMetricServiceTest {
     }
 
     @Test
-    public void Given_NoClusterMetricValuesAreDefinedForGivenCluster_When_FindAllMetricValuesForCluster_WithoutPagination_Then_ReturnsEmptyPage() {
+    void Given_NoClusterMetricValuesAreDefinedForGivenCluster_When_FindAllMetricValuesForCluster_WithoutPagination_Then_ReturnsEmptyPage() {
         when(cluster.id()).thenReturn(existingClusterId.toString());
         when(clusterMetricRepository.findAllByClusterId(existingClusterId)).thenReturn(List.of());
 
@@ -315,11 +314,11 @@ public class ClusterMetricServiceTest {
     /* UpdateMetricValue method test */
 
     @Test
-    public void Given_ExistingClusterAndMetricIdentifiersArePassed_When_UpdateMetricValue_Then_UpdatesValueOfGivenMetricSuccessfully() {
+    void Given_ExistingClusterAndMetricIdentifiersArePassed_When_UpdateMetricValue_Then_UpdatesValueOfGivenMetricSuccessfully() {
         double newMetricValue = 199.99;
         String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
 
-        assertEquals(clusterMetric1.getValue(), 99.9999);
+        assertEquals(99.9999, clusterMetric1.getValue());
         clusterMetric1.setValue(newMetricValue);
 
         when(clusterMetricRepository.findById(clusterMetric1.getId())).thenReturn(Optional.of(clusterMetric1));
@@ -341,12 +340,12 @@ public class ClusterMetricServiceTest {
     }
 
     @Test
-    public void Given_ClusterMetricIsNotFound_When_UpdateMetricValue_Then_ThrowsException() {
+    void Given_ClusterMetricIsNotFound_When_UpdateMetricValue_Then_ThrowsException() {
         UUID nonExistentClusterMetricId = UUID.randomUUID();
         double newMetricValue = 199.99;
         String ifMatch = "VALID_IF_MATCH_HEADER_CONTENT";
 
-        assertEquals(clusterMetric1.getValue(), 99.9999);
+        assertEquals(99.9999, clusterMetric1.getValue());
         clusterMetric1.setValue(newMetricValue);
 
         ClusterMetric updateClusterMetric = new ClusterMetric(
@@ -364,11 +363,11 @@ public class ClusterMetricServiceTest {
     }
 
     @Test
-    public void Given_InvalidIfMatchHeaderContentIsPassed_When_UpdateMetricValue_Then_ThrowsException() {
+    void Given_InvalidIfMatchHeaderContentIsPassed_When_UpdateMetricValue_Then_ThrowsException() {
         double newMetricValue = 199.99;
         String invalidIfMatch = "INVALID_IF_MATCH_HEADER_CONTENT";
 
-        assertEquals(clusterMetric1.getValue(), 99.9999);
+        assertEquals(99.9999, clusterMetric1.getValue());
         clusterMetric1.setValue(newMetricValue);
 
         when(clusterMetricRepository.findById(clusterMetric1.getId())).thenReturn(Optional.of(clusterMetric1));
@@ -384,7 +383,7 @@ public class ClusterMetricServiceTest {
     /* DeleteMetricValue method test */
 
     @Test
-    public void Given_ExistingClusterAndMetricIdentifiersArePassed_When_DeleteMetricValue_Then_RemovesMetricValueSuccessfully() {
+    void Given_ExistingClusterAndMetricIdentifiersArePassed_When_DeleteMetricValue_Then_RemovesMetricValueSuccessfully() {
         when(cluster.id()).thenReturn(existingClusterId.toString());
         when(metricRepository.findById(metric1.getId())).thenReturn(Optional.of(metric1));
         when(clusterMetricRepository.findByClusterIdAndMetric(existingClusterId, metric1))
@@ -403,7 +402,7 @@ public class ClusterMetricServiceTest {
     }
 
     @Test
-    public void Given_NonExistentMetricIdentifiersIsPassed_When_DeleteMetricValue_Then_ThrowsException() {
+    void Given_NonExistentMetricIdentifiersIsPassed_When_DeleteMetricValue_Then_ThrowsException() {
         UUID randomUUID = UUID.randomUUID();
         when(cluster.id()).thenReturn(existingClusterId.toString());
         when(metricRepository.findById(randomUUID)).thenReturn(Optional.empty());
@@ -416,7 +415,7 @@ public class ClusterMetricServiceTest {
     }
 
     @Test
-    public void Given_ClusterMetricIsNotFound_When_DeleteMetricValue_Then_ThrowsException() {
+    void Given_ClusterMetricIsNotFound_When_DeleteMetricValue_Then_ThrowsException() {
         when(cluster.id()).thenReturn(existingClusterId.toString());
         when(metricRepository.findById(metric1.getId())).thenReturn(Optional.of(metric1));
         when(clusterMetricRepository.findByClusterIdAndMetric(existingClusterId, metric1))

@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ReservationMapperImpl.class, TeamMapperImpl.class,
 })
 @WebMvcTest(controllers = {CourseController.class}, useDefaultFilters = false)
-public class CourseControllerTest {
+class CourseControllerTest {
 
     /* MockMVC */
 
@@ -99,11 +99,9 @@ public class CourseControllerTest {
     /* Data initialization */
 
     private UUID existingClusterId = UUID.randomUUID();
-    private UUID nonExistentClusterId = UUID.randomUUID();
 
     private Course course1;
     private Course course2;
-    private Course course3;
 
     private Team team1;
     private Team team2;
@@ -134,7 +132,7 @@ public class CourseControllerTest {
     private ResourceGroupPool resourceGroupPool1;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         mapper.findAndRegisterModules();
 
         Field id = AbstractEntity.class.getDeclaredField("id");
@@ -236,7 +234,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_CurrentlyAuthenticatedUserCanBeFoundAndInSomeCourses_When_GetCoursesForStudent_Then_ReturnsListOfFoundCourses() throws Exception {
+    void Given_CurrentlyAuthenticatedUserCanBeFoundAndInSomeCourses_When_GetCoursesForStudent_Then_ReturnsListOfFoundCourses() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -282,7 +280,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_CurrentlyAuthenticatedUserCanBeFoundAndInNoCourses_When_GetCoursesForStudent_Then_ReturnsEmptyListOfCourses() throws Exception {
+    void Given_CurrentlyAuthenticatedUserCanBeFoundAndInNoCourses_When_GetCoursesForStudent_Then_ReturnsEmptyListOfCourses() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -302,7 +300,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_CurrentlyAuthenticatedUserCouldNotBeFoundAndInNoCourses_When_GetCoursesForStudent_Then_Returns404NotFound() throws Exception {
+    void Given_CurrentlyAuthenticatedUserCouldNotBeFoundAndInNoCourses_When_GetCoursesForStudent_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
 
@@ -321,7 +319,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIsNot0_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIsNot0_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -370,7 +368,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(2);
@@ -401,7 +399,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_NonExisingCourseIdentifierIsPassed_When_FindResourcesAvailabilityForResourceGroup_Then_Returns404NotFound() throws Exception {
+    void Given_NonExisingCourseIdentifierIsPassed_When_FindResourcesAvailabilityForResourceGroup_Then_Returns404NotFound() throws Exception {
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -422,7 +420,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_NonExisingResourceGroupIdentifierIsPassed_When_FindResourcesAvailabilityForResourceGroup_Then_Returns404NotFound() throws Exception {
+    void Given_NonExisingResourceGroupIdentifierIsPassed_When_FindResourcesAvailabilityForResourceGroup_Then_Returns404NotFound() throws Exception {
         UUID nonExistentResourceGroupIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -445,7 +443,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_FindResourcesAvailabilityForResourceGroup_Then_Returns404NotFound() throws Exception {
+    void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_FindResourcesAvailabilityForResourceGroup_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(2);
@@ -466,7 +464,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "62bddaa4-c9ad-4afc-a0af-3941bd6a0056", authorities = "administrator")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIsNot0AsAdmin_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIsNot0AsAdmin_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -482,7 +480,7 @@ public class CourseControllerTest {
         when(reservationService.checkResourceGroupAvailability(eq(resourceGroup1), eq(course1),
                 any(Integer.class), eq(start), eq(end))).thenReturn(availability);
 
-        when(userRepository.findById(eq(adminId))).thenReturn(Optional.of(admin));
+        when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
 
         MvcResult result = mockMvc.perform(get("/course/{courseId}/resource-groups/{rgId}/availability",
                         course1.getId(), resourceGroup1.getId())
@@ -515,7 +513,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "62bddaa4-c9ad-4afc-a0af-3941bd6a0056", authorities = "administrator")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0AsAdmin_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0AsAdmin_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -546,7 +544,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIsNot0AsTeacherInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIsNot0AsTeacherInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -595,7 +593,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0AsTeacherInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0AsTeacherInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -626,7 +624,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIsNot0AsTeacherNotInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIsNot0AsTeacherNotInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -661,7 +659,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0AsTeacherNotInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0AsTeacherNotInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -692,7 +690,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "a5bf71c0-9e18-45cc-be57-6dabbb7cadb5", authorities = "student")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIsNot0AsStudentNotInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIsNot0AsStudentNotInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -727,7 +725,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "a5bf71c0-9e18-45cc-be57-6dabbb7cadb5", authorities = "student")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0AsStudentNotInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0AsStudentNotInCourse_When_FindResourcesAvailabilityForResourceGroup_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -760,7 +758,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIsNot0_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIsNot0_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -809,7 +807,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgIdentifiersArePassedAndIntervalIs0_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(2);
@@ -840,7 +838,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_NonExisingCourseIdentifierIsPassed_When_FindResourcesAvailabilityForResourceGroupPool_Then_Returns404NotFound() throws Exception {
+    void Given_NonExisingCourseIdentifierIsPassed_When_FindResourcesAvailabilityForResourceGroupPool_Then_Returns404NotFound() throws Exception {
         UUID nonExistentCourseIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -860,7 +858,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_NonExisingResourceGroupPoolIdentifierIsPassed_When_FindResourcesAvailabilityForResourceGroupPool_Then_Returns404NotFound() throws Exception {
+    void Given_NonExisingResourceGroupPoolIdentifierIsPassed_When_FindResourcesAvailabilityForResourceGroupPool_Then_Returns404NotFound() throws Exception {
         UUID nonExistentResourceGroupPoolIdentifier = UUID.randomUUID();
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
@@ -883,7 +881,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
-    public void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_FindResourcesAvailabilityForResourceGroupPool_Then_Returns404NotFound() throws Exception {
+    void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_FindResourcesAvailabilityForResourceGroupPool_Then_Returns404NotFound() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(2);
@@ -904,7 +902,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "62bddaa4-c9ad-4afc-a0af-3941bd6a0056", authorities = "administrator")
-    public void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIsNot0AsAdmin_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIsNot0AsAdmin_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -953,7 +951,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "62bddaa4-c9ad-4afc-a0af-3941bd6a0056", authorities = "administrator")
-    public void Given_ExistingCourseAndRgPoolIdentifiersArePassedAndIntervalIs0AsAdmin_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
+    void Given_ExistingCourseAndRgPoolIdentifiersArePassedAndIntervalIs0AsAdmin_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -984,7 +982,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
-    public void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIsNot0AsTeacherInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIsNot0AsTeacherInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -1033,7 +1031,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
-    public void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIs0AsTeacherInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIs0AsTeacherInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -1064,7 +1062,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
-    public void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIsNot0AsTeacherNotInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIsNot0AsTeacherNotInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -1099,7 +1097,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
-    public void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIs0AsTeacherNotInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIs0AsTeacherNotInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -1130,7 +1128,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "a5bf71c0-9e18-45cc-be57-6dabbb7cadb5", authorities = "student")
-    public void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIsNot0AsStudentNotInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIsNot0AsStudentNotInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsListOfFoundResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);
@@ -1165,7 +1163,7 @@ public class CourseControllerTest {
 
     @Test
     @WithMockUser(username = "a5bf71c0-9e18-45cc-be57-6dabbb7cadb5", authorities = "student")
-    public void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIs0AsStudentNotInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
+    void Given_ExisingCourseAndRgPoolIdentifiersArePassedAndIntervalIs0AsStudentNotInCourse_When_FindResourcesAvailabilityForResourceGroupPool_Then_ReturnsEmptyListOfResourcesAvailability() throws Exception {
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
         LocalDateTime start = currentTime.plusHours(2);
         LocalDateTime end = currentTime.plusHours(4);

@@ -120,7 +120,7 @@ public class ReservationController {
     @PreAuthorize("hasAuthority('student')")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @PostMapping(path = "/course/{courseId}/pod/{podId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<Void> createNewReservationForPod(@PathVariable("courseId") UUID courseId,
+    public ResponseEntity<Void> createNewReservationForPod(@PathVariable("courseId") UUID courseId,
                                                     @PathVariable("podId") UUID podId,
                                                     @RequestBody @Validated CreateReservationDto createDto) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -187,7 +187,7 @@ public class ReservationController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/{reservationId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<ReservationDetailsDto> getReservationDetails(@PathVariable("reservationId") UUID reservationId) {
+    public ResponseEntity<ReservationDetailsDto> getReservationDetails(@PathVariable("reservationId") UUID reservationId) {
         Optional<Reservation> reservationOptional = reservationService.findReservationById(reservationId);
 
         if (reservationOptional.isPresent()) {
@@ -233,7 +233,7 @@ public class ReservationController {
     @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/course/{courseId}/pods/{podId}/previous/count", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<Integer> getPreviousReservationsCount(
+    public ResponseEntity<Integer> getPreviousReservationsCount(
             @PathVariable("courseId") UUID courseId, @PathVariable("podId") UUID podId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         Course course = courseService.getCourse(courseId);
@@ -273,7 +273,7 @@ public class ReservationController {
     @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/course/{courseId}/pods/{podId}/previous", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<PageDto<ReservationDto>> getPreviousReservations(
+    public ResponseEntity<PageDto<ReservationDto>> getPreviousReservations(
             Pageable pageable, @PathVariable("courseId") UUID courseId, @PathVariable("podId") UUID podId) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         Course course = courseService.getCourse(courseId);
@@ -326,7 +326,7 @@ public class ReservationController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/courses/{courseId}/resource-groups/{rgId}/period")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<List<ReservationDto>> getRgReservationsInGivenCourse(
+    public ResponseEntity<List<ReservationDto>> getRgReservationsInGivenCourse(
             @PathVariable("courseId") UUID courseId, @PathVariable("rgId") UUID rgId,
             @RequestParam(value = "start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam(value = "end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
@@ -364,8 +364,7 @@ public class ReservationController {
             @Parameter(name = "end", in = ParameterIn.QUERY, description = "End of the time window, which the searched reservations overlap with", required = true),
         },
         responses = {
-            @ApiResponse(responseCode = "200", description = """
-                Reservations, overlapping given time window, for the given resource group were found and were sent to the client successfully."""),
+            @ApiResponse(responseCode = "200", description = "Reservations, overlapping given time window, for the given resource group were found and were sent to the client successfully."),
             @ApiResponse(responseCode = "204", description = """
                 No reservations, overlapping given time window, of the given resource group were found or currently authenticated
                 user does not have privileges to fetch them.""",
@@ -380,7 +379,7 @@ public class ReservationController {
     @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/courses/{courseId}/resource-groups/{rgId}/period/own")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<List<ReservationDto>> getOwnRgReservationsInGivenCourse(
+    public ResponseEntity<List<ReservationDto>> getOwnRgReservationsInGivenCourse(
             @PathVariable("courseId") UUID courseId, @PathVariable("rgId") UUID rgId,
             @RequestParam(value = "start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam(value = "end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
@@ -422,7 +421,7 @@ public class ReservationController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(path = "/courses/{courseId}/resource-group-pools/{rgPoolId}/period")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<List<ReservationDto>> getRgPoolReservationsInGivenCourse(
+    public ResponseEntity<List<ReservationDto>> getRgPoolReservationsInGivenCourse(
             @PathVariable("courseId") UUID courseId, @PathVariable("rgPoolId") UUID rgPoolId,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
@@ -475,7 +474,7 @@ public class ReservationController {
     @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/courses/{courseId}/resource-group-pools/{rgPoolId}/period/own")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<List<ReservationDto>> getOwnRgPoolReservationsInGivenCourse(
+    public ResponseEntity<List<ReservationDto>> getOwnRgPoolReservationsInGivenCourse(
             @PathVariable("courseId") UUID courseId, @PathVariable("rgPoolId") UUID rgPoolId,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
@@ -515,7 +514,7 @@ public class ReservationController {
     @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/active/courses/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<PageDto<ReservationDto>> getActiveReservations(
+    public ResponseEntity<PageDto<ReservationDto>> getActiveReservations(
             @PathVariable("courseId") UUID courseId, @PageableDefault Pageable pageable) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
 
@@ -559,7 +558,7 @@ public class ReservationController {
     @PreAuthorize("hasAuthority('student')")
     @GetMapping(path = "/historic/courses/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<PageDto<ReservationDto>> getHistoricReservations(
+    public ResponseEntity<PageDto<ReservationDto>> getHistoricReservations(
             @PathVariable("courseId") UUID courseId, @PageableDefault Pageable pageable) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         Course course = courseService.getCourse(courseId);
@@ -601,7 +600,7 @@ public class ReservationController {
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @GetMapping(path = "/active/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<PageDto<ReservationDto>> getActiveReservationsForTeam(
+    public ResponseEntity<PageDto<ReservationDto>> getActiveReservationsForTeam(
             @PathVariable("teamId") UUID teamId, @PageableDefault Pageable pageable) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
@@ -654,7 +653,7 @@ public class ReservationController {
     @PreAuthorize("hasAnyAuthority('teacher', 'administrator')")
     @GetMapping(path = "/historic/teams/{teamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<PageDto<ReservationDto>> getHistoricReservationsForTeam(
+    public ResponseEntity<PageDto<ReservationDto>> getHistoricReservationsForTeam(
             @PathVariable("teamId") UUID teamId, @PageableDefault Pageable pageable) {
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId.toString()));
@@ -710,7 +709,7 @@ public class ReservationController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping(path = "/{reservationId}/cancel")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    ResponseEntity<Void> finishReservation(@PathVariable("reservationId") UUID reservationId) {
+    public ResponseEntity<Void> finishReservation(@PathVariable("reservationId") UUID reservationId) {
         Optional<Reservation> reservationOptional = reservationService.findReservationById(reservationId);
 
         if (reservationOptional.isPresent()) {

@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.ovirt.engine.sdk4.services.HostService;
 import org.ovirt.engine.sdk4.services.HostsService;
@@ -20,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class OVirtHostServiceTest {
+class OVirtHostServiceTest {
 
     @Mock
     private ConnectionFactory connectionFactory;
@@ -54,13 +53,13 @@ public class OVirtHostServiceTest {
     /* FindHostById method tests */
 
     @Test
-    public void Given_ExistingHostIdentifierIsPassed_When_FindHostById_Then_ReturnsFoundHostInfoAboutGivenHost() {
+    void Given_ExistingHostIdentifierIsPassed_When_FindHostById_Then_ReturnsFoundHostInfoAboutGivenHost() {
         UUID hostId = UUID.randomUUID();
 
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
-        when(hostsService.hostService(Mockito.eq(hostId.toString()))).thenReturn(hostService);
+        when(hostsService.hostService(hostId.toString())).thenReturn(hostService);
         when(hostService.get()).thenReturn(getRequest);
         when(getRequest.send()).thenReturn(getResponse);
         when(getResponse.host()).thenReturn(host);
@@ -73,20 +72,20 @@ public class OVirtHostServiceTest {
         verify(connectionFactory, times(1)).getConnection();
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
-        verify(hostsService, times(1)).hostService(Mockito.eq(hostId.toString()));
+        verify(hostsService, times(1)).hostService(hostId.toString());
         verify(hostService, times(1)).get();
         verify(getRequest, times(1)).send();
         verify(getResponse, times(1)).host();
     }
 
     @Test
-    public void Given_NonExistentHostIdentifierIsPassed_When_FindHostById_Then_ThrowsException() {
+    void Given_NonExistentHostIdentifierIsPassed_When_FindHostById_Then_ThrowsException() {
         UUID hostId = UUID.randomUUID();
 
         when(connectionFactory.getConnection()).thenReturn(connection);
         when(connection.systemService()).thenReturn(systemService);
         when(systemService.hostsService()).thenReturn(hostsService);
-        when(hostsService.hostService(Mockito.eq(hostId.toString()))).thenReturn(hostService);
+        when(hostsService.hostService(hostId.toString())).thenReturn(hostService);
         when(hostService.get()).thenReturn(getRequest);
         when(getRequest.send()).thenThrow(new org.ovirt.engine.sdk4.Error("Host not found"));
 
@@ -95,7 +94,7 @@ public class OVirtHostServiceTest {
         verify(connectionFactory, times(1)).getConnection();
         verify(connection, times(1)).systemService();
         verify(systemService, times(1)).hostsService();
-        verify(hostsService, times(1)).hostService(Mockito.eq(hostId.toString()));
+        verify(hostsService, times(1)).hostService(hostId.toString());
         verify(hostService, times(1)).get();
         verify(getRequest, times(1)).send();
     }
