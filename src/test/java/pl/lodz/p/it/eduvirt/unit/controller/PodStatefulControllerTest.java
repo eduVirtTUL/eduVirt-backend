@@ -25,6 +25,7 @@ import org.springframework.test.context.bean.override.mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.SneakyThrows;
 import pl.lodz.p.it.eduvirt.aspect.exception.GeneralControllerExceptionResolver;
 import pl.lodz.p.it.eduvirt.controller.PodStatefulController;
 import pl.lodz.p.it.eduvirt.dto.course.CourseBasicDto;
@@ -352,6 +353,7 @@ public class PodStatefulControllerTest {
                 .andExpect(status().isForbidden());
     }
 
+    @SneakyThrows
     private void setEntityId(AbstractEntity entity, UUID id) {
         try {
             Field idField = AbstractEntity.class.getDeclaredField("id");
