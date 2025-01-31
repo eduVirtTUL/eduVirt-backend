@@ -2,6 +2,9 @@ package pl.lodz.p.it.eduvirt.unit.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.SneakyThrows;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -16,8 +20,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pl.lodz.p.it.eduvirt.aspect.exception.GeneralControllerExceptionResolver;
 import pl.lodz.p.it.eduvirt.controller.CourseController;
+import pl.lodz.p.it.eduvirt.dto.EmailDto;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesAvailabilityDto;
+import pl.lodz.p.it.eduvirt.dto.statistics.BaseCourseStatsDto;
+import pl.lodz.p.it.eduvirt.dto.statistics.CourseStatsDto;
+import pl.lodz.p.it.eduvirt.dto.statistics.TeamStatsDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.course.CourseNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
@@ -33,9 +41,14 @@ import java.time.ZoneOffset;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Import({
@@ -252,7 +265,8 @@ public class CourseControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<CourseDto> listOfDtos = mapper.readValue(json, new TypeReference<>(){});
+        List<CourseDto> listOfDtos = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(listOfDtos);
         assertFalse(listOfDtos.isEmpty());
@@ -348,7 +362,8 @@ public class CourseControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>(){});
+        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(listOfDtos);
         assertFalse(listOfDtos.isEmpty());
@@ -493,7 +508,8 @@ public class CourseControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>(){});
+        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(listOfDtos);
         assertFalse(listOfDtos.isEmpty());
@@ -573,7 +589,8 @@ public class CourseControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>(){});
+        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(listOfDtos);
         assertFalse(listOfDtos.isEmpty());
@@ -787,7 +804,8 @@ public class CourseControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>(){});
+        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(listOfDtos);
         assertFalse(listOfDtos.isEmpty());
@@ -931,7 +949,8 @@ public class CourseControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>(){});
+        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(listOfDtos);
         assertFalse(listOfDtos.isEmpty());
@@ -1011,7 +1030,8 @@ public class CourseControllerTest {
                 .andReturn();
 
         String json = result.getResponse().getContentAsString();
-        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>(){});
+        List<ResourcesAvailabilityDto> listOfDtos = mapper.readValue(json, new TypeReference<>() {
+        });
 
         assertNotNull(listOfDtos);
         assertFalse(listOfDtos.isEmpty());
@@ -1193,4 +1213,332 @@ public class CourseControllerTest {
 
         verify(userRepository, times(1)).findById(studentId5);
     }
+
+    @Test
+    @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
+    public void Given_TeacherInCourse_When_AddStudentToCourse_Then_Success() throws Exception {
+        EmailDto emailDto = new EmailDto("newstudent@example.com");
+
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        doNothing().when(teamService).addStudentToCourse(course1, "newstudent@example.com");
+
+        mockMvc.perform(post("/course/{courseId}/add-student", course1.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(emailDto)))
+                .andExpect(status().isNoContent());
+
+        verify(teamService).addStudentToCourse(course1, "newstudent@example.com");
+    }
+
+    @Test
+    @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
+    public void Given_TeacherNotInCourse_When_AddStudentToCourse_Then_Forbidden() throws Exception {
+        EmailDto emailDto = new EmailDto("newstudent@example.com");
+
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+
+        mockMvc.perform(post("/course/{courseId}/add-student", course1.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(emailDto)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
+    public void Given_TeacherInCourse_When_RemoveStudentFromCourse_Then_Success() throws Exception {
+        EmailDto emailDto = new EmailDto("student1@example.com");
+
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        doNothing().when(teamService).removeStudentFromCourse(course1, "student1@example.com");
+
+        mockMvc.perform(post("/course/{courseId}/remove-student", course1.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(emailDto)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
+    public void Given_TeacherInCourse_When_AddTeacherToCourse_Then_Success() throws Exception {
+        EmailDto emailDto = new EmailDto("newteacher@example.com");
+
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        doNothing().when(courseService).addTeacherToCourse(course1, "newteacher@example.com");
+
+        mockMvc.perform(post("/course/{courseId}/add-teacher", course1.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(emailDto)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
+    public void Given_TeacherSelfAdd_When_AddTeacherToCourse_Then_Forbidden() throws Exception {
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        EmailDto emailDto = new EmailDto("teacher1@example.com");
+
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+
+        mockMvc.perform(post("/course/{courseId}/add-teacher", course1.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(emailDto)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
+    public void Given_StudentInCourse_When_GetTeachersForCourse_Then_Success() throws Exception {
+        List<User> teachers = List.of(teacher1);
+        when(userRepository.findById(studentId1)).thenReturn(Optional.of(student1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(courseService.getTeachersForCourse(course1.getId())).thenReturn(teachers);
+
+        mockMvc.perform(get("/course/{courseId}/teachers", course1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].email").value("teacher1@example.com"));
+    }
+
+    @Test
+    @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
+    public void Given_TeacherInCourse_When_GetStudentsInSoloCourse_Then_Success() throws Exception {
+        List<User> students = List.of(student1, student2);
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(teamService.getStudentsInSoloCourse(course1)).thenReturn(students);
+
+        mockMvc.perform(get("/course/{courseId}/students", course1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].email").value("student1@example.com"))
+                .andExpect(jsonPath("$[1].email").value("student2@example.com"));
+    }
+
+    @Test
+    @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
+    public void Given_TeacherNotInCourse_When_GetStudentsInSoloCourse_Then_NoContent() throws Exception {
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+
+        mockMvc.perform(get("/course/{courseId}/students", course1.getId()))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
+    public void Given_TeacherNotInCourse_When_GetCourseStatistics_Then_NoContent() throws Exception {
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+
+        mockMvc.perform(get("/course/{courseId}/statistics", course1.getId()))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
+    public void Given_TeacherNotInCourse_When_GetTeamStatistics_Then_NoContent() throws Exception {
+        Team testTeam = Team.builder()
+                .name("Test Team")
+                .course(course1)
+                .maxSize(5)
+                .active(true)
+                .users(new ArrayList<>())
+                .build();
+        setEntityId(testTeam, UUID.fromString("55555555-5555-5555-5555-555555555555"));
+
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(teamService.getTeamById(testTeam.getId())).thenReturn(testTeam);
+
+        mockMvc.perform(get("/course/{courseId}/teams/{teamId}/statistics",
+                        course1.getId().toString(),
+                        testTeam.getId().toString()))
+                .andExpect(status().isNoContent());
+
+        verify(userRepository).findById(teacherId2);
+        verify(courseService).getCourse(course1.getId());
+    }
+
+    @Test
+    @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
+    public void Given_TeacherSelfRemove_When_RemoveTeacherFromCourse_Then_Forbidden() throws Exception {
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        EmailDto emailDto = new EmailDto("teacher1@example.com");
+
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+
+        mockMvc.perform(post("/course/{courseId}/remove-teacher", course1.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(emailDto)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
+    public void Given_TeacherNotInCourse_When_RemoveTeacherFromCourse_Then_Forbidden() throws Exception {
+        EmailDto emailDto = new EmailDto("otherteacher@example.com");
+
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+
+        mockMvc.perform(post("/course/{courseId}/remove-teacher", course1.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(emailDto)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
+    public void Given_TeacherNotInCourse_When_AddTeacherToCourse_Then_Forbidden() throws Exception {
+        EmailDto emailDto = new EmailDto("newteacher@example.com");
+
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+
+        mockMvc.perform(post("/course/{courseId}/add-teacher", course1.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(emailDto)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "a8a7e5b9-1a84-483e-bc5c-5587bc2c0517", authorities = "teacher")
+    public void Given_TeacherNotInCourse_When_RemoveStudentFromCourse_Then_Forbidden() throws Exception {
+        EmailDto emailDto = new EmailDto("student@example.com");
+
+        when(userRepository.findById(teacherId2)).thenReturn(Optional.of(teacher2));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+
+        mockMvc.perform(post("/course/{courseId}/remove-student", course1.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(emailDto)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
+    public void Given_EmptyTeachersList_When_GetTeachersForCourse_Then_NoContent() throws Exception {
+        when(userRepository.findById(studentId1)).thenReturn(Optional.of(student1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(courseService.getTeachersForCourse(course1.getId())).thenReturn(List.of());
+
+        mockMvc.perform(get("/course/{courseId}/teachers", course1.getId()))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
+    public void Given_TeacherInCourse_When_GetCourseStatistics_Then_Success() throws Exception {
+        BaseCourseStatsDto statsDto = new CourseStatsDto(
+                course1.getId(),
+                course1.getName(),
+                10,
+                15.0,
+                2.5,
+                2,
+                Map.of("Team1", 5, "Team2", 5),
+                Map.of("Team1", 7.5, "Team2", 7.5)
+        );
+
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(reservationStatisticsService.getCourseStatistics(course1.getId())).thenReturn(statsDto);
+
+        mockMvc.perform(get("/course/{courseId}/statistics", course1.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalReservations").value(10))
+                .andExpect(jsonPath("$.totalHours").value(15.0))
+                .andExpect(jsonPath("$.averageLength").value(2.5));
+    }
+
+    @Test
+    @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
+    public void Given_TeacherInCourse_When_GetTeamStatistics_Then_Success() throws Exception {
+        UUID teamId = UUID.randomUUID();
+        setEntityId(team1, teamId);
+
+        TeamStatsDto statsDto = new TeamStatsDto(
+                team1.getId(),
+                team1.getName(),
+                10,
+                15L,
+                2.5,
+                3,
+                2,
+                List.of()
+        );
+
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        when(teamService.getTeamById(team1.getId())).thenReturn(team1);
+        when(reservationStatisticsService.getTeamStatistics(course1.getId(), team1.getId()))
+                .thenReturn(statsDto);
+
+        mockMvc.perform(get("/course/{courseId}/teams/{teamId}/statistics",
+                        course1.getId(), team1.getId())
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalReservations").value(10))
+                .andExpect(jsonPath("$.totalHours").value(15))
+                .andExpect(jsonPath("$.averageLength").value(2.5));
+    }
+
+    @Test
+    @WithMockUser(username = "2aeb9120-1584-4f84-bc30-e6751650fcf8", authorities = "teacher")
+    public void Given_TeacherInCourse_When_RemoveTeacher_Then_Success() throws Exception {
+        EmailDto emailDto = new EmailDto("teacher2@example.com");
+
+        when(userRepository.findById(teacherId1)).thenReturn(Optional.of(teacher1));
+        when(courseService.getCourse(course1.getId())).thenReturn(course1);
+        doNothing().when(courseService).removeTeacherFromCourse(course1, "teacher2@example.com");
+
+        mockMvc.perform(post("/course/{courseId}/remove-teacher", course1.getId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(emailDto)))
+                .andExpect(status().isNoContent());
+
+        verify(courseService).removeTeacherFromCourse(course1, "teacher2@example.com");
+    }
+
+    @Test
+    @WithMockUser(username = "e7a9f27d-3ef9-4d65-b82c-d902acf3bd9c", authorities = "student")
+    public void Given_StudentNotInCourse_When_GetTeachersForCourse_Then_NoContent() throws Exception {
+        when(userRepository.findById(studentId1)).thenReturn(Optional.of(student1));
+        when(courseService.getCourse(course2.getId())).thenReturn(course2);
+        when(courseService.getTeachersForCourse(course2.getId())).thenReturn(List.of(teacher1));
+
+        mockMvc.perform(get("/course/{courseId}/teachers", course2.getId()))
+                .andExpect(status().isNoContent());
+    }
+
+    /* Helper methods */
+
+    @SneakyThrows
+    private void setEntityId(AbstractEntity entity, UUID id) {
+        try {
+            Field idField = AbstractEntity.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(entity, id);
+            idField.setAccessible(false);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

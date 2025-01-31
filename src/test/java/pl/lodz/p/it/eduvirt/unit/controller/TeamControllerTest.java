@@ -187,13 +187,6 @@ public class TeamControllerTest {
                 .build();
 
         List<Team> createdTeams = List.of(team);
-        TeamWithKeyDto teamDto = TeamWithKeyDto.builder()
-                .id(UUID.fromString(TEAM_ID))
-                .name("Test Team")
-                .maxSize(5)
-                .users(List.of())
-                .keyValue(KEY_VALUE)
-                .build();
 
         when(userRepository.findById(UUID.fromString(TEACHER_ID))).thenReturn(Optional.of(teacher));
         when(courseService.getCourse(UUID.fromString(COURSE_ID))).thenReturn(course);
