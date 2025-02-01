@@ -17,10 +17,12 @@
     <description>eduVirt</description>
     <packaging>jar</packaging>
 
-    <url/>
-
     <licenses>
-        <license/>
+        <license>
+            <name>GNU General Public License, Version 2</name>
+            <url>https://www.gnu.org/licenses/old-licenses/gpl-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
     </licenses>
 
     <developers>
@@ -45,13 +47,6 @@
             <email>242493@edu.p.lodz.pl</email>
         </developer>
     </developers>
-
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
 
     <properties>
         <!--JAVA-->
@@ -119,7 +114,6 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
-
         <!--DATABASE-->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -132,7 +126,6 @@
             <artifactId>infinispan-spring-boot-starter-embedded</artifactId>
             <version>${infinispan-version}</version>
         </dependency>
-
 
         <!--LOMBOK-->
         <dependency>
@@ -168,6 +161,7 @@
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
@@ -209,17 +203,20 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
             <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>spring-mock-mvc</artifactId>
@@ -307,20 +304,6 @@
                         <include>pl/lodz/p/it/eduvirt/executor/scheduler/**</include>
                         <include>pl/lodz/p/it/eduvirt/executor/service/**</include>
                     </includes>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-maven-plugin</artifactId>
-                <version>${liquibase-maven-plugin.version}</version>
-                <configuration>
-                    <driver>org.postgresql.Driver</driver>
-                    <url>jdbc:postgresql://localhost:5432/eduvirt</url>
-                    <username>sa</username>
-                    <password>p@ssw0rd</password>
-                    <outputChangeLogFile>src/main/resources/config/liquibase/${timestamp}_changelog.sql</outputChangeLogFile>
-                    <changeLogFile>src/main/resources/config/liquibase/master.xml</changeLogFile>
                 </configuration>
             </plugin>
         </plugins>
