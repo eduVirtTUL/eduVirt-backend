@@ -12,7 +12,7 @@
 
     <groupId>pl.lodz.p.it</groupId>
     <artifactId>eduVirt</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>eduVirt</name>
     <description>eduVirt</description>
     <packaging>jar</packaging>
