@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.EventGeneralDto;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.resources.ResourcesDto;
@@ -33,7 +32,6 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@LoggerInterceptor
 @RequestMapping("/resource/vm")
 @RequiredArgsConstructor
 public class VmController {

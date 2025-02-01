@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.CourseMetric;
 import pl.lodz.p.it.eduvirt.entity.ClusterMetric;
 
@@ -11,6 +12,7 @@ import java.util.*;
 import java.util.function.Function;
 
 @Component
+@LoggerInterceptor
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.MANDATORY)
 public class MetricUtil {

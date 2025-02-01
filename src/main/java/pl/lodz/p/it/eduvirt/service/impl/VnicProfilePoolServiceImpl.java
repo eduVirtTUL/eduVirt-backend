@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileAlreadyExistsException;
@@ -32,7 +31,6 @@ import java.util.stream.Stream;
 
 @Service
 @Slf4j
-@LoggerInterceptor
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.REQUIRED)
 public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {

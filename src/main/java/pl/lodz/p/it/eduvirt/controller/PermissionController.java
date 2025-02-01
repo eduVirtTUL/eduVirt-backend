@@ -5,7 +5,6 @@ import org.ovirt.engine.sdk4.types.Permission;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.permission.OvirtUserPermissionDto;
 import pl.lodz.p.it.eduvirt.dto.permission.VmPermissionDto;
 import pl.lodz.p.it.eduvirt.mappers.PermissionMapper;
@@ -15,7 +14,6 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@LoggerInterceptor
 @RequestMapping("/resources/permissions")
 @RequiredArgsConstructor
 public class PermissionController {

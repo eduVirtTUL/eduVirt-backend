@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.executor.service.MailNotificationService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 
@@ -15,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 @Profile({"prod", "dev"})
 @Transactional(propagation = Propagation.NEVER)

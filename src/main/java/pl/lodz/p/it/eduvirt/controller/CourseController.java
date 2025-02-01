@@ -29,7 +29,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.EmailDto;
 import pl.lodz.p.it.eduvirt.dto.course.CourseDto;
 import pl.lodz.p.it.eduvirt.dto.course.CreateCourseDto;
@@ -69,7 +68,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/course")
 @RequiredArgsConstructor
-@LoggerInterceptor
 public class CourseController {
 
     @Value("${window.length}")

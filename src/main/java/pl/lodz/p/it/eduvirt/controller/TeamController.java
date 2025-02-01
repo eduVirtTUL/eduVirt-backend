@@ -19,7 +19,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.EmailDto;
 import pl.lodz.p.it.eduvirt.dto.access_key.JoinTeamKeyDto;
 import pl.lodz.p.it.eduvirt.dto.pagination.PageDto;
@@ -55,7 +54,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
-@LoggerInterceptor
 @RequestMapping("/teams")
 @RequiredArgsConstructor
 public class TeamController {

@@ -5,23 +5,17 @@ import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.builders.DataCenterBuilder;
 import org.ovirt.engine.sdk4.builders.NetworkBuilder;
 import org.ovirt.engine.sdk4.builders.VlanBuilder;
-import org.ovirt.engine.sdk4.internal.containers.NetworkContainer;
 import org.ovirt.engine.sdk4.services.SystemService;
-import org.ovirt.engine.sdk4.types.DataCenter;
 import org.ovirt.engine.sdk4.types.NetworkUsage;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.vnic_profile.VnicProfileDto;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
-import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
-import pl.lodz.p.it.eduvirt.executor.repository.ExecutorTaskRepository;
 import pl.lodz.p.it.eduvirt.executor.service.ExecutorTaskService;
 import pl.lodz.p.it.eduvirt.mappers.VnicProfileMapper;
 import pl.lodz.p.it.eduvirt.repository.VnicProfileRepository;
@@ -34,7 +28,6 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@LoggerInterceptor
 @RequestMapping("/test")
 @RequiredArgsConstructor
 public class TestController {
@@ -72,7 +65,7 @@ public class TestController {
         String lastName = "LastName";
 
         mailProvider.sendHtmlTestMessage(
-                firstName, lastName, mailTo, "CET","en"
+                firstName, lastName, mailTo, null,null
         );
 
         return ResponseEntity.ok().build();

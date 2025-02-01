@@ -5,7 +5,6 @@ import org.ovirt.engine.sdk4.Connection;
 import org.ovirt.engine.sdk4.services.SystemService;
 import org.ovirt.engine.sdk4.types.User;
 import org.springframework.stereotype.Service;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtUserService;
 import pl.lodz.p.it.eduvirt.util.connection.ConnectionFactory;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 public class OVirtUserServiceImpl implements OVirtUserService {
 

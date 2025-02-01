@@ -11,7 +11,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.*;
@@ -32,7 +31,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.REQUIRED)
 public class ReservationServiceImpl implements ReservationService {

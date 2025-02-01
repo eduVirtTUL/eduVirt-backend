@@ -5,7 +5,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.PodStateless;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
@@ -33,7 +32,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.REQUIRED)
 public class PodStatelessServiceImpl implements PodStatelessService {
