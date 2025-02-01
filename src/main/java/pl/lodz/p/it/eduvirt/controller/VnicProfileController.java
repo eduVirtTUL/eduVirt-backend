@@ -80,7 +80,7 @@ public class VnicProfileController {
 
                 // Add mapped vnic profiles from the pool
                 nestedVnicProfileDtoList.addAll(
-                        vnicProfilesAggregate.inOfPool().stream().map(vnicProfileMapper::vnicProfileToDto).toList()
+                        vnicProfilesAggregate.inPool().stream().map(vnicProfileMapper::vnicProfileToDto).toList()
                 );
 
                 // Add mapped vnic profiles outside the pool (from oVirt)
