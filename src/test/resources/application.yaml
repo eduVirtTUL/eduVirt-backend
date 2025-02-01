@@ -62,7 +62,7 @@ auth:
     clientSecret: test
 
 jws:
-  secret: test
+  secret: c06da006a3231e46bc711e1c0b5aadc0af72cd69292b8ea1ff9e8d411c94e904664a4c5e77de738714a94c90c9d657420563cd311a2bf49f940a589514ffdc54311e90c971d17cd61af11eddaf850b810efa78615357eabd3744b572357a02b170bb12c576251273bed6c010e3d364e89c51b963971b2cce7b41c38271accd8788d59f005b6bd2a3d97a45bd1ea1255dc43f4f1e463961c9b578eb6a1f0ddb51fa10fffa858beb42e4e572a7d47b60274a019ab9d9147fc46564793b65f4c634d20ae3395ee96e40f682eb7514bb6880a3ee6b6dd17ec9c277977026484b05cba52b3d830d538071c83fedb2af0377663e6609b8f92df794e8e738d7aee9add0
 
 resource:
   warning:
@@ -79,6 +79,7 @@ mail:
 frontend:
   login: test
   callback: test
+  base-path: test
 
 maintenance-interval:
   min-ahead: 6

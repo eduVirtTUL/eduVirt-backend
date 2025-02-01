@@ -16,6 +16,8 @@ import pl.lodz.p.it.eduvirt.dto.access_key.TeamAccessKeyDto;
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.Team;
 import pl.lodz.p.it.eduvirt.entity.User;
+import pl.lodz.p.it.eduvirt.entity.key.CourseAccessKey;
+import pl.lodz.p.it.eduvirt.entity.key.TeamAccessKey;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.mappers.AccessKeyMapper;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
@@ -65,9 +67,10 @@ public class AccessKeyController {
 
         if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
                 (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
-            return ResponseEntity.ok(accessKeyMapper
-                    .toCourseKeyDto(accessKeyService
-                            .createCourseKey(course, createDto.getKeyValue())));
+            CourseAccessKey key = accessKeyService.createCourseKey(course, createDto.getKeyValue());
+            CourseAccessKeyDto keyDto = accessKeyMapper.toCourseKeyDto(key);
+
+            return ResponseEntity.ok(keyDto);
         }
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -89,9 +92,10 @@ public class AccessKeyController {
 
         if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
                 (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user))) {
-            return ResponseEntity.ok(accessKeyMapper
-                    .toCourseKeyDto(accessKeyService
-                            .getKeyForCourse(course)));
+            CourseAccessKey key = accessKeyService.getKeyForCourse(course);
+            CourseAccessKeyDto keyDto = accessKeyMapper.toCourseKeyDto(key);
+
+            return ResponseEntity.ok(keyDto);
         }
 
         return ResponseEntity.noContent().build();
@@ -115,9 +119,10 @@ public class AccessKeyController {
         if (authorities.contains(RoleConstants.ADMINISTRATOR) ||
                 (authorities.contains(RoleConstants.TEACHER) && course.getTeachers().contains(user)) ||
                 (authorities.contains(RoleConstants.STUDENT) && team.getUsers().contains(user))) {
-            return ResponseEntity.ok(accessKeyMapper
-                    .toTeamKeyDto(accessKeyService
-                            .getKeyForTeam(team, course)));
+            TeamAccessKey key = accessKeyService.getKeyForTeam(team, course);
+            TeamAccessKeyDto keyDto = accessKeyMapper.toTeamKeyDto(key);
+
+            return ResponseEntity.ok(keyDto);
         }
 
         return ResponseEntity.noContent().build();
