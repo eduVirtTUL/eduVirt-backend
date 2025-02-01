@@ -26,5 +26,5 @@ public interface VnicProfilePoolService {
 
     void markVnicProfileAsFree(UUID vnicProfileId);
 
-    record VnicProfilesAggregate(List<VnicProfilePoolMember> inOfPool, List<VnicProfile> outOfPool) {}
+    record VnicProfilesAggregate(List<VnicProfilePoolMember> inPool, List<VnicProfile> outOfPool) {}
 }

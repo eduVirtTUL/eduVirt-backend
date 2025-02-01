@@ -109,11 +109,15 @@ public class VnicProfilePoolServiceImpl implements VnicProfilePoolService {
 
     @Override
     public VnicProfilePoolMember getVnicProfileFromPool(UUID vnicProfileId) {
-        Optional.ofNullable(oVirtVnicProfileService.getVnicProfileById(vnicProfileId.toString()))
+        VnicProfile ovirtVnicProfile = Optional.ofNullable(oVirtVnicProfileService.getVnicProfileById(vnicProfileId.toString()))
                 .orElseThrow(() -> new VnicProfileOvirtNotFoundException(vnicProfileId));
 
-        return vnicProfileRepository.findById(vnicProfileId)
+        VnicProfilePoolMember vnicProfilePoolMember = vnicProfileRepository.findById(vnicProfileId)
                 .orElseThrow(() -> new VnicProfileEduvirtNotFoundException(vnicProfileId));
+
+        validateVnicProfile(vnicProfilePoolMember, ovirtVnicProfile);
+
+        return vnicProfilePoolMember;
     }
 
     @Override

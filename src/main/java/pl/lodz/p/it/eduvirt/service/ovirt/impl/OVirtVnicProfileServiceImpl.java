@@ -70,7 +70,7 @@ public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {
         }
 
         // Default vlan id range
-        final String defaultRange = "vlanid >= 1";
+        final String defaultRange = "vlanid = -1";
 
         String searchQuery = String.format(
                 "%s vmnetwork = true sortBy %s %s page %d",
