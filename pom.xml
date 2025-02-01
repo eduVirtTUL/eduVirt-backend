@@ -292,6 +292,7 @@
                     </execution>
                     <execution>
                         <id>default-report</id>
+                        <phase>verify</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
@@ -335,6 +336,14 @@
                         <reports>
                             <report>report</report>
                         </reports>
+                        <configuration>
+                            <includes>
+                                <include>pl/lodz/p/it/eduvirt/controller/**</include>
+                                <include>pl/lodz/p/it/eduvirt/service/**</include>
+                                <include>pl/lodz/p/it/eduvirt/executor/scheduler/**</include>
+                                <include>pl/lodz/p/it/eduvirt/executor/service/**</include>
+                            </includes>
+                        </configuration>
                     </reportSet>
                 </reportSets>
             </plugin>
