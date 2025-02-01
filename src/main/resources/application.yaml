@@ -55,6 +55,10 @@ auth:
     tokenUrl: ${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/${KEYCLOAK_PROTOCOL}/token
     clientSecret: ${KEYCLOAK_CLIENT_SECRET}
 
+logging:
+  level:
+    pl.lodz.p.it.eduvirt.aspect.logging.LoggerAspect: ${LOGGING_LEVEL:INFO}
+
 mail:
   default:
     timezone: ${DEFAULT_MAIL_TIMEZONE:CET}

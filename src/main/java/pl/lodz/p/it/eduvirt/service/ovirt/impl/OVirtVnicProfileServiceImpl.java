@@ -10,7 +10,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileOvirtNotFoundException;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
@@ -22,7 +21,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class OVirtVnicProfileServiceImpl implements OVirtVnicProfileService {

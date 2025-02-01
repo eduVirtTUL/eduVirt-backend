@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
@@ -37,7 +36,6 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.REQUIRES_NEW)
 public class ExecutorTaskServiceImpl implements ExecutorTaskService {

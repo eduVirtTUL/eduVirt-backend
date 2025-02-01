@@ -5,7 +5,6 @@ import org.ovirt.engine.sdk4.types.Vm;
 import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.dto.nic.NicDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDto;
 import pl.lodz.p.it.eduvirt.dto.vm.VmDtoWthEtag;
@@ -30,7 +29,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 public class ResourceGroupServiceImpl implements ResourceGroupService {
     private final ResourceGroupRepository resourceGroupRepository;

@@ -15,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.exceptions.EventNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.VmNotFoundException;
@@ -35,7 +34,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 public class OVirtVmServiceImpl implements OVirtVmService {
 

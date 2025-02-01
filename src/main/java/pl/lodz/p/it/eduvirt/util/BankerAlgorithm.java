@@ -8,6 +8,7 @@ import org.ovirt.engine.sdk4.types.Vm;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 @Component
+@LoggerInterceptor
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.MANDATORY)
 public class BankerAlgorithm {

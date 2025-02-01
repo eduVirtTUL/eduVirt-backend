@@ -2,14 +2,11 @@ package pl.lodz.p.it.eduvirt.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.Metric;
 import pl.lodz.p.it.eduvirt.exceptions.MetricNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.ClusterMetricRepository;
@@ -20,7 +17,6 @@ import pl.lodz.p.it.eduvirt.service.MetricService;
 import java.util.UUID;
 
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.REQUIRED)
 public class MetricServiceImpl implements MetricService {

@@ -10,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.exceptions.*;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.util.PaginationUtil;
@@ -20,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class OVirtClusterServiceImpl implements OVirtClusterService {

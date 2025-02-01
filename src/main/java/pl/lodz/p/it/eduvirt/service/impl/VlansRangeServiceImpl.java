@@ -3,7 +3,6 @@ package pl.lodz.p.it.eduvirt.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor;
 import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
 import pl.lodz.p.it.eduvirt.exceptions.VlansRangeInvalidDefinitionException;
 import pl.lodz.p.it.eduvirt.exceptions.VlansRangeConflictingRangeException;
@@ -16,7 +15,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
-@LoggerInterceptor
 @RequiredArgsConstructor
 public class VlansRangeServiceImpl implements VlansRangeService {
 
