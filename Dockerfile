@@ -12,13 +12,16 @@ RUN ./mvnw package -Pprod -DskipTests
 # Extract built jar
 RUN jar xf target/eduVirt.jar
 
+# Adds missing cipher suites for a full TLS support 
+RUN echo -n "jdk.crypto.ec,jdk.crypto.cryptoki," > deps.info
+
 # Get dependencies for the app
 RUN jdeps --ignore-missing-deps -q  \
     --recursive  \
     --multi-release 21  \
     --print-module-deps  \
     --class-path 'BOOT-INF/lib/*'  \
-    target/eduVirt.jar > deps.info
+    target/eduVirt.jar >> deps.info
 
 # Create custom jre
 RUN jlink \
