@@ -56,7 +56,7 @@ public class MailProvider {
 
         Map<String, Object> templateModel = Map.of(
                 "firstName", firstName,
-                "lastNameName", lastName,
+                "lastName", lastName,
                 "currentTime", timestamp
         );
 

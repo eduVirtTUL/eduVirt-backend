@@ -65,7 +65,7 @@ public class TestController {
         String lastName = "LastName";
 
         mailProvider.sendHtmlTestMessage(
-                firstName, lastName, mailTo, "CET","en"
+                firstName, lastName, mailTo, null,null
         );
 
         return ResponseEntity.ok().build();
