@@ -48,7 +48,7 @@ public class LoggerAspect {
 
     private Object logWithGivenLevel(Level level, ProceedingJoinPoint point)
             throws Throwable {
-        StringBuilder builder = new StringBuilder("\n");
+        StringBuilder builder = new StringBuilder();
         Object result;
         try {
             appendMethodExecution(builder, point);
