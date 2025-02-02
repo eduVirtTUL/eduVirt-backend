@@ -1,6 +1,5 @@
 package pl.lodz.p.it.eduvirt.unit.service;
 
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +11,6 @@ import org.ovirt.engine.sdk4.builders.VlanBuilder;
 import org.ovirt.engine.sdk4.builders.VnicProfileBuilder;
 import org.ovirt.engine.sdk4.types.VnicProfile;
 import org.springframework.data.domain.Pageable;
-import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
 import pl.lodz.p.it.eduvirt.entity.network.VlansRange;
 import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
 import pl.lodz.p.it.eduvirt.exceptions.VnicProfileAlreadyExistsException;
@@ -25,20 +23,21 @@ import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
 import pl.lodz.p.it.eduvirt.service.impl.VnicProfilePoolServiceImpl;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
-
-//todo rewrite then in tests names
 
 @ExtendWith(MockitoExtension.class)
 public class VnicProfilePoolServiceTest {
@@ -73,7 +72,6 @@ public class VnicProfilePoolServiceTest {
 
     private VnicProfilePoolMember eduVirtVnicProfile1;
     private VnicProfilePoolMember eduVirtVnicProfile2;
-    private VnicProfilePoolMember eduVirtVnicProfile3;
 
     /* Constants */
 
@@ -163,19 +161,12 @@ public class VnicProfilePoolServiceTest {
                 vnicProfileName2,
                 networkName2
         );
-
-        eduVirtVnicProfile3 = new VnicProfilePoolMember(
-                vnicProfileId3,
-                vlanId3,
-                vnicProfileName3,
-                networkName3
-        );
     }
 
     /* Tests */
 
     @Test
-    void Given_VnicProfilesExist_When_GetSynchronized_Then_ReturnAllVlansRanges() {
+    void Given_VnicProfilesExist_When_GetSynchronized_Then_ReturnTwoTypesVnicProfiles() {
         List<VlansRange> vlansRangeList = List.of(
                 vlansRange1,
                 vlansRange2
@@ -230,7 +221,7 @@ public class VnicProfilePoolServiceTest {
     }
 
     @Test
-    void Given_VnicProfilesExist_When_GetVnicProfilesPool_Then_ReturnAllVlansRanges() {
+    void Given_VnicProfilesExist_When_GetVnicProfilesPool_Then_ReturnAllVnicProfilesFromPool() {
         List<VlansRange> vlansRangeList = List.of(
                 vlansRange1
         );
@@ -275,7 +266,7 @@ public class VnicProfilePoolServiceTest {
     }
 
     @Test
-    void Given_VnicProfilesExistButHaveDivergentData_When_GetVnicProfilesPool_Then_ReturnAllVlansRanges() {
+    void Given_VnicProfilesExistButHaveDivergentData_When_GetVnicProfilesPool_Then_ReturnAllVnicProfilesFromPool() {
         List<VlansRange> vlansRangeList = List.of(
                 vlansRange1
         );
@@ -328,7 +319,7 @@ public class VnicProfilePoolServiceTest {
     }
 
     @Test
-    void Given_SomeVnicProfilesNotExistInOvirt_When_GetVnicProfilesPool_Then_ReturnAllVlansRanges() {
+    void Given_SomeVnicProfilesNotExistInOvirt_When_GetVnicProfilesPool_Then_ReturnAllVnicProfilesFromPool() {
         List<VlansRange> vlansRangeList = List.of(
                 vlansRange1
         );
@@ -387,7 +378,7 @@ public class VnicProfilePoolServiceTest {
     }
 
     @Test
-    void Given_NoVnicProfileExistsInOvirt_When_GetVnicProfileFromPool_Then_ReturnVnicProfileFromPool() {
+    void Given_NoVnicProfileExistsInOvirt_When_GetVnicProfileFromPool_Then_ThrowException() {
         when(oVirtVnicProfileService.getVnicProfileById(vnicProfileId1.toString()))
                 .thenReturn(null);
 
@@ -397,7 +388,7 @@ public class VnicProfilePoolServiceTest {
     }
 
     @Test
-    void Given_VnicProfileExistsInOvirtButNoExistsInEduVirt_When_GetVnicProfileFromPool_Then_ReturnVnicProfileFromPool() {
+    void Given_VnicProfileExistsInOvirtButNoExistsInEduVirt_When_GetVnicProfileFromPool_Then_ThrowException() {
         when(oVirtVnicProfileService.getVnicProfileById(vnicProfileId1.toString()))
                 .thenReturn(oVirtVnicProfile1);
 
@@ -443,7 +434,7 @@ public class VnicProfilePoolServiceTest {
     }
 
     @Test
-    void Given_NoFreeVnicProfilesExist_When_GetFirstFreeVnicProfileFromPool_Then_ReturnOptionalVnicProfileFromPool() {
+    void Given_NoFreeVnicProfilesExist_When_GetFirstFreeVnicProfileFromPool_Then_ReturnEmptyOptionalVnicProfileFromPool() {
         List<VlansRange> vlansRangeList = List.of(
                 vlansRange1
         );
@@ -581,7 +572,7 @@ public class VnicProfilePoolServiceTest {
     }
 
     @Test
-    void Given_NewExistingInOvirtVnicProfile_When_AddVnicProfileToPool_Then_ReturnOptionalVnicProfileFromPool() {
+    void Given_NewExistingInOvirtVnicProfile_When_AddVnicProfileToPool_Then_Success() {
         when(vnicProfileRepository.findById(vnicProfileId1))
                 .thenReturn(Optional.empty());
 
@@ -601,7 +592,7 @@ public class VnicProfilePoolServiceTest {
     }
 
     @Test
-    void Given_ExistingInOvirtVnicProfileButAlreadyInPool_When_AddVnicProfileToPool_Then_ReturnOptionalVnicProfileFromPool() {
+    void Given_ExistingInOvirtVnicProfileButAlreadyInPool_When_AddVnicProfileToPool_Then_ThrowException() {
         when(vnicProfileRepository.findById(vnicProfileId1))
                 .thenReturn(Optional.of(eduVirtVnicProfile1));
 
@@ -614,7 +605,7 @@ public class VnicProfilePoolServiceTest {
     }
 
     @Test
-    void Given_NewNulledInOvirtVnicProfile_When_AddVnicProfileToPool_Then_ReturnOptionalVnicProfileFromPool() {
+    void Given_NewNulledInOvirtVnicProfile_When_AddVnicProfileToPool_Then_ThrowException() {
         when(vnicProfileRepository.findById(vnicProfileId1))
                 .thenReturn(Optional.empty());
 
@@ -742,15 +733,5 @@ public class VnicProfilePoolServiceTest {
 
         verify(vnicProfileRepository, times(1)).findById(vnicProfileId1);
         verify(vnicProfileRepository, times(0)).saveAndFlush(any(VnicProfilePoolMember.class));
-    }
-
-    /* Utils */
-
-    @SneakyThrows
-    private void setEntityFieldValue(AbstractEntity entity, String fieldName, Object value) {
-        Field idField = AbstractEntity.class.getDeclaredField(fieldName);
-        idField.setAccessible(true);
-        idField.set(entity, value);
-        idField.setAccessible(false);
     }
 }
