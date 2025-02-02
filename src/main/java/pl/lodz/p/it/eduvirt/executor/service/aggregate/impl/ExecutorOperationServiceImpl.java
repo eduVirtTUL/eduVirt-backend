@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@InfoLoggerInterceptor
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class ExecutorOperationServiceImpl implements ExecutorOperationService {
 
