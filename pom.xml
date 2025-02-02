@@ -301,9 +301,11 @@
                 <configuration>
                     <includes>
                         <include>pl/lodz/p/it/eduvirt/controller/**</include>
-                        <include>pl/lodz/p/it/eduvirt/service/**</include>
+                        <include>pl/lodz/p/it/eduvirt/service/impl/**</include>
+                        <include>pl/lodz/p/it/eduvirt/service/ovirt/impl/**</include>
+                        <include>pl/lodz/p/it/eduvirt/service/privileges/impl/**</include>
                         <include>pl/lodz/p/it/eduvirt/executor/scheduler/**</include>
-                        <include>pl/lodz/p/it/eduvirt/executor/service/**</include>
+                        <include>pl/lodz/p/it/eduvirt/executor/service/impl/**</include>
                     </includes>
                 </configuration>
             </plugin>
@@ -339,9 +341,12 @@
                         <configuration>
                             <includes>
                                 <include>pl/lodz/p/it/eduvirt/controller/**</include>
-                                <include>pl/lodz/p/it/eduvirt/service/**</include>
+                                <include>pl/lodz/p/it/eduvirt/service/impl/**</include>
+                                <include>pl/lodz/p/it/eduvirt/service/ovirt/impl/**</include>
+                                <include>pl/lodz/p/it/eduvirt/service/privileges/impl/**</include>
                                 <include>pl/lodz/p/it/eduvirt/executor/scheduler/**</include>
-                                <include>pl/lodz/p/it/eduvirt/executor/service/**</include>
+                                <include>pl/lodz/p/it/eduvirt/executor/service/impl/**</include>
+                                <include>pl/lodz/p/it/eduvirt/executor/service/aggregate/impl/**</include>
                             </includes>
                         </configuration>
                     </reportSet>

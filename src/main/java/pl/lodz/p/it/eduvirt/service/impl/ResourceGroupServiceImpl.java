@@ -20,7 +20,7 @@ import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupService;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVnicProfileService;
-import pl.lodz.p.it.eduvirt.service.priviliges.PrivilegesService;
+import pl.lodz.p.it.eduvirt.service.privileges.PrivilegesService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.math.BigInteger;

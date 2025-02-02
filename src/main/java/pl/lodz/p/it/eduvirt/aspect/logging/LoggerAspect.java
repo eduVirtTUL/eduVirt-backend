@@ -35,13 +35,16 @@ public class LoggerAspect {
     @Pointcut(value = "execution(* org.springframework.data.repository.Repository+.*(..))))")
     private void repositoryMethodPointcut() {}
 
-    @Around("controllerMethodPointcut()")
+    @Pointcut(value = "@within(pl.lodz.p.it.eduvirt.aspect.logging.InfoLoggerInterceptor)")
+    private void specificMethodPointcut() {}
+
+    @Around("controllerMethodPointcut() || specificMethodPointcut()")
     private Object controllerMethodLogger(ProceedingJoinPoint point) throws Throwable {
         return logWithGivenLevel(Level.INFO, point);
     }
 
     @Around(value = "repositoryMethodPointcut() || serviceMethodPointcut() " +
-            "|| (loggingInterceptorPointcut() && !controllerMethodPointcut())")
+            "|| (loggingInterceptorPointcut() && !controllerMethodPointcut() && !serviceMethodPointcut())")
     private Object repositoryAndServiceMethodLogger(ProceedingJoinPoint point) throws Throwable {
         return logWithGivenLevel(Level.DEBUG, point);
     }

@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.service.priviliges;
+package pl.lodz.p.it.eduvirt.service.privileges;
 
 import pl.lodz.p.it.eduvirt.entity.Course;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;

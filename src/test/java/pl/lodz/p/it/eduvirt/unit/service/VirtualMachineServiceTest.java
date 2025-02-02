@@ -24,7 +24,7 @@ import pl.lodz.p.it.eduvirt.repository.VirtualMachineRepository;
 import pl.lodz.p.it.eduvirt.service.CourseService;
 import pl.lodz.p.it.eduvirt.service.impl.VirtualMachineServiceImpl;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
-import pl.lodz.p.it.eduvirt.service.priviliges.PrivilegesService;
+import pl.lodz.p.it.eduvirt.service.privileges.PrivilegesService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.Optional;

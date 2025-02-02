@@ -16,7 +16,7 @@ import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
-import pl.lodz.p.it.eduvirt.service.priviliges.impl.PrivilegesServiceImpl;
+import pl.lodz.p.it.eduvirt.service.privileges.impl.PrivilegesServiceImpl;
 import pl.lodz.p.it.eduvirt.util.RoleConstants;
 
 import java.util.List;
