@@ -18,7 +18,7 @@ import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupRepository;
 import pl.lodz.p.it.eduvirt.service.impl.ResourceGroupServiceImpl;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
-import pl.lodz.p.it.eduvirt.service.priviliges.PrivilegesService;
+import pl.lodz.p.it.eduvirt.service.privileges.PrivilegesService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.lang.reflect.Field;

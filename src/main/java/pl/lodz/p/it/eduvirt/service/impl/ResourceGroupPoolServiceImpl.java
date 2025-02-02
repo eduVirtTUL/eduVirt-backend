@@ -17,7 +17,7 @@ import pl.lodz.p.it.eduvirt.exceptions.resource_group_pool.ResourceGroupPoolConf
 import pl.lodz.p.it.eduvirt.repository.CourseRepository;
 import pl.lodz.p.it.eduvirt.repository.ResourceGroupPoolRepository;
 import pl.lodz.p.it.eduvirt.service.ResourceGroupPoolService;
-import pl.lodz.p.it.eduvirt.service.priviliges.PrivilegesService;
+import pl.lodz.p.it.eduvirt.service.privileges.PrivilegesService;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.List;

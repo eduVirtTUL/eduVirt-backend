@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.service.priviliges.impl;
+package pl.lodz.p.it.eduvirt.service.privileges.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.*;
-import pl.lodz.p.it.eduvirt.service.priviliges.PrivilegesService;
+import pl.lodz.p.it.eduvirt.service.privileges.PrivilegesService;
 import pl.lodz.p.it.eduvirt.util.RoleConstants;
 
 import java.util.Collection;
