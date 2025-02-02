@@ -1,4 +1,4 @@
-package pl.lodz.p.it.eduvirt.unit.service;
+package pl.lodz.p.it.eduvirt.unit.service.ovirt;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
