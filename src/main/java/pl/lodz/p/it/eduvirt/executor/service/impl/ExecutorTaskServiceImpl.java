@@ -76,7 +76,7 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
             task.setFailed();
         }
         task.setDescription(
-                Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(200, comment.length())) : null
+                Objects.nonNull(comment) && !comment.isBlank() ? comment.substring(0, Math.min(200, comment.length())) : null
         );
 
         executorTaskRepository.saveAndFlush(task);
@@ -106,7 +106,7 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
 
         subtask.setSuccessful(success);
         subtask.setDescription(
-                Objects.nonNull(comment) && !comment.isEmpty() ? comment.substring(0, Math.min(500, comment.length())) : null
+                Objects.nonNull(comment) && !comment.isBlank() ? comment.substring(0, Math.min(500, comment.length())) : null
         );
 
         Map<AdditionalId, UUID> mapOfAdditionalIds = new HashMap<>();
@@ -166,7 +166,7 @@ public class ExecutorTaskServiceImpl implements ExecutorTaskService {
 
     @Override
     public List<ExecutorSubtask> getReservationsInProgressSubTasks() {
-        return executorTaskRepository.findReservationsInProgressSubTasks();
+        return executorSubtaskRepository.findReservationsInProgressSubTasks();
     }
 
     /* Private methods */

@@ -6,7 +6,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
 
 import java.time.LocalDateTime;
@@ -28,7 +27,4 @@ public interface ExecutorTaskRepository extends JpaRepository<ExecutorTask, UUID
 
     @Query("SELECT e FROM ExecutorTask e WHERE e.status = 'IN_PROGRESS'")
     List<ExecutorTask> findReservationsInProgressTasks();
-
-    @Query("SELECT st FROM ExecutorSubtask st WHERE st.successful IS NULL")
-    List<ExecutorSubtask> findReservationsInProgressSubTasks();
 }

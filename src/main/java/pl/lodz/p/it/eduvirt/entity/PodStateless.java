@@ -11,7 +11,7 @@ import lombok.*;
 @Builder
 @Table(name = "pod_stateless")
 @Entity
-public class PodStateless extends AbstractEntity{
+public class PodStateless extends AbstractEntity {
 
     @ManyToOne(optional = false)
     @JoinColumn(
