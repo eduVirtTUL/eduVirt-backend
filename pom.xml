@@ -68,7 +68,7 @@
         <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
         <!--DB-->
         <postgresql-version>42.7.4</postgresql-version>
-        <infinispan-version>14.0.33.Final</infinispan-version>
+        <infinispan-version>14.0.34.Final</infinispan-version>
         <!--VERSIONS-->
         <ovirt-api-sdk.version>4.5.1</ovirt-api-sdk.version>
         <lombok.version>1.18.36</lombok.version>
