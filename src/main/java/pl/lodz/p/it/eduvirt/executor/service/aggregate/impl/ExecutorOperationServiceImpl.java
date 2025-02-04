@@ -128,51 +128,7 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
                 List<ResourceGroupNetwork> networksToMap = resourceGroup.getNetworks();
                 networksToMap
                         .forEach(
-                                network -> {
-                                    // Filter already assigned NICs
-                                    List<NetworkInterface> interfaces = network.getInterfaces();
-                                    int numOfInterfacesBeforeFiltering = interfaces.size();
-
-                                    UUID[] previousVnicProfileId = new UUID[1];
-                                    interfaces.removeIf(nic -> {
-                                        if (nicsIdsToExclude.containsKey(nic.getId())) {
-                                            previousVnicProfileId[0] = nicsIdsToExclude.get(nic.getId());
-                                            return true;
-                                        }
-                                        return false;
-                                    });
-                                    int numOfInterfacesAfterFiltering = interfaces.size();
-
-                                    UUID chosenVnicProfileId;
-                                    if (interfaces.isEmpty()) {
-                                        return;
-                                    } else if (numOfInterfacesBeforeFiltering > numOfInterfacesAfterFiltering) {
-                                        chosenVnicProfileId = previousVnicProfileId[0];
-                                    } else {
-                                        // Fetch vnic profile from pool,
-                                        // checking conditions (if inUse equals false and vnic profile is present in the oVirt)
-                                        chosenVnicProfileId = vnicProfilePoolService.getFirstFreeVnicProfileFromPool()
-                                                .orElseThrow(NoAvailableVnicProfileException::new)
-                                                .getId();
-
-                                        // Set vnic profile's property "inUse" to true
-                                        vnicProfilePoolService.markVnicProfileAsOccupied(chosenVnicProfileId);
-                                    }
-
-                                    // Assign vnic profile to VMs NICs
-                                    interfaces
-                                            .forEach(
-                                                    nic -> {
-                                                        UUID vmId = nic.getVirtualMachine().getId();
-                                                        runAndRegister(
-                                                                () -> assignVnicProfileToNIC(chosenVnicProfileId, vmId, nic.getId()),
-                                                                executorTask, vmId, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE,
-                                                                AdditionalId.VNIC_PROFILE.withId(chosenVnicProfileId),
-                                                                AdditionalId.NIC.withId(nic.getId())
-                                                        );
-                                                    }
-                                            );
-                                }
+                                network -> mapNetworkToVnicProfiles(network, nicsIdsToExclude, executorTask)
                         );
             }
 
@@ -301,48 +257,7 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
                 List<ResourceGroupNetwork> networksToRemove = resourceGroup.getNetworks();
                 networksToRemove
                         .forEach(
-                                network -> {
-                                    // Filter already cleaned NICs
-                                    List<NetworkInterface> interfaces = network.getInterfaces();
-                                    interfaces.removeIf(nic -> nicsIdsToExclude.contains(nic.getId()));
-
-                                    if (interfaces.isEmpty()) {
-                                        return;
-                                    }
-
-                                    // Remove vnic profile from VMs NICs
-                                    Set<UUID> removedVnicProfilesIdsSet = interfaces
-                                            .stream()
-                                            .map(
-                                                    nic -> {
-                                                        UUID vmId = nic.getVirtualMachine().getId();
-                                                        return runAndRegister(
-                                                                () -> removeVnicProfileFromNIC(vmId, nic.getId()),
-                                                                executorTask, vmId, ExecutorSubtask.SubtaskType.REMOVE_VNIC_PROFILE,
-                                                                AdditionalId.VNIC_PROFILE,
-                                                                AdditionalId.NIC.withId(nic.getId())
-                                                        );
-                                                    }
-                                            )
-                                            .filter(Objects::nonNull)
-                                            .collect(Collectors.toSet());
-
-                                    // Set vnic profile's property "inUse" to false
-                                    if (removedVnicProfilesIdsSet.size() == 1) {
-                                        try {
-                                            vnicProfilePoolService.markVnicProfileAsFree(removedVnicProfilesIdsSet.iterator().next());
-                                        } catch (Throwable e) {
-                                            log.error("An exception was thrown when marking the vnic profile as free - {}, ~ {}",
-                                                    e.getClass().getName(),
-                                                    e.getMessage()
-                                            );
-                                        }
-                                    } else {
-                                        log.warn("More than one (or none) assigned vnic profile was detected within " +
-                                                "the private network segment, which prevented from marking, " +
-                                                "the nominal vnic profile as free in the pool");
-                                    }
-                                }
+                                network -> clearNetworkToVnicProfilesMapping(network, nicsIdsToExclude, executorTask)
                         );
             }
 
@@ -438,6 +353,117 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
                 return;
             }
             throw new ResourceGroupCurrentlyInUseException(resourceGroup.getId(), reservationIds);
+        }
+    }
+
+    private void mapNetworkToVnicProfiles(ResourceGroupNetwork network, Map<UUID, UUID> nicsIdsToExclude,
+                                          ExecutorTask executorTask) {
+        // Filter already assigned NICs
+        List<NetworkInterface> interfaces = network.getInterfaces();
+        int numOfInterfacesBeforeFiltering = interfaces.size();
+
+        UUID[] previousVnicProfileId = new UUID[1];
+        interfaces.removeIf(nic -> {
+            if (nicsIdsToExclude.containsKey(nic.getId())) {
+                previousVnicProfileId[0] = nicsIdsToExclude.get(nic.getId());
+                return true;
+            }
+            return false;
+        });
+        int numOfInterfacesAfterFiltering = interfaces.size();
+
+        UUID chosenVnicProfileId;
+        if (interfaces.isEmpty()) {
+            return;
+        } else if (numOfInterfacesBeforeFiltering > numOfInterfacesAfterFiltering) {
+            chosenVnicProfileId = previousVnicProfileId[0];
+
+            // Assign vnic profile to VMs NICs
+            interfaces
+                    .forEach(
+                            nic -> {
+                                UUID vmId = nic.getVirtualMachine().getId();
+                                runAndRegister(
+                                        () -> assignVnicProfileToNIC(chosenVnicProfileId, vmId, nic.getId()),
+                                        executorTask, vmId, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE,
+                                        AdditionalId.VNIC_PROFILE.withId(chosenVnicProfileId),
+                                        AdditionalId.NIC.withId(nic.getId())
+                                );
+                            }
+                    );
+        } else {
+            // Fetch vnic profile from pool,
+            // checking conditions (if inUse equals false and vnic profile is present in the oVirt)
+            chosenVnicProfileId = vnicProfilePoolService.getFirstFreeVnicProfileFromPool()
+                    .orElseThrow(NoAvailableVnicProfileException::new)
+                    .getId();
+
+            // Set vnic profile's property "inUse" to true
+            vnicProfilePoolService.markVnicProfileAsOccupied(chosenVnicProfileId);
+
+            int numOfMappedNic = 0;
+            try {
+                for (NetworkInterface nic : interfaces) {
+                    UUID vmId = nic.getVirtualMachine().getId();
+                    runAndRegister(
+                            () -> assignVnicProfileToNIC(chosenVnicProfileId, vmId, nic.getId()),
+                            executorTask, vmId, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE,
+                            AdditionalId.VNIC_PROFILE.withId(chosenVnicProfileId),
+                            AdditionalId.NIC.withId(nic.getId())
+                    );
+                    numOfMappedNic++;
+                }
+            } catch (Throwable ex) {
+                if (numOfMappedNic == 0) {
+                    vnicProfilePoolService.markVnicProfileAsFree(chosenVnicProfileId);
+                }
+                log.error("Failed to assign VNIC profile {}", chosenVnicProfileId);
+                throw ex;
+            }
+        }
+    }
+
+    private void clearNetworkToVnicProfilesMapping(ResourceGroupNetwork network, Set<UUID> nicsIdsToExclude,
+                                                   ExecutorTask executorTask) {
+        // Filter already cleaned NICs
+        List<NetworkInterface> interfaces = network.getInterfaces();
+        interfaces.removeIf(nic -> nicsIdsToExclude.contains(nic.getId()));
+
+        if (interfaces.isEmpty()) {
+            return;
+        }
+
+        // Remove vnic profile from VMs NICs
+        Set<UUID> removedVnicProfilesIdsSet = interfaces
+                .stream()
+                .map(
+                        nic -> {
+                            UUID vmId = nic.getVirtualMachine().getId();
+                            return runAndRegister(
+                                    () -> removeVnicProfileFromNIC(vmId, nic.getId()),
+                                    executorTask, vmId, ExecutorSubtask.SubtaskType.REMOVE_VNIC_PROFILE,
+                                    AdditionalId.VNIC_PROFILE,
+                                    AdditionalId.NIC.withId(nic.getId())
+                            );
+                        }
+                )
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Set vnic profile's property "inUse" to false
+        if (removedVnicProfilesIdsSet.size() == 1) {
+            try {
+                vnicProfilePoolService.markVnicProfileAsFree(removedVnicProfilesIdsSet.iterator().next());
+            } catch (Throwable e) {
+                log.error("An exception was thrown when marking the vnic profile as free - {}, ~ {}",
+                        e.getClass().getName(),
+                        e.getMessage()
+                );
+            }
+        } else {
+            log.warn("More than one (or none) assigned vnic profile was detected within " +
+                    "the private network segment, which prevented from marking, " +
+                    "the nominal vnic profile as free in the pool");
         }
     }
 
