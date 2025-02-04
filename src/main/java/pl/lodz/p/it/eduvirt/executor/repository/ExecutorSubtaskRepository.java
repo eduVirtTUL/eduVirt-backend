@@ -19,4 +19,7 @@ public interface ExecutorSubtaskRepository extends JpaRepository<ExecutorSubtask
     @Query("SELECT s FROM ExecutorSubtask s WHERE s.executorTask.reservation.id = :reservationId AND s.executorTask.type = :taskType")
     List<ExecutorSubtask> findByReservation(@Param("reservationId") UUID reservationId,
                                             @Param("taskType") ExecutorTask.TaskType taskType);
+
+    @Query("SELECT st FROM ExecutorSubtask st WHERE st.successful IS NULL")
+    List<ExecutorSubtask> findReservationsInProgressSubTasks();
 }

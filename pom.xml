@@ -306,6 +306,7 @@
                         <include>pl/lodz/p/it/eduvirt/service/privileges/impl/**</include>
                         <include>pl/lodz/p/it/eduvirt/executor/scheduler/**</include>
                         <include>pl/lodz/p/it/eduvirt/executor/service/impl/**</include>
+                        <include>pl/lodz/p/it/eduvirt/executor/service/aggregate/impl/**</include>
                     </includes>
                 </configuration>
             </plugin>
