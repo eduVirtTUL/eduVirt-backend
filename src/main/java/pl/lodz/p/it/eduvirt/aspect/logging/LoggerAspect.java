@@ -5,15 +5,18 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.slf4j.event.Level;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
+import pl.lodz.p.it.eduvirt.entity.Updatable;
 
 import java.util.Arrays;
 import java.util.List;
-import org.slf4j.event.Level;
+import java.util.Optional;
 
 @Slf4j
 @Aspect
@@ -23,20 +26,25 @@ public class LoggerAspect {
 
     @Pointcut(value = "@annotation(pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor) || " +
             "@within(pl.lodz.p.it.eduvirt.aspect.logging.LoggerInterceptor)")
-    private void loggingInterceptorPointcut() {}
+    private void loggingInterceptorPointcut() {
+    }
 
     @Pointcut(value = "@within(org.springframework.web.bind.annotation.RestController) || " +
             "@within(org.springframework.stereotype.Controller)")
-    private void controllerMethodPointcut() {}
+    private void controllerMethodPointcut() {
+    }
 
     @Pointcut(value = "@within(org.springframework.stereotype.Service)")
-    private void serviceMethodPointcut() {}
+    private void serviceMethodPointcut() {
+    }
 
     @Pointcut(value = "execution(* org.springframework.data.repository.Repository+.*(..))))")
-    private void repositoryMethodPointcut() {}
+    private void repositoryMethodPointcut() {
+    }
 
     @Pointcut(value = "@within(pl.lodz.p.it.eduvirt.aspect.logging.InfoLoggerInterceptor)")
-    private void specificMethodPointcut() {}
+    private void specificMethodPointcut() {
+    }
 
     @Around("controllerMethodPointcut() || specificMethodPointcut()")
     private Object controllerMethodLogger(ProceedingJoinPoint point) throws Throwable {
@@ -51,6 +59,7 @@ public class LoggerAspect {
 
     private Object logWithGivenLevel(Level level, ProceedingJoinPoint point)
             throws Throwable {
+
         StringBuilder builder = new StringBuilder();
         Object result;
         try {
@@ -101,14 +110,35 @@ public class LoggerAspect {
             stringBuilder.append("List of parameters: ")
                     .append("[ ");
             for (Object parameter : point.getArgs()) {
-                stringBuilder
-                        .append(parameter).append(": ")
-                        .append(parameter != null ? parameter.getClass().getSimpleName() : "null");
-                if (Arrays.stream(point.getArgs()).toList().getLast() != parameter)
-                    stringBuilder.append(", ");
+                parseArgument(parameter).ifPresent((param) -> {
+                    stringBuilder.append(param);
+                    if (Arrays.stream(point.getArgs()).toList().getLast() != parameter)
+                        stringBuilder.append(", ");
+                });
             }
             stringBuilder.append(" ]");
         }
+    }
+
+    private Optional<String> parseArgument(Object argument) {
+        StringBuilder builder = new StringBuilder();
+        switch (argument) {
+            case Updatable updatable -> builder.append(updatable);
+            case AbstractEntity entity -> builder.append(entity);
+            case List<?> list -> {
+                builder.append("[");
+                list.stream().map(this::parseArgument).forEach(builder::append);
+                builder.append("]");
+            }
+            case null, default -> {
+                return Optional.empty();
+            }
+        }
+
+        builder
+                .append(argument.getClass().getSimpleName());
+
+        return Optional.of(builder.toString());
     }
 
     private void appendExceptionInfo(StringBuilder builder, Throwable throwable) {
@@ -123,9 +153,9 @@ public class LoggerAspect {
 
         if (throwable.getCause() != null)
             builder.append(" Cause: ")
-                .append(throwable.getCause().getClass().getSimpleName())
-                .append(" : ")
-                .append(throwable.getCause().getMessage());
+                    .append(throwable.getCause().getClass().getSimpleName())
+                    .append(" : ")
+                    .append(throwable.getCause().getMessage());
     }
 
     private void appendResultInfo(StringBuilder builder, Object result) {
