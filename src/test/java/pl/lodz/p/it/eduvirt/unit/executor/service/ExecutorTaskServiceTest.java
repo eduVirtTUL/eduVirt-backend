@@ -14,9 +14,7 @@ import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.Team;
-import pl.lodz.p.it.eduvirt.entity.User;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
-import pl.lodz.p.it.eduvirt.executor.entity.mails.MailNotification;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.AdditionalId;
@@ -26,15 +24,10 @@ import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.VmTask;
 import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.repository.ExecutorSubtaskRepository;
 import pl.lodz.p.it.eduvirt.executor.repository.ExecutorTaskRepository;
-import pl.lodz.p.it.eduvirt.executor.repository.MailNotificationRepository;
 import pl.lodz.p.it.eduvirt.executor.service.impl.ExecutorTaskServiceImpl;
-import pl.lodz.p.it.eduvirt.executor.service.impl.MailNotificationServiceImpl;
-import pl.lodz.p.it.eduvirt.util.MailProvider;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -46,10 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -748,7 +738,7 @@ public class ExecutorTaskServiceTest {
     @Test
     void Given_SubTasksExist_When_GetReservationsToEndTasks_Then_ReturnSubTasks() {
         Reservation testReservationFullData1 = getFullDataReservation();
-        Reservation testReservationFullData2 = getFullDataReservation();
+        Reservation testReservationFullData2 = getFullDataReservationWithNestedCollections();
 
         ExecutorTask testExecutorTask1 = new ExecutorTask(testReservationFullData1, ExecutorTask.TaskType.END_RESERVATION);
         UUID taskId1 = UUID.randomUUID();
@@ -832,11 +822,12 @@ public class ExecutorTaskServiceTest {
     }
 
     @SneakyThrows
+    @SuppressWarnings("SameParameterValue")
     private <T> void setField(Class<T> clazz, Object object, String fieldName, Object value) {
-        Field idField = clazz.getDeclaredField(fieldName);
-        idField.setAccessible(true);
-        idField.set(object, value);
-        idField.setAccessible(false);
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(object, value);
+        field.setAccessible(false);
     }
 
     private Reservation getFullDataReservation() {
@@ -846,6 +837,31 @@ public class ExecutorTaskServiceTest {
         ResourceGroup resourceGroup = new ResourceGroup();
         resourceGroup.setVms(new ArrayList<>());
         resourceGroup.setNetworks(new ArrayList<>());
+
+        Team team = new Team();
+        team.setUsers(new ArrayList<>());
+
+        newReservation.setResourceGroup(resourceGroup);
+        newReservation.setTeam(team);
+
+        return newReservation;
+    }
+
+    private Reservation getFullDataReservationWithNestedCollections() {
+        Reservation newReservation = new Reservation();
+        setEntityId(newReservation, UUID.randomUUID());
+
+        ResourceGroup resourceGroup = new ResourceGroup();
+
+        VirtualMachine virtualMachine = new VirtualMachine();
+        virtualMachine.setNetworkInterfaces(new ArrayList<>());
+
+        resourceGroup.setVms(List.of(virtualMachine));
+
+        ResourceGroupNetwork resourceGroupNetwork = new ResourceGroupNetwork();
+        resourceGroupNetwork.setInterfaces(new ArrayList<>());
+
+        resourceGroup.setNetworks(List.of(resourceGroupNetwork));
 
         Team team = new Team();
         team.setUsers(new ArrayList<>());

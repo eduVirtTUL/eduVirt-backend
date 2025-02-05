@@ -29,6 +29,7 @@ import pl.lodz.p.it.eduvirt.executor.service.MailNotificationService;
 import pl.lodz.p.it.eduvirt.executor.service.aggregate.ExecutorOperationService;
 import pl.lodz.p.it.eduvirt.service.ReservationService;
 import pl.lodz.p.it.eduvirt.service.VnicProfilePoolService;
+import pl.lodz.p.it.eduvirt.service.ovirt.OVirtPermissionService;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtVmService;
 
 import java.util.ArrayList;
@@ -39,8 +40,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -52,7 +55,7 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
 
     /* Model */
     private final OVirtVmService oVirtVmService;
-    private final pl.lodz.p.it.eduvirt.service.ovirt.OVirtPermissionService OVirtPermissionService;
+    private final OVirtPermissionService oVirtPermissionService;
     private final VnicProfilePoolService vnicProfilePoolService;
     private final ReservationService reservationService;
 
@@ -487,14 +490,20 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
                              SAVING_STATE, SUSPENDED, PAUSED,
                              NOT_RESPONDING, UNASSIGNED, UNKNOWN -> invalidStatuses.add(vm);
                         case REBOOT_IN_PROGRESS, POWERING_UP, WAIT_FOR_LAUNCH -> launchingStatuses.add(vm);
+                        default -> throw new IllegalArgumentException(
+                                "Unexpected status: %s for VM %s (%s)".formatted(vm.status().name(), vm.name(), vm.id())
+                        );
                     }
                 }
         );
 
+        Function<Vm, String> vmStatusInfo = vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name());
+        Collector<CharSequence, ?, String> vmsInfoCollector = Collectors.joining(";");
+
         if (!invalidStatuses.isEmpty()) {
             String invalidStatusesConcString = invalidStatuses.stream()
-                    .map(vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name()))
-                    .collect(Collectors.joining(";"));
+                    .map(vmStatusInfo)
+                    .collect(vmsInfoCollector);
 
             String errorMessage = "Some VMs are in invalid statuses: " + invalidStatusesConcString;
             log.error(errorMessage);
@@ -503,8 +512,8 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
 
         if (!launchingStatuses.isEmpty()) {
             String transitionalStatusesConcString = launchingStatuses.stream()
-                    .map(vm -> "VM %s in %s status".formatted(vm.name(), vm.status().name()))
-                    .collect(Collectors.joining(";"));
+                    .map(vmStatusInfo)
+                    .collect(vmsInfoCollector);
 
             String errorMessage = "Some VMs are in launching statuses: " + transitionalStatusesConcString;
             log.error(errorMessage);
@@ -523,7 +532,7 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
     private void addTeamPermissionsToVm(UUID vmId, List<UUID> teamMembersIds) {
         teamMembersIds
                 .forEach(
-                        userId -> OVirtPermissionService.assignPermissionToVmToUser(vmId, userId,
+                        userId -> oVirtPermissionService.assignPermissionToVmToUser(vmId, userId,
                                 "00000000-0000-0000-0001-000000000001")
                 );
     }
@@ -532,11 +541,11 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
         teamMembersIds
                 .forEach(
                         userId ->
-                                OVirtPermissionService.findPermissionsByVmId(vmId)
+                                oVirtPermissionService.findPermissionsByVmId(vmId)
                                         .forEach(permission -> {
                                             User userOpt = permission.user();
                                             if (Objects.nonNull(userOpt) && userOpt.id().equals(userId.toString())) {
-                                                OVirtPermissionService.revokePermissionToVmFromUser(
+                                                oVirtPermissionService.revokePermissionToVmFromUser(
                                                         UUID.fromString(permission.id())
                                                 );
                                             }
