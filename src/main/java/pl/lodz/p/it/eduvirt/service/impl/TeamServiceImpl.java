@@ -27,6 +27,7 @@ import pl.lodz.p.it.eduvirt.repository.key.TeamAccessKeyRepository;
 import pl.lodz.p.it.eduvirt.service.AccessKeyService;
 import pl.lodz.p.it.eduvirt.service.KeyGeneratorService;
 import pl.lodz.p.it.eduvirt.service.TeamService;
+import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.util.ArrayList;
@@ -351,9 +352,9 @@ public class TeamServiceImpl implements TeamService {
     @PreAuthorize("hasAuthority('teacher')")
     public void addStudentToTeam(Team team, String email) {
         User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email %s could not be found!".formatted(email)));
+                .orElseThrow(() -> new UserNotFoundException("Student with email %s could not be found!".formatted(email)));
 
-        if (team.isActive()) {
+        if (user.getRoles().contains(RoleConstants.STUDENT)) {
             if (team.getUsers().size() + 1 > team.getMaxSize()) {
                 throw new TeamSizeException();
             }
@@ -361,22 +362,26 @@ public class TeamServiceImpl implements TeamService {
             team.getUsers().add(user);
             teamRepository.saveAndFlush(team);
         } else {
-            throw new TeamNotActiveException();
+            throw new UserNotAuthorizedException("User with email %s is not a student".formatted(email));
         }
     }
 
     @Override
     @PreAuthorize("hasAuthority('teacher')")
     public void addStudentToCourse(Course course, String email) {
-        User student = userRepository.findByEmailIgnoreCase(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UserNotFoundException("Student with email %s could not be found!".formatted(email)));
 
         if (course.getCourseType() == CourseType.TEAM_BASED) {
             throw new IncorrectCourseTypeException("Cannot add student directly to team-based course");
         }
 
-        validateUserNotInCourse(student.getId(), course.getId());
-        createSoloTeam(course, student);
+        if (user.getRoles().contains(RoleConstants.STUDENT)) {
+            validateUserNotInCourse(user.getId(), course.getId());
+            createSoloTeam(course, user);
+        } else {
+            throw new UserNotAuthorizedException("User with email %s is not a student".formatted(email));
+        }
     }
 
     /* Leave team or course methods */

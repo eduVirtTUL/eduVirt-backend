@@ -14,13 +14,11 @@ import org.springframework.data.domain.Sort;
 
 import pl.lodz.p.it.eduvirt.exceptions.access_key.DuplicateKeyValueException;
 import pl.lodz.p.it.eduvirt.exceptions.course.IncorrectCourseTypeException;
+import pl.lodz.p.it.eduvirt.util.RoleConstants;
 import pl.lodz.p.it.eduvirt.util.etag.ETagHelper;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -41,6 +39,7 @@ import pl.lodz.p.it.eduvirt.exceptions.team.TeamUserAlreadyMemberException;
 import pl.lodz.p.it.eduvirt.exceptions.team.TeamUserNotMemberException;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserAlreadyInCourseException;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserDoesntBelongToCourseException;
+import pl.lodz.p.it.eduvirt.exceptions.user.UserNotAuthorizedException;
 import pl.lodz.p.it.eduvirt.exceptions.user.UserNotFoundException;
 import pl.lodz.p.it.eduvirt.repository.TeamRepository;
 import pl.lodz.p.it.eduvirt.repository.UserRepository;
@@ -106,6 +105,10 @@ public class TeamServiceTest {
         user1 = new User(UUID.randomUUID(), UUID.randomUUID(), "user1@test.com", "user1", "First1", "Last1");
         user2 = new User(UUID.randomUUID(), UUID.randomUUID(), "user2@test.com", "user2", "First2", "Last2");
         user3 = new User(UUID.randomUUID(), UUID.randomUUID(), "user3@test.com", "user3", "First3", "Last3");
+
+        user1.setRoles(List.of(RoleConstants.STUDENT));
+        user2.setRoles(List.of(RoleConstants.STUDENT));
+        user3.setRoles(List.of(RoleConstants.STUDENT));
 
         team1 = Team.builder()
                 .name("Team1")
@@ -683,7 +686,7 @@ public class TeamServiceTest {
         when(userRepository.findByEmailIgnoreCase(user2.getEmail()))
                 .thenReturn(Optional.of(user2));
 
-        assertThrows(TeamNotActiveException.class,
+        assertThrows(UserNotFoundException.class,
                 () -> teamService.addStudentToTeam(team1, user2.getEmail()));
     }
 
@@ -773,6 +776,39 @@ public class TeamServiceTest {
         assertThrows(TeamUserNotMemberException.class,
                 () -> teamService.leaveTeam(teamId, userId));
     }
+
+    @Test
+    void Given_NonStudentUser_When_AddToTeam_Then_ThrowException() {
+        User teacherUser = new User(UUID.randomUUID(), UUID.randomUUID(),
+                "teacher@test.com", "teacher", "Teacher", "Test");
+        List<String> roles = new ArrayList<>();
+        roles.add(RoleConstants.TEACHER);
+        teacherUser.setRoles(roles);
+
+        when(userRepository.findByEmailIgnoreCase(teacherUser.getEmail()))
+                .thenReturn(Optional.of(teacherUser));
+
+        UserNotAuthorizedException exception = assertThrows(UserNotAuthorizedException.class,
+                () -> teamService.addStudentToTeam(team1, teacherUser.getEmail()));
+
+        assertEquals("User with email teacher@test.com is not a student", exception.getMessage());
+    }
+
+    @Test
+    void Given_TeamBasedCourseKey_When_JoinTeam_Then_ThrowException() {
+        String keyValue = "COURSE-KEY";
+        CourseAccessKey courseKey = new CourseAccessKey();
+        courseKey.setCourse(teamBasedCourse);
+
+        when(teamKeyRepository.findByKeyValue(keyValue))
+                .thenReturn(Optional.empty());
+        when(courseKeyRepository.findByKeyValue(keyValue))
+                .thenReturn(Optional.of(courseKey));
+
+        assertThrows(IncorrectCourseTypeException.class,
+                () -> teamService.joinUsingKey(keyValue, user1));
+    }
+
 
     /* Helper Methods */
 
