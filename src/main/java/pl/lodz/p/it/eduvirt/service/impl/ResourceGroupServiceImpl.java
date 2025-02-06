@@ -38,7 +38,6 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
     private final VirtualMachineRepository virtualMachineRepository;
     private final NetworkInterfaceRepository networkInterfaceRepository;
     private final ResourceGroupPoolRepository resourceGroupPoolRepository;
-    private final PodStatefulRepository podStatefulRepository;
     private final CourseRepository courseRepository;
     private final ETagHelper eTagHelper;
     private final PrivilegesService privilegesService;
@@ -166,9 +165,11 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
             course.getStateFulResourceGroups().remove(resourceGroup);
             courseRepository.save(course);
         } else {
-            resourceGroupRepository.deleteById(id);
+            ResourceGroupPool pool = resourceGroupPoolRepository.findByResourceGroupsContaining(resourceGroup);
+            pool.getResourceGroups().remove(resourceGroup);
         }
 
+        resourceGroupRepository.deleteById(id);
     }
 
     @Transactional
