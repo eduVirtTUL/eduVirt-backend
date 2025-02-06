@@ -131,7 +131,7 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
                 List<ResourceGroupNetwork> networksToMap = resourceGroup.getNetworks();
                 networksToMap
                         .forEach(
-                                network -> mapNetworkToVnicProfiles(network, nicsIdsToExclude, executorTask)
+                                network -> mapNetworkToVnicProfile(network, nicsIdsToExclude, executorTask)
                         );
             }
 
@@ -359,8 +359,8 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
         }
     }
 
-    private void mapNetworkToVnicProfiles(ResourceGroupNetwork network, Map<UUID, UUID> nicsIdsToExclude,
-                                          ExecutorTask executorTask) {
+    private void mapNetworkToVnicProfile(ResourceGroupNetwork network, Map<UUID, UUID> nicsIdsToExclude,
+                                         ExecutorTask executorTask) {
         // Filter already assigned NICs
         List<NetworkInterface> interfaces = network.getInterfaces();
         int numOfInterfacesBeforeFiltering = interfaces.size();

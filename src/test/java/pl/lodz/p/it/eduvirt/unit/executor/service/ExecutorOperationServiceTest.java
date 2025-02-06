@@ -12,9 +12,16 @@ import org.ovirt.engine.sdk4.internal.containers.VmContainer;
 import org.ovirt.engine.sdk4.types.Vm;
 import org.ovirt.engine.sdk4.types.VmStatus;
 import pl.lodz.p.it.eduvirt.entity.AbstractEntity;
+import pl.lodz.p.it.eduvirt.entity.NetworkInterface;
 import pl.lodz.p.it.eduvirt.entity.Reservation;
 import pl.lodz.p.it.eduvirt.entity.ResourceGroup;
+import pl.lodz.p.it.eduvirt.entity.ResourceGroupNetwork;
 import pl.lodz.p.it.eduvirt.entity.VirtualMachine;
+import pl.lodz.p.it.eduvirt.entity.network.VnicProfilePoolMember;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorSubtask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.ExecutorTask;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.AdditionalId;
+import pl.lodz.p.it.eduvirt.executor.entity.tasks.subtasks.VnicProfileTask;
 import pl.lodz.p.it.eduvirt.executor.exception.ResourceGroupCurrentlyInUseException;
 import pl.lodz.p.it.eduvirt.executor.exception.VmInvalidStatusException;
 import pl.lodz.p.it.eduvirt.executor.exception.VmLaunchingStatusException;
@@ -30,7 +37,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -92,6 +103,11 @@ public class ExecutorOperationServiceTest {
 
     private ResourceGroup resourceGroup;
 
+    private ExecutorTask executorTask1;
+
+    private ExecutorSubtask executorSubtask1;
+    private ExecutorSubtask executorSubtask2;
+
     /* Data initialization */
 
     @BeforeEach
@@ -125,6 +141,17 @@ public class ExecutorOperationServiceTest {
 
         // RGs
         resourceGroup = new ResourceGroup();
+
+        // Executor tasks
+        executorTask1 = new ExecutorTask();
+        setEntityId(executorTask1, UUID.randomUUID());
+
+        // Executor subtasks
+        executorSubtask1 = new VnicProfileTask();
+        setEntityId(executorSubtask1, UUID.randomUUID());
+
+        executorSubtask2 = new VnicProfileTask();
+        setEntityId(executorSubtask2, UUID.randomUUID());
     }
 
     /* Private methods */
@@ -159,6 +186,90 @@ public class ExecutorOperationServiceTest {
         );
 
         verify(reservationService, times(1)).findRgNotCompletedReservations(resourceGroup);
+    }
+
+    @Test
+    void Given_ValidData_When_MapNetworkToVnicProfileWithoutFiltering_Then_Success() {
+        /// ///
+        ResourceGroupNetwork network = ResourceGroupNetwork.builder()
+                .name("net1")
+                .build();
+
+        NetworkInterface nic1Vm1 = NetworkInterface.builder()
+                .id(UUID.randomUUID())
+                .virtualMachine(vm1)
+                .resourceGroupNetwork(network)
+                .build();
+
+        NetworkInterface nic1Vm2 = NetworkInterface.builder()
+                .id(UUID.randomUUID())
+                .virtualMachine(vm2)
+                .resourceGroupNetwork(network)
+                .build();
+
+        network.setInterfaces(Arrays.asList(nic1Vm1, nic1Vm2));
+
+        VnicProfilePoolMember freeVnicProfileFromPool = new VnicProfilePoolMember(
+                UUID.randomUUID(),
+                101,
+                "vnicProfile1",
+                "network1"
+        );
+        /// ///
+
+        when(vnicProfilePoolService.getFirstFreeVnicProfileFromPool())
+                .thenReturn(Optional.of(freeVnicProfileFromPool));
+
+        doNothing().when(vnicProfilePoolService).markVnicProfileAsOccupied(freeVnicProfileFromPool.getId());
+
+        /* Run and register section */
+        when(executorTaskService.registerSubTask(executorTask1.getId(), vmId1, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE))
+                .thenReturn(executorSubtask1);
+        when(executorTaskService.registerSubTask(executorTask1.getId(), vmId2, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE))
+                .thenReturn(executorSubtask2);
+
+        doNothing().when(executorTaskService).finalizeSubTask(executorSubtask1.getId(), true,
+                AdditionalId.VNIC_PROFILE.withId(freeVnicProfileFromPool.getId()),
+                AdditionalId.NIC.withId(nic1Vm1.getId())
+        );
+
+        doNothing().when(executorTaskService).finalizeSubTask(executorSubtask2.getId(), true,
+                AdditionalId.VNIC_PROFILE.withId(freeVnicProfileFromPool.getId()),
+                AdditionalId.NIC.withId(nic1Vm2.getId())
+        );
+
+        /* Run and register section */
+
+        executorOperationServiceMethod("mapNetworkToVnicProfile", network, new HashMap<>(), executorTask1);
+
+        // Verifications
+        verify(vnicProfilePoolService, times(1)).getFirstFreeVnicProfileFromPool();
+        verify(vnicProfilePoolService, times(1)).markVnicProfileAsOccupied(freeVnicProfileFromPool.getId());
+
+        verify(executorTaskService, times(2))
+                .registerSubTask(eq(executorTask1.getId()), any(UUID.class), eq(ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE));
+        verify(executorTaskService, times(1))
+                .registerSubTask(executorTask1.getId(), vmId1, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE);
+        verify(executorTaskService, times(1))
+                .registerSubTask(executorTask1.getId(), vmId2, ExecutorSubtask.SubtaskType.ASSIGN_VNIC_PROFILE);
+
+        verify(executorTaskService, times(2)).finalizeSubTask(
+                any(UUID.class), eq(true),
+                eq(AdditionalId.VNIC_PROFILE.withId(freeVnicProfileFromPool.getId())),
+                any(AdditionalId.NIC.getDeclaringClass())
+        );
+
+        verify(executorTaskService, times(1)).finalizeSubTask(
+                executorSubtask1.getId(), true,
+                AdditionalId.VNIC_PROFILE.withId(freeVnicProfileFromPool.getId()),
+                AdditionalId.NIC.withId(nic1Vm1.getId())
+        );
+
+        verify(executorTaskService, times(1)).finalizeSubTask(
+                executorSubtask2.getId(), true,
+                AdditionalId.VNIC_PROFILE.withId(freeVnicProfileFromPool.getId()),
+                AdditionalId.NIC.withId(nic1Vm2.getId())
+        );
     }
 
     /* Methods related to oVirt Api calls */
@@ -284,9 +395,9 @@ public class ExecutorOperationServiceTest {
     @SuppressWarnings("SameParameterValue")
     private <T, R> R executeMethod(Class<T> clazz, Object object,
                                    String methodName, Class<R> returnType, Object... parameters) {
-        Class<?>[] parameterTypes = Arrays.stream(parameters).map(
-                param -> param instanceof ArrayList<?> ? List.class : param.getClass()
-        ).toList().toArray(new Class[0]);
+        Class<?>[] parameterTypes = Arrays.stream(parameters)
+                .map(ExecutorOperationServiceTest::mapClassTypes)
+                .toList().toArray(new Class[0]);
         Method method = clazz.getDeclaredMethod(methodName, parameterTypes);
         method.setAccessible(true);
         Object result;
@@ -317,5 +428,14 @@ public class ExecutorOperationServiceTest {
     @SuppressWarnings("SameParameterValue")
     private void executorOperationServiceMethod(String methodName, Object... parameters) {
         executeMethod(executorOperationService.getClass(), executorOperationService, methodName, parameters);
+    }
+
+    private static Class<?> mapClassTypes(Object obj) {
+        return switch (obj) {
+            case ArrayList<?> ignored -> List.class;
+            case HashMap<?, ?> ignored -> Map.class;
+            case HashSet<?> ignored -> Set.class;
+            default -> obj.getClass();
+        };
     }
 }
