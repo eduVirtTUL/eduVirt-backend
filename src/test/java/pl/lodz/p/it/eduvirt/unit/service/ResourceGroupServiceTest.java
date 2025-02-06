@@ -126,9 +126,15 @@ public class ResourceGroupServiceTest {
                 .name("ResourceGroup")
                 .stateless(true)
                 .build();
+        ResourceGroupPool pool = ResourceGroupPool.builder()
+                .resourceGroups(new ArrayList<>(List.of(resourceGroup)))
+                .build();
 
         when(resourceGroupRepository.findById(id))
                 .thenReturn(Optional.of(resourceGroup));
+
+        when(resourceGroupPoolRepository.findByResourceGroupsContaining(resourceGroup))
+                .thenReturn(pool);
 
         sut.deleteResourceGroup(id);
     }
