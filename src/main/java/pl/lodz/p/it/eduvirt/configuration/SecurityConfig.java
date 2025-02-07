@@ -92,7 +92,7 @@ public class SecurityConfig {
         configuration.addAllowedHeader("*");
         configuration.addAllowedHeader("If-Match");
 
-        configuration.setExposedHeaders(List.of("ETag"));
+        configuration.setExposedHeaders(List.of("ETag", "X-Access-Token", "X-Refresh-Token"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
