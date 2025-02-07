@@ -96,9 +96,12 @@ public class LoginController {
         }
 
         httpServletResponse.setHeader("Location", frontendCallback);
-        Cookie cookie = new Cookie("access_token", result.getBody().getAccessToken());
-        cookie.setPath("/");
-        httpServletResponse.addCookie(cookie);
+        Cookie accessTokenCookie = new Cookie("access_token", result.getBody().getAccessToken());
+        accessTokenCookie.setPath("/");
+        Cookie refreshTokenCookie = new Cookie("refresh_token", result.getBody().getRefreshToken());
+        refreshTokenCookie.setPath("/");
+        httpServletResponse.addCookie(accessTokenCookie);
+        httpServletResponse.addCookie(refreshTokenCookie);
         httpServletResponse.setStatus(302);
     }
 
