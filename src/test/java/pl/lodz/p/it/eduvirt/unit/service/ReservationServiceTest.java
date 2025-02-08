@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.entity.*;
@@ -21,6 +22,7 @@ import pl.lodz.p.it.eduvirt.repository.*;
 import pl.lodz.p.it.eduvirt.service.ovirt.OVirtClusterService;
 import pl.lodz.p.it.eduvirt.service.impl.ReservationServiceImpl;
 import pl.lodz.p.it.eduvirt.util.BankerAlgorithm;
+import pl.lodz.p.it.eduvirt.util.MailProvider;
 import pl.lodz.p.it.eduvirt.util.MetricUtil;
 
 import java.lang.reflect.Field;
@@ -33,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@TestPropertySource(locations = "classpath:application.yaml")
 class ReservationServiceTest {
 
     /* Repositories */
@@ -51,6 +54,12 @@ class ReservationServiceTest {
 
     @Mock
     private MaintenanceIntervalRepository maintenanceIntervalRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private MailProvider mailProvider;
 
     /* Other services */
 
@@ -154,6 +163,7 @@ class ReservationServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         ReflectionTestUtils.setField(reservationService, "windowLength", 15);
+        ReflectionTestUtils.setField(reservationService, "resourcesWarningMails", true);
         Field id = AbstractEntity.class.getDeclaredField("id");
         Field version = Updatable.class.getDeclaredField("version");
 
@@ -686,6 +696,29 @@ class ReservationServiceTest {
         when(clusterService.findAllHostsInCluster(cluster)).thenReturn(hosts);
 
         assertThrows(ReservationEndBeforeStartException.class,
+                () -> reservationService.createReservationForStatefulPod(team1, podStateful1, newCreateDto));
+
+        verify(clusterService, times(1)).findClusterById(existingClusterId);
+        verify(clusterService, times(1)).findAllHostsInCluster(cluster);
+    }
+
+    @Test
+    void Given_ReservationNotificationTimeIsLongerThanHalfItsLength_When_CreateReservationForStatefulPod_Then_ThrowsException() {
+        Cluster cluster = mock(Cluster.class);
+        Host host1 = mock(Host.class);
+        Host host2 = mock(Host.class);
+        List<Host> hosts = List.of(host1, host2);
+
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        CreateReservationDto newCreateDto = new CreateReservationDto(
+                currentTime.plusMinutes(10), currentTime.plusHours(2).plusMinutes(10),
+                reservation1.getAutomaticStartup(), 61
+        );
+
+        when(clusterService.findClusterById(existingClusterId)).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(cluster)).thenReturn(hosts);
+
+        assertThrows(ReservationNotificationTimeTooLongException.class,
                 () -> reservationService.createReservationForStatefulPod(team1, podStateful1, newCreateDto));
 
         verify(clusterService, times(1)).findClusterById(existingClusterId);
@@ -1268,6 +1301,29 @@ class ReservationServiceTest {
                 () -> reservationService.createReservationForStatelessPod(team1, podStateless1, newCreateDto));
 
         verify(clusterService, times(1)).findClusterById(course.getClusterId());
+        verify(clusterService, times(1)).findAllHostsInCluster(cluster);
+    }
+
+    @Test
+    void Given_ReservationNotificationTimeIsLongerThanHalfItsLength_When_CreateReservationForStatelessPod_Then_ThrowsException() {
+        Cluster cluster = mock(Cluster.class);
+        Host host1 = mock(Host.class);
+        Host host2 = mock(Host.class);
+        List<Host> hosts = List.of(host1, host2);
+
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        CreateReservationDto newCreateDto = new CreateReservationDto(
+                currentTime.plusMinutes(10), currentTime.plusHours(2).plusMinutes(10),
+                reservation1.getAutomaticStartup(), 61
+        );
+
+        when(clusterService.findClusterById(existingClusterId)).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(cluster)).thenReturn(hosts);
+
+        assertThrows(ReservationNotificationTimeTooLongException.class,
+                () -> reservationService.createReservationForStatelessPod(team1, podStateless1, newCreateDto));
+
+        verify(clusterService, times(1)).findClusterById(existingClusterId);
         verify(clusterService, times(1)).findAllHostsInCluster(cluster);
     }
 
@@ -2330,6 +2386,127 @@ class ReservationServiceTest {
     }
 
     @Test
+    void Given_AnalyzedPeriodOfTimeIsAtLeastOneWeekAndMailIsNotRequired_When_CheckResourceGroupAvailability_Then_ReturnsResourceGroupAvailability() {
+        int length = windowLength;
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusDays(7).plusHours(2);
+
+        Cluster cluster = mock(Cluster.class);
+        Host host1 = mock(Host.class);
+        Host host2 = mock(Host.class);
+        List<Host> hosts = List.of(host1, host2);
+
+        when(clusterService.findClusterById(course.getClusterId())).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(cluster)).thenReturn(hosts);
+
+        when(courseMetricRepository.findAllByCourse(course)).thenReturn(courseMetrics);
+        when(clusterMetricRepository.findAllByClusterId(course.getClusterId()))
+                .thenReturn(clusterMetrics);
+
+        LocalDateTime startTemp = currentTime;
+        while (startTemp.isBefore(end)) {
+            List<Reservation> courseReservations = List.of(reservation1);
+            lenient().when(reservationRepository.findCourseReservations(eq(course), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(courseReservations);
+
+            List<Reservation> clusterReservations = List.of(reservation1, reservation3);
+            lenient().when(reservationRepository.findClusterReservations(eq(course.getClusterId()), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(clusterReservations);
+
+            lenient().when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
+                    course.getClusterId(), start, end)).thenReturn(List.of());
+
+            lenient().when(bankerAlgorithm.process(any(), eq(courseReservations), eq(resourceGroup1),
+                    eq(cluster), eq(hosts))).thenReturn(true);
+
+            lenient().when(bankerAlgorithm.process(any(), eq(clusterReservations), eq(resourceGroup1),
+                    eq(cluster), eq(hosts))).thenReturn(true);
+
+            lenient().when(reservationRepository.findRgReservations(eq(resourceGroup1), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(List.of());
+
+            startTemp = startTemp.plusMinutes(length);
+        }
+
+        Map<LocalDateTime, Boolean> availability = reservationService
+                .checkResourceGroupAvailability(resourceGroup1, course, length, start, end);
+
+        assertNotNull(availability);
+        availability.keySet().forEach(intervalStart -> assertTrue(availability.get(intervalStart)));
+
+        verify(clusterService, times(1)).findClusterById(course.getClusterId());
+        verify(clusterService, times(1)).findAllHostsInCluster(cluster);
+
+        verify(courseMetricRepository, times(1)).findAllByCourse(course);
+        verify(clusterMetricRepository, times(1)).findAllByClusterId(course.getClusterId());
+    }
+
+    @Test
+    void Given_AnalyzedPeriodOfTimeIsAtLeastOneWeekAndMailIsRequired_When_CheckResourceGroupAvailability_Then_ReturnsResourceGroupAvailability() {
+        int length = windowLength;
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusDays(7).plusHours(2);
+
+        Cluster cluster = mock(Cluster.class);
+        Host host1 = mock(Host.class);
+        Host host2 = mock(Host.class);
+        List<Host> hosts = List.of(host1, host2);
+
+        when(clusterService.findClusterById(course.getClusterId())).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(cluster)).thenReturn(hosts);
+
+        when(courseMetricRepository.findAllByCourse(course)).thenReturn(courseMetrics);
+        when(clusterMetricRepository.findAllByClusterId(course.getClusterId()))
+                .thenReturn(clusterMetrics);
+
+        LocalDateTime startTemp = currentTime;
+        while (startTemp.isBefore(end)) {
+            List<Reservation> courseReservations = List.of(reservation1);
+            lenient().when(reservationRepository.findCourseReservations(eq(course), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(courseReservations);
+
+            List<Reservation> clusterReservations = List.of(reservation1, reservation3);
+            lenient().when(reservationRepository.findClusterReservations(eq(course.getClusterId()), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(clusterReservations);
+
+            lenient().when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
+                    course.getClusterId(), start, end)).thenReturn(List.of());
+
+            lenient().when(bankerAlgorithm.process(any(), eq(courseReservations), eq(resourceGroup1),
+                    eq(cluster), eq(hosts))).thenReturn(false);
+
+            lenient().when(bankerAlgorithm.process(any(), eq(clusterReservations), eq(resourceGroup1),
+                    eq(cluster), eq(hosts))).thenReturn(false);
+
+            lenient().when(reservationRepository.findRgReservations(eq(resourceGroup1), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(List.of());
+
+            startTemp = startTemp.plusMinutes(length);
+        }
+
+        /* Mail sending part */
+
+        when(userRepository.findUsersWithRole("administrator")).thenReturn(Arrays.asList(user1, user2));
+        doNothing().when(mailProvider).sendTemporaryCourseResourcesExhaustionEmail(
+                any(), any(), any(), any(), any(),
+                eq(true), any(), any(), any(), any());
+
+        Map<LocalDateTime, Boolean> availability = reservationService
+                .checkResourceGroupAvailability(resourceGroup1, course, length, start, end);
+
+        assertNotNull(availability);
+        availability.keySet().forEach(intervalStart -> assertFalse(availability.get(intervalStart)));
+
+        verify(clusterService, times(1)).findClusterById(course.getClusterId());
+        verify(clusterService, times(1)).findAllHostsInCluster(cluster);
+
+        verify(courseMetricRepository, times(1)).findAllByCourse(course);
+        verify(clusterMetricRepository, times(1)).findAllByClusterId(course.getClusterId());
+    }
+
+    @Test
     void Given_NonExistentClusterIdentifierIsPassed_When_CheckResourceGroupAvailability_Then_ThrowsException() {
         int length = 30;
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -2454,6 +2631,129 @@ class ReservationServiceTest {
     }
 
     @Test
+    void Given_AnalyzedPeriodOfTimeIsAtLeastOneWeekAndMailIsNotRequired_When_CheckResourceGroupPoolAvailability_Then_ReturnsResourceGroupPoolAvailability() {
+        int length = windowLength;
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusDays(7).plusHours(2);
+
+        Cluster cluster = mock(Cluster.class);
+        Host host1 = mock(Host.class);
+        Host host2 = mock(Host.class);
+        List<Host> hosts = List.of(host1, host2);
+
+        when(clusterService.findClusterById(course.getClusterId())).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(cluster)).thenReturn(hosts);
+
+        when(courseMetricRepository.findAllByCourse(course)).thenReturn(courseMetrics);
+        when(clusterMetricRepository.findAllByClusterId(course.getClusterId()))
+                .thenReturn(clusterMetrics);
+
+        LocalDateTime startTemp = currentTime;
+        while (startTemp.isBefore(end)) {
+            List<Reservation> courseReservations = List.of(reservation1);
+            lenient().when(reservationRepository.findCourseReservations(eq(course), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(courseReservations);
+
+            List<Reservation> clusterReservations = List.of(reservation1, reservation3);
+            lenient().when(reservationRepository.findClusterReservations(eq(course.getClusterId()), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(clusterReservations);
+
+            lenient().when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
+                    eq(course.getClusterId()), eq(startTemp), eq(startTemp.plusMinutes(length))))
+                    .thenReturn(List.of());
+
+            lenient().when(bankerAlgorithm.process(any(), eq(courseReservations), eq(resourceGroup3),
+                    eq(cluster), eq(hosts))).thenReturn(true);
+
+            lenient().when(bankerAlgorithm.process(any(), eq(clusterReservations), eq(resourceGroup3),
+                    eq(cluster), eq(hosts))).thenReturn(true);
+
+            lenient().when(reservationRepository.findRgReservations(eq(resourceGroup3), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(List.of());
+
+            startTemp = startTemp.plusMinutes(length);
+        }
+
+        Map<LocalDateTime, Boolean> availability = reservationService
+                .checkResourceGroupPoolAvailability(resourceGroupPool1, course, length, start, end);
+
+        assertNotNull(availability);
+        availability.keySet().forEach(intervalStart -> assertTrue(availability.get(intervalStart)));
+
+        verify(clusterService, times(1)).findClusterById(course.getClusterId());
+        verify(clusterService, times(1)).findAllHostsInCluster(cluster);
+
+        verify(courseMetricRepository, times(1)).findAllByCourse(course);
+        verify(clusterMetricRepository, times(1)).findAllByClusterId(course.getClusterId());
+    }
+
+    @Test
+    void Given_AnalyzedPeriodOfTimeIsAtLeastOneWeekAndMailIsRequired_When_CheckResourceGroupPoolAvailability_Then_ReturnsResourceGroupPoolAvailability() {
+        int length = windowLength;
+        LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = currentTime.plusHours(2);
+        LocalDateTime end = currentTime.plusDays(7).plusHours(2);
+
+        Cluster cluster = mock(Cluster.class);
+        Host host1 = mock(Host.class);
+        Host host2 = mock(Host.class);
+        List<Host> hosts = List.of(host1, host2);
+
+        when(clusterService.findClusterById(course.getClusterId())).thenReturn(cluster);
+        when(clusterService.findAllHostsInCluster(cluster)).thenReturn(hosts);
+
+        when(courseMetricRepository.findAllByCourse(course)).thenReturn(courseMetrics);
+        when(clusterMetricRepository.findAllByClusterId(course.getClusterId()))
+                .thenReturn(clusterMetrics);
+
+        LocalDateTime startTemp = currentTime;
+        while (startTemp.isBefore(end)) {
+            List<Reservation> courseReservations = List.of(reservation1);
+            lenient().when(reservationRepository.findCourseReservations(eq(course), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(courseReservations);
+
+            List<Reservation> clusterReservations = List.of(reservation1, reservation3);
+            lenient().when(reservationRepository.findClusterReservations(eq(course.getClusterId()), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(clusterReservations);
+
+            lenient().when(maintenanceIntervalRepository.findAllIntervalsInGivenTimePeriod(
+                            eq(course.getClusterId()), eq(startTemp), eq(startTemp.plusMinutes(length))))
+                    .thenReturn(List.of());
+
+            lenient().when(bankerAlgorithm.process(any(), eq(courseReservations), eq(resourceGroup3),
+                    eq(cluster), eq(hosts))).thenReturn(false);
+
+            lenient().when(bankerAlgorithm.process(any(), eq(clusterReservations), eq(resourceGroup3),
+                    eq(cluster), eq(hosts))).thenReturn(false);
+
+            lenient().when(reservationRepository.findRgReservations(eq(resourceGroup3), eq(startTemp),
+                    eq(startTemp.plusMinutes(length)))).thenReturn(List.of());
+
+            startTemp = startTemp.plusMinutes(length);
+        }
+
+        /* Mail sending part */
+
+        when(userRepository.findUsersWithRole("administrator")).thenReturn(Arrays.asList(user1, user2));
+        doNothing().when(mailProvider).sendTemporaryCourseResourcesExhaustionEmail(
+                any(), any(), any(), any(), any(),
+                eq(false), any(), any(), any(), any());
+
+        Map<LocalDateTime, Boolean> availability = reservationService
+                .checkResourceGroupPoolAvailability(resourceGroupPool1, course, length, start, end);
+
+        assertNotNull(availability);
+        availability.keySet().forEach(intervalStart -> assertFalse(availability.get(intervalStart)));
+
+        verify(clusterService, times(1)).findClusterById(course.getClusterId());
+        verify(clusterService, times(1)).findAllHostsInCluster(cluster);
+
+        verify(courseMetricRepository, times(1)).findAllByCourse(course);
+        verify(clusterMetricRepository, times(1)).findAllByClusterId(course.getClusterId());
+    }
+
+    @Test
     void Given_NonExistentClusterIdentifierIsPassed_When_CheckResourceGroupPoolAvailability_Then_ThrowsException() {
         int length = 30;
         LocalDateTime currentTime = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime();
@@ -2488,6 +2788,38 @@ class ReservationServiceTest {
 
         verify(clusterService, times(1)).findClusterById(course.getClusterId());
         verify(clusterService, times(1)).findAllHostsInCluster(cluster);
+    }
+
+    /* FindReservationCountForStatelessPod method tests */
+
+    @Test
+    void Given_SomeReservationsExistForGivenStatelessPodAndTeam_When_FindReservationCountForStatelessPod_Then_ReturnsFoundReservationCount() {
+        when(reservationRepository.findAllRgPoolReservationsForGivenTeam(resourceGroupPool1, team1))
+                .thenReturn(List.of(reservation1, reservation2, reservation3));
+
+        int reservationCount = reservationService.findReservationCountForStatelessPod(podStateless1, team1);
+
+        assertNotEquals(0, reservationCount);
+        assertEquals(3, reservationCount);
+
+        verify(reservationRepository, times(1))
+                .findAllRgPoolReservationsForGivenTeam(resourceGroupPool1, team1);
+    }
+
+    /* FindReservationCountForStatefulPod method tests */
+
+    @Test
+    void Given_SomeReservationsExistForGivenStatelessPodAndTeam_When_FindReservationCountForStatefulPod_Then_ReturnsFoundReservationCount() {
+        when(reservationRepository.findAllRgReservationsForGivenTeam(resourceGroup1, team1))
+                .thenReturn(List.of(reservation1, reservation2, reservation3));
+
+        int reservationCount = reservationService.findReservationCountForStatefulPod(podStateful1, team1);
+
+        assertNotEquals(0, reservationCount);
+        assertEquals(3, reservationCount);
+
+        verify(reservationRepository, times(1))
+                .findAllRgReservationsForGivenTeam(resourceGroup1, team1);
     }
 
     /* FinishReservationAsStudent method tests */
