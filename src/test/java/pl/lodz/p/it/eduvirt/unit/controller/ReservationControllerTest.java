@@ -23,6 +23,7 @@ import pl.lodz.p.it.eduvirt.dto.pagination.PageInfoDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.CreateReservationDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDetailsDto;
 import pl.lodz.p.it.eduvirt.dto.reservation.ReservationDto;
+import pl.lodz.p.it.eduvirt.dto.reservation.ReservationTimeframeModifiersDto;
 import pl.lodz.p.it.eduvirt.entity.*;
 import pl.lodz.p.it.eduvirt.exceptions.ReservationNotFoundException;
 import pl.lodz.p.it.eduvirt.exceptions.resource_group.ResourceGroupNotFoundException;
@@ -585,6 +586,24 @@ class ReservationControllerTest {
 
         verify(courseService, times(1)).getCourse(course.getId());
         verify(teamService, times(1)).getTeamByCourseAndUser(course, userId1);
+    }
+
+    /* GetReservationGlobalTimeframeModifiers method tests */
+
+    @Test
+    @WithMockUser
+    void Given_RequiredEnvVariablesAreDefined_When_GetReservationGlobalTimeframeModifiers_Then_ReturnsFoundTimeModifiers() throws Exception {
+        MvcResult result = mockMvc.perform(get("/reservations/timeframe-modifiers"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        ReservationTimeframeModifiersDto outputDto = mapper.readValue(json, ReservationTimeframeModifiersDto.class);
+
+        assertNotNull(outputDto);
+        assertEquals(0, outputDto.startTimeDelay());
+        assertEquals(5, outputDto.endTimeHastening());
     }
 
     /* GetReservationDetails method tests */
@@ -2606,7 +2625,7 @@ class ReservationControllerTest {
 
     @Test
     @WithMockUser(username = "f1ff980e-d8e8-497d-b9f8-b7cb72a27356", authorities = "teacher")
-    void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExistAsTeacherNotInCourse_When_GetActiveReservationsForTeam_Then_ReturnsListOfActiveReservations() throws Exception {
+    void Given_ExistingTeamIdentifierIsPassedAndSomeActiveReservationsExistAsTeacherNotInCourse_When_GetActiveReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
         Pageable pageable = PageRequest.of(page, size);
@@ -2721,7 +2740,7 @@ class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "student")
+    @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
     void Given_ExistingTeamIdentifierIsPassedAndNoHistoricReservationsExist_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
         int page = 0;
         int size = 10;
@@ -2744,7 +2763,7 @@ class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "student")
+    @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
     void Given_CurrentlyAuthenticatedUserCouldNotBeFound_When_GetHistoricReservationsForTeam_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
@@ -2760,7 +2779,7 @@ class ReservationControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "student")
+    @WithMockUser(username = "e989c375-5eed-4ec6-b4b3-8ace83ed99fe", authorities = "teacher")
     void Given_NonExistentTeamIdentifierIsPassed_When_GetHistoricReservationsForTeam_Then_Returns404NotFound() throws Exception {
         int page = 0;
         int size = 10;
@@ -2841,6 +2860,29 @@ class ReservationControllerTest {
         assertEquals(reservation3.getTeam().getMaxSize(), secondReservation.team().getMaxSize());
         assertEquals(reservation3.getStartTime(), secondReservation.start());
         assertEquals(reservation3.getEndTime(), secondReservation.end());
+
+        verify(userRepository, times(1)).findById(adminId);
+        verify(teamService, times(1)).getTeamById(team1.getId());
+        verify(reservationService, times(1)).findHistoricalReservations(team1.getId(), pageable);
+    }
+
+    @Test
+    @WithMockUser(username = "63c7b8c8-6a46-4784-9843-1096442dafd2", authorities = "administrator")
+    void Given_ExistingTeamIdentifierIsPassedAndNoHistoricReservationsExistAsAdministrator_When_GetHistoricReservationsForTeam_Then_ReturnsEmptyListOfReservations() throws Exception {
+        int page = 0;
+        int size = 10;
+        Pageable pageable = PageRequest.of(page, size);
+
+        when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
+        when(teamService.getTeamById(team1.getId())).thenReturn(team1);
+        when(reservationService.findHistoricalReservations(team1.getId(), pageable))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        mockMvc.perform(get("/reservations/historic/teams/{teamId}", team1.getId())
+                        .param("page", String.valueOf(page))
+                        .param("size", String.valueOf(size)))
+                .andDo(print())
+                .andExpect(status().isNoContent());
 
         verify(userRepository, times(1)).findById(adminId);
         verify(teamService, times(1)).getTeamById(team1.getId());
