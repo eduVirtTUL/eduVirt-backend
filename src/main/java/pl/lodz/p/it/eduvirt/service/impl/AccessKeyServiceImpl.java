@@ -81,6 +81,12 @@ public class AccessKeyServiceImpl implements AccessKeyService {
             throw new AccessKeyAlreadyExistsException();
         }
 
+        if (userCourseKey != null &&
+                (teamAccessKeyRepository.existsByKeyValue(userCourseKey) ||
+                        courseAccessKeyRepository.existsByKeyValue(userCourseKey))) {
+            throw new DuplicateKeyValueException(userCourseKey);
+        }
+
         String keyValue = validateAndGetKeyValue(userCourseKey, course.getName(),
                 courseAccessKeyRepository::existsByKeyValue);
 
