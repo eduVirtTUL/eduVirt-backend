@@ -190,7 +190,7 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @PreAuthorize("hasAuthority('teacher')")
     public Team createTeam(Team team, Course course, String userKeyValue) {
-        if (userKeyValue != null && teamKeyRepository.existsByKeyValue(userKeyValue)) {
+        if (userKeyValue != null && teamKeyRepository.existsByKeyValue(userKeyValue) && courseKeyRepository.existsByKeyValue(userKeyValue)) {
             throw new DuplicateKeyValueException(userKeyValue);
         }
 
