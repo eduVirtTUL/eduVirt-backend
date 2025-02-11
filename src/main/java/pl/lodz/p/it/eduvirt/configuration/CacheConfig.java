@@ -15,8 +15,8 @@ public class CacheConfig {
         return new ConfigurationBuilder()
                 .clustering()
                 .cacheMode(CacheMode.LOCAL)
-                .expiration().lifespan(300, TimeUnit.SECONDS)
-                .memory().maxCount(500)
+                .expiration().lifespan(150, TimeUnit.SECONDS)
+                .memory().maxCount(1000)
                 .build();
     }
 
@@ -25,36 +25,8 @@ public class CacheConfig {
         return new ConfigurationBuilder()
                 .clustering()
                 .cacheMode(CacheMode.LOCAL)
-                .expiration().lifespan(300, TimeUnit.SECONDS)
-                .memory().maxCount(500)
+                .expiration().lifespan(150, TimeUnit.SECONDS)
+                .memory().maxCount(1000)
                 .build();
     }
-
-//    @Bean
-//    public DefaultCacheManager cacheManager() {
-//        DefaultCacheManager cacheManager = new DefaultCacheManager();
-//
-//        cacheManager.defineConfiguration(
-//                "vms",
-//                new ConfigurationBuilder()
-//                        .clustering()
-//                        .cacheMode(CacheMode.LOCAL)
-//                        .expiration().lifespan(300, TimeUnit.SECONDS)
-//                        .memory().maxCount(500)
-//                        .build()
-//        );
-//
-//        cacheManager.defineConfiguration(
-//                "qos",
-//                new ConfigurationBuilder()
-//                        .clustering()
-//                        .cacheMode(CacheMode.LOCAL)
-//                        .expiration().lifespan(300, TimeUnit.SECONDS)
-//                        .memory().maxCount(500)
-//                        .build()
-//        );
-//
-//
-//        return cacheManager;
-//    }
 }
