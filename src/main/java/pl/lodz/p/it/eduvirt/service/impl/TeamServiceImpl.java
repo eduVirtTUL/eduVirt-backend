@@ -334,6 +334,9 @@ public class TeamServiceImpl implements TeamService {
             }
 
             validateUserNotInTeam(team, user.getId());
+            if (team.getUsers().size() + 1 > team.getMaxSize()) {
+                throw new TeamSizeException();
+            }
             team.getUsers().add(user);
             teamRepository.saveAndFlush(team);
         } catch (AccessKeyNotFoundException e) {
@@ -344,7 +347,6 @@ public class TeamServiceImpl implements TeamService {
             if (course.getCourseType() == CourseType.TEAM_BASED) {
                 throw new IncorrectCourseTypeException("Cannot join solo course with team access key");
             }
-
             validateUserNotInCourse(user.getId(), course.getId());
             createSoloTeam(course, user);
         }
