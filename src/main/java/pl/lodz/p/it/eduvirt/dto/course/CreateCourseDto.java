@@ -4,10 +4,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import pl.lodz.p.it.eduvirt.entity.key.CourseType;
 
 import java.util.UUID;
 
+@Builder
 public record CreateCourseDto(
         @NotBlank
         @Size(min = 1, max = 50)
