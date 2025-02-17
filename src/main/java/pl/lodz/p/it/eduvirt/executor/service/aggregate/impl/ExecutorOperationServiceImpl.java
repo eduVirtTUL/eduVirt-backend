@@ -69,9 +69,10 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
     @Override
     public void startUpPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodInitTask(reservation);
-        List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationStartExistingSubTasks(reservation);
 
         try {
+            List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationStartExistingSubTasks(reservation);
+
             // Mark reservation as started (unless its processing has already begun)
             if (reservation.getStatus() != Reservation.ReservationStatus.IN_PROGRESS) {
                 reservationService.startReservation(reservation);
@@ -214,9 +215,10 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
     @Override
     public void stopPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodDestroyTask(reservation);
-        List<ExecutorSubtask> existingSubtasks = executorTaskService.getStopPodExistingSubTasks(reservation);
 
         try {
+            List<ExecutorSubtask> existingSubtasks = executorTaskService.getStopPodExistingSubTasks(reservation);
+
             ResourceGroup resourceGroup = reservation.getResourceGroup();
             Team team = reservation.getTeam();
             List<VirtualMachine> originalVms = resourceGroup.getVms();
