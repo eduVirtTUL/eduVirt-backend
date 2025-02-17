@@ -23,7 +23,6 @@ public class NotificationScheduler {
     private final MailNotificationService mailNotificationService;
 
     @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.MINUTES, initialDelay = 0L)
-    @Transactional(propagation = Propagation.NEVER)
     public void sendNotifications() {
         reservationService.findReservationsToSendNotifications()
                 .forEach(

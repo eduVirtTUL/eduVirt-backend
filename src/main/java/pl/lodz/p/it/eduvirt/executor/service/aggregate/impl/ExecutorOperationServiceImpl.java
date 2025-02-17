@@ -69,9 +69,10 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
     @Override
     public void startUpPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodInitTask(reservation);
-        List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationStartExistingSubTasks(reservation);
 
         try {
+            List<ExecutorSubtask> existingSubtasks = executorTaskService.getReservationStartExistingSubTasks(reservation);
+
             // Mark reservation as started (unless its processing has already begun)
             if (reservation.getStatus() != Reservation.ReservationStatus.IN_PROGRESS) {
                 reservationService.startReservation(reservation);
@@ -131,7 +132,7 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
                 List<ResourceGroupNetwork> networksToMap = resourceGroup.getNetworks();
                 networksToMap
                         .forEach(
-                                network -> mapNetworkToVnicProfiles(network, nicsIdsToExclude, executorTask)
+                                network -> mapNetworkToVnicProfile(network, nicsIdsToExclude, executorTask)
                         );
             }
 
@@ -214,9 +215,10 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
     @Override
     public void stopPod(Reservation reservation) {
         ExecutorTask executorTask = executorTaskService.registerPodDestroyTask(reservation);
-        List<ExecutorSubtask> existingSubtasks = executorTaskService.getStopPodExistingSubTasks(reservation);
 
         try {
+            List<ExecutorSubtask> existingSubtasks = executorTaskService.getStopPodExistingSubTasks(reservation);
+
             ResourceGroup resourceGroup = reservation.getResourceGroup();
             Team team = reservation.getTeam();
             List<VirtualMachine> originalVms = resourceGroup.getVms();
@@ -359,8 +361,8 @@ public class ExecutorOperationServiceImpl implements ExecutorOperationService {
         }
     }
 
-    private void mapNetworkToVnicProfiles(ResourceGroupNetwork network, Map<UUID, UUID> nicsIdsToExclude,
-                                          ExecutorTask executorTask) {
+    private void mapNetworkToVnicProfile(ResourceGroupNetwork network, Map<UUID, UUID> nicsIdsToExclude,
+                                         ExecutorTask executorTask) {
         // Filter already assigned NICs
         List<NetworkInterface> interfaces = network.getInterfaces();
         int numOfInterfacesBeforeFiltering = interfaces.size();
